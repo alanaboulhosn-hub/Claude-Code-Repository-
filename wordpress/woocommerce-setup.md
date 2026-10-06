@@ -27,6 +27,13 @@ Tags: Pork Gelatin (19, slug pork-gelatin), Gelatin Free (20, slug gelatin-free)
 The four "Sample candy" placeholders from the page's fallback list were not added.
 None of the products has a photo yet; cards show the drawn jelly-bean placeholder.
 
+## Full catalogue published (2026-10-06)
+
+34 products live: 31 Pick & Mix candies ($2.50 / 100 g; sub-categories Sweet (21) and Sour (22))
+and 3 Ready Mixes ($12.50 / 500 g bag): Sweet Mix (96), Sweet & Sour Mix (94), Sour Mix (95).
+Pork Gelatin: Fizzy Cola (90), Loose Teeth (91), Fizzy Pop (92), Raspberry Bites (93).
+Every other product is tagged Gelatin Free. Photo mapping: wordpress/catalogue-images.json.
+
 ## Adding a new candy (WordPress dashboard)
 
 1. Products -> Add New Product. Type the name.
