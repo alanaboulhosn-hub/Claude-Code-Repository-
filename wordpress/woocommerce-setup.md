@@ -85,3 +85,17 @@ A real test order was not placed.
 - Cart (86) and Checkout (87) pages start with a Custom HTML block (wordpress/pages/store-skin-cart.html,
   store-skin-checkout.html): Fika header, page title, pink background, Fika fonts, white cards and blue
   rounded buttons; and end with a help line (store-skin-help.html).
+
+## Delivery areas and checkout bag (2026-10-06)
+
+- Snippet "Fika delivery areas: Lebanon governorates" (wordpress/snippets/fika-delivery-areas.php):
+  required "Delivery area" dropdown (Beirut, Mount Lebanon, North Lebanon, Akkar, Bekaa,
+  Baalbek-Hermel, South Lebanon, Nabatieh; codes BA, JL, AS, AK, BI, BH, JA, NA).
+- Shipping zones: "Beirut" (LB:BA, order 1) flat rate "Delivery in Beirut" $5;
+  "Lebanon (outside Beirut)" (LB, order 2) flat rate "Delivery outside Beirut" $6.
+- Home page bag drawer: delivery shows "$5 – $6", total reads "Total from", note updated.
+- Checkout: the line under the "Checkout" title was removed.
+- Snippet "Fika checkout: animated bag illustration" (wordpress/snippets/fika-checkout-bag.php):
+  a Fika paper bag with a clear window at the top of the checkout's right column. Mini product
+  photos drop in, with pieces in proportion to grams (up to 4 per 100 g, max ~46 pieces);
+  Ready Mix bags show 5 candies from their category (Sweet / Sour / both). Updates with the cart.

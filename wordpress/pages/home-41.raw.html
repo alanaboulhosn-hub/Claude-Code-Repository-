@@ -849,8 +849,8 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
   <div class="mx-df">
     <div class="mx-sum"><span id="mxKg">0 kg</span><span id="mxSub">$0.00</span></div>
     <div class="mx-sum"><span>Delivery</span><span id="mxDel">$0.00</span></div>
-    <div class="mx-sum tot"><span>Total</span><span id="mxTot">$0.00</span></div>
-    <p class="mx-note">Flat $5 delivery. 1 to 2 days in Beirut, 2 to 3 days outside. No Sunday delivery. Pay on delivery.</p>
+    <div class="mx-sum tot"><span>Total from</span><span id="mxTot">$0.00</span></div>
+    <p class="mx-note">Delivery $5 in Beirut, $6 outside Beirut. 1 to 2 days in Beirut, 2 to 3 days outside. No Sunday delivery. Pay on delivery.</p>
     <a class="mx-go no-prefetch" id="mxGo" rel="nofollow" href="/checkout/" aria-disabled="true">Checkout</a>
     <button class="mx-clear" id="mxClear" type="button">Empty bag</button>
   </div>
@@ -1044,7 +1044,7 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
     var g = total(), sub = cost(), has = g > 0;
     var kg = (g / 1000).toFixed(1).replace(/\.0$/, '') + ' kg';
     $('mxKg').textContent = kg; $('mxFabN').textContent = kg;
-    $('mxSub').textContent = money(sub); $('mxDel').textContent = money(has ? DELIVERY : 0); $('mxTot').textContent = money(has ? sub + DELIVERY : 0);
+    $('mxSub').textContent = money(sub); $('mxDel').textContent = has ? '$5 \u2013 $6' : money(0); $('mxTot').textContent = money(has ? sub + DELIVERY : 0);
     $('mxGo').setAttribute('aria-disabled', has ? 'false' : 'true');
   }
   function render() { renderGrid(); renderBag(); }
