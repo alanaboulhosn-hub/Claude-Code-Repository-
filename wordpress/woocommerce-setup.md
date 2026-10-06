@@ -99,3 +99,14 @@ A real test order was not placed.
   a Fika paper bag with a clear window at the top of the checkout's right column. Mini product
   photos drop in, with pieces in proportion to grams (up to 4 per 100 g, max ~46 pieces);
   Ready Mix bags show 5 candies from their category (Sweet / Sour / both). Updates with the cart.
+
+## Checkout round 2 (2026-10-06)
+
+- Delivery area dropdown now has two options: Inside Beirut (BA, $5) and Outside Beirut (OB, $6).
+- Checkout header: Home / Shop links removed, Fika logo centred, "Return to store" link under the
+  Checkout heading goes to /#shop (the home page "Mix your own" section now has id="shop").
+- Checkout bag: only "Fika" on the bag. Candies are single-piece cut-outs made from each product
+  photo (wordpress/assets/pieces/, uploaded to the media library as "Fika piece - <name>").
+  Each product's meta "fika_piece" holds its piece URL; the bag snippet reads them and falls back
+  to the product photo for products without one (e.g. a newly added candy).
+  Pieces settle in staggered rows like a jar; counts stay in proportion to grams.

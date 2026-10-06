@@ -15,6 +15,16 @@ add_action( 'wp_footer', function () {
 	if ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-received' ) ) {
 		return;
 	}
+	// Single-piece cut-outs: product meta "fika_piece" holds the image URL (falls back to the product photo)
+	$pieces = array();
+	$ids    = get_posts( array( 'post_type' => 'product', 'numberposts' => -1, 'fields' => 'ids', 'meta_key' => 'fika_piece' ) );
+	foreach ( $ids as $id ) {
+		$url = get_post_meta( $id, 'fika_piece', true );
+		if ( $url ) {
+			$pieces[ $id ] = esc_url_raw( $url );
+		}
+	}
+	echo '<script>window.FIKA_PIECES = ' . wp_json_encode( (object) $pieces ) . ';</script>';
 	echo <<<'FIKA_BAG'
 <style>
 .fika-bagviz { --fika-blue: #004aad; --fika-pink: #fdeaf2; padding: 4px 4px 20px; margin: 0 0 18px; border-bottom: 1px solid #f0dbe5; }
@@ -32,6 +42,8 @@ add_action( 'wp_footer', function () {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, .95), 0 0 0 5px #e7a8c3, inset 0 8px 16px rgba(120, 30, 70, .10);
 }
 .fika-bagviz .fbv-candy { position: absolute; left: 0; top: 0; mix-blend-mode: multiply; transition: transform .6s cubic-bezier(.3, 1.3, .5, 1), opacity .3s; }
+.fika-bagviz .fbv-candy.is-piece { mix-blend-mode: normal; filter: drop-shadow(0 1.5px 1.5px rgba(80, 20, 50, .22)); }
+.fika-bagviz .fbv-candy.is-piece img { transform: none; }
 .fika-bagviz .fbv-candy img { display: block; width: 100%; height: 100%; object-fit: contain; transform: scale(1.35); pointer-events: none; user-select: none; }
 .fika-bagviz .fbv-glass { position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: 26px;
   background: linear-gradient(118deg, rgba(255,255,255,0) 0 22%, rgba(255,255,255,.55) 26%, rgba(255,255,255,0) 33%, rgba(255,255,255,0) 58%, rgba(255,255,255,.32) 61%, rgba(255,255,255,0) 66%); }
@@ -74,8 +86,7 @@ add_action( 'wp_footer', function () {
       '<path d="M40 42 L260 42 L256 80 L44 80 Z" fill="url(#fbvFold)" stroke="#e1a0bc" stroke-width="1.5"/>' +
       '<path d="M40 42 l11 -9 l11 9 l11 -9 l11 9 l11 -9 l11 9 l11 -9 l11 9 l11 -9 l11 9 l11 -9 l11 9 l11 -9 l11 9 l11 -9 l11 9 l11 -9 l11 9 l11 -9 l11 9 Z" fill="#f4c6da" stroke="#e1a0bc" stroke-width="1.2" stroke-linejoin="round"/>' +
       '<path d="M44 80 L256 80" stroke="#d98fb0" stroke-width="2" opacity=".55"/>' +
-      '<text x="150" y="132" text-anchor="middle" transform="rotate(-5 150 120)" font-family="NF Le Petit Cochon, cursive" font-size="50" fill="#004aad" style="font-variant: small-caps">Fika</text>' +
-      '<text x="150" y="152" text-anchor="middle" font-family="Fanwood Text, Georgia, serif" font-size="11" letter-spacing="2" fill="#004aad" opacity=".75">SWEDISH PICK &amp; MIX</text>' +
+      '<text x="150" y="140" text-anchor="middle" transform="rotate(-5 150 128)" font-family="NF Le Petit Cochon, cursive" font-size="56" fill="#004aad" style="font-variant: small-caps">Fika</text>' +
     '</svg>';
 
   function rng(seed) {
@@ -126,7 +137,8 @@ add_action( 'wp_footer', function () {
           products[p.id] = {
             name: p.name,
             cats: (p.categories || []).map(function (c) { return c.slug; }),
-            img: im ? (im.thumbnail || im.src) : ''
+            img: im ? (im.thumbnail || im.src) : '',
+            piece: (window.FIKA_PIECES || {})[p.id] || ''
           };
         });
         return products;
@@ -163,9 +175,9 @@ add_action( 'wp_footer', function () {
         var pick = pool.slice(0, 5);
         var grams = it.quantity * 500;
         if (!pick.length) { out.push({ key: 'm' + it.id, img: img, grams: grams }); return; }
-        pick.forEach(function (id) { out.push({ key: 'm' + it.id + '-' + id, img: products[id].img, grams: grams / pick.length }); });
+        pick.forEach(function (id) { out.push({ key: 'm' + it.id + '-' + id, img: products[id].piece || products[id].img, piece: !!products[id].piece, grams: grams / pick.length }); });
       } else {
-        out.push({ key: 'c' + it.id, img: img, grams: it.quantity * 100 });
+        out.push({ key: 'c' + it.id, img: p.piece || img, piece: !!p.piece, grams: it.quantity * 100 });
       }
     });
     return out;
@@ -190,43 +202,40 @@ add_action( 'wp_footer', function () {
     var want = [];
     list.forEach(function (e) {
       var n = Math.max(1, Math.round(e.grams / unit));
-      for (var k = 0; k < n; k++) want.push({ key: e.key + '#' + k, img: e.img });
+      for (var k = 0; k < n; k++) want.push({ key: e.key + '#' + k, img: e.img, piece: e.piece });
     });
     var N = want.length;
 
     // Fill more of the window as the bag gets heavier
-    var fill = Math.min(0.86, 0.30 + total / 3000);
-    var s = Math.sqrt(fill * W * H * 1.7 / Math.max(N, 1));
-    s = Math.max(24, Math.min(78, s));
-
+    var fill = Math.min(0.92, 0.44 + total / 2400);
     var rand = rng(hash(want.map(function (w) { return w.key; }).join('|')));
     want.sort(function () { return rand() - 0.5; });
 
-    // Drop each piece where the pile is lowest (a little randomness keeps it natural)
-    var placed, tries = 0;
-    do {
-      placed = [];
-      var hm = new Array(Math.ceil(W) + 1).fill(0), worst = 0;
-      want.forEach(function (w) {
-        var best = null;
-        for (var t = 0; t < 7; t++) {
-          var x = Math.round(rand() * Math.max(1, W - s));
-          var base = 0;
-          var end = Math.min(W, Math.round(x + s));
-          for (var c = x; c < end; c++) base = Math.max(base, hm[c]);
-          if (best === null) best = { x: x, base: base };
-          else if (best.base > base) best = { x: x, base: base };
-        }
-        var bottom = Math.max(0, best.base * 0.92 - s * 0.08);
-        var top = bottom + s * 0.66;
-        var end2 = Math.min(W, Math.round(best.x + s));
-        for (var c2 = best.x; c2 < end2; c2++) hm[c2] = Math.max(hm[c2], top);
-        worst = Math.max(worst, bottom + s);
-        placed.push({ key: w.key, img: w.img, x: best.x, y: H - bottom - s - 4, r: Math.round(rand() * 70 - 35), bottom: bottom });
-      });
-      if (worst > H * 0.97) s *= 0.9;
-      tries++;
-    } while (worst > H * 0.97 && tries < 8);
+    // Settle the pieces like a jar: staggered rows from the bottom, each piece overlapping its neighbours
+    var s = 96, dx, cols, rows, dy;
+    for (; s > 22; s -= 2) {
+      dx = s * 0.68;
+      cols = Math.max(2, Math.floor((W - s * 0.25) / dx));
+      rows = Math.ceil(N / cols);
+      dy = s * 0.44;
+      if (s + (rows - 1) * dy <= fill * H) break;
+    }
+    var used = cols * dx + s * 0.32, left0 = (W - used) / 2;
+    var placed = [], idx = 0;
+    for (var r = 0; idx < N; r++) {
+      var inRow = Math.min(cols, N - idx);
+      var startC = Math.floor((cols - inRow) / 2);
+      var off = (r % 2) ? dx / 2 : 0;
+      for (var c = 0; c < inRow; c++, idx++) {
+        var w0 = want[idx];
+        var x = left0 + (startC + c) * dx + off - (s - dx) / 2 + (rand() - 0.5) * dx * 0.36;
+        x = Math.max(-s * 0.12, Math.min(W - s * 0.88, x));
+        var bottom = r * dy + (rand() - 0.5) * dy * 0.4 + (r ? 0 : 2);
+        bottom = Math.max(0, bottom);
+        placed.push({ key: w0.key, img: w0.img, piece: w0.piece, x: Math.round(x), y: Math.round(H - bottom - s - 2),
+                      r: Math.round(rand() * 80 - 40), bottom: bottom });
+      }
+    }
     placed.sort(function (a, b) { return a.bottom - b.bottom; });
 
     var keep = {}, fresh = 0;
@@ -241,7 +250,7 @@ add_action( 'wp_footer', function () {
         return;
       }
       var el = document.createElement('div');
-      el.className = 'fbv-candy';
+      el.className = 'fbv-candy' + (p.piece ? ' is-piece' : '');
       el.style.width = el.style.height = s + 'px';
       el.style.zIndex = String(i + 1);
       var im = document.createElement('img');

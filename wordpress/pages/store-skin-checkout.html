@@ -19,6 +19,10 @@ body.woocommerce-page .wp-block-post-content { padding-top: 0 !important; }
 .fika-shoptitle p { font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: 19px; margin: 0; color: #1b2a4a; }
 .fika-shoptitle p a { color: var(--fika-blue); font-weight: 700; }
 
+.fika-shopbar.fika-shopbar-center { justify-content: center; }
+.fika-shoptitle .fika-back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: 19px; font-weight: 700; color: var(--fika-blue); text-decoration: none; border-bottom: 2px solid transparent; }
+.fika-shoptitle .fika-back:hover { border-bottom-color: var(--fika-blue); }
+
 /* WooCommerce blocks */
 body.woocommerce-page .wc-block-components-title, body.woocommerce-page .wc-block-components-checkout-step__title,
 body.woocommerce-page .wc-block-cart__totals-title, body.woocommerce-page .wc-block-components-order-summary .wc-block-components-panel__button {
@@ -62,10 +66,9 @@ body.woocommerce-page a { color: var(--fika-blue); }
   body.woocommerce-page .wp-block-woocommerce-checkout-totals-block, body.woocommerce-page .wp-block-woocommerce-cart-totals-block { padding: 20px 16px !important; border-radius: 18px; }
 }
 </style>
-<header class="fika-shopbar">
-  <a class="fs-logo" href="/" aria-label="Fika, home">Fika</a>
-  <nav><a href="/">Home</a><a href="/shop/">Shop</a></nav>
+<header class="fika-shopbar fika-shopbar-center">
+  <a class="fs-logo" href="/" aria-label="Fika, back to the store">Fika</a>
 </header>
-<div class="fika-shoptitle"><h1>Checkout</h1></div>
+<div class="fika-shoptitle"><h1>Checkout</h1><a class="fika-back" href="/#shop">&larr; Return to store</a></div>
 <!-- /wp:html -->
 
