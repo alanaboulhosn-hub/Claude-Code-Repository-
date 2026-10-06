@@ -167,3 +167,22 @@ Implemented in snippet 8 (wordpress/snippets/fika-home-cartoons.php).
 - Checkout (snippet 7): on desktop the form column is sticky, so as you scroll it follows down and its
   bottom (Place Order) lines up with the bottom of the right column. Its sticky top is computed from its
   height so Place Order stays 24 px above the bottom of the screen.
+
+## Phone polish + before-you-go popup (2026-10-07)
+
+Phone polish:
+- Ready-Mix card − / + pill: text no longer squeezed (snippet 8).
+- Phone checkout: the duplicate collapsed "Order summary" at the top is hidden; the full summary stays above
+  Place Order (snippet 7).
+- No-hover devices: footer icon animations play in turn when the footer scrolls into view; the header bag
+  icon's candy burst plays once after the page opens (snippet 8).
+
+Before-you-go popup (snippet 9, wordpress/snippets/fika-exit-offer.php):
+- Opens on the checkout when the shopper clicks "Return to store" or the Fika logo, moves the mouse out of
+  the top of the window (desktop), or presses Back (phones). At most once per visit; never with an empty cart.
+- Step 1 asks why: Delivery is too expensive / Delivery takes too long / The candies are too expensive /
+  I want to change my order / Another reason. "Change my order" goes back to /#shop.
+- Any other reason shows a one-time offer: coupon FIKA10 (id 211): 10% off the products (not delivery),
+  individual use, usage limit 1 per customer (WooCommerce checks by email). "Apply" applies it to the cart
+  in place. The offer is shown once per browser (localStorage fika_exit_offer_v1).
+- Reason counts: GET /wp-json/fika/v1/exit-reasons (shop managers); DELETE the same URL resets them.

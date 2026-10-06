@@ -250,12 +250,12 @@ FIKA_LIB;
 /* Instagram: camera flash */
 .fika-foot-social a.fk-ig::after { content: ''; position: absolute; inset: -10px; border-radius: 50%; pointer-events: none;
   background: radial-gradient(circle, #fff 0 28%, rgba(255,255,255,.75) 40%, rgba(255,255,255,0) 70%); opacity: 0; transform: scale(.3); }
-.fika-foot-social a.fk-ig:hover::after { animation: fkIgBurst .9s ease-out; }
-.fika-foot-social a.fk-ig:hover { animation: fkIgBg .9s ease-out; }
+.fika-foot-social a.fk-ig:hover::after, .fika-foot-social a.fk-ig.fk-play::after { animation: fkIgBurst .9s ease-out; }
+.fika-foot-social a.fk-ig:hover, .fika-foot-social a.fk-ig.fk-play { animation: fkIgBg .9s ease-out; }
 .fika-foot-social a.fk-ig .fk-lens { transform-origin: 12px 12px; }
 .fika-foot-social a.fk-ig .fk-spark { transform-origin: 17.5px 6.5px; opacity: 0; }
-.fika-foot-social a.fk-ig:hover .fk-lens { animation: fkIgLens .9s ease-out; }
-.fika-foot-social a.fk-ig:hover .fk-spark { animation: fkIgSpark .9s ease-out; }
+.fika-foot-social a.fk-ig:hover .fk-lens, .fika-foot-social a.fk-ig.fk-play .fk-lens { animation: fkIgLens .9s ease-out; }
+.fika-foot-social a.fk-ig:hover .fk-spark, .fika-foot-social a.fk-ig.fk-play .fk-spark { animation: fkIgSpark .9s ease-out; }
 @keyframes fkIgBurst { 0% { opacity: 0; transform: scale(.3); } 12% { opacity: 1; transform: scale(1.15); } 32% { opacity: 0; transform: scale(1.5); }
   48% { opacity: .85; transform: scale(1.05); } 75%, 100% { opacity: 0; transform: scale(1.6); } }
 @keyframes fkIgBg { 0%, 100% { background: #fdeaf2; } 12%, 48% { background: #fff; } }
@@ -264,15 +264,15 @@ FIKA_LIB;
   48% { opacity: 1; transform: scale(1.3) rotate(135deg); } 80%, 100% { opacity: 0; transform: scale(.4) rotate(180deg); } }
 /* WhatsApp: bubble turns into a bird that flaps */
 .fika-foot-social a.fk-wa .fk-base, .fika-foot-social a.fk-wa .fk-alt { transform-origin: 12px 12px; transition: opacity .25s, transform .35s cubic-bezier(.3, 1.5, .5, 1); }
-.fika-foot-social a.fk-wa:hover .fk-base { opacity: 0; transform: scale(.2) rotate(-40deg); }
-.fika-foot-social a.fk-wa:hover .fk-alt { opacity: 1; transform: scale(1); transition-delay: .1s; }
+.fika-foot-social a.fk-wa:hover .fk-base, .fika-foot-social a.fk-wa.fk-play .fk-base { opacity: 0; transform: scale(.2) rotate(-40deg); }
+.fika-foot-social a.fk-wa:hover .fk-alt, .fika-foot-social a.fk-wa.fk-play .fk-alt { opacity: 1; transform: scale(1); transition-delay: .1s; }
 .fika-foot-social a.fk-wa .fk-alt { transform: scale(.2) rotate(30deg); }
 .fika-foot-social a.fk-wa .fk-bird { transform-origin: 12px 12px; }
 .fika-foot-social a.fk-wa .fk-wing { transform-origin: 11.5px 12.2px; }
 .fika-foot-social a.fk-wa .fk-wing2 { transform-origin: 11px 12px; }
-.fika-foot-social a.fk-wa:hover .fk-bird { animation: fkBob .5s ease-in-out .3s infinite alternate; }
-.fika-foot-social a.fk-wa:hover .fk-wing { animation: fkFlap .26s ease-in-out .3s infinite alternate; }
-.fika-foot-social a.fk-wa:hover .fk-wing2 { animation: fkFlap2 .26s ease-in-out .3s infinite alternate; }
+.fika-foot-social a.fk-wa:hover .fk-bird, .fika-foot-social a.fk-wa.fk-play .fk-bird { animation: fkBob .5s ease-in-out .3s infinite alternate; }
+.fika-foot-social a.fk-wa:hover .fk-wing, .fika-foot-social a.fk-wa.fk-play .fk-wing { animation: fkFlap .26s ease-in-out .3s infinite alternate; }
+.fika-foot-social a.fk-wa:hover .fk-wing2, .fika-foot-social a.fk-wa.fk-play .fk-wing2 { animation: fkFlap2 .26s ease-in-out .3s infinite alternate; }
 @keyframes fkBob { from { transform: translate(-.6px, .9px); } to { transform: translate(.6px, -1.4px); } }
 @keyframes fkFlap { from { transform: rotate(-12deg) scaleY(1); } to { transform: rotate(18deg) scaleY(-.75); } }
 @keyframes fkFlap2 { from { transform: rotate(-20deg) scaleY(.9); } to { transform: rotate(10deg) scaleY(-.6); } }
@@ -281,10 +281,10 @@ FIKA_LIB;
 .fika-foot-social a.fk-ml .fk-env { transform-origin: 12px 12px; }
 .fika-foot-social a.fk-ml .fk-alt { transform-origin: 12px 12px; transform: scale(.3) rotate(-30deg); }
 .fika-foot-social a.fk-ml .fk-trail { stroke-dasharray: 2 2.2; opacity: 0; }
-.fika-foot-social a.fk-ml:hover .fk-flap { animation: fkFlapOpen .3s ease-out forwards; }
-.fika-foot-social a.fk-ml:hover .fk-env { animation: fkEnvFold .3s ease-in .3s forwards; }
-.fika-foot-social a.fk-ml:hover .fk-alt { animation: fkPlaneIn .35s cubic-bezier(.3, 1.6, .5, 1) .5s forwards, fkGlide 1.4s ease-in-out .9s infinite; }
-.fika-foot-social a.fk-ml:hover .fk-trail { animation: fkTrail .9s linear .85s infinite; }
+.fika-foot-social a.fk-ml:hover .fk-flap, .fika-foot-social a.fk-ml.fk-play .fk-flap { animation: fkFlapOpen .3s ease-out forwards; }
+.fika-foot-social a.fk-ml:hover .fk-env, .fika-foot-social a.fk-ml.fk-play .fk-env { animation: fkEnvFold .3s ease-in .3s forwards; }
+.fika-foot-social a.fk-ml:hover .fk-alt, .fika-foot-social a.fk-ml.fk-play .fk-alt { animation: fkPlaneIn .35s cubic-bezier(.3, 1.6, .5, 1) .5s forwards, fkGlide 1.4s ease-in-out .9s infinite; }
+.fika-foot-social a.fk-ml:hover .fk-trail, .fika-foot-social a.fk-ml.fk-play .fk-trail { animation: fkTrail .9s linear .85s infinite; }
 @keyframes fkFlapOpen { to { transform: scaleY(-1); } }
 @keyframes fkEnvFold { to { transform: scale(.25, .1) rotate(-25deg); opacity: 0; } }
 @keyframes fkPlaneIn { to { opacity: 1; transform: scale(1) rotate(0); } }
@@ -292,6 +292,15 @@ FIKA_LIB;
 @keyframes fkTrail { 0% { opacity: .9; stroke-dashoffset: 0; } 100% { opacity: .9; stroke-dashoffset: -8.4; } }
 @media (prefers-reduced-motion: reduce) {
   .fika-foot-social a *, .fika-foot-social a::after { animation: none !important; transition: none !important; }
+}
+
+/* Phones (no hover): the bag icon's candy burst plays once on arrival; Ready-Mix card controls get room */
+.fika-cart.fk-play .fika-candies i { animation: fika-fly 1s ease-out 1 !important; animation-delay: var(--d) !important; }
+.fika-cart.fk-play svg { animation: fika-wiggle .5s ease-in-out; }
+@media (max-width: 700px) {
+  .mx-card .mx-pill { gap: 6px; padding: 5px; }
+  .mx-card .mx-pill span { min-width: 0; padding: 0 4px; white-space: nowrap; font-size: 15px; }
+  .mx-card .mx-pill button { flex: none; }
 }
 
 /* Candy flying from a product photo into the bag */
@@ -455,6 +464,37 @@ FIKA_LIB;
     });
   }
 
+  // Phones have no hover: play the footer icon animations when the footer scrolls into view,
+  // and the bag icon's candy burst once shortly after the page opens
+  var touchDone = false;
+  function touchPlay() {
+    if (touchDone) return;
+    touchDone = true;
+    var noHover = window.matchMedia ? window.matchMedia('(hover: none)').matches : false;
+    var calm = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+    if (!noHover) return;
+    if (calm) return;
+    function pulse(el, ms) {
+      if (!el) return;
+      el.classList.remove('fk-play'); void el.offsetWidth; el.classList.add('fk-play');
+      setTimeout(function () { el.classList.remove('fk-play'); }, ms);
+    }
+    setTimeout(function () { document.querySelectorAll('.fika-cart').forEach(function (c) { pulse(c, 1400); }); }, 1200);
+    var row = document.querySelector('.fika-foot-social');
+    if (!row) return;
+    if (!window.IntersectionObserver) return;
+    var last = 0;
+    new IntersectionObserver(function (en) {
+      if (!en[0].isIntersecting) return;
+      if (Date.now() - last > 9000) {
+        last = Date.now();
+        pulse(row.querySelector('.fk-ig'), 950);
+        setTimeout(function () { pulse(row.querySelector('.fk-wa'), 2600); }, 900);
+        setTimeout(function () { pulse(row.querySelector('.fk-ml'), 3200); }, 2900);
+      }
+    }, { threshold: 0.8 }).observe(row);
+  }
+
   function init() {
     // Move the bag drawer, its veil and the floating Bag button to the top level of the page:
     // inside the page content they are offset by the layout's transforms.
@@ -466,6 +506,7 @@ FIKA_LIB;
     bagBadge();
     flyInit();
     footerIcons();
+    touchPlay();
 
     if (!window.FIKA_CARTOON) return;
     var slugs = (window.FIKA_CARTOON_SLUGS || []).slice();

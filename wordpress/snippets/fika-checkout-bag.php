@@ -58,6 +58,10 @@ add_action( 'wp_footer', function () {
 .fika-bagviz .fbv-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px;
   font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; color: #b0708d; font-size: 17px; }
 .fika-bagviz .fbv-note { font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: 16px; line-height: 1.4; text-align: center; color: #1b2a4a; margin: 10px 0 0; }
+/* Phones: WooCommerce repeats a collapsed "Order summary" at the top; the full one is shown above Place Order */
+.wc-block-checkout.is-mobile .wc-block-checkout__sidebar .wp-block-woocommerce-checkout-order-summary-block,
+.wc-block-checkout.is-small .wc-block-checkout__sidebar .wp-block-woocommerce-checkout-order-summary-block { display: none !important; }
+.wc-block-checkout.is-mobile .fika-bagviz, .wc-block-checkout.is-small .fika-bagviz { border-bottom: 0; margin-bottom: 0; padding-bottom: 6px; }
 /* Desktop: the form column follows the scroll so its bottom (Place Order) lines up with the right column */
 @media (min-width: 782px) {
   .wc-block-checkout__main { position: sticky; top: var(--fk-main-top, 24px); align-self: flex-start; }
