@@ -75,3 +75,13 @@ Fixed on the same day:
 
 Tested: bag -> checkout shows the right items, $5 delivery, Cash on delivery and the right total.
 A real test order was not placed.
+
+## Checkout polish (2026-10-06)
+
+- Code Snippets plugin installed; snippet "Fika checkout: phone required, no postcode, weight labels"
+  (source: wordpress/snippets/fika-checkout.php). Phone is required, the postal code is hidden for
+  Lebanon, and each line shows "Weight: 300 g" (Pick & Mix) or "Amount: 1 bag (500 g)" (Ready Mix)
+  in the cart, checkout, order emails and WooCommerce > Orders.
+- Cart (86) and Checkout (87) pages start with a Custom HTML block (wordpress/pages/store-skin-cart.html,
+  store-skin-checkout.html): Fika header, page title, pink background, Fika fonts, white cards and blue
+  rounded buttons; and end with a help line (store-skin-help.html).
