@@ -851,7 +851,7 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
     <div class="mx-sum"><span>Delivery</span><span id="mxDel">$0.00</span></div>
     <div class="mx-sum tot"><span>Total</span><span id="mxTot">$0.00</span></div>
     <p class="mx-note">Flat $5 delivery. 1 to 2 days in Beirut, 2 to 3 days outside. No Sunday delivery. Pay on delivery.</p>
-    <a class="mx-go" id="mxGo" href="/checkout" aria-disabled="true">Checkout</a>
+    <a class="mx-go no-prefetch" id="mxGo" rel="nofollow" href="/checkout/" aria-disabled="true">Checkout</a>
     <button class="mx-clear" id="mxClear" type="button">Empty bag</button>
   </div>
 </aside>
@@ -859,7 +859,7 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
 <script>
 (function () {
   try {
-  var PRICE_100G = 2.5, DELIVERY = 5, STEP = 100, CHECKOUT_URL = '/checkout';
+  var PRICE_100G = 2.5, DELIVERY = 5, STEP = 100, CHECKOUT_URL = '/checkout/';
   // Pull candies automatically from WooCommerce (add a product in WordPress and it appears here).
   // Price of each product = price per 100g. A product tagged or categorised "pork gelatin" gets the blue tab.
   var AUTO_FROM_WOOCOMMERCE = true;
@@ -959,10 +959,81 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
   $('mxClear').addEventListener('click', function () { bag = {}; save(); render(); });
   $('mxItems').addEventListener('click', function (e) { var b = e.target.closest('.mx-rm'); if (!b) return; delete bag[b.getAttribute('data-id')]; save(); render(); });
   $('mxGo').setAttribute('href', CHECKOUT_URL);
+  // Checkout: copy the bag into the WooCommerce cart, then open the WooCommerce checkout.
+  // Candies are priced per 100 g (1 = 100 g); Ready-Mix per 500 g bag (1 = one bag).
+  // (Written without the logical-and operator and the less-than sign: WordPress rewrites them.)
+  var going = false, SENT_KEY = 'fika_sent_v1';
+  function cartLines() {
+    var lines = [];
+    Object.keys(bag).forEach(function (id) {
+      var m = /^(r?)w(\d+)$/.exec(id);
+      if (!m) return;
+      var q = Math.round(bag[id] / (m[1] ? 500 : 100));
+      if (q > 0) lines.push({ id: parseInt(m[2], 10), quantity: q });
+    });
+    return lines;
+  }
+  function storeBatch(nonce, reqs) {
+    reqs.forEach(function (r) { r.headers = { Nonce: nonce }; });
+    return fetch('/wp-json/wc/store/v1/batch', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'Nonce': nonce },
+      body: JSON.stringify({ requests: reqs })
+    }).then(function (r) { if (!r.ok) throw new Error('batch ' + r.status); return r.json(); })
+      .then(function (d) {
+        (d.responses || []).forEach(function (x) {
+          if (x.status >= 400) throw new Error((x.body ? x.body.message : '') || ('cart ' + x.status));
+        });
+      });
+  }
+  function sendToCheckout() {
+    var lines = cartLines(), btn = $('mxGo'), label = btn.textContent;
+    if (!lines.length) return;
+    going = true; btn.textContent = 'One moment…'; btn.setAttribute('aria-busy', 'true');
+    fetch('/wp-json/wc/store/v1/cart', { credentials: 'same-origin' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('cart ' + r.status);
+        return r.headers.get('Nonce') || r.headers.get('X-WC-Store-API-Nonce');
+      })
+      .then(function (nonce) {
+        var reqs = [{ method: 'DELETE', path: '/wc/store/v1/cart/items' }];
+        lines.forEach(function (l) { reqs.push({ method: 'POST', path: '/wc/store/v1/cart/add-item', body: l }); });
+        var chain = Promise.resolve();
+        for (var i = 0; reqs.length > i; i += 25) {
+          (function (part) { chain = chain.then(function () { return storeBatch(nonce, part); }); })(reqs.slice(i, i + 25));
+        }
+        return chain;
+      })
+      .then(function () {
+        try { localStorage.setItem(SENT_KEY, String(Date.now())); } catch (e) {}
+        location.href = CHECKOUT_URL + '?fika=' + Date.now();
+      })
+      .catch(function (err) {
+        going = false; btn.textContent = label; btn.removeAttribute('aria-busy');
+        try { console.log('[FIKA checkout]', err); } catch (e) {}
+        alert('Sorry, we could not open the checkout. Please try again, or order on WhatsApp: 79 411 565.');
+      });
+  }
   $('mxGo').addEventListener('click', function (e) {
-    var sub = cost(); if (!sub) { e.preventDefault(); return; }
+    e.preventDefault();
+    var sub = cost(); if (!sub) return;
+    if (going) return;
     pixel('InitiateCheckout', { value: sub + DELIVERY, currency: 'USD', num_items: Object.keys(bag).length });
+    sendToCheckout();
   });
+  // After an order is placed WooCommerce empties its cart: empty the bag as well
+  (function () {
+    var sent = null; try { sent = localStorage.getItem(SENT_KEY); } catch (e) {}
+    if (!sent) return;
+    if (!window.fetch) return;
+    fetch('/wp-json/wc/store/v1/cart', { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (c) {
+        if (c.items_count) return;
+        bag = {}; save(); render();
+        try { localStorage.removeItem(SENT_KEY); } catch (e) {}
+      }).catch(function () {});
+  })();
 
   function renderBag() {
     var html = '';

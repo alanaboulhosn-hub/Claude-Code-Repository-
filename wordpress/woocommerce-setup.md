@@ -57,5 +57,21 @@ How the home page carousels read products (Store API `/wp-json/wc/store/v1/produ
 - First product image is the card photo; order follows Menu order.
 - Until WooCommerce has products, the pages show the fallback list written in the page script.
 
-Still to do: the page's bag (localStorage `fika_bag_v1`) is not yet connected to the
-WooCommerce cart, so the bag's Checkout button does not carry items across.
+## Checkout connection (2026-10-06)
+
+The bag's Checkout button now copies the bag into the WooCommerce cart through the Store API
+(`/wp-json/wc/store/v1/batch`: empty the cart, then add each item), then opens `/checkout/`.
+Quantities: Pick & Mix 1 = 100 g; Ready Mix 1 = one 500 g bag. Delivery $5 and Cash on delivery
+come from WooCommerce. After an order, the home page sees the empty WooCommerce cart and empties the bag.
+The Checkout link has `rel="nofollow"` and class `no-prefetch` so WordPress's link prefetching cannot
+cache an empty-cart redirect, and the jump adds `?fika=<time>` to always load a fresh page.
+
+Fixed on the same day:
+- Store currency had been switched to LBP with 0 decimals (prices showed as 3 / 13). Set back to USD,
+  2 decimals, "." decimal and "," thousands separators, symbol on the left. Re-running the WooCommerce
+  setup wizard with Lebanon may switch it to LBP again.
+- WooCommerce "Coming soon" mode was on for store pages (cart/checkout showed "launching soon" to
+  visitors). Turned off (`woocommerce_coming_soon` = no).
+
+Tested: bag -> checkout shows the right items, $5 delivery, Cash on delivery and the right total.
+A real test order was not placed.
