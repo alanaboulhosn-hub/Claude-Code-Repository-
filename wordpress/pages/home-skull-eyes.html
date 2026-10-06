@@ -1,0 +1,158 @@
+<!-- FIKA hero: googly eyes on the skull candies that follow the cursor (or finger).
+     Eye positions are in the hero photo's own pixels (1920 x 1072).
+     Note: the script avoids the logical-and operator and the less-than sign on purpose.
+     WordPress rewrites those inside page content, which breaks the script. -->
+<style>
+.fika-hero .fika-content { position: relative; z-index: 2; }
+.fika-eyes { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.fika-eye {
+  position: absolute; left: 0; top: 0; border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #fff 58%, #f1e6ec 100%);
+  box-shadow: 0 0 0 1px rgba(27, 42, 74, .35), inset 0 -1px 2px rgba(27, 42, 74, .25);
+  transition: transform .09s ease-in;
+  will-change: transform;
+}
+.fika-eye.fika-blink { transform: scaleY(.08); }
+.fika-pupil {
+  position: absolute; left: 50%; top: 50%; width: 52%; height: 52%;
+  margin: -26% 0 0 -26%; border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #fff 0 14%, #1b2a4a 17% 100%);
+  will-change: transform;
+}
+</style>
+<script>
+(function () {
+  var hero = document.querySelector('.fika-hero');
+  if (!hero) return;
+  if (hero.querySelector('.fika-eyes')) return;
+
+  var IMG_W = 1920, IMG_H = 1072;
+  var EYE_R = 7.5;   // eye radius in photo pixels
+  var SKULLS = [
+    [[338,498],[365,490]], [[575,493],[602,493]], [[921,497],[937,520]], [[1060,482],[1043,507]],
+    [[1167,504],[1194,499]], [[33,614],[55,636]], [[197,597],[224,600]], [[676,587],[699,598]],
+    [[1266,598],[1284,622]], [[743,704],[745,733]], [[1775,647],[1756,671]], [[1396,782],[1424,784]],
+    [[1493,773],[1519,763]], [[473,800],[467,828]], [[235,885],[211,898]], [[382,889],[411,897]],
+    [[745,827],[775,841]], [[844,879],[865,887]], [[560,923],[538,947]], [[1256,884],[1275,907]],
+    [[1635,952],[1660,946]], [[1260,1014],[1292,1016]]
+  ];
+
+  var layer = document.createElement('div');
+  layer.className = 'fika-eyes';
+  layer.setAttribute('aria-hidden', 'true');
+  var eyes = [];
+  SKULLS.forEach(function (pair, s) {
+    pair.forEach(function (p) {
+      var e = document.createElement('i');
+      e.className = 'fika-eye';
+      var pu = document.createElement('i');
+      pu.className = 'fika-pupil';
+      e.appendChild(pu);
+      layer.appendChild(e);
+      eyes.push({ el: e, pu: pu, ix: p[0], iy: p[1], skull: s, cx: 0, cy: 0, r: 0, px: 0, py: 0 });
+    });
+  });
+  hero.insertBefore(layer, hero.firstChild);
+
+  var scrollAnim = !!(window.CSS ? (CSS.supports ? CSS.supports('animation-timeline: scroll()') : false) : false);
+  var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+
+  // Work out where the photo is drawn inside the hero, the same way the page CSS places it
+  function layout() {
+    var W = hero.clientWidth, H = hero.clientHeight;
+    var fixed = getComputedStyle(hero).backgroundAttachment === 'fixed';
+    var vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    var bw = fixed ? vw : W, bh = fixed ? vh : H;
+    var s = Math.max(bw / IMG_W, bh / IMG_H);
+    var ox = (bw - IMG_W * s) / 2, oy = bh - IMG_H * s;
+    if (fixed) {
+      var rc = hero.getBoundingClientRect();
+      ox -= rc.left; oy -= rc.top;
+    } else if (scrollAnim) {
+      // The photo holds still while the page scrolls (keyframes fikaPhotoHold)
+      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+      oy += Math.max(0, Math.min(y, vh));
+    }
+    var r = Math.max(4.5, EYE_R * s);
+    eyes.forEach(function (e) {
+      e.r = r;
+      e.cx = ox + e.ix * s;
+      e.cy = oy + e.iy * s;
+      e.el.style.width = e.el.style.height = (2 * r) + 'px';
+      e.el.style.left = (e.cx - r) + 'px';
+      e.el.style.top = (e.cy - r) + 'px';
+    });
+  }
+
+  // Where the eyes look: the pointer, or a wandering spot when nobody is pointing
+  var tx = null, ty = null, lastMove = 0, wander = { x: 0, y: 0 };
+  function onPoint(e) {
+    var pt = e.touches ? e.touches[0] : e;
+    if (!pt) return;
+    tx = pt.clientX; ty = pt.clientY; lastMove = Date.now();
+    kick();
+  }
+  window.addEventListener('pointermove', onPoint, { passive: true });
+  window.addEventListener('pointerdown', onPoint, { passive: true });
+  window.addEventListener('touchmove', onPoint, { passive: true });
+
+  function newWander() {
+    var a = Math.random() * Math.PI * 2;
+    wander.x = Math.cos(a); wander.y = Math.sin(a);
+    kick();
+  }
+
+  var running = false, visible = true;
+  function kick() { if (!running) { if (visible) { running = true; requestAnimationFrame(frame); } } }
+
+  function frame() {
+    running = false;
+    var rc = hero.getBoundingClientRect();
+    var idle = tx === null ? true : (Date.now() - lastMove > 4000);
+    var moving = false;
+    eyes.forEach(function (e) {
+      var max = e.r * 0.42, gx, gy;
+      if (idle) {
+        gx = wander.x * max; gy = wander.y * max;
+      } else {
+        var dx = tx - (rc.left + e.cx), dy = ty - (rc.top + e.cy);
+        var d = Math.sqrt(dx * dx + dy * dy) || 1;
+        var k = Math.min(1, d / 60) * max / d;
+        gx = dx * k; gy = dy * k;
+      }
+      e.px += (gx - e.px) * 0.25;
+      e.py += (gy - e.py) * 0.25;
+      if (Math.abs(gx - e.px) + Math.abs(gy - e.py) > 0.05) moving = true;
+      e.pu.style.transform = 'translate(' + e.px.toFixed(2) + 'px,' + e.py.toFixed(2) + 'px)';
+    });
+    if (moving) kick();
+  }
+
+  // Each skull blinks now and then, both eyes together
+  function blink() {
+    if (visible) {
+      var s = Math.floor(Math.random() * SKULLS.length);
+      eyes.forEach(function (e) { if (e.skull === s) e.el.classList.add('fika-blink'); });
+      setTimeout(function () {
+        eyes.forEach(function (e) { if (e.skull === s) e.el.classList.remove('fika-blink'); });
+      }, 140);
+    }
+    setTimeout(blink, 700 + Math.random() * 1600);
+  }
+
+  layout();
+  newWander();
+  if (!reduce) {
+    setInterval(function () { if (tx === null) newWander(); else if (Date.now() - lastMove > 4000) newWander(); }, 2200);
+    setTimeout(blink, 1500);
+  }
+  window.addEventListener('resize', function () { layout(); kick(); });
+  window.addEventListener('load', layout);
+  window.addEventListener('scroll', function () { layout(); kick(); }, { passive: true });
+  setTimeout(layout, 400); setTimeout(layout, 1500);
+  if (window.ResizeObserver) new ResizeObserver(layout).observe(hero);
+  if (window.IntersectionObserver) {
+    new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) kick(); }).observe(hero);
+  }
+})();
+</script>
