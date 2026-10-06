@@ -27,6 +27,10 @@ body.woocommerce-page .wp-block-post-content { padding-top: 0 !important; }
    so WooCommerce's own "Shipping options" step is not shown */
 body.woocommerce-checkout #shipping-option, body.woocommerce-checkout .wc-block-checkout__shipping-option { display: none !important; }
 
+/* No terms line and no "Use same address for billing" checkbox: billing always uses the delivery address */
+body.woocommerce-checkout .wc-block-checkout__terms, body.woocommerce-checkout .wp-block-woocommerce-checkout-terms-block { display: none !important; }
+body.woocommerce-checkout .wc-block-checkout__use-address-for-billing { display: none !important; }
+
 /* WooCommerce blocks */
 body.woocommerce-page .wc-block-components-title, body.woocommerce-page .wc-block-components-checkout-step__title,
 body.woocommerce-page .wc-block-cart__totals-title, body.woocommerce-page .wc-block-components-order-summary .wc-block-components-panel__button {

@@ -782,6 +782,13 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
 .mx-line small { display:block; color:#6c7b9c; font-size:14px; }
 .mx-rm { border:0; background:none; color:#a2aecb; font-size:20px; cursor:pointer; }
 .mx-rm:hover { color:#d13b73; }
+.mx-q { display:inline-flex; align-items:center; gap:6px; flex:none; }
+.mx-qb { width:32px; height:32px; border-radius:50%; border:0; padding:0; background:var(--fika-blue); color:#fff; font:600 18px/1 'Outfit','Open Sans',Arial,sans-serif; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s, transform .15s; }
+.mx-qb:hover { background:#003a8a; }
+.mx-qb:active { transform:scale(.9); }
+.mx-q span { min-width:48px; text-align:center; font-size:14px; font-weight:600; }
+.mx-lp { min-width:56px; text-align:right; flex:none; }
+@media (max-width:420px) { .mx-line { gap:8px; } .mx-q { gap:4px; } .mx-q span { min-width:42px; font-size:13px; } }
 .mx-none { text-align:center; padding:60px 10px; font-family:'Fanwood Text',Georgia,serif; font-size:21px; color:var(--fika-blue); }
 .mx-df { padding:16px 24px 24px; border-top:1px solid #eee; font-family:'Open Sans','Segoe UI',Arial,sans-serif; color:var(--fika-blue); }
 .mx-sum { display:flex; justify-content:space-between; padding:3px 0; font-size:15px; }
@@ -955,7 +962,17 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeD(); });
   document.addEventListener('click', function (e) { if (e.target.closest('.fika-cart')) { e.preventDefault(); openD(); } });
   $('mxClear').addEventListener('click', function () { bag = {}; save(); render(); });
-  $('mxItems').addEventListener('click', function (e) { var b = e.target.closest('.mx-rm'); if (!b) return; delete bag[b.getAttribute('data-id')]; save(); render(); });
+  $('mxItems').addEventListener('click', function (e) {
+    // − / + change the amount: candies in 100 g steps, Ready-Mix one 500 g bag at a time
+    var q = e.target.closest('.mx-qb');
+    if (q) {
+      var qid = q.getAttribute('data-id'), st = /^r/.test(qid) ? 500 : 100;
+      bag[qid] = (bag[qid] || 0) + (q.getAttribute('data-q') === '+' ? st : -st);
+      if (!(bag[qid] > 0)) delete bag[qid];
+      save(); render(); return;
+    }
+    var b = e.target.closest('.mx-rm'); if (!b) return; delete bag[b.getAttribute('data-id')]; save(); render();
+  });
   $('mxGo').setAttribute('href', CHECKOUT_URL);
   // Checkout: copy the bag into the WooCommerce cart, then open the WooCommerce checkout.
   // Candies are priced per 100 g (1 = 100 g); Ready-Mix per 500 g bag (1 = one bag).
@@ -1036,7 +1053,12 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
   function renderBag() {
     var html = '';
     Object.keys(bag).forEach(function (id) {
-      html += '<div class="mx-line"><div>' + esc(byId(id).name) + '<small>' + gText(bag[id]) + '</small></div><div>' + money(bag[id] / 100 * (byId(id).price || PRICE_100G)) + '</div><button class="mx-rm" data-id="' + id + '" type="button" aria-label="Remove">&times;</button></div>';
+      var per = byId(id).price || PRICE_100G, isBag = /^r/.test(id);
+      html += '<div class="mx-line"><div>' + esc(byId(id).name) + '<small>' + (isBag ? money(per * 5) + ' per 500 g bag' : money(per) + ' per 100 g') + '</small></div>' +
+        '<div class="mx-q"><button class="mx-qb" data-q="-" data-id="' + id + '" type="button" aria-label="Less ' + esc(byId(id).name) + '">−</button>' +
+        '<span>' + (isBag ? Math.round(bag[id] / 500) + ' × 500g' : gText(bag[id])) + '</span>' +
+        '<button class="mx-qb" data-q="+" data-id="' + id + '" type="button" aria-label="More ' + esc(byId(id).name) + '">+</button></div>' +
+        '<div class="mx-lp">' + money(bag[id] / 100 * per) + '</div><button class="mx-rm" data-id="' + id + '" type="button" aria-label="Remove">&times;</button></div>';
     });
     $('mxItems').innerHTML = html || '<div class="mx-none">Your bag is empty.</div>';
     var g = total(), sub = cost(), has = g > 0;

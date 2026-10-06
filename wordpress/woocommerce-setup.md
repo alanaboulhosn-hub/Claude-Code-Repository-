@@ -151,3 +151,11 @@ Implemented in snippet 8 (wordpress/snippets/fika-home-cartoons.php).
   (3 of that candy; a Ready Mix sends 4 cartoons from its Sweet / Sour category); the bag then
   bounces and the badge pops. Off for reduced-motion users. Snippet 8.
 - Bag drawer: the delivery / timing note under the total was removed.
+
+## Bag quantities + checkout trims (2026-10-06)
+
+- Home page bag drawer: each line has − / + (candies in 100 g steps, Ready Mix one 500 g bag at a time;
+  − at the last step removes the line), the unit price under the name, and stays in sync with the
+  product cards and the kg badge.
+- Checkout: terms sentence removed (terms block removed from the page + hidden with CSS) and the
+  "Use same address for billing" checkbox hidden (it stays ticked, so billing = delivery address).
