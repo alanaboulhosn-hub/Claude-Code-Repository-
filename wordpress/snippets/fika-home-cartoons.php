@@ -236,6 +236,10 @@ FIKA_LIB;
   transform: scale(0); transition: transform .3s cubic-bezier(.3, 1.6, .5, 1), top .45s, right .45s; pointer-events: none;
 }
 .fika-cart .fk-count.on { transform: scale(1); }
+@media (max-width: 700px) {
+  /* keep the kg badge on screen: sit it over the top-left of the bag instead of off its right edge */
+  .fika-cart .fk-count { right: auto; left: calc(-30px - (var(--fk-scale, 1) - 1) * 12px); top: calc(-8px - (var(--fk-scale, 1) - 1) * 14px); height: 19px; padding: 0 6px; font-size: 10.5px; line-height: 15px; }
+}
 .fika-cart .fk-count.pop { animation: fkPop .45s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes fkPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 100% { transform: scale(1); } }
 
