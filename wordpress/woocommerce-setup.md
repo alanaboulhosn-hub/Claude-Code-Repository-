@@ -143,3 +143,11 @@ The floating "Bag 0 kg" button is hidden; the header bag icon (top right) opens 
 It shows a count badge (number of different candies / mixes in the bag) and grows with the grams:
 scale = 1 + 0.45 * (1 - e^(-grams / 1500))  (100 g ≈ 1.03, 900 g ≈ 1.2, 1.9 kg ≈ 1.32, 4 kg ≈ 1.42; max 1.45).
 Implemented in snippet 8 (wordpress/snippets/fika-home-cartoons.php).
+
+## Bag badge in kg + candies flying into the bag (2026-10-06)
+
+- Header bag badge shows the bag weight (e.g. 0.9 kg) instead of an item count.
+- Pressing + on a product sends cartoon candies on an arc from its photo into the header bag
+  (3 of that candy; a Ready Mix sends 4 cartoons from its Sweet / Sour category); the bag then
+  bounces and the badge pops. Off for reduced-motion users. Snippet 8.
+- Bag drawer: the delivery / timing note under the total was removed.

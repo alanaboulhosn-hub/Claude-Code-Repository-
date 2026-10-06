@@ -4,7 +4,8 @@
  * - Prints the cartoon candy library (wordpress/snippets/fika-cartoons.js) on the home page and checkout,
  *   as window.FIKA_CARTOON(slug).
  * - Home page: the header bag icon is the only bag (floating Bag button hidden); it shows an item count badge,
- *   grows gently with the grams in the bag, and shoots out cartoon candies on hover;
+ *   shows the bag's weight in kg, grows gently with the grams, shoots out cartoon candies on hover, and
+ *   catches cartoon candies that fly in from a product photo when + is pressed;
  *   the bag drawer is moved to the top level of the page so it sits flush with the top of the screen,
  *   and the grey overlay beside it is invisible (clicking beside the drawer still closes it).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-home-cartoons.php
@@ -227,14 +228,20 @@ FIKA_LIB;
 /* Header bag icon grows gently with the order and shows how many items are inside */
 .fika-cart svg { scale: var(--fk-scale, 1); transition: scale .45s cubic-bezier(.3, 1.6, .5, 1); }
 .fika-cart .fk-count {
-  position: absolute; top: calc(-4px - (var(--fk-scale, 1) - 1) * 18px); right: calc(-8px - (var(--fk-scale, 1) - 1) * 14px); z-index: 6; min-width: 21px; height: 21px; padding: 0 6px;
-  border-radius: 11px; background: #004aad; color: #fff; border: 2px solid #fdeaf2;
-  font: 700 12px/17px 'Outfit', 'Open Sans', Arial, sans-serif; text-align: center; box-sizing: border-box;
+  position: absolute; top: calc(-6px - (var(--fk-scale, 1) - 1) * 18px); right: calc(-24px - (var(--fk-scale, 1) - 1) * 14px); z-index: 6; height: 21px; padding: 0 7px;
+  border-radius: 11px; background: #004aad; color: #fff; border: 2px solid #fdeaf2; white-space: nowrap;
+  font: 700 11.5px/17px 'Outfit', 'Open Sans', Arial, sans-serif; text-align: center; box-sizing: border-box;
   transform: scale(0); transition: transform .3s cubic-bezier(.3, 1.6, .5, 1), top .45s, right .45s; pointer-events: none;
 }
 .fika-cart .fk-count.on { transform: scale(1); }
 .fika-cart .fk-count.pop { animation: fkPop .45s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes fkPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 100% { transform: scale(1); } }
+
+/* Candy flying from a product photo into the bag */
+.fk-fly { position: fixed; left: 0; top: 0; width: 42px; height: 42px; z-index: 100003; pointer-events: none; will-change: transform, opacity; }
+.fk-fly svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 3px rgba(80, 20, 50, .3)); }
+.fika-cart.fk-catch svg { animation: fkCatch .42s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes fkCatch { 0% { transform: translateY(0) rotate(0); } 35% { transform: translateY(3px) rotate(-8deg) scale(1.08, .9); } 70% { transform: translateY(-2px) rotate(5deg); } 100% { transform: none; } }
 
 /* Header bag icon: cartoon candies fly out on hover */
 .fika-candies i.fk-toon { width: 28px !important; height: 28px !important; left: -14px !important; top: -14px !important;
@@ -256,8 +263,8 @@ FIKA_LIB;
     document.querySelectorAll('.fika-cart').forEach(function (cart) {
       var b = cart.querySelector('.fk-count');
       if (!b) { b = document.createElement('span'); b.className = 'fk-count'; b.setAttribute('aria-hidden', 'true'); cart.appendChild(b); }
-      b.textContent = String(count);
-      b.classList.toggle('on', count > 0);
+      b.textContent = (Math.round(grams / 100) / 10).toFixed(1) + ' kg';
+      b.classList.toggle('on', grams > 0);
       if (lastCount >= 0 && (count > lastCount || grams > lastGrams)) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
       var scale = 1 + 0.45 * (1 - Math.exp(-grams / 1500));
       cart.style.setProperty('--fk-scale', scale.toFixed(3));
@@ -269,6 +276,91 @@ FIKA_LIB;
   window.addEventListener('fikabag', function () { setTimeout(bagBadge, 0); });
   window.addEventListener('storage', function (e) { if (e.key === 'fika_bag_v1') bagBadge(); });
 
+  // Pressing + on a candy sends cartoon versions of it flying from its photo into the header bag
+  var flyReady = false, prodMap = null;
+  function products() {
+    if (prodMap) return Promise.resolve(prodMap);
+    return fetch('/wp-json/wc/store/v1/products?per_page=100', { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (list) {
+        prodMap = {};
+        (list || []).forEach(function (p) { prodMap[p.id] = { slug: p.slug, cats: (p.categories || []).map(function (c) { return c.slug; }), name: p.name }; });
+        return prodMap;
+      }).catch(function () { prodMap = {}; return prodMap; });
+  }
+  function slugsFor(cardId) {
+    var m = /^(r?)w(\d+)$/.exec(cardId || '');
+    if (!m || !prodMap) return [];
+    var p = prodMap[m[2]];
+    if (!p) return [];
+    if (p.cats.indexOf('ready-mix') === -1) return [p.slug, p.slug, p.slug];
+    var nm = (p.name || '').toLowerCase(), want = [];
+    if (nm.indexOf('sweet') !== -1) want.push('sweet');
+    if (nm.indexOf('sour') !== -1) want.push('sour');
+    if (!want.length) want = ['sweet', 'sour'];
+    var pool = Object.keys(prodMap).filter(function (id) {
+      var q = prodMap[id];
+      return window.FIKA_CARTOON(q.slug) ? want.some(function (w) { return q.cats.indexOf(w) !== -1; }) : false;
+    }).map(function (id) { return prodMap[id].slug; });
+    pool.sort(function () { return Math.random() - 0.5; });
+    return pool.slice(0, 4);
+  }
+  function flyOne(slug, from, to, delay, last) {
+    var svgStr = window.FIKA_CARTOON(slug);
+    if (!svgStr) return;
+    var el = document.createElement('div');
+    el.className = 'fk-fly';
+    el.innerHTML = svgStr;
+    document.body.appendChild(el);
+    var sx = from.x + (Math.random() - 0.5) * from.w * 0.4, sy = from.y + (Math.random() - 0.5) * from.h * 0.3;
+    var ex = to.x, ey = to.y;
+    var cx = (sx + ex) / 2 + (Math.random() - 0.5) * 80, cy = Math.min(sy, ey) - 110 - Math.random() * 60;
+    var spin = (Math.random() > 0.5 ? 1 : -1) * (300 + Math.random() * 240);
+    var frames = [], N = 14;
+    for (var i = 0; i <= N; i++) {
+      var t = i / N, u = 1 - t;
+      var x = u * u * sx + 2 * u * t * cx + t * t * ex - 21;
+      var y = u * u * sy + 2 * u * t * cy + t * t * ey - 21;
+      var sc = t < 0.15 ? 0.6 + t / 0.15 * 0.6 : 1.2 - (t - 0.15) / 0.85 * 0.85;
+      frames.push({ transform: 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + (spin * t).toFixed(0) + 'deg) scale(' + sc.toFixed(2) + ')',
+                    opacity: t > 0.92 ? (1 - t) / 0.08 : 1 });
+    }
+    var a = el.animate(frames, { duration: 780 + Math.random() * 160, delay: delay, easing: 'cubic-bezier(.45,.05,.55,.95)', fill: 'both' });
+    a.onfinish = function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+      if (last) {
+        document.querySelectorAll('.fika-cart').forEach(function (c) { c.classList.remove('fk-catch'); void c.offsetWidth; c.classList.add('fk-catch'); });
+        var b = document.querySelector('.fika-cart .fk-count');
+        if (b) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+      }
+    };
+  }
+  function flyInit() {
+    if (flyReady) return;
+    flyReady = true;
+    if (window.matchMedia) { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; }
+    products();
+    // capture phase: measure the card before the grid re-renders after the click
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.mx-card button[data-a="+"]') : null;
+      if (!btn) return;
+      if (!window.FIKA_CARTOON) return;
+      var card = btn.closest('.mx-card');
+      var img = card.querySelector('.mx-img') || card;
+      var r = img.getBoundingClientRect();
+      var cart = document.querySelector('.fika-cart svg') || document.querySelector('.fika-cart');
+      if (!cart) return;
+      var c = cart.getBoundingClientRect();
+      var from = { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height };
+      var to = { x: c.left + c.width / 2, y: c.top + c.height / 2 };
+      var id = card.getAttribute('data-id');
+      products().then(function () {
+        var list = slugsFor(id);
+        list.forEach(function (slug, i) { flyOne(slug, from, to, i * 110, i === list.length - 1); });
+      });
+    }, true);
+  }
+
   function init() {
     // Move the bag drawer, its veil and the floating Bag button to the top level of the page:
     // inside the page content they are offset by the layout's transforms.
@@ -278,6 +370,7 @@ FIKA_LIB;
     });
 
     bagBadge();
+    flyInit();
 
     if (!window.FIKA_CARTOON) return;
     var slugs = (window.FIKA_CARTOON_SLUGS || []).slice();
