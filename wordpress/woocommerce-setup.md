@@ -127,3 +127,12 @@ To add a cartoon for a new candy, add an entry for its slug in fika-cartoons.js 
 - The "Shipping options" step is removed from the page and hidden with CSS (WooCommerce re-inserts
   it on the frontend); the single delivery rate for the chosen Delivery area is picked automatically
   and still shows in the order summary.
+
+## Home page bag drawer + hover candies (2026-10-06)
+
+- Snippet "Fika cartoons: shared candy cartoons + home bag tweaks" (wordpress/snippets/fika-home-cartoons.php):
+  prints the cartoon library on the home page and checkout (the checkout bag snippet now uses it),
+  moves the bag drawer / veil / Bag button to <body> so the drawer sits flush with the top of the screen,
+  makes the veil invisible (click beside the drawer still closes it), and fills the header bag icon's
+  hover burst with cartoon candies (a new random handful on each hover).
+- Bag drawer: no delivery line; Total = candy subtotal; note says delivery is added at checkout by area.
