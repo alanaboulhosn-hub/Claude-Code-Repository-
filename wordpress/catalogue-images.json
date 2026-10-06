@@ -1,43 +1,145 @@
 {
-  "_note": "Google Drive photo (Fika product catalogue folder) -> WooCommerce product ID. Used to attach images.",
+  "_note": "Google Drive photo (Fika product catalogue folder) -> WooCommerce product ID. Used to attach images. Photos were uploaded to the WordPress media library (IDs 126-159) and attached on 2026-10-06.",
   "Sweet": {
-    "Sugared Strawberries": ["1oQS1EYCE7lVgQmwu079iMXW0iOmNI_8z", 99],
-    "Swedish Fish": ["10gvVWSNR0kBmeThsfPpPYeVHtGidbd8b", 100],
-    "Sugared Apples": ["1X4poIMrlGtkoNqbmJlK5tFimgouo41K3", 101],
-    "Tutti Frutti Passion": ["12usjgY7wlbsVQjF_xV8RcMCDFfTHnRzd", 102],
-    "Tutti Frutti Rings": ["1m12fMT1bXKTjWLqxl3h7shhpN4cIZZHo", 103],
-    "Raspberry Bites": ["1K3yexqDo9pZHtgA0YgGJloMA9NOv3oQ-", 93],
-    "Red Ammo": ["1JLujgotFH4y-HRWT2CQKgPJTcBpB1Y3t", 104],
-    "Rhubarb Bites": ["1sr28EmA12u9IyGMciCW5u7500xlNkO4P", 105],
-    "Forest Berries": ["1V3EltBk7lGvTvTNiC6KGcn8HlM3oNJEj", 106],
-    "BUBS Raspberry Salty Licorice Skulls": ["18ZO3T2YpgWHIhg3qMFD2B293f4HuJf37", 107],
-    "BUBS Wild Berry Pomegranate Oval": ["1dfjjCzgj9EJ225_09-0Bnb-qJxvWR7Dk", 108],
-    "Peaches": ["10gio4A-wZpMPTYAC6FgSwkeDnF3xk2bd", 109],
-    "Loose Teeth": ["10pXr2oymhy2IuwkRZfSju-PnNqae1qvh", 91],
-    "BUBS Banana Toffee Ovals": ["1OONansbhngzkB_H8bbiCcYjzcTUTAGIA", 110]
+    "Sugared Strawberries": [
+      "1oQS1EYCE7lVgQmwu079iMXW0iOmNI_8z",
+      99
+    ],
+    "Swedish Fish": [
+      "10gvVWSNR0kBmeThsfPpPYeVHtGidbd8b",
+      100
+    ],
+    "Sugared Apples": [
+      "1X4poIMrlGtkoNqbmJlK5tFimgouo41K3",
+      101
+    ],
+    "Tutti Frutti Passion": [
+      "12usjgY7wlbsVQjF_xV8RcMCDFfTHnRzd",
+      102
+    ],
+    "Tutti Frutti Rings": [
+      "1m12fMT1bXKTjWLqxl3h7shhpN4cIZZHo",
+      103
+    ],
+    "Raspberry Bites": [
+      "1K3yexqDo9pZHtgA0YgGJloMA9NOv3oQ-",
+      93
+    ],
+    "Red Ammo": [
+      "1JLujgotFH4y-HRWT2CQKgPJTcBpB1Y3t",
+      104
+    ],
+    "Rhubarb Bites": [
+      "1sr28EmA12u9IyGMciCW5u7500xlNkO4P",
+      105
+    ],
+    "Forest Berries": [
+      "1V3EltBk7lGvTvTNiC6KGcn8HlM3oNJEj",
+      106
+    ],
+    "BUBS Raspberry Salty Licorice Skulls": [
+      "18ZO3T2YpgWHIhg3qMFD2B293f4HuJf37",
+      107
+    ],
+    "BUBS Wild Berry Pomegranate Oval": [
+      "1dfjjCzgj9EJ225_09-0Bnb-qJxvWR7Dk",
+      108
+    ],
+    "Peaches": [
+      "10gio4A-wZpMPTYAC6FgSwkeDnF3xk2bd",
+      109
+    ],
+    "Loose Teeth": [
+      "10pXr2oymhy2IuwkRZfSju-PnNqae1qvh",
+      91
+    ],
+    "BUBS Banana Toffee Ovals": [
+      "1OONansbhngzkB_H8bbiCcYjzcTUTAGIA",
+      110
+    ]
   },
   "Sour": {
-    "Sour Strawberries": ["1uwqS8AWI6H-6qZ7k00qE5zngQWKnUI2W", 111],
-    "Tutti Frutti Sour": ["1VKMDJZsOTalobOaOf19MTXuMNPXW3Fa8", 112],
-    "Sour Watermelon Pacifier": ["1qU-gCZVYuBVxX06-vvsZNCWxwd3Dp36u", 113],
-    "Sour Pineapple": ["1HitWPvQf3lCjOfdXZHupGr16xS0Q0QXC", 114],
-    "Sour Swedish Fish": ["1cYy36QyvJteOArROU-vcjsQWAPy1mj_K", 115],
-    "Sour Cherries": ["1tr2_l-BRBGbDco76fOzeR5Ut_Imn825a", 116],
-    "Tutti Frutti Melon": ["1N7oAxmdNQ_ngbxYk1JgEe1roq0gJa3BP", 117],
-    "Fizzy Cola": ["1XoDYGBLWIe9s2zqUw8WrqCIfJLy-cL1u", 90],
-    "BUBS Fruity Lemon Mix Skulls": ["1nR4EHbVB4mYdqc3LMeE93ZA947AFOlw-", 118],
-    "BUBS Tutti Frutti Diamond": ["1v_Lhq78oi1yNV9c2fWjy3FAILeJKCgIm", 119],
-    "BUBS Bubblegum Skull": ["1hS1c3whWVn9XTBYwj5fza5VXl5cnHWUw", 120],
-    "BUBS Forest Berry Ovals": ["16Vp5b8qfFV8Bqp8uPxtDrM-EGcr3VnPj", 121],
-    "BUBS Lemon Raspberry Skull": ["1RJU3iBVTODY1pE1NiU9Nhj0s9_qStJ-x", 122],
-    "BUBS Fruity Pear Ovals": ["1k62k3QUmJe4pgf1ynlEWr1LjO90Px6Pq", 123],
-    "BUBS Cola Skull": ["1EIvDPDrR_qMU6BUXMTEmqUu9CLEFyJr5", 124],
-    "Fizzy Pop": ["1smJloCwzwP-ZKCRQcsEYH3TtJ5jx_V0e", 92],
-    "Fizzy Blue": ["10A7bA_xbtiKWb0FB-4IEqOoRE5g-qZTO", 125]
+    "Sour Strawberries": [
+      "1uwqS8AWI6H-6qZ7k00qE5zngQWKnUI2W",
+      111
+    ],
+    "Tutti Frutti Sour": [
+      "1VKMDJZsOTalobOaOf19MTXuMNPXW3Fa8",
+      112
+    ],
+    "Sour Watermelon Pacifier": [
+      "1qU-gCZVYuBVxX06-vvsZNCWxwd3Dp36u",
+      113
+    ],
+    "Sour Pineapple": [
+      "1HitWPvQf3lCjOfdXZHupGr16xS0Q0QXC",
+      114
+    ],
+    "Sour Swedish Fish": [
+      "1cYy36QyvJteOArROU-vcjsQWAPy1mj_K",
+      115
+    ],
+    "Sour Cherries": [
+      "1tr2_l-BRBGbDco76fOzeR5Ut_Imn825a",
+      116
+    ],
+    "Fizzy Cola": [
+      "1XoDYGBLWIe9s2zqUw8WrqCIfJLy-cL1u",
+      90
+    ],
+    "BUBS Fruity Lemon Mix Skulls": [
+      "1nR4EHbVB4mYdqc3LMeE93ZA947AFOlw-",
+      118
+    ],
+    "BUBS Tutti Frutti Diamond": [
+      "1v_Lhq78oi1yNV9c2fWjy3FAILeJKCgIm",
+      119
+    ],
+    "BUBS Bubblegum Skull": [
+      "1hS1c3whWVn9XTBYwj5fza5VXl5cnHWUw",
+      120
+    ],
+    "BUBS Forest Berry Ovals": [
+      "16Vp5b8qfFV8Bqp8uPxtDrM-EGcr3VnPj",
+      121
+    ],
+    "BUBS Lemon Raspberry Skull": [
+      "1RJU3iBVTODY1pE1NiU9Nhj0s9_qStJ-x",
+      122
+    ],
+    "BUBS Fruity Pear Ovals": [
+      "1k62k3QUmJe4pgf1ynlEWr1LjO90Px6Pq",
+      123
+    ],
+    "BUBS Cola Skull": [
+      "1EIvDPDrR_qMU6BUXMTEmqUu9CLEFyJr5",
+      124
+    ],
+    "Fizzy Pop": [
+      "1smJloCwzwP-ZKCRQcsEYH3TtJ5jx_V0e",
+      92
+    ],
+    "Fizzy Blue": [
+      "10A7bA_xbtiKWb0FB-4IEqOoRE5g-qZTO",
+      125
+    ],
+    "Tutti Frutti Sour Melon": [
+      "1N7oAxmdNQ_ngbxYk1JgEe1roq0gJa3BP",
+      117
+    ]
   },
   "Ready Mixes": {
-    "Sweet Mix": ["1xMh_tyZsFE9fNOtkfCONFX56_JjaQbtL", 96],
-    "Sweet & Sour Mix": ["1ceWQHV0WWED1PaB_Y_pic2SpUmv_3gHU", 94],
-    "Sour Mix": ["1jZmJwEWPzDDMK_EF3s9pmA99OXc01RYA", 95]
+    "Sweet Mix": [
+      "1xMh_tyZsFE9fNOtkfCONFX56_JjaQbtL",
+      96
+    ],
+    "Sweet & Sour Mix": [
+      "1ceWQHV0WWED1PaB_Y_pic2SpUmv_3gHU",
+      94
+    ],
+    "Sour Mix": [
+      "1jZmJwEWPzDDMK_EF3s9pmA99OXc01RYA",
+      95
+    ]
   }
 }

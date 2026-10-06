@@ -901,7 +901,7 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
   function pixel(ev, x) { try { if (typeof window.fbq === 'function') window.fbq('track', ev, x); } catch (e) {} }
 
   function img(p) {
-    if (p.img) return '<img loading="lazy" src="' + esc(p.img) + '" alt="' + esc(p.name) + '">';
+    if (p.img) return '<img loading="lazy" decoding="async" src="' + esc(p.img) + '"' + (p.srcset ? ' srcset="' + esc(p.srcset) + '" sizes="(max-width: 700px) 46vw, 300px"' : '') + ' alt="' + esc(p.name) + '">';
     var s = '';
     for (var i = 0; i < 7; i++) s += '<i style="--x:' + (22 + ((i * 29 + p.hue) % 46)) + '%;--y:' + (24 + ((i * 41 + p.hue / 2) % 46)) + '%;--r:' + (((i * 67 + p.hue) % 120) - 60) + 'deg"></i>';
     return '<div class="mx-ph" style="--h:' + p.hue + '">' + s + '</div>';
@@ -1002,7 +1002,7 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
           var labels = (w.tags || []).concat(w.categories || []).map(function (t) { return (t.name + ' ' + t.slug).toLowerCase(); }).join(' ');
           var neg = /(no|free|without|non)[ -]*(pork)?[ -]*gelatin|gelatin[ -]*(free|less)/.test(labels);
           return { id: 'w' + w.id, name: dec(w.name), gelatin: labels.indexOf(GELATIN_WORD) !== -1 && !neg,
-                   img: w.images && w.images[0] ? w.images[0].src : '', price: price || PRICE_100G, hue: (w.id * 47) % 360 };
+                   img: w.images && w.images[0] ? w.images[0].src : '', srcset: w.images ? (w.images[0] ? (w.images[0].srcset || '') : '') : '', price: price || PRICE_100G, hue: (w.id * 47) % 360 };
         });
         if (!items.length) return;
         PRODUCTS = items;
@@ -1152,7 +1152,7 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
   setIds();
 
   function img(p) {
-    if (p.img) return '<img loading="lazy" src="' + esc(p.img) + '" alt="' + esc(p.name) + '">';
+    if (p.img) return '<img loading="lazy" decoding="async" src="' + esc(p.img) + '"' + (p.srcset ? ' srcset="' + esc(p.srcset) + '" sizes="(max-width: 700px) 46vw, 300px"' : '') + ' alt="' + esc(p.name) + '">';
     var s = '';
     for (var i = 0; i < 7; i++) s += '<i style="--x:' + (22 + ((i * 29 + p.hue) % 46)) + '%;--y:' + (24 + ((i * 41 + p.hue / 2) % 46)) + '%;--r:' + (((i * 67 + p.hue) % 120) - 60) + 'deg"></i>';
     return '<div class="mx-ph" style="--h:' + p.hue + '">' + s + '</div>';
@@ -1226,7 +1226,7 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
           var labels = (w.tags || []).concat(w.categories || []).map(function (t) { return (t.name + ' ' + t.slug).toLowerCase(); }).join(' ');
           var neg = /(no|free|without|non)[ -]*(pork)?[ -]*gelatin|gelatin[ -]*(free|less)/.test(labels);
           return { id: 'rw' + w.id, name: dec(w.name), gelatin: labels.indexOf('gelatin') !== -1 && !neg,
-                   img: w.images && w.images[0] ? w.images[0].src : '', price: (w.prices ? parseInt(w.prices.price, 10) / Math.pow(10, minor) : 12.5) || 12.5, hue: (w.id * 61) % 360 };
+                   img: w.images && w.images[0] ? w.images[0].src : '', srcset: w.images ? (w.images[0] ? (w.images[0].srcset || '') : '') : '', price: (w.prices ? parseInt(w.prices.price, 10) / Math.pow(10, minor) : 12.5) || 12.5, hue: (w.id * 61) % 360 };
         });
         if (!items.length) return;
         PRODUCTS = items; render(); place();
