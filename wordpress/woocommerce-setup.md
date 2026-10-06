@@ -136,3 +136,10 @@ To add a cartoon for a new candy, add an entry for its slug in fika-cartoons.js 
   makes the veil invisible (click beside the drawer still closes it), and fills the header bag icon's
   hover burst with cartoon candies (a new random handful on each hover).
 - Bag drawer: no delivery line; Total = candy subtotal; note says delivery is added at checkout by area.
+
+## One bag icon (2026-10-06)
+
+The floating "Bag 0 kg" button is hidden; the header bag icon (top right) opens the bag drawer.
+It shows a count badge (number of different candies / mixes in the bag) and grows with the grams:
+scale = 1 + 0.45 * (1 - e^(-grams / 1500))  (100 g ≈ 1.03, 900 g ≈ 1.2, 1.9 kg ≈ 1.32, 4 kg ≈ 1.42; max 1.45).
+Implemented in snippet 8 (wordpress/snippets/fika-home-cartoons.php).

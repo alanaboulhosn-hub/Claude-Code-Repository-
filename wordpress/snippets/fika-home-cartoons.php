@@ -3,7 +3,8 @@
  * Fika: shared cartoon candies + home page bag tweaks.
  * - Prints the cartoon candy library (wordpress/snippets/fika-cartoons.js) on the home page and checkout,
  *   as window.FIKA_CARTOON(slug).
- * - Home page: the header bag icon now shoots out cartoon candies on hover (instead of coloured dots);
+ * - Home page: the header bag icon is the only bag (floating Bag button hidden); it shows an item count badge,
+ *   grows gently with the grams in the bag, and shoots out cartoon candies on hover;
  *   the bag drawer is moved to the top level of the page so it sits flush with the top of the screen,
  *   and the grey overlay beside it is invisible (clicking beside the drawer still closes it).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-home-cartoons.php
@@ -220,6 +221,21 @@ FIKA_LIB;
 .admin-bar .mx-drawer { top: 32px !important; height: calc(100vh - 32px); }
 @media (max-width: 782px) { .admin-bar .mx-drawer { top: 46px !important; height: calc(100vh - 46px); } }
 
+/* One bag only: the floating "Bag 0 kg" button is gone; the header bag icon opens the bag */
+#mxFab, .mx-fab { display: none !important; }
+
+/* Header bag icon grows gently with the order and shows how many items are inside */
+.fika-cart svg { scale: var(--fk-scale, 1); transition: scale .45s cubic-bezier(.3, 1.6, .5, 1); }
+.fika-cart .fk-count {
+  position: absolute; top: calc(-4px - (var(--fk-scale, 1) - 1) * 18px); right: calc(-8px - (var(--fk-scale, 1) - 1) * 14px); z-index: 6; min-width: 21px; height: 21px; padding: 0 6px;
+  border-radius: 11px; background: #004aad; color: #fff; border: 2px solid #fdeaf2;
+  font: 700 12px/17px 'Outfit', 'Open Sans', Arial, sans-serif; text-align: center; box-sizing: border-box;
+  transform: scale(0); transition: transform .3s cubic-bezier(.3, 1.6, .5, 1), top .45s, right .45s; pointer-events: none;
+}
+.fika-cart .fk-count.on { transform: scale(1); }
+.fika-cart .fk-count.pop { animation: fkPop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes fkPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 100% { transform: scale(1); } }
+
 /* Header bag icon: cartoon candies fly out on hover */
 .fika-candies i.fk-toon { width: 28px !important; height: 28px !important; left: -14px !important; top: -14px !important;
   background: none !important; border-radius: 0 !important; }
@@ -229,6 +245,30 @@ FIKA_LIB;
 </style>
 <script>
 (function () {
+  // Header bag icon: item count badge + size that grows (with diminishing steps) with the grams in the bag
+  var lastCount = -1, lastGrams = -1;
+  function readBag() {
+    try { var st = JSON.parse(localStorage.getItem('fika_bag_v1') || 'null'); return (st && st.bag) || {}; } catch (e) { return {}; }
+  }
+  function bagBadge() {
+    var bag = readBag(), count = 0, grams = 0;
+    Object.keys(bag).forEach(function (k) { var g = +bag[k] || 0; if (g > 0) { count++; grams += g; } });
+    document.querySelectorAll('.fika-cart').forEach(function (cart) {
+      var b = cart.querySelector('.fk-count');
+      if (!b) { b = document.createElement('span'); b.className = 'fk-count'; b.setAttribute('aria-hidden', 'true'); cart.appendChild(b); }
+      b.textContent = String(count);
+      b.classList.toggle('on', count > 0);
+      if (lastCount >= 0 && (count > lastCount || grams > lastGrams)) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+      var scale = 1 + 0.45 * (1 - Math.exp(-grams / 1500));
+      cart.style.setProperty('--fk-scale', scale.toFixed(3));
+      var kg = grams >= 1000 ? (Math.round(grams / 100) / 10) + ' kg' : grams + ' g';
+      cart.setAttribute('aria-label', count ? 'Bag, ' + count + (count === 1 ? ' item, ' : ' items, ') + kg : 'Bag, empty');
+    });
+    lastCount = count; lastGrams = grams;
+  }
+  window.addEventListener('fikabag', function () { setTimeout(bagBadge, 0); });
+  window.addEventListener('storage', function (e) { if (e.key === 'fika_bag_v1') bagBadge(); });
+
   function init() {
     // Move the bag drawer, its veil and the floating Bag button to the top level of the page:
     // inside the page content they are offset by the layout's transforms.
@@ -236,6 +276,8 @@ FIKA_LIB;
       var el = document.getElementById(id);
       if (el && el.parentNode !== document.body) document.body.appendChild(el);
     });
+
+    bagBadge();
 
     if (!window.FIKA_CARTOON) return;
     var slugs = (window.FIKA_CARTOON_SLUGS || []).slice();
