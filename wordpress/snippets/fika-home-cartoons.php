@@ -6,6 +6,8 @@
  * - Home page: the header bag icon is the only bag (floating Bag button hidden); it shows an item count badge,
  *   shows the bag's weight in kg, grows gently with the grams, shoots out cartoon candies on hover, and
  *   catches cartoon candies that fly in from a product photo when + is pressed;
+ * - Footer social icons animate on hover: Instagram flashes, WhatsApp becomes a flapping bird,
+ *   Email opens and folds into a paper plane;
  *   the bag drawer is moved to the top level of the page so it sits flush with the top of the screen,
  *   and the grey overlay beside it is invisible (clicking beside the drawer still closes it).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-home-cartoons.php
@@ -237,6 +239,57 @@ FIKA_LIB;
 .fika-cart .fk-count.pop { animation: fkPop .45s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes fkPop { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 100% { transform: scale(1); } }
 
+/* Footer social icons: Instagram flashes, WhatsApp turns into a flapping bird, Email folds into a paper plane */
+.fika-foot-social a { position: relative; overflow: visible !important; }
+.fika-foot-social a svg g { transform-box: view-box; }
+.fika-foot-social a .fk-alt { opacity: 0; }
+/* Instagram: camera flash */
+.fika-foot-social a.fk-ig::after { content: ''; position: absolute; inset: -10px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, #fff 0 28%, rgba(255,255,255,.75) 40%, rgba(255,255,255,0) 70%); opacity: 0; transform: scale(.3); }
+.fika-foot-social a.fk-ig:hover::after { animation: fkIgBurst .9s ease-out; }
+.fika-foot-social a.fk-ig:hover { animation: fkIgBg .9s ease-out; }
+.fika-foot-social a.fk-ig .fk-lens { transform-origin: 12px 12px; }
+.fika-foot-social a.fk-ig .fk-spark { transform-origin: 17.5px 6.5px; opacity: 0; }
+.fika-foot-social a.fk-ig:hover .fk-lens { animation: fkIgLens .9s ease-out; }
+.fika-foot-social a.fk-ig:hover .fk-spark { animation: fkIgSpark .9s ease-out; }
+@keyframes fkIgBurst { 0% { opacity: 0; transform: scale(.3); } 12% { opacity: 1; transform: scale(1.15); } 32% { opacity: 0; transform: scale(1.5); }
+  48% { opacity: .85; transform: scale(1.05); } 75%, 100% { opacity: 0; transform: scale(1.6); } }
+@keyframes fkIgBg { 0%, 100% { background: #fdeaf2; } 12%, 48% { background: #fff; } }
+@keyframes fkIgLens { 0%, 100% { transform: scale(1); } 12% { transform: scale(.7); } 30% { transform: scale(1.12); } 48% { transform: scale(.8); } 70% { transform: scale(1); } }
+@keyframes fkIgSpark { 0% { opacity: 0; transform: scale(.2) rotate(0); } 12% { opacity: 1; transform: scale(1.6) rotate(45deg); } 35% { opacity: 0; transform: scale(.6) rotate(90deg); }
+  48% { opacity: 1; transform: scale(1.3) rotate(135deg); } 80%, 100% { opacity: 0; transform: scale(.4) rotate(180deg); } }
+/* WhatsApp: bubble turns into a bird that flaps */
+.fika-foot-social a.fk-wa .fk-base, .fika-foot-social a.fk-wa .fk-alt { transform-origin: 12px 12px; transition: opacity .25s, transform .35s cubic-bezier(.3, 1.5, .5, 1); }
+.fika-foot-social a.fk-wa:hover .fk-base { opacity: 0; transform: scale(.2) rotate(-40deg); }
+.fika-foot-social a.fk-wa:hover .fk-alt { opacity: 1; transform: scale(1); transition-delay: .1s; }
+.fika-foot-social a.fk-wa .fk-alt { transform: scale(.2) rotate(30deg); }
+.fika-foot-social a.fk-wa .fk-bird { transform-origin: 12px 12px; }
+.fika-foot-social a.fk-wa .fk-wing { transform-origin: 11.5px 12.2px; }
+.fika-foot-social a.fk-wa .fk-wing2 { transform-origin: 11px 12px; }
+.fika-foot-social a.fk-wa:hover .fk-bird { animation: fkBob .5s ease-in-out .3s infinite alternate; }
+.fika-foot-social a.fk-wa:hover .fk-wing { animation: fkFlap .26s ease-in-out .3s infinite alternate; }
+.fika-foot-social a.fk-wa:hover .fk-wing2 { animation: fkFlap2 .26s ease-in-out .3s infinite alternate; }
+@keyframes fkBob { from { transform: translate(-.6px, .9px); } to { transform: translate(.6px, -1.4px); } }
+@keyframes fkFlap { from { transform: rotate(-12deg) scaleY(1); } to { transform: rotate(18deg) scaleY(-.75); } }
+@keyframes fkFlap2 { from { transform: rotate(-20deg) scaleY(.9); } to { transform: rotate(10deg) scaleY(-.6); } }
+/* Email: flap opens, envelope folds into a paper plane that glides off */
+.fika-foot-social a.fk-ml .fk-flap { transform-origin: 12px 5.5px; }
+.fika-foot-social a.fk-ml .fk-env { transform-origin: 12px 12px; }
+.fika-foot-social a.fk-ml .fk-alt { transform-origin: 12px 12px; transform: scale(.3) rotate(-30deg); }
+.fika-foot-social a.fk-ml .fk-trail { stroke-dasharray: 2 2.2; opacity: 0; }
+.fika-foot-social a.fk-ml:hover .fk-flap { animation: fkFlapOpen .3s ease-out forwards; }
+.fika-foot-social a.fk-ml:hover .fk-env { animation: fkEnvFold .3s ease-in .3s forwards; }
+.fika-foot-social a.fk-ml:hover .fk-alt { animation: fkPlaneIn .35s cubic-bezier(.3, 1.6, .5, 1) .5s forwards, fkGlide 1.4s ease-in-out .9s infinite; }
+.fika-foot-social a.fk-ml:hover .fk-trail { animation: fkTrail .9s linear .85s infinite; }
+@keyframes fkFlapOpen { to { transform: scaleY(-1); } }
+@keyframes fkEnvFold { to { transform: scale(.25, .1) rotate(-25deg); opacity: 0; } }
+@keyframes fkPlaneIn { to { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes fkGlide { 0%, 100% { opacity: 1; transform: translate(0, 0) rotate(0); } 50% { opacity: 1; transform: translate(2.2px, -2.2px) rotate(-6deg); } }
+@keyframes fkTrail { 0% { opacity: .9; stroke-dashoffset: 0; } 100% { opacity: .9; stroke-dashoffset: -8.4; } }
+@media (prefers-reduced-motion: reduce) {
+  .fika-foot-social a *, .fika-foot-social a::after { animation: none !important; transition: none !important; }
+}
+
 /* Candy flying from a product photo into the bag */
 .fk-fly { position: fixed; left: 0; top: 0; width: 42px; height: 42px; z-index: 100003; pointer-events: none; will-change: transform, opacity; }
 .fk-fly svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 3px rgba(80, 20, 50, .3)); }
@@ -361,6 +414,43 @@ FIKA_LIB;
     }, true);
   }
 
+  // Footer social icons: richer SVGs for the hover animations (Instagram flash, WhatsApp bird, Email plane)
+  var ICONS = {
+    Instagram: ['fk-ig',
+      '<g class="fk-base"><rect x="3" y="3" width="18" height="18" rx="5"/><g class="fk-lens"><circle cx="12" cy="12" r="4"/></g>' +
+      '<circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>' +
+      '<g class="fk-spark"><path d="M17.5 3.8v1.4M17.5 7.8v1.4M14.8 6.5h1.4M18.8 6.5h1.4" stroke-width="1.4"/></g></g>'],
+    WhatsApp: ['fk-wa',
+      '<g class="fk-base"><path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4z"/>' +
+      '<path d="M9 8.6c0 3.3 3 6.4 6.4 6.4l1.2-1.6-2-1-1 .8a5 5 0 0 1-2.8-2.8l.8-1-1-2z" fill="currentColor" stroke="none"/></g>' +
+      '<g class="fk-alt"><g class="fk-bird">' +
+        '<g class="fk-wing2"><path d="M11 12 C10 8.2 11.6 6 14 5.6 C13.8 8.6 12.8 10.8 11 12 Z" fill="currentColor" stroke="none" opacity=".45"/></g>' +
+        '<path d="M6.8 13.2 L2.8 11 L3.8 15.3 Z" fill="currentColor" stroke="none"/>' +
+        '<ellipse cx="11.6" cy="13.4" rx="5.6" ry="4" fill="currentColor" stroke="none"/>' +
+        '<circle cx="16.6" cy="10.8" r="2.9" fill="currentColor" stroke="none"/>' +
+        '<path d="M19.3 10.4 L22.2 11.3 L19.3 12.1 Z" fill="#f5a623" stroke="none"/>' +
+        '<circle cx="17.4" cy="10.2" r=".65" fill="#fdeaf2" stroke="none"/>' +
+        '<g class="fk-wing"><path d="M11.5 12.2 C9.2 7.4 11.8 4.6 15.2 4.8 C14.8 8.4 13.6 10.9 11.5 12.2 Z" fill="currentColor" stroke="#fdeaf2" stroke-width=".9"/></g>' +
+      '</g></g>'],
+    Email: ['fk-ml',
+      '<g class="fk-base"><g class="fk-env"><rect x="3" y="5.5" width="18" height="13.5" rx="2"/>' +
+        '<g class="fk-flap"><path d="M3.6 6.6 L12 13 L20.4 6.6" /></g></g></g>' +
+      '<g class="fk-alt"><path class="fk-trail" d="M1.5 20.5 Q5 18.5 8.5 15.5" stroke-width="1.4"/>' +
+        '<path d="M2.6 11.6 L21.4 3.4 L15.2 20.4 L11.2 13.2 Z" fill="#fff" stroke-linejoin="round"/>' +
+        '<path d="M11.2 13.2 L21.4 3.4 M11.2 13.2 L11.6 17.6 L13.6 15.8" stroke-linejoin="round"/></g>']
+  };
+  function footerIcons() {
+    document.querySelectorAll('.fika-foot-social a').forEach(function (a) {
+      var spec = ICONS[a.getAttribute('aria-label')];
+      if (!spec) return;
+      if (a.classList.contains(spec[0])) return;
+      var svg = a.querySelector('svg');
+      if (!svg) return;
+      a.classList.add(spec[0]);
+      svg.innerHTML = spec[1];
+    });
+  }
+
   function init() {
     // Move the bag drawer, its veil and the floating Bag button to the top level of the page:
     // inside the page content they are offset by the layout's transforms.
@@ -371,6 +461,7 @@ FIKA_LIB;
 
     bagBadge();
     flyInit();
+    footerIcons();
 
     if (!window.FIKA_CARTOON) return;
     var slugs = (window.FIKA_CARTOON_SLUGS || []).slice();

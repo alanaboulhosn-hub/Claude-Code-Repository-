@@ -159,3 +159,11 @@ Implemented in snippet 8 (wordpress/snippets/fika-home-cartoons.php).
   product cards and the kg badge.
 - Checkout: terms sentence removed (terms block removed from the page + hidden with CSS) and the
   "Use same address for billing" checkbox hidden (it stays ticked, so billing = delivery address).
+
+## Footer icon animations + sticky checkout column (2026-10-06)
+
+- Footer social icons (snippet 8): Instagram double camera-flash; WhatsApp bubble turns into a bird that
+  flaps and bobs; Email flap opens, envelope folds into a paper plane that glides with a dashed trail.
+- Checkout (snippet 7): on desktop the form column is sticky, so as you scroll it follows down and its
+  bottom (Place Order) lines up with the bottom of the right column. Its sticky top is computed from its
+  height so Place Order stays 24 px above the bottom of the screen.

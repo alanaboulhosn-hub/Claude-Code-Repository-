@@ -58,6 +58,10 @@ add_action( 'wp_footer', function () {
 .fika-bagviz .fbv-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px;
   font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; color: #b0708d; font-size: 17px; }
 .fika-bagviz .fbv-note { font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: 16px; line-height: 1.4; text-align: center; color: #1b2a4a; margin: 10px 0 0; }
+/* Desktop: the form column follows the scroll so its bottom (Place Order) lines up with the right column */
+@media (min-width: 782px) {
+  .wc-block-checkout__main { position: sticky; top: var(--fk-main-top, 24px); align-self: flex-start; }
+}
 @media (prefers-reduced-motion: reduce) { .fika-bagviz .fbv-glint { animation: none; display: none; } .fika-bagviz .fbv-candy { transition: none; } }
 @media (max-width: 700px) { .fika-bagviz .fbv-stage { max-width: 240px; } }
 </style>
@@ -337,6 +341,22 @@ add_action( 'wp_footer', function () {
       }, 250);
     });
   }
+
+  // Sticky form column: stick 24px from the top when it fits on screen; when it is taller than the
+  // screen, stick so that its bottom stays 24px above the bottom of the screen
+  function stickyMain() {
+    var m = document.querySelector('.wc-block-checkout__main');
+    if (!m) return false;
+    var t = Math.min(24, window.innerHeight - m.offsetHeight - 24);
+    m.style.setProperty('--fk-main-top', Math.round(t) + 'px');
+    if (!m.__fkObs) {
+      m.__fkObs = true;
+      if (window.ResizeObserver) new ResizeObserver(stickyMain).observe(m);
+    }
+    return true;
+  }
+  window.addEventListener('resize', stickyMain);
+  var sm = 0, smTimer = setInterval(function () { sm++; if (stickyMain()) clearInterval(smTimer); else if (sm > 80) clearInterval(smTimer); }, 250);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
