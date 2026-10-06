@@ -1,0 +1,188 @@
+/* FIKA cartoon candies: one small SVG illustration per product (keyed by product slug).
+   Used by the checkout bag (wordpress/snippets/fika-checkout-bag.php).
+   window.FIKA_CARTOON(slug) returns an SVG string (viewBox 0 0 100 100) or '' when there is none. */
+(function () {
+  var uid = 0;
+  function id(p) { uid += 1; return 'fk' + p + uid; }
+
+  // sugar crystals: little white specks spread over the shape (clipped to it)
+  function sugar(clipId, n, seed) {
+    var s = seed || 7, out = '';
+    function r() { s = (s * 9301 + 49297) % 233280; return s / 233280; }
+    for (var i = 0; i < n; i++) {
+      var x = 8 + r() * 84, y = 8 + r() * 84, rr = 0.7 + r() * 1.1;
+      out += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + rr.toFixed(2) + '" fill="#fff" opacity="' + (0.55 + r() * 0.4).toFixed(2) + '"/>';
+    }
+    return '<g clip-path="url(#' + clipId + ')">' + out + '</g>';
+  }
+  function shine(x, y, rx, ry, rot, op) {
+    return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '" transform="rotate(' + (rot || -30) + ' ' + x + ' ' + y + ')" fill="#fff" opacity="' + (op || 0.55) + '"/>';
+  }
+  function svg(inner, defs) {
+    return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + (defs ? '<defs>' + defs + '</defs>' : '') + inner + '</svg>';
+  }
+  // a shape filled with two colours split by a line (angle in degrees, 0 = vertical split)
+  function split(path, c1, c2, stroke, angle, at, sug, glossy, extra) {
+    var cl = id('c'), g = id('g');
+    var a = angle || 0, p = at === undefined ? 50 : at;
+    var defs = '<clipPath id="' + cl + '"><path d="' + path + '"/></clipPath>' +
+      '<linearGradient id="' + g + '" gradientTransform="rotate(' + a + ' .5 .5)">' +
+      '<stop offset="' + (p - 4) + '%" stop-color="' + c1 + '"/><stop offset="' + (p + 4) + '%" stop-color="' + c2 + '"/></linearGradient>';
+    var body = '<path d="' + path + '" fill="url(#' + g + ')"/>' +
+      '<g clip-path="url(#' + cl + ')"><ellipse cx="50" cy="96" rx="60" ry="22" fill="#000" opacity=".10"/></g>' +
+      (extra || '') +
+      (sug ? sugar(cl, sug, path.length) : '') +
+      (glossy ? shine(34, 30, 12, 6, -35, 0.6) : shine(34, 30, 9, 4, -35, 0.35)) +
+      '<path d="' + path + '" fill="none" stroke="' + stroke + '" stroke-width="2.6" stroke-linejoin="round"/>';
+    return svg(body, defs);
+  }
+
+  var SKULL = 'M50 12 C72 12 86 27 86 46 C86 58 80 66 73 70 L73 79 C73 85 69 88 63 88 L61 88 L61 82 L55 82 L55 88 L45 88 L45 82 L39 82 L39 88 L37 88 C31 88 27 85 27 79 L27 70 C20 66 14 58 14 46 C14 27 28 12 50 12 Z';
+  function skull(cL, cR, stroke, sug, glossy) {
+    var eyes = '<ellipse cx="37" cy="48" rx="8" ry="9.5" fill="#3b1a2a" opacity=".38"/><ellipse cx="63" cy="48" rx="8" ry="9.5" fill="#3b1a2a" opacity=".38"/>' +
+      '<path d="M50 58 L46 66 L54 66 Z" fill="#3b1a2a" opacity=".3"/>';
+    return split(SKULL, cL, cR, stroke, 0, 50, sug, glossy, eyes);
+  }
+
+  var OVAL = 'M50 20 C76 20 92 33 92 50 C92 67 76 80 50 80 C24 80 8 67 8 50 C8 33 24 20 50 20 Z';
+  function bubsOval(c1, c2, stroke, angle) {
+    var txt = '<text x="50" y="58" text-anchor="middle" transform="rotate(-12 50 50)" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="22" letter-spacing="-1" fill="#fff" fill-opacity=".38" stroke="' + stroke + '" stroke-opacity=".45" stroke-width="1">BUBS</text>';
+    return split(OVAL, c1, c2, stroke, angle === undefined ? 70 : angle, 50, 0, false, txt);
+  }
+
+  var DIAMOND = 'M50 9 Q56 9 62 17 L86 45 Q90 50 86 55 L62 83 Q56 91 50 91 Q44 91 38 83 L14 55 Q10 50 14 45 L38 17 Q44 9 50 9 Z';
+  var BOTTLE = 'M44 7 L56 7 L56 17 Q56 24 61 29 Q69 37 69 49 L69 82 Q69 93 58 93 L42 93 Q31 93 31 82 L31 49 Q31 37 39 29 Q44 24 44 17 Z';
+  function bottle(top, bottom, stroke, sug) {
+    return split(BOTTLE, top, bottom, stroke, 90, 46, sug, false, '<rect x="42" y="7" width="16" height="5" rx="2" fill="#fff" opacity=".25"/>');
+  }
+  var FISH = 'M8 52 C16 32 44 25 64 37 L88 24 C84 40 84 62 88 77 L64 65 C44 78 16 72 8 52 Z';
+  function fish(c1, c2, stroke, sug) {
+    var deco = '<circle cx="25" cy="47" r="3" fill="#2b1020" opacity=".55"/>' +
+      '<path d="M38 40 Q42 50 38 62 M48 38 Q52 50 48 64 M58 40 Q61 50 58 62" fill="none" stroke="' + stroke + '" stroke-opacity=".35" stroke-width="1.6"/>';
+    return split(FISH, c1, c2, stroke, 0, 55, sug, !sug, deco);
+  }
+  // a stick lying on its side, seen from one end (filling shows in the round end)
+  function tube(body, end, fill, stroke, sug, deco) {
+    var cl = id('c');
+    var path = 'M18 36 L74 22 Q88 19 91 32 Q94 45 80 49 L24 63 Q11 66 8 53 Q5 40 18 36 Z';
+    var defs = '<clipPath id="' + cl + '"><path d="' + path + '"/></clipPath>';
+    var inner = '<path d="' + path + '" fill="' + body + '"/>' +
+      '<g clip-path="url(#' + cl + ')"><path d="M8 56 L92 36 L92 60 L8 80 Z" fill="#000" opacity=".12"/>' + (deco || '') + '</g>' +
+      '<ellipse cx="17" cy="50" rx="9" ry="13.5" transform="rotate(-14 17 50)" fill="' + end + '" stroke="' + stroke + '" stroke-width="2.2"/>' +
+      fill +
+      (sug ? sugar(cl, sug, 11) : '') + shine(52, 31, 22, 3.4, -14, 0.5) +
+      '<path d="' + path + '" fill="none" stroke="' + stroke + '" stroke-width="2.6" stroke-linejoin="round"/>';
+    return svg(inner, defs);
+  }
+  function ring(c1, c2, stroke, sug) {
+    var path = 'M50 12 A38 38 0 1 1 49.9 12 Z M50 36 A14 14 0 1 0 50.1 36 Z';
+    var cl = id('c'), g = id('g');
+    var defs = '<clipPath id="' + cl + '"><path d="' + path + '" clip-rule="evenodd"/></clipPath>' +
+      '<linearGradient id="' + g + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c1 + '"/><stop offset="1" stop-color="' + c2 + '"/></linearGradient>';
+    return svg('<path d="' + path + '" fill="url(#' + g + ')" fill-rule="evenodd"/>' + sugar(cl, sug || 0, 23) + shine(30, 28, 10, 4.5, -40, 0.5) +
+      '<path d="' + path + '" fill="none" fill-rule="evenodd" stroke="' + stroke + '" stroke-width="2.6"/>', defs);
+  }
+  function berry(c, dark, stroke, sug, glossy) {
+    var dots = [[50, 28], [36, 34], [64, 34], [28, 48], [44, 46], [58, 46], [72, 48], [34, 62], [50, 60], [66, 62], [42, 75], [58, 75], [50, 86]];
+    var cl = id('c'), shape = '';
+    var clip = dots.map(function (d) { return '<circle cx="' + d[0] + '" cy="' + d[1] + '" r="12"/>'; }).join('');
+    dots.forEach(function (d) {
+      shape += '<circle cx="' + d[0] + '" cy="' + d[1] + '" r="12" fill="' + c + '" stroke="' + stroke + '" stroke-width="2"/>' +
+        '<circle cx="' + (d[0] + 3) + '" cy="' + (d[1] + 4) + '" r="6" fill="' + dark + '" opacity=".35"/>' +
+        '<circle cx="' + (d[0] - 4) + '" cy="' + (d[1] - 4) + '" r="' + (glossy ? 3.4 : 2.4) + '" fill="#fff" opacity="' + (glossy ? 0.75 : 0.45) + '"/>';
+    });
+    return svg(shape + (sug ? sugar(cl, sug, 31) : ''), '<clipPath id="' + cl + '">' + clip + '</clipPath>');
+  }
+  function round(path, c1, c2, stroke, sug, extra, angle) {
+    return split(path, c1, c2, stroke, angle === undefined ? 120 : angle, 55, sug, false, extra);
+  }
+
+  var CIRCLE = 'M50 12 C73 12 90 29 90 52 C90 74 73 90 50 90 C27 90 10 74 10 52 C10 29 27 12 50 12 Z';
+  var PEACH = 'M50 20 C56 12 72 10 82 22 C92 34 90 62 74 80 C64 90 36 90 26 80 C10 62 8 34 18 22 C28 10 44 12 50 20 Z';
+  var LEMON = 'M8 50 C10 44 16 41 22 38 C32 25 68 25 78 38 C84 41 90 44 92 50 C90 56 84 59 78 62 C68 75 32 75 22 62 C16 59 10 56 8 50 Z';
+  var STRAWB = 'M50 88 C30 80 12 58 14 38 C16 22 30 16 50 24 C70 16 84 22 86 38 C88 58 70 80 50 88 Z';
+  var CRESCENT = 'M10 74 C4 46 24 16 56 12 C78 10 94 24 92 42 C82 44 70 48 60 56 C46 68 30 76 10 74 Z';
+  var SLICE = 'M10 64 A40 40 0 0 1 90 64 Q90 70 84 70 L16 70 Q10 70 10 64 Z';
+  var CHERRIES = 'M30 90 C14 90 6 76 10 62 C14 48 30 44 40 50 C42 42 48 36 56 36 C70 36 76 46 74 56 C86 52 96 62 92 76 C88 90 74 94 62 88 C56 94 40 96 30 90 Z';
+  var PACIFIER_SHIELD = 'M14 46 C14 32 30 26 50 30 C70 26 86 32 86 46 C86 60 72 66 50 62 C28 66 14 60 14 46 Z';
+  var GUM = 'M8 40 C20 22 80 22 92 40 C94 46 90 52 84 52 C72 40 28 40 16 52 C10 52 6 46 8 40 Z';
+  var CAPSULE = 'M50 92 C34 92 24 80 24 64 L24 46 C24 34 36 26 50 26 C64 26 76 34 76 46 L76 64 C76 80 66 92 50 92 Z';
+
+  var C = {
+    'bubs-bubblegum-skull': function () { return skull('#f6a5c6', '#8fd3f0', '#c76a96', 70); },
+    'bubs-cola-skull': function () { return skull('#f5ead6', '#9a5a2c', '#6b3a1b', 60); },
+    'bubs-lemon-raspberry-skull': function () { return skull('#e5384f', '#ffd84a', '#a8243a', 70); },
+    'bubs-fruity-lemon-mix-skulls': function () { return skull('#ffcf4d', '#ff8a4c', '#c45a2a', 70); },
+    'bubs-raspberry-salty-licorice-skulls': function () { return skull('#e3243b', '#2a2326', '#141012', 0, true); },
+    'bubs-forest-berry-ovals': function () { return bubsOval('#f6a5c6', '#6fd0ee', '#5b8fb0'); },
+    'bubs-fruity-pear-ovals': function () { return bubsOval('#d9eed3', '#bfe0bc', '#86ad86', 0); },
+    'bubs-banana-toffee-ovals': function () { return bubsOval('#e8e86a', '#c7b48e', '#8a7a52'); },
+    'bubs-wild-berry-pomegranate-oval': function () { return bubsOval('#f0c1d8', '#d99cc2', '#a8678f', 0); },
+    'bubs-tutti-frutti-diamond': function () {
+      return split(DIAMOND, '#a7c08a', '#e8e65a', '#7b8f4e', 90, 52, 60, false,
+        '<path d="M50 14 L50 86 M22 50 L78 50" stroke="#6f8a45" stroke-opacity=".35" stroke-width="1.6"/>');
+    },
+    'fizzy-cola': function () { return bottle('#f3dfb8', '#9b5a2e', '#6a3a1c', 70); },
+    'fizzy-pop': function () { return bottle('#f7a8c4', '#8ccdf2', '#b07090', 70); },
+    'fizzy-blue': function () { return bottle('#8fe0ff', '#24a7e0', '#1777a6', 80); },
+    'swedish-fish': function () { return fish('#ff6a3d', '#e3241f', '#a3160f', 0); },
+    'sour-swedish-fish': function () { return fish('#ffd36b', '#ff8a3b', '#c9622a', 70); },
+    'sour-strawberries': function () {
+      return tube('#ef5a4d', '#ffe9e6', '<ellipse cx="17" cy="50" rx="4.5" ry="7" transform="rotate(-14 17 50)" fill="#fff"/>', '#b8322b', 80);
+    },
+    'red-ammo': function () {
+      return tube('#d81f2a', '#e83a43', '<g transform="rotate(-14 17 50)"><circle cx="17" cy="50" r="2" fill="#fff"/>' +
+        '<ellipse cx="17" cy="44" rx="2" ry="3.4" fill="#fff"/><ellipse cx="17" cy="56" rx="2" ry="3.4" fill="#fff"/>' +
+        '<ellipse cx="12.5" cy="50" rx="2.2" ry="2.4" fill="#fff"/><ellipse cx="21.5" cy="50" rx="2.2" ry="2.4" fill="#fff"/></g>', '#8f0f18', 0,
+        '<path d="M30 33 L84 20 M34 48 L88 35" stroke="#ff7b82" stroke-width="3" opacity=".6"/>');
+    },
+    'rhubarb-bites': function () {
+      return tube('#8e1b2a', '#b5263a', '<ellipse cx="17" cy="50" rx="5" ry="7.5" transform="rotate(-14 17 50)" fill="#f7d34a"/>', '#4e0b16', 0);
+    },
+    'tutti-frutti-rings': function () { return ring('#ffd27a', '#ff8fa8', '#d2667f', 90); },
+    'raspberry-bites': function () { return berry('#f2384a', '#a5141f', '#a5141f', 60); },
+    'forest-berries': function () { return berry('#4a2347', '#1c0a1a', '#1c0a1a', 0, true); },
+    'peaches': function () {
+      return round(PEACH, '#ffd36b', '#ff6b5c', '#cf4d3e', 80, '<path d="M50 22 Q46 50 50 86" stroke="#cf4d3e" stroke-opacity=".4" stroke-width="2" fill="none"/>', 135);
+    },
+    'sugared-apples': function () {
+      return round(CIRCLE, '#c9ec6a', '#93cf3a', '#5f9a22', 80, '<path d="M50 16 Q58 4 70 8 Q64 20 50 18 Z" fill="#6cae2c" stroke="#4d8a1f" stroke-width="1.6"/>', 160);
+    },
+    'tutti-frutti-sour': function () { return round(LEMON, '#fff27a', '#ffc928', '#c99212', 70, '', 160); },
+    'sugared-strawberries': function () {
+      return round(STRAWB, '#f4f7d8', '#ff7f9c', '#cc4f6c', 90, '<path d="M30 24 Q50 34 70 24" stroke="#9fc46a" stroke-width="5" stroke-linecap="round" fill="none" opacity=".8"/>', 180);
+    },
+    'sour-pineapple': function () { return round(CRESCENT, '#fff26e', '#a9cf45', '#9a9420', 85, '<path d="M30 60 Q50 34 80 28" stroke="#d9c63a" stroke-width="2" fill="none" opacity=".6"/>', 60); },
+    'tutti-frutti-sour-melon': function () {
+      return round(SLICE, '#fff1e6', '#ff8a3d', '#d5652a', 70, '<path d="M16 64 L84 64" stroke="#ff8a3d" stroke-width="7" stroke-linecap="round" opacity=".85"/>', 90);
+    },
+    'sour-cherries': function () {
+      return round(CHERRIES, '#ffb0c2', '#f0566e', '#c03552', 80, '<path d="M44 46 Q52 22 66 14" stroke="#7aa63a" stroke-width="4" stroke-linecap="round" fill="none"/>', 150);
+    },
+    'sour-watermelon-pacifier': function () {
+      var cl = id('c');
+      return svg('<circle cx="50" cy="26" r="15" fill="none" stroke="#9bd36a" stroke-width="8"/><circle cx="50" cy="26" r="15" fill="none" stroke="#5f9a35" stroke-width="1.6" opacity=".6"/>' +
+        '<path d="' + PACIFIER_SHIELD + '" fill="#ff8fa8"/>' +
+        '<path d="M40 60 C40 76 44 90 50 90 C56 90 60 76 60 60 Z" fill="#ffb3c4" stroke="#cf5c79" stroke-width="2.4"/>' +
+        sugar(cl, 70, 13) + shine(32, 40, 9, 3.5, -12, 0.5) +
+        '<path d="' + PACIFIER_SHIELD + '" fill="none" stroke="#cf5c79" stroke-width="2.6"/>',
+        '<clipPath id="' + cl + '"><path d="' + PACIFIER_SHIELD + '"/><circle cx="50" cy="26" r="19"/><path d="M40 60 C40 76 44 90 50 90 C56 90 60 76 60 60 Z"/></clipPath>');
+    },
+    'loose-teeth': function () {
+      var teeth = '';
+      [[24, 44], [35, 40], [46, 38], [57, 38], [68, 40], [79, 44]].forEach(function (t) {
+        teeth += '<rect x="' + (t[0] - 4.5) + '" y="' + t[1] + '" width="9" height="13" rx="3.5" fill="#fffaf2" stroke="#d9c9b6" stroke-width="1.4"/>';
+      });
+      return svg('<path d="M8 40 C20 22 80 22 92 40 C94 46 90 52 84 52 C72 40 28 40 16 52 C10 52 6 46 8 40 Z" fill="#ff7aa6" stroke="#c94a7a" stroke-width="2.6" stroke-linejoin="round"/>' +
+        teeth + '<path d="M8 66 C20 84 80 84 92 66 C94 60 90 54 84 54 C72 66 28 66 16 54 C10 54 6 60 8 66 Z" fill="#ff7aa6" stroke="#c94a7a" stroke-width="2.6" stroke-linejoin="round"/>' +
+        shine(30, 31, 10, 3, -10, 0.55));
+    },
+    'tutti-frutti-passion': function () {
+      var star = '<path d="M50 30 L54 38 L63 37 L57 44 L61 52 L52 49 L45 55 L46 46 L38 42 L47 39 Z" fill="#ff9a1f" opacity=".85"/>';
+      return split(CAPSULE, '#ffe14a', '#ff7a2a', '#d0571c', 90, 50, 0, true, star);
+    }
+  };
+
+  window.FIKA_CARTOON = function (slug) { var f = C[slug]; return f ? f() : ''; };
+  window.FIKA_CARTOON_SLUGS = Object.keys(C);
+})();

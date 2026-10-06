@@ -110,3 +110,10 @@ A real test order was not placed.
   Each product's meta "fika_piece" holds its piece URL; the bag snippet reads them and falls back
   to the product photo for products without one (e.g. a newly added candy).
   Pieces settle in staggered rows like a jar; counts stay in proportion to grams.
+
+## Cartoon candies in the checkout bag (2026-10-06)
+
+The bag now drops cartoon illustrations instead of photo cut-outs: one hand-drawn SVG per candy
+(wordpress/snippets/fika-cartoons.js, keyed by product slug, embedded in the bag snippet).
+Fallbacks for a product without a cartoon: its single-piece cut-out (meta fika_piece), then its photo.
+To add a cartoon for a new candy, add an entry for its slug in fika-cartoons.js and update snippet 7.
