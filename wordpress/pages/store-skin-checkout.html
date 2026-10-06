@@ -23,6 +23,10 @@ body.woocommerce-page .wp-block-post-content { padding-top: 0 !important; }
 .fika-shoptitle .fika-back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: 19px; font-weight: 700; color: var(--fika-blue); text-decoration: none; border-bottom: 2px solid transparent; }
 .fika-shoptitle .fika-back:hover { border-bottom-color: var(--fika-blue); }
 
+/* Delivery is priced by the Delivery area in the address (one rate per area, picked automatically),
+   so WooCommerce's own "Shipping options" step is not shown */
+body.woocommerce-checkout #shipping-option, body.woocommerce-checkout .wc-block-checkout__shipping-option { display: none !important; }
+
 /* WooCommerce blocks */
 body.woocommerce-page .wc-block-components-title, body.woocommerce-page .wc-block-components-checkout-step__title,
 body.woocommerce-page .wc-block-cart__totals-title, body.woocommerce-page .wc-block-components-order-summary .wc-block-components-panel__button {

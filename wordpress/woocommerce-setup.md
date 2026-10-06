@@ -117,3 +117,13 @@ The bag now drops cartoon illustrations instead of photo cut-outs: one hand-draw
 (wordpress/snippets/fika-cartoons.js, keyed by product slug, embedded in the bag snippet).
 Fallbacks for a product without a cartoon: its single-piece cut-out (meta fika_piece), then its photo.
 To add a cartoon for a new candy, add an entry for its slug in fika-cartoons.js and update snippet 7.
+
+## Checkout sections (2026-10-06)
+
+- Contact information: Email address + required "Phone number" (additional checkout field
+  `fika/phone`, location contact, registered in snippet 5). The phone is copied to the order's
+  billing and shipping phone. The address phone field is hidden.
+- "Shipping address" step renamed "Delivery address" (block attribute title on the checkout page).
+- The "Shipping options" step is removed from the page and hidden with CSS (WooCommerce re-inserts
+  it on the frontend); the single delivery rate for the chosen Delivery area is picked automatically
+  and still shows in the order summary.
