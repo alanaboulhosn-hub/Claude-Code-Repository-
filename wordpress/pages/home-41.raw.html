@@ -1130,4 +1130,116 @@ html, body { overflow-x: clip; }
   fit();
 })();
 </script>
+
+<!-- FIKA footer: matches the hero/sections (blue + pink, Le Petit Cochon / Bebas Neue / Fanwood Text) -->
+<style>
+.fika-footer.fika-sec { padding: 0; background: #fff; color: #fdeaf2; }
+.fika-footer .fika-foot-wave { display: block; width: 100%; height: 56px; }
+.fika-footer .fika-foot-body { background: var(--fika-blue); padding: 40px 10% 0; }
+.fika-footer .fika-foot-grid {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.3fr; gap: 40px;
+}
+.fika-footer .fika-foot-logo {
+  font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps;
+  font-size: 64px; line-height: 1; color: var(--fika-pink); text-decoration: none;
+}
+.fika-footer .fika-foot-logo span { display: inline-block; }
+.fika-footer .fika-foot-logo:hover span { animation: fika-jump 1.1s ease-in-out infinite; animation-delay: calc(var(--i) * .11s); }
+.fika-footer .fika-foot-tag {
+  font-variant: small-caps; font-size: 19px; line-height: 1.5;
+  margin: 14px 0 22px; max-width: 300px; color: var(--fika-pink);
+}
+.fika-footer .fika-foot-social { display: flex; gap: 12px; }
+.fika-footer .fika-foot-social a {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--fika-pink); color: var(--fika-blue);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .15s ease, background .15s ease;
+}
+.fika-footer .fika-foot-social a:hover { transform: translateY(-3px); background: #fff; }
+.fika-footer .fika-foot-social svg { width: 22px; height: 22px; }
+.fika-footer h4 {
+  font-family: 'Bebas Neue', Impact, sans-serif; font-weight: 400;
+  font-size: 26px; letter-spacing: .03em; color: #fff; margin: 6px 0 14px;
+}
+.fika-footer ul { list-style: none; margin: 0; padding: 0; }
+.fika-footer li { font-variant: small-caps; font-size: 19px; line-height: 1.4; margin: 0 0 10px; }
+.fika-footer li a { color: var(--fika-pink); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .15s ease; }
+.fika-footer li a:hover { border-bottom-color: var(--fika-pink); }
+.fika-footer .fika-foot-muted { opacity: .8; }
+.fika-footer .fika-foot-bottom {
+  max-width: 1100px; margin: 44px auto 0; padding: 20px 0 28px;
+  border-top: 1px solid rgba(253, 234, 242, .25);
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-variant: small-caps; font-size: 16px; color: var(--fika-pink); opacity: .85;
+  padding-right: 150px; /* keep clear of the floating Bag button */
+}
+@media (max-width: 800px) {
+  .fika-footer .fika-foot-wave { height: 36px; }
+  .fika-footer .fika-foot-body { padding: 28px 6% 0; }
+  .fika-footer .fika-foot-grid { grid-template-columns: 1fr 1fr; gap: 32px 24px; }
+  .fika-footer .fika-foot-brand { grid-column: 1 / -1; text-align: center; }
+  .fika-footer .fika-foot-tag { margin-left: auto; margin-right: auto; }
+  .fika-footer .fika-foot-social { justify-content: center; }
+  .fika-footer .fika-foot-contact { grid-column: 1 / -1; }
+  .fika-footer .fika-foot-bottom { justify-content: center; text-align: center; padding-right: 0; padding-bottom: 84px; }
+}
+</style>
+
+<footer class="fika-sec fika-footer">
+  <svg class="fika-foot-wave" viewBox="0 0 1440 56" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="#004aad" d="M0,28 C120,56 240,0 360,28 C480,56 600,0 720,28 C840,56 960,0 1080,28 C1200,56 1320,0 1440,28 L1440,56 L0,56 Z"/>
+  </svg>
+  <div class="fika-foot-body">
+    <div class="fika-foot-grid">
+      <div class="fika-foot-brand">
+        <a class="fika-foot-logo" href="/" aria-label="Fika"><span style="--i:0" aria-hidden="true">F</span><span style="--i:1" aria-hidden="true">i</span><span style="--i:2" aria-hidden="true">k</span><span style="--i:3" aria-hidden="true">a</span></a>
+        <p class="fika-foot-tag">Swedish pick-and-mix, imported fresh and delivered across Lebanon.</p>
+        <div class="fika-foot-social">
+          <a href="https://instagram.com/swedishfika.lb" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://wa.me/96179411565" aria-label="WhatsApp" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4z"/><path d="M9 8.6c0 3.3 3 6.4 6.4 6.4l1.2-1.6-2-1-1 .8a5 5 0 0 1-2.8-2.8l.8-1-1-2z" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="mailto:hello@swedishfikalb.com" aria-label="Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5L12 13l8.5-6.5"/></svg>
+          </a>
+        </div>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="/shop">Mix your own</a></li>
+          <li><a href="/ready-mix">Ready-Mix</a></li>
+          <li><a href="/reviews">Reviews</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Help</h4>
+        <ul>
+          <li><a href="/contact">Contact &amp; Delivery</a></li>
+          <li><a href="/cart">Your bag</a></li>
+        </ul>
+      </div>
+      <div class="fika-foot-contact">
+        <h4>Get in touch</h4>
+        <ul>
+          <li><a href="https://wa.me/96179411565" target="_blank" rel="noopener">WhatsApp 79 411 565</a></li>
+          <li><a href="mailto:hello@swedishfikalb.com">hello@swedishfikalb.com</a></li>
+          <li><a href="https://instagram.com/swedishfika.lb" target="_blank" rel="noopener">@swedishfika.lb</a></li>
+          <li class="fika-foot-muted">Cash on delivery &middot; No deliveries on Sunday</li>
+        </ul>
+      </div>
+    </div>
+    <div class="fika-foot-bottom">
+      <span>&copy; <span class="fika-year">2026</span> Fika &middot; Stockholm's finest sweets, in Lebanon</span>
+      <span>Online only &middot; Delivering across Lebanon</span>
+    </div>
+  </div>
+</footer>
+<script>
+(function () { try { document.querySelectorAll('.fika-year').forEach(function (el) { el.textContent = new Date().getFullYear(); }); } catch (e) {} })();
+</script>
 <!-- /wp:html -->
