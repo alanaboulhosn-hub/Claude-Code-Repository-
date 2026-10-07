@@ -323,7 +323,7 @@ wordpress/pages/backup/.
 The shop page was split into two pages with the same layout, and an About page was added. Built by
 wordpress/pages/build-shop-pages.py (outputs mix-your-own-40, ready-mix-38, about-us, home-41 .raw.html).
 - Mix your own (page 40, /mix-your-own/): the 31 candies only. Banner (bowl photo, still while scrolling), sticky filter
-  bar All / Sweet / Sour / Gelatin-free with counts, search, sort. Pink "Can't decide?" band links to Ready Mix.
+  bar All / Sweet / Sour / Gelatin-free with counts and search (the sort menu was removed later; shop order). Pink "Can't decide?" band links to Ready Mix.
 - Ready Mix (page 38, /ready-mix/): the 3 Ready Mix bags only, no filters, 3 per row (1 on phones). Banner with the
   jars photo (media 21). "Rather pick your own?" band links to Mix your own.
 - About us (page 257, /about-us/): DRAFT copy to edit in WP Admin > Pages. Banner (media 13), Our story (with the
@@ -420,3 +420,5 @@ Snippet 25 (wordpress/snippets/fika-bag-reminder.php):
   (Also BUBS, Berry flavour, Fish shaped, Also sour...). Scored on brand, flavour and shape (from the name),
   sweet / sour category and gelatin-free; ties keep the shop order. An empty bag shows "Popular picks". The caps
   still apply. Shared shop part (pattern 241).
+- Mix your own: the "Most popular / A to Z / Z to A" sort menu and its code were removed; the candies always show in
+  the shop order (favourites first), narrowed by the filter chips and the search.

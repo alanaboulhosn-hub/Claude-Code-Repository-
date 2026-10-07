@@ -75,7 +75,7 @@ rep = [
     ("""price: price || PRICE_100G, hue: (w.id * 47) % 360 };""",
      """price: price || PRICE_100G, hue: (w.id * 47) % 360,
                    cats: (w.categories || []).map(function (c) { return c.slug; }) };"""),
-    # pages can re-draw the cards (after a filter / search / sort change)
+    # pages can re-draw the cards (after a filter / search change)
     ("""  function render() { renderGrid(); renderBag(); }""",
      """  function render() { renderGrid(); renderBag(); }
   window.fikaMxRender = render;"""),
@@ -447,8 +447,8 @@ html.fika-shop-page .fk-anchor { display: none; }
 }
 </style>"""
 
-# ---------- Mix your own: the 31 candies with filters, search and sort (no Ready Mix) ----------
-mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin-free), search and sort over the candies.
+# ---------- Mix your own: the candies with filters and search (no Ready Mix) ----------
+mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin-free) and search over the candies (shop order).
      Written without the logical-and operator and the less-than sign: WordPress rewrites them. -->
 <div class="fika-sec fs-bar" id="fsBar">
   <div class="fs-chips" role="tablist" aria-label="Show">
@@ -459,11 +459,6 @@ mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin
   </div>
   <label class="fs-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
     <input type="search" id="fsQ" placeholder="Search sweets" aria-label="Search sweets"></label>
-  <select id="fsSort" aria-label="Sort">
-    <option value="pop">Most popular</option>
-    <option value="az">A to Z</option>
-    <option value="za">Z to A</option>
-  </select>
 </div>
 <style>
 html.fika-mix-page #rmPage { display: none !important; }
@@ -481,7 +476,6 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
 .fs-bar .fs-search input { box-sizing: border-box; height: 44px; width: 240px; padding: 0 16px 0 42px; border-radius: 999px; border: 1.5px solid #c9d4ea; font: 15px 'Outfit', Arial, sans-serif; color: #1b2a4a; background: #fff; }
 .fs-bar .fs-search input:focus { outline: 0; border-color: #004aad; }
 .fs-bar .fs-search svg { position: absolute; left: 15px; top: 13px; width: 18px; height: 18px; fill: none; stroke: #004aad; stroke-width: 2; stroke-linecap: round; }
-.fs-bar select { height: 44px; padding: 0 38px 0 16px; border-radius: 999px; border: 1.5px solid #c9d4ea; font: 15px 'Outfit', Arial, sans-serif; color: #1b2a4a; background: #fff; }
 @media (max-width: 700px) {
   html.fika-shop-page .fs-bar { padding: 12px 16px; gap: 10px; }
   .fs-bar .fs-chips { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
@@ -489,13 +483,12 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
   .fs-bar .fs-chip { flex: none; height: 38px; padding: 0 14px; font-size: 17px; }
   .fs-bar .fs-search { flex: 1; }
   .fs-bar .fs-search input { width: 100%; }
-  .fs-bar select { width: 132px; }
 }
 </style>
 <script>
 (function () {
   document.documentElement.classList.add('fika-shop-page', 'fika-mix-page');
-  var st = { f: 'all', q: '', sort: 'pop' };
+  var st = { f: 'all', q: '' };
   window.fikaMxTitle = 'Mix your own';
   function norm(s) { return String(s || '').toLowerCase(); }
   function isCat(p, c) { return (p.cats || []).indexOf(c) !== -1; }
@@ -506,15 +499,9 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
     if (st.f === 'gf') return !p.gelatin;
     return true;
   }
-  function sorted(list) {
-    var out = list.slice();
-    if (st.sort === 'az') out.sort(function (a, b) { return a.name.localeCompare(b.name); });
-    if (st.sort === 'za') out.sort(function (a, b) { return b.name.localeCompare(a.name); });
-    return out;
-  }
   window.fikaMxView = function (list) {
-    // one catalogue: the filters, search and sort narrow it down
-    var items = sorted(list.filter(keep));
+    // one catalogue, in the shop order (favourites first): the filters and search narrow it down
+    var items = list.filter(keep);
     if (items.length) return items;
     return [{ html: '<div class="fs-none">' + (st.q ? 'No sweets match &ldquo;' + st.q.replace(/[<>&"]/g, '') + '&rdquo;.' : 'No sweets here yet.') + '</div>' }];
   };
@@ -552,7 +539,6 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
     });
     var q = document.getElementById('fsQ'), t = 0;
     q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { st.q = norm(q.value).trim(); update(false); }, 120); });
-    document.getElementById('fsSort').addEventListener('change', function (e) { st.sort = e.target.value; update(false); });
     // keep the bar just under the header, and slide it away once the footer comes up
     function top() {
       var h = document.querySelector('.fika-header');
@@ -729,7 +715,7 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
 
 
 # ---------- every page: blocks fade in as they scroll into view (lives in the shared header part) ----------
-# Product cards are re-drawn on every bag change, so a card fades once; a filter / search / sort change fades them again.
+# Product cards are re-drawn on every bag change, so a card fades once; a filter / search change fades them again.
 # Written without the logical-and operator and the less-than sign: WordPress rewrites them.
 head += "\n" + r"""<style>
 .fk-fade { opacity: 0; }
