@@ -1529,7 +1529,7 @@ html, body { overflow-x: clip; }
 .fika-footer .fika-foot-body { background: var(--fika-blue); padding: 40px 10% 0; }
 .fika-footer .fika-foot-grid {
   max-width: 1100px; margin: 0 auto;
-  display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.3fr; gap: 40px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px;
 }
 .fika-footer .fika-foot-logo {
   font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps;
@@ -1569,7 +1569,7 @@ html, body { overflow-x: clip; }
 @media (max-width: 800px) {
   .fika-footer .fika-foot-wave { height: 36px; }
   .fika-footer .fika-foot-body { padding: 28px 6% 0; }
-  .fika-footer .fika-foot-grid { grid-template-columns: 1fr 1fr; gap: 32px 24px; }
+  .fika-footer .fika-foot-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .fika-footer .fika-foot-brand { grid-column: 1 / -1; text-align: center; }
   .fika-footer .fika-foot-tag { margin-left: auto; margin-right: auto; }
   .fika-footer .fika-foot-social { justify-content: center; }
@@ -1605,13 +1605,6 @@ html, body { overflow-x: clip; }
           <li><a href="/shop">Mix your own</a></li>
           <li><a href="/ready-mix">Ready-Mix</a></li>
           <li><a href="/reviews">Reviews</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Help</h4>
-        <ul>
-          <li><a href="/contact">Contact &amp; Delivery</a></li>
-          <li><a href="/cart">Your bag</a></li>
         </ul>
       </div>
       <div class="fika-foot-contact">
