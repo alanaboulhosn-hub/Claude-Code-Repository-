@@ -503,7 +503,7 @@ Snippet 35 (wordpress/snippets/fika-winback.php), WP Admin > WooCommerce > Win-b
 - Ordering again starts over and counts as "came back". Every email has an Unsubscribe link (signed); the list
   is option fika_marketing_stop. Order emails are not affected by unsubscribing.
 - Runs daily at about 10:00 Beirut (Action Scheduler, 07:00 UTC), at most 50 emails per run.
-- Mode: Test (default: only alan.aboulhosn@gmail.com), Live (everyone due) or Off. Switch to Live at launch.
+- Mode: Test (default: only alan.aboulhosn@gmail.com), Live (everyone due) or Off. Owner (2026-10-07): not rolled out at launch, keep Test until they decide.
   Settings: discount %, validity, timing (30 / 14 days), test addresses, previews of both emails to any address
   (an email 2 preview creates a real code for that address). Lists customers with their next email and date, and
   recent activity. Shop managers: GET /wp-json/fika/v1/winback-preview?n=1|2 renders without sending.
@@ -555,3 +555,16 @@ page is built): /product/... sends customers to /mix-your-own/ (Ready Mix produc
 product names in My account orders and in emails are not links; the win-back "New drops" items link to the shop
 pages; products, categories and tags are out of the sitemap. Shop managers (logged in) still see the styled pages.
 To open them later, remove the "closed for now" block in fika-store-pages.php.
+
+## Which emails go out (2026-10-07, owner's rule)
+
+Only these go to customers without the customer asking:
+1. Order confirmation (WooCommerce "Processing order", sent when a cash-on-delivery order is placed).
+2. "Your Fika bag is waiting" (snippet 25), 1 hour after a shopper leaves the checkout without ordering. Live.
+3. Win-back 1 (30 days) and 4. win-back 2 (+14 days, with a code) (snippet 35). Not part of the launch: Test mode,
+   only to alan.aboulhosn@gmail.com.
+Sent because the customer asked: reset password, new account (only when they sign up), confirm email address.
+Sent only when the shop clicks for it: Order details (invoice) and Customer note.
+Switched off: Completed order, Refunded order, Failed order, Order on-hold (Cancelled order was already off).
+Shop emails to hello@swedishfikalb.com: Cancelled order, Failed order, Payment gateway enabled are on; New order is
+off.
