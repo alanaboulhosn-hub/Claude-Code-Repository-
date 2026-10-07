@@ -879,6 +879,11 @@ foot += "\n" + r"""<style>
 })();
 </script>"""
 
+# no Reviews link in the footer until there is a reviews page
+FOOT_REVIEWS = '          <li><a href="/reviews">Reviews</a></li>\n'
+assert foot.count(FOOT_REVIEWS) == 1
+foot = foot.replace(FOOT_REVIEWS, '', 1)
+
 # ---------- lighter pages ----------
 # the cute font is embedded once, in the header part (on every page); the shop and footer parts carried copies
 FONT_FACE = re.compile(r"@font-face\s*\{\s*font-family:\s*'NF Le Petit Cochon';[^}]*\}\s*")
