@@ -218,8 +218,10 @@ add_action( 'wp_footer', function () {
 	}
 	?>
 <style>
-.fika-header .fika-cart { grid-column: 3; grid-row: 1; }
-.fika-acct { grid-column: 3; grid-row: 1; justify-self: end; align-self: center; position: relative; margin-right: 62px; z-index: 30; }
+/* bag on the left, person on the far right; the bag's kg badge sits on its left so it never covers the person */
+.fika-header .fika-cart { grid-column: 3; grid-row: 1; margin-right: 58px; }
+.fika-header .fika-cart .fk-count { right: auto; left: calc(-34px - (var(--fk-scale, 1) - 1) * 12px); }
+.fika-acct { grid-column: 3; grid-row: 1; justify-self: end; align-self: center; position: relative; margin-right: -8px; z-index: 30; }
 .fika-acct .fa-btn { position: relative; display: flex; align-items: center; padding: 8px; color: var(--fika-blue, #004aad); text-decoration: none; background: none; border: 0; cursor: pointer; }
 .fika-acct svg { width: 30px; height: 30px; overflow: visible; }
 .fika-acct .fa-arm { transform-origin: 17px 15.5px; transform: rotate(120deg) scale(.6); opacity: 0; transition: transform .25s ease, opacity .2s ease; }
@@ -229,11 +231,11 @@ add_action( 'wp_footer', function () {
 @keyframes faWave { 0%, 100% { transform: rotate(-4deg); } 25% { transform: rotate(26deg); } 50% { transform: rotate(-4deg); } 75% { transform: rotate(26deg); } }
 .fika-acct.in .fa-btn::after { content: ''; position: absolute; right: 5px; bottom: 7px; width: 9px; height: 9px; border-radius: 50%; background: #2fb36b; border: 2px solid #fdeaf2; }
 /* the drop-down: a white card under the icon (padding-top bridges the gap so it stays open while moving the mouse down) */
-.fika-acct .fa-menu { position: absolute; top: 100%; right: -14px; padding-top: 10px; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity .2s ease, transform .2s ease, visibility 0s .2s; }
+.fika-acct .fa-menu { position: absolute; top: 100%; right: -6px; padding-top: 10px; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity .2s ease, transform .2s ease, visibility 0s .2s; }
 .fika-acct:hover .fa-menu, .fika-acct:focus-within .fa-menu, .fika-acct.open .fa-menu { opacity: 1; visibility: visible; transform: none; transition: opacity .2s ease, transform .2s ease, visibility 0s; }
 .fika-acct.shut .fa-menu { opacity: 0 !important; visibility: hidden !important; }
 .fika-acct .fa-card { position: relative; min-width: 210px; padding: 10px; border-radius: 18px; background: #fff; box-shadow: 0 14px 40px rgba(0, 74, 173, .18); }
-.fika-acct .fa-card::before { content: ''; position: absolute; top: -6px; right: 26px; width: 14px; height: 14px; background: #fff; border-radius: 3px; transform: rotate(45deg); }
+.fika-acct .fa-card::before { content: ''; position: absolute; top: -6px; right: 17px; width: 14px; height: 14px; background: #fff; border-radius: 3px; transform: rotate(45deg); }
 .fika-acct .fa-hi { position: relative; padding: 8px 14px 10px; margin-bottom: 4px; border-bottom: 1px solid #f3dbe6; font: 600 15px/1.2 'Outfit', 'Open Sans', Arial, sans-serif; color: #1b2a4a; }
 .fika-acct .fa-hi small { display: block; margin-top: 3px; font-weight: 400; font-size: 13px; color: #6b7894; }
 .fika-acct .fa-card a { position: relative; display: block; padding: 10px 14px; border-radius: 12px; font-family: 'Bebas Neue', Impact, sans-serif; font-size: 21px; letter-spacing: .03em; line-height: 1.1; color: #004aad; text-decoration: none; white-space: nowrap; }
@@ -242,11 +244,12 @@ add_action( 'wp_footer', function () {
 .fika-acct .fa-card a.fa-main:hover { background: #003a8a; }
 .fika-acct .fa-card a.fa-out { color: #6b7894; }
 @media (max-width: 700px) {
-  .fika-acct { margin-right: 74px; }
+  .fika-header .fika-cart { margin-right: 42px; }
+  .fika-acct { margin-right: -6px; }
   .fika-acct .fa-btn { padding: 6px; }
   .fika-acct svg { width: 25px; height: 25px; }
-  .fika-acct .fa-menu { right: -86px; }
-  .fika-acct .fa-card::before { right: 96px; }
+  .fika-acct .fa-menu { right: -4px; }
+  .fika-acct .fa-card::before { right: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .fika-acct:hover .fa-arm, .fika-acct.open .fa-arm { animation: none; } }
 </style>
