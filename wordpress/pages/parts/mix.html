@@ -341,7 +341,9 @@
         '<button class="mx-qb" data-q="+" data-id="' + id + '" type="button" aria-label="More ' + esc(byId(id).name) + '">+</button></div>' +
         '<div class="mx-lp">' + money(bag[id] / 100 * per) + '</div><button class="mx-rm" data-id="' + id + '" type="button" aria-label="Remove">&times;</button></div>';
     });
+    var sugRow = $('mxItems').querySelector('.mx-sug-row'), sugX = sugRow ? sugRow.scrollLeft : 0;
     $('mxItems').innerHTML = (html || '<div class="mx-none">Your bag is empty.</div>') + suggest();
+    sugRow = $('mxItems').querySelector('.mx-sug-row'); if (sugRow) sugRow.scrollLeft = sugX;
     var g = total(), sub = cost(), has = g > 0;
     var kg = (g / 1000).toFixed(1).replace(/\.0$/, '') + ' kg';
     $('mxKg').textContent = kg; $('mxFabN').textContent = kg;
@@ -350,6 +352,12 @@
   }
   function render() { renderGrid(); renderBag(); }
   window.fikaMxRender = render;
+  // the suggestion row's arrows (computers); phones swipe
+  $('mxItems').addEventListener('click', function (e) {
+    var a = e.target.closest('[data-sug]'); if (!a) return;
+    var row = $('mxItems').querySelector('.mx-sug-row'); if (!row) return;
+    row.scrollBy({ left: parseInt(a.getAttribute('data-sug'), 10) * row.clientWidth * 0.8, behavior: 'smooth' });
+  });
 
   // ---- "You may also like": candies like the ones in the bag ----
   // Each candy gets traits from its WooCommerce category (sweet / sour), gelatin tag and name (brand, flavour, shape);
@@ -382,9 +390,11 @@
         if (t.gf ? b.gf : false) add(0.5, 'Gelatin-free');
       });
       return { p: p, s: s - i * 0.01, why: best };
-    }).sort(function (a, b) { return b.s - a.s; }).slice(0, 4);
+    }).sort(function (a, b) { return b.s - a.s; }).slice(0, 8);
     if (!list.length) return '';
-    return '<div class="mx-sug"><h4>' + (ids.length ? 'You may also like' : 'Popular picks') + '</h4><div class="mx-sug-row">' + list.map(function (x) {
+    return '<div class="mx-sug"><div class="mx-sug-h"><h4>' + (ids.length ? 'You may also like' : 'Popular picks') + '</h4>' +
+      '<span class="mx-sug-nav"><button type="button" data-sug="-1" aria-label="Scroll back">&lsaquo;</button><button type="button" data-sug="1" aria-label="Scroll on">&rsaquo;</button></span></div>' +
+      '<div class="mx-sug-row">' + list.map(function (x) {
       var p = x.p;
       return '<div class="mx-sc"><span class="mx-sc-img">' + img(p) + '</span><b>' + esc(p.name) + '</b><small>' + esc(x.why || money(p.price || PRICE_100G) + ' per 100 g') + '</small>' +
         '<button class="mx-qb mx-sc-add" data-q="+" data-id="' + p.id + '" type="button" aria-label="Add 100 g of ' + esc(p.name) + '">+</button></div>';
@@ -654,11 +664,17 @@
 })();
 </script>
 <style>
-/* bag drawer: "You may also like" */
-.mx-sug { margin: 22px 0 12px; }
-.mx-sug h4 { margin: 0 0 10px; font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-weight: 400; font-size: 24px; color: var(--fika-blue); }
-.mx-sug-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.mx-sc { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 12px 8px 12px; border: 1px solid #eaeef7; border-radius: 16px;
+/* bag drawer: "You may also like", a row to swipe across */
+.mx-sug { margin: 22px -24px 12px; }
+.mx-sug-h { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; margin-bottom: 10px; }
+.mx-sug h4 { margin: 0; font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-weight: 400; font-size: 24px; color: var(--fika-blue); }
+.mx-sug-nav { display: none; gap: 6px; }
+.mx-sug-nav button { width: 30px; height: 30px; border: 1.5px solid #c9d4ea; border-radius: 50%; background: #fff; color: var(--fika-blue); font-size: 20px; line-height: 1; cursor: pointer; padding: 0 0 2px; }
+.mx-sug-nav button:hover { background: #fdeaf2; border-color: var(--fika-blue); }
+@media (hover: hover) { .mx-sug-nav { display: inline-flex; } }
+.mx-sug-row { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 24px; padding: 2px 24px 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.mx-sug-row::-webkit-scrollbar { display: none; }
+.mx-sc { position: relative; flex: 0 0 142px; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 12px 8px 12px; border: 1px solid #eaeef7; border-radius: 16px;
   background: #fff; font-family: 'Outfit', 'Open Sans', Arial, sans-serif; color: var(--fika-blue); }
 .mx-sc-img { display: block; width: 76px; height: 76px; }
 .mx-sc-img img, .mx-sc-img .mx-ph { width: 100%; height: 100%; object-fit: contain; display: block; }

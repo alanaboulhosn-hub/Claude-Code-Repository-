@@ -415,7 +415,8 @@ Snippet 25 (wordpress/snippets/fika-bag-reminder.php):
   The old Reviews page (39) holds placeholder testimonials and press quotes written when the site was generated;
   they are not used anywhere.
 - BUBS: product names, images and pages already read "BUBS"; only web addresses (slugs) are lower case.
-- Bag drawer: "You may also like", four candies like the ones in the bag, each with an add button and the reason
+- Bag drawer: "You may also like", eight candies like the ones in the bag in a row to swipe across (arrows on
+  computers; the row keeps its place when a candy is added), each with an add button and the reason
   (Also BUBS, Berry flavour, Fish shaped, Also sour...). Scored on brand, flavour and shape (from the name),
   sweet / sour category and gelatin-free; ties keep the shop order. An empty bag shows "Popular picks". The caps
   still apply. Shared shop part (pattern 241).
