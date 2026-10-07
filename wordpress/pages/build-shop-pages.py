@@ -598,7 +598,7 @@ html.fika-ready-page #rmGrid { grid-template-columns: repeat(3, minmax(0, 1fr));
 </style>
 <script>document.documentElement.classList.add('fika-shop-page', 'fika-ready-page');</script>"""
 
-ready_cross = r"""<div class="fs-cross"><div><span class="t">Rather pick your own?</span><span class="s"><span class="fk-n">28</span> sweets at $2.50 per 100 g, mixed exactly how you like</span></div><a class="go" href="/mix-your-own/">Mix your own &rarr;</a></div>"""
+ready_cross = r"""<div class="fs-cross"><div><span class="t">Rather pick your own?</span></div><a class="go" href="/mix-your-own/">Mix your own &rarr;</a></div>"""
 
 # ---------- About us (draft copy, built from the wording on the old Contact page) ----------
 about_body = r"""<!-- FIKA About us page. DRAFT copy: please check and edit the text. The candy carousel of the shared part is hidden
