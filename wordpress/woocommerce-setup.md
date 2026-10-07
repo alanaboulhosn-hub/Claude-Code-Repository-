@@ -215,3 +215,21 @@ Snippet 10 "Fika accounts" (wordpress/snippets/fika-accounts.php):
 
 My account page (88): Fika skin block wordpress/pages/store-skin-account.html above [woocommerce_my_account]
 (centred logo, "Your account", Return to store, white cards, blue pill buttons, phone layout).
+
+## Fika rewards: swim to your free kilo (2026-10-07)
+
+Snippet 11 "Fika rewards" (wordpress/snippets/fika-loyalty.php), needs snippet 10. Signed-in customers only.
+- Home page (just above the shop) and My account dashboard: a cartoon Swedish fish swims along a water lane
+  to the customer's delivered kilos (Completed orders) out of 8 kg, with kg marks and a "FREE" bag at the end.
+  It swims in when scrolled into view (bubbles, tail wag); orders still Processing / On hold show as a striped
+  stretch ahead of the fish ("+x kg on its way, counted once delivered").
+- Every 8 kg delivered (FIKA_SWIM_GOAL) automatically creates a one-time code FREEKG-XXXXXX when the order is
+  marked Completed: fixed $25 off the cart (FIKA_FREE_KG_VALUE = 1 kg at $2.50 / 100 g), delivery not
+  included, individual use, usage limit 1, locked to the customer's email. Codes are listed in user meta
+  fika_rewards and in Marketing > Coupons (description "Fika free kilo #n for ...").
+- While a code is unused the fish waits at the finish (jumping, confetti) with the code and a Copy button;
+  checkout shows "Your free kilo is ready" with a "Use my free kilo" button that applies it.
+  Once used, the next lap starts (kilos beyond each 8 kg carry over).
+- Header account menu shows "x kg to your free kilo" / "Your free kilo is ready!".
+- Shop managers (signed in) can preview on the home page: /?fika_fish=5.2 (&fika_pending=1) or /?fika_fish=8.
+- Snippet 10 also now sets the display name to the first name for accounts created at checkout.

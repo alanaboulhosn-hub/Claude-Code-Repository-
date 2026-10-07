@@ -347,3 +347,12 @@ body.woocommerce-account #customer_login > div.fika-pick { box-shadow: 0 0 0 3px
 </script>
 	<?php
 }, 30 );
+
+// Accounts created at checkout get their username as display name; use the first name once it is known
+add_action( 'woocommerce_before_account_navigation', function () {
+	$u = wp_get_current_user();
+	if ( $u->ID && $u->first_name && $u->display_name === $u->user_login ) {
+		wp_update_user( array( 'ID' => $u->ID, 'display_name' => $u->first_name ) );
+		$u->display_name = $u->first_name;
+	}
+}, 1 );
