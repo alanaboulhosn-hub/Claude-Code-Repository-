@@ -372,7 +372,29 @@ for a, b in [('<li><a href="/shop/#ready-mix">Ready-Mix</a></li>', '<li><a href=
 
 
 # ---------- banners: a photo that stays still while the page scrolls, pink wash, centred title ----------
-def banner(key, title, text, img, pos, kicker=''):
+def banner(key, title, text, img, pos, kicker='', split=None):
+    return _banner(key, title, text, img, pos, kicker) + (_split(key, img, *split) if split else '')
+
+
+# Wide screens, for photos smaller than the screen (e.g. 1024 px portrait shots): instead of enlarging the photo to the
+# full width (blurry), it sits on the right at its own shape, at most its real size, fading into a pink panel that
+# matches its background, with the title and text on the panel. Up to 1024 px wide the normal full-width banner is
+# already sharp, so it stays.
+def _split(key, img, ratio, top, mid, bottom):
+    return r"""
+<style>
+@media (min-width: 1025px) {
+  .fika-hero.fika-%(key)s-hero > .fika-photo { background: linear-gradient(180deg, %(top)s 0%%, %(mid)s 52%%, %(bottom)s 100%%); }
+  .fika-hero.fika-%(key)s-hero > .fika-photo::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: calc(var(--fika-photo-h, 82vh) * %(ratio)s);
+    background: url(%(img)s) center / cover no-repeat; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 180px); mask-image: linear-gradient(90deg, transparent 0, #000 180px); }
+  .fika-hero.fika-%(key)s-hero .fsh-in { margin: 0 auto 0 0; max-width: calc(100vw - var(--fika-photo-h, 82vh) * %(ratio)s + 60px); padding-left: max(6%%, calc((100vw - 1180px) / 2)); padding-right: 30px; text-align: left; }
+  .fika-hero.fika-%(key)s-hero .fsh-text { margin: 0; max-width: 620px; color: #1b2a4a; text-shadow: none; }
+  .fika-hero.fika-%(key)s-hero .fsh-title { text-shadow: none; }
+}
+</style>""" % {'key': key, 'img': img, 'ratio': ratio, 'top': top, 'mid': mid, 'bottom': bottom}
+
+
+def _banner(key, title, text, img, pos, kicker=''):
     return r"""<!-- FIKA %(key)s page banner -->
 <div class="fika-hero fika-shop-hero fika-%(key)s-hero">
   <div class="fika-photo" aria-hidden="true"></div>
@@ -412,10 +434,10 @@ IMG_GANG = '/wp-content/uploads/2026/10/chatgpt-image-jul-31-2026-03_35_52-pm-H0
 
 mix_hero = banner_css + '\n' + banner('mix', 'Mix your own',
     'Pick your candy, your rules. <span class="fk-n">28</span> Swedish sweets at $2.50 per 100 g: sweet, sour, or mixed, with gelatin-free and gluten-free faves clearly marked, so everyone mixes and snacks happily.',
-    IMG_SCATTER, '50% 58%')
+    IMG_SCATTER, '50% 58%', split=('0.802', '#f3b2cd', '#e6aec2', '#e49fba'))
 ready_hero = banner_css + '\n' + banner('ready', 'Ready Mix',
     'Having a hard time deciding? We got you. Ready Mix bags packed with the best of Scandinavian candy. Choose your vibe (sweet, sour, or mixed) and enjoy the perfect balance in every bite.',
-    IMG_POURBOWL, '50% 62%')
+    IMG_POURBOWL, '50% 62%', split=('0.808', '#d7879d', '#e88eac', '#fad0de'))
 about_hero = banner_css + '\n' + banner('about', 'About Fika',
     'We bring authentic Scandinavian candy directly to your doorstep in Lebanon.', IMG_POUR, '50% 70%', kicker='Stockholm to Beirut')
 

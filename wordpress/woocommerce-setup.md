@@ -447,4 +447,8 @@ emails) and the "Your bag is waiting" reminder like the website:
 - Checked with WooCommerce's email preview (sample order) on desktop and phone widths; no emails were sent.
 - Banner photos: Mix your own uses media 26 (fika-background-tpQWboFmUZ8wZ5Om.jpeg, candies spilling from a Fika
   bag), Ready Mix uses media 27 (fika-background-2-U56KoRAjvfi6k05N.jpeg, a Fika bag pouring into a bowl). Both
-  are portrait photos 1024 px wide, so wide screens show a centred slice, slightly enlarged.
+  are small portrait photos (about 1024 px wide), so on screens wider than 1024 px they are never stretched to the
+  full width: the photo sits on the right at its own shape (at most its real size, 50-70% on common screens) and
+  fades into a pink panel matching its background, with the title and text on the left in blue. Up to 1024 px wide
+  (tablets, phones) the full-width banner stays, which is already sharp there. banner(..., split=...) in
+  build-shop-pages.py.
