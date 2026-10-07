@@ -371,3 +371,23 @@ Each page download roughly halved (home about 2.4 MB to 1.2 MB, Mix your own abo
 - WP Admin > WooCommerce > Checkout leavers (snippet 9, fika-exit-offer.php): the reasons shoppers gave in the
   "Leaving already?" popup with shares, what they did with the 10% offer, the date counting started, and a
   "Reset counts" button. The test counts were reset on 7 October 2026.
+
+## "Your bag is waiting" reminder (2026-10-07)
+
+Snippet 25 (wordpress/snippets/fika-bag-reminder.php):
+- The bag is saved with the email as soon as the shopper types it on the checkout (WooCommerce sends it to the
+  server), or when a signed-in customer opens the checkout. Later bag changes update the saved copy. A line under
+  the email field says: "We save your bag with this email. If you don't finish, we may send you one reminder."
+- One hour after the last activity, if no order was placed with that email: one email "Your Fika bag is waiting"
+  (WooCommerce layout and sender) with the candies, amounts and prices and a "Finish my order" button. The button
+  refills the bag on any device (checkout and the shop's bag) and opens the checkout with the email filled in.
+- Never after an order; at most one reminder per email per 7 days; "No more reminders" link in the email.
+- Saved bags are kept 30 days; WooCommerce > Checkout leavers lists them with their status (waiting, reminder
+  sent, ordered after the reminder, ordered, emptied, skipped, no reminders) and counts reminders and orders won back.
+- Timing runs on WooCommerce's scheduler, which runs when the site gets visits. With few visitors a reminder can be
+  a little late; a server cron job (Hostinger hPanel) makes it exact - part of the launch plan, not set now.
+- Shop managers, for testing: GET /wp-json/fika/v1/saved-bags; POST /wp-json/fika/v1/saved-bags/{token}/send
+  (?preview=1 returns the email); DELETE /wp-json/fika/v1/saved-bags/test removes test addresses.
+- Tested: shop > Checkout > email typed (saved, due in 60 min), email sent, link opened in a fresh browser (bag and
+  email restored), order placed (counted as won back); ordering before the hour (no reminder); "No more reminders".
+  Test orders 286 and 287 and the saved test bags were deleted.

@@ -116,6 +116,7 @@ if ( ! function_exists( 'fika_exit_admin_page' ) ) {
 		<?php wp_nonce_field( 'fika_exit_reset' ); ?>
 		<button type="submit" class="button">Reset counts</button>
 	</form>
+		<?php do_action( 'fika_checkout_leavers_after' ); // saved bags and reminders (snippet fika-bag-reminder.php) ?>
 </div>
 		<?php
 	}
