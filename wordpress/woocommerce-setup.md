@@ -582,8 +582,8 @@ code itself. Done with a temporary snippet (dry run first, then delete), removed
   temporary address is not listed. TURN IT OFF AT LAUNCH (Settings > Reading), on the real domain.
 - Deleted WordPress's sample "Hello world!" post and its sample comment.
 - Privacy policy (page 3, /privacy-policy/): written for Fika, built by build-shop-pages.py
-  (privacy-policy-3.raw.html) with the Fika header, footer and bag. Saved as a DRAFT for the owner to review;
-  publish it at launch. The old WordPress template text is in pages/backup/privacy-policy-3.before.html.
+  (privacy-policy-3.raw.html) with the Fika header, footer and bag. Kept as a DRAFT (owner, 2026-10-07: do not make it a live page; never publish it, not even
+  briefly for previews, unless the owner says so). The old WordPress template text is in pages/backup/privacy-policy-3.before.html.
   The header features (account menu, cartoons, sign-up nudge, caps, lighter fonts) also run on it.
 - Inbox icon (the round sender picture that shows "F"): email-assets/fika-logo-icon.svg (square, SVG Tiny PS,
   the BIMI format) and fika-logo-icon-512.png. Ways to show it, all done by the owner (mailbox / DNS):
