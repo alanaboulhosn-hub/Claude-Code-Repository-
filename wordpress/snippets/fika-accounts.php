@@ -240,8 +240,6 @@ add_action( 'wp_footer', function () {
 .fika-acct .fa-hi small { display: block; margin-top: 3px; font-weight: 400; font-size: 13px; color: #6b7894; }
 .fika-acct .fa-card a { position: relative; display: block; padding: 10px 14px; border-radius: 12px; font-family: 'Bebas Neue', Impact, sans-serif; font-size: 21px; letter-spacing: .03em; line-height: 1.1; color: #004aad; text-decoration: none; white-space: nowrap; }
 .fika-acct .fa-card a:hover, .fika-acct .fa-card a:focus-visible { background: #fdeaf2; outline: 0; }
-.fika-acct .fa-card a.fa-main { background: #004aad; color: #fff; text-align: center; margin-top: 4px; }
-.fika-acct .fa-card a.fa-main:hover { background: #003a8a; }
 .fika-acct .fa-card a.fa-out { color: #6b7894; }
 @media (max-width: 700px) {
   .fika-header .fika-cart { margin-right: 42px; }
@@ -287,7 +285,6 @@ add_action( 'wp_footer', function () {
 		a.href = m[1];
 		a.textContent = m[0];
 		a.setAttribute('role', 'menuitem');
-		if (!u.in && i === 1) a.className = 'fa-main';
 		if (u.in && m[0] === 'Log out') a.className = 'fa-out';
 		card.appendChild(a);
 	});
