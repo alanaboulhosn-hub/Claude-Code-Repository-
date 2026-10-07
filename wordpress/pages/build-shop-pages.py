@@ -76,6 +76,10 @@ mix = mix.replace('<div class="mx-page rm" id="rmPage">', '<span id="ready-mix" 
 
 # ---------- home-only: info sections ----------
 home_sections = L(1338, 1401)
+# "Sweets made with care" (halal / authentic / delivery cards) was removed from the home page
+care = home_sections.index('<section class="fika-sec fika-pinkbg">'), home_sections.index('<section class="fika-sec fika-whitebg">')
+assert 'Sweets made with care' in home_sections[care[0]:care[1]]
+home_sections = home_sections[:care[0]] + home_sections[care[1]:]
 
 # ---------- shared part D: full-width fix + footer ----------
 # (the section styles 1402-1501 travel with the footer: it takes its blue, fonts and spacing from them)
@@ -100,11 +104,36 @@ home_favs = r"""<!-- FIKA home: "Fan favourites". The carousel shows the product
 .mx-track > .fk-all .toons i { display:block; width:46px; height:46px; }
 .mx-track > .fk-all .toons svg { width:100%; height:100%; }
 @media (max-width:700px) { .mx-track > .fk-all .t { font-size:28px; } }
+/* "All pick & mix": a hand-drawn link next to the title, wobbles on hover */
+#shop .mx-head { align-items:center; }
+#shop .fk-allpm { position:relative; display:inline-flex; align-items:center; gap:6px; margin-top:.4em; padding:4px 2px 12px; color:#ff4f9a; text-decoration:none;
+  font-family:'NF Le Petit Cochon',cursive; font-variant:small-caps; font-size:clamp(20px,1.7vw,30px); line-height:1; transform:rotate(-4deg); transform-origin:left center; transition:transform .2s ease, color .2s; }
+#shop .fk-allpm b { font-weight:400; color:#004aad; display:inline-block; transition:transform .3s ease; }
+#shop .fk-allpm .sq { position:absolute; left:0; bottom:0; width:calc(100% - 38px); height:10px; fill:none; stroke:#ffb3d1; stroke-width:3; stroke-linecap:round; stroke-dasharray:180; stroke-dashoffset:0; }
+#shop .fk-allpm .ar { width:34px; height:24px; fill:none; stroke:#004aad; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; animation:fkNudgeR 1.6s ease-in-out infinite; }
+#shop .fk-allpm:hover { color:#004aad; animation:fkWob .5s ease; }
+#shop .fk-allpm:hover b { transform:rotate(360deg) scale(1.25); color:#ff4f9a; }
+#shop .fk-allpm:hover .sq { animation:fkDraw .6s ease; }
+@keyframes fkNudgeR { 0%,100% { transform:translateX(0); } 50% { transform:translateX(6px); } }
+@keyframes fkWob { 0%,100% { transform:rotate(-4deg); } 30% { transform:rotate(3deg) scale(1.06); } 65% { transform:rotate(-6deg); } }
+@keyframes fkDraw { from { stroke-dashoffset:180; } to { stroke-dashoffset:0; } }
+@media (prefers-reduced-motion:reduce) { #shop .fk-allpm .ar, #shop .fk-allpm:hover { animation:none; } }
 </style>
 <script>
 (function () {
   var FAV = null;
-  window.fikaMxTitle = 'Fan favourites';
+  window.fikaMxTitle = 'Mix your own';
+  function addLink() {
+    var hd = document.querySelector('#shop .mx-head');
+    if (!hd) return;
+    if (hd.querySelector('.fk-allpm')) return;
+    var a = document.createElement('a');
+    a.className = 'fk-allpm'; a.href = '/mix-your-own/';
+    a.innerHTML = '<span class="w">All pick <b>&amp;</b> mix</span><svg class="sq" viewBox="0 0 120 10" aria-hidden="true"><path d="M2 6c8-6 12 4 20 0s12-6 20 0 12 4 20 0 12-6 20 0 12 4 20 0 12-4 16 0"></path></svg>' +
+      '<svg class="ar" viewBox="0 0 34 24" aria-hidden="true"><path d="M3 15c8-9 17-10 26-4"></path><path d="M22 5l7 6-8 4"></path></svg>';
+    hd.appendChild(a);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addLink); else addLink();
   window.fikaMxCount = function () { return 'Our most-loved sweets. Add them straight to your bag.'; };
   function toon(slug) { return '<i>' + (window.FIKA_CARTOON ? window.FIKA_CARTOON(slug) : '') + '</i>'; }
   window.fikaMxView = function (list) {
@@ -334,15 +363,11 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
     if (st.sort === 'za') out.sort(function (a, b) { return b.name.localeCompare(a.name); });
     return out;
   }
-  function head(t, sub) { return { html: '<h2 class="fs-sec">' + t + ' <span>' + sub + '</span></h2>' }; }
   window.fikaMxView = function (list) {
-    var items = sorted(list.filter(keep)), out = [];
-    if (st.q) return items.length ? items : [{ html: '<div class="fs-none">No sweets match &ldquo;' + st.q.replace(/[<>&"]/g, '') + '&rdquo;.</div>' }];
-    var sweet = items.filter(function (p) { return isCat(p, 'sweet'); }), sour = items.filter(function (p) { return isCat(p, 'sour'); });
-    var other = items.filter(function (p) { return !isCat(p, 'sweet') ? !isCat(p, 'sour') : false; });
-    if (sweet.length) { out.push(head('Sweet', sweet.length + (sweet.length === 1 ? ' sweet' : ' sweets'))); out = out.concat(sweet); }
-    if (sour.length) { out.push(head('Sour', sour.length + (sour.length === 1 ? ' sour' : ' sours'))); out = out.concat(sour); }
-    return out.concat(other);
+    // one catalogue: the filters, search and sort narrow it down
+    var items = sorted(list.filter(keep));
+    if (items.length) return items;
+    return [{ html: '<div class="fs-none">' + (st.q ? 'No sweets match &ldquo;' + st.q.replace(/[<>&"]/g, '') + '&rdquo;.' : 'No sweets here yet.') + '</div>' }];
   };
   window.fikaMxCount = function (list, view) {
     counts(list);
@@ -382,12 +407,16 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
     function top() {
       var h = document.querySelector('.fika-header');
       var b = h ? h.getBoundingClientRect().bottom : 96;
-      document.documentElement.style.setProperty('--fs-top', Math.max(0, Math.round(b)) + 'px');
+      document.documentElement.style.setProperty('--fs-top', Math.max(0, Math.floor(b) - 1) + 'px');
       var f = document.querySelector('.fika-footer');
       var off = f ? f.getBoundingClientRect().top - Math.max(b + bar.offsetHeight + 20, window.innerHeight * 0.7) : 1;
       bar.classList.toggle('fs-off', 0 > off);
     }
-    top(); window.addEventListener('resize', top); window.addEventListener('scroll', top, { passive: true }); setTimeout(top, 600);
+    var again = 0;
+    function later() { top(); clearTimeout(again); again = setTimeout(top, 420); }
+    var hd = document.querySelector('.fika-header');
+    if (hd) hd.addEventListener('transitionend', top);
+    top(); window.addEventListener('resize', later); window.addEventListener('scroll', later, { passive: true }); setTimeout(top, 600);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

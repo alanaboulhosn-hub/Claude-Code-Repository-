@@ -335,3 +335,6 @@ wordpress/pages/build-shop-pages.py (outputs mix-your-own-40, ready-mix-38, abou
   to /mix-your-own/.
 - Snippets 8, 10, 11, 16, 20 run on all three pages; the fish tracker (11) shows on Mix your own and Ready Mix.
 - Old pages 37 (Contact) and 39 (Reviews) still exist; the footer still links to Reviews.
+- Update: Mix your own shows one catalogue (no Sweet / Sour headings), narrowed with the filters. The filter bar now
+  sits flush under the header. Home: the carousel title is "Mix your own" with a hand-drawn "All pick & mix" link
+  to /mix-your-own/; the "Sweets made with care" cards were removed from the home page.

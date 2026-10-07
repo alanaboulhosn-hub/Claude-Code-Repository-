@@ -191,11 +191,36 @@
 .mx-track > .fk-all .toons i { display:block; width:46px; height:46px; }
 .mx-track > .fk-all .toons svg { width:100%; height:100%; }
 @media (max-width:700px) { .mx-track > .fk-all .t { font-size:28px; } }
+/* "All pick & mix": a hand-drawn link next to the title, wobbles on hover */
+#shop .mx-head { align-items:center; }
+#shop .fk-allpm { position:relative; display:inline-flex; align-items:center; gap:6px; margin-top:.4em; padding:4px 2px 12px; color:#ff4f9a; text-decoration:none;
+  font-family:'NF Le Petit Cochon',cursive; font-variant:small-caps; font-size:clamp(20px,1.7vw,30px); line-height:1; transform:rotate(-4deg); transform-origin:left center; transition:transform .2s ease, color .2s; }
+#shop .fk-allpm b { font-weight:400; color:#004aad; display:inline-block; transition:transform .3s ease; }
+#shop .fk-allpm .sq { position:absolute; left:0; bottom:0; width:calc(100% - 38px); height:10px; fill:none; stroke:#ffb3d1; stroke-width:3; stroke-linecap:round; stroke-dasharray:180; stroke-dashoffset:0; }
+#shop .fk-allpm .ar { width:34px; height:24px; fill:none; stroke:#004aad; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; animation:fkNudgeR 1.6s ease-in-out infinite; }
+#shop .fk-allpm:hover { color:#004aad; animation:fkWob .5s ease; }
+#shop .fk-allpm:hover b { transform:rotate(360deg) scale(1.25); color:#ff4f9a; }
+#shop .fk-allpm:hover .sq { animation:fkDraw .6s ease; }
+@keyframes fkNudgeR { 0%,100% { transform:translateX(0); } 50% { transform:translateX(6px); } }
+@keyframes fkWob { 0%,100% { transform:rotate(-4deg); } 30% { transform:rotate(3deg) scale(1.06); } 65% { transform:rotate(-6deg); } }
+@keyframes fkDraw { from { stroke-dashoffset:180; } to { stroke-dashoffset:0; } }
+@media (prefers-reduced-motion:reduce) { #shop .fk-allpm .ar, #shop .fk-allpm:hover { animation:none; } }
 </style>
 <script>
 (function () {
   var FAV = null;
-  window.fikaMxTitle = 'Fan favourites';
+  window.fikaMxTitle = 'Mix your own';
+  function addLink() {
+    var hd = document.querySelector('#shop .mx-head');
+    if (!hd) return;
+    if (hd.querySelector('.fk-allpm')) return;
+    var a = document.createElement('a');
+    a.className = 'fk-allpm'; a.href = '/mix-your-own/';
+    a.innerHTML = '<span class="w">All pick <b>&amp;</b> mix</span><svg class="sq" viewBox="0 0 120 10" aria-hidden="true"><path d="M2 6c8-6 12 4 20 0s12-6 20 0 12 4 20 0 12-6 20 0 12 4 20 0 12-4 16 0"></path></svg>' +
+      '<svg class="ar" viewBox="0 0 34 24" aria-hidden="true"><path d="M3 15c8-9 17-10 26-4"></path><path d="M22 5l7 6-8 4"></path></svg>';
+    hd.appendChild(a);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addLink); else addLink();
   window.fikaMxCount = function () { return 'Our most-loved sweets. Add them straight to your bag.'; };
   function toon(slug) { return '<i>' + (window.FIKA_CARTOON ? window.FIKA_CARTOON(slug) : '') + '</i>'; }
   window.fikaMxView = function (list) {
@@ -216,34 +241,6 @@
 <!-- wp:block {"ref":241} /-->
 
 <!-- wp:html -->
-<section class="fika-sec fika-pinkbg">
-  <div class="fika-inner">
-    <h2 class="fika-h2">Sweets made with care</h2>
-    <div class="fika-cards">
-      <div class="fika-card">
-        <div class="fika-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.7 2.7L16.3 9.5"></path></svg>
-        </div>
-        <h3>Halal and non halal options</h3>
-      </div>
-      <div class="fika-card">
-        <div class="fika-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.3 6.8 19l1-5.8L3.6 9.1l5.8-.8L12 3z"></path></svg>
-        </div>
-        <h3>100% authentic</h3>
-      </div>
-      <div class="fika-card">
-        <div class="fika-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5h11v9h-11z"></path><path d="M13.5 9.5h4l3 3v3h-7z"></path><circle cx="7" cy="17.5" r="1.7"></circle><circle cx="17" cy="17.5" r="1.7"></circle></svg>
-        </div>
-        <h3>Inside Beirut 1-2 business days</h3>
-        <p>Outside Beirut 2-3 business days</p>
-        <p class="fika-note">No deliveries on Sunday</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <section class="fika-sec fika-whitebg">
   <div class="fika-inner">
     <h2 class="fika-h2">Frequently asked questions (FAQ)</h2>
