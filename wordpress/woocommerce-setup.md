@@ -376,8 +376,8 @@ Each page download roughly halved (home about 2.4 MB to 1.2 MB, Mix your own abo
 
 Snippet 25 (wordpress/snippets/fika-bag-reminder.php):
 - The bag is saved with the email as soon as the shopper types it on the checkout (WooCommerce sends it to the
-  server), or when a signed-in customer opens the checkout. Later bag changes update the saved copy. A line under
-  the email field says: "We save your bag with this email. If you don't finish, we may send you one reminder."
+  server), or when a signed-in customer opens the checkout. Later bag changes update the saved copy. (No note is
+  shown under the email field.)
 - One hour after the last activity, if no order was placed with that email: one email "Your Fika bag is waiting"
   (WooCommerce layout and sender) with the candies, amounts and prices and a "Finish my order" button. The button
   refills the bag on any device (checkout and the shop's bag) and opens the checkout with the email filled in.

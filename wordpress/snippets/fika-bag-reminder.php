@@ -6,7 +6,7 @@
  * - One hour after the last activity, if no order was placed with that email, one reminder email is sent:
  *   the bag's contents and a "Finish my order" button that refills the bag on any device and opens the checkout.
  * - At most one reminder per email address per 7 days; never after an order; the email has a "no more reminders"
- *   link. A short line under the checkout email field says the bag is saved and one reminder may follow.
+ *   link.
  * - Saved bags are kept 30 days. WP Admin > WooCommerce > Checkout leavers lists them, with reminders sent and
  *   orders that followed a reminder.
  * - Sent with WooCommerce's own email layout and sender (Fika <hello@swedishfikalb.com>), from the site's mailer.
@@ -289,35 +289,6 @@ add_action( 'template_redirect', function () {
 		wp_die( '<h1 style="font-family:sans-serif;color:#004aad">Done</h1><p style="font-family:sans-serif">We won&rsquo;t send you bag reminders any more. <a href="' . esc_url( home_url( '/' ) ) . '">Back to Fika</a></p>', 'Fika', array( 'response' => 200 ) );
 	}
 }, 5 );
-
-// ---------- checkout: a line under the email field ----------
-add_action( 'wp_footer', function () {
-	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_wc_endpoint_url() ) {
-		return;
-	}
-	?>
-<style>.fk-bagnote { margin: 6px 2px 0; font: 13px/1.4 'Outfit', 'Open Sans', Arial, sans-serif; color: #6c7b9c; }</style>
-<script>
-(function () {
-	function add() {
-		var e = document.getElementById( 'email' );
-		if ( ! e ) { return false; }
-		var box = e.closest( '.wc-block-components-text-input' ) || e.parentNode;
-		if ( box.parentNode.querySelector( '.fk-bagnote' ) ) { return true; }
-		var p = document.createElement( 'p' );
-		p.className = 'fk-bagnote';
-		p.textContent = 'We save your bag with this email. If you don’t finish, we may send you one reminder.';
-		box.parentNode.insertBefore( p, box.nextSibling );
-		return true;
-	}
-	if ( ! add() ) {
-		var mo = new MutationObserver( function () { if ( add() ) { mo.disconnect(); } } );
-		mo.observe( document.body, { childList: true, subtree: true } );
-	}
-})();
-</script>
-	<?php
-}, 40 );
 
 // ---------- WP Admin: listed on WooCommerce > Checkout leavers ----------
 add_action( 'fika_checkout_leavers_after', function () {
