@@ -268,9 +268,14 @@ body:has(.fika-hero) :is(.entry-title, .page-title, .wp-block-post-title, .page-
 
 <div class="fika-header">
   <a class="fika-logo" href="/" aria-label="Fika"><span style="--i:0" aria-hidden="true">F</span><span style="--i:1" aria-hidden="true">i</span><span style="--i:2" aria-hidden="true">k</span><span style="--i:3" aria-hidden="true">a</span></a>
-  <nav class="fika-nav">
-    <a href="/">Home</a>
-    <a href="/shop">Shop</a>
+  <nav class="fika-nav" aria-label="Main">
+    <button type="button" class="fika-menu-btn" aria-expanded="false" aria-controls="fikaNavLinks">Menu <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+    <div class="fika-nav-links" id="fikaNavLinks">
+      <a href="/">Home</a>
+      <a href="/mix-your-own/">Mix your own</a>
+      <a href="/ready-mix/">Ready Mix</a>
+      <a href="/about-us/">About us</a>
+    </div>
   </nav>
   <a class="fika-cart" href="/cart" aria-label="Cart">
     <span class="fika-candies" aria-hidden="true"><i class="pill" style="--dx:-46px;--dy:-40px;--r:-260deg;--c:#ff6fa5;--d:0s"></i><i class="dot" style="--dx:-18px;--dy:-58px;--r:200deg;--c:#ffd23f;--d:0.08s"></i><i class="wrap" style="--dx:20px;--dy:-56px;--r:-180deg;--c:#4aa8ff;--d:0.16s"></i><i class="dot" style="--dx:50px;--dy:-34px;--r:240deg;--c:#ff4d4d;--d:0.04s"></i><i class="pill" style="--dx:58px;--dy:-4px;--r:-300deg;--c:#7ad67a;--d:0.20s"></i><i class="wrap" style="--dx:46px;--dy:30px;--r:220deg;--c:#ff9f43;--d:0.12s"></i><i class="dot" style="--dx:14px;--dy:52px;--r:-200deg;--c:#c77dff;--d:0.24s"></i><i class="pill" style="--dx:-24px;--dy:50px;--r:260deg;--c:#ffd23f;--d:0.06s"></i><i class="dot" style="--dx:-52px;--dy:20px;--r:-240deg;--c:#4aa8ff;--d:0.18s"></i><i class="wrap" style="--dx:-58px;--dy:-10px;--r:180deg;--c:#ff6fa5;--d:0.28s"></i></span>
@@ -285,4 +290,43 @@ body:has(.fika-hero) :is(.entry-title, .page-title, .wp-block-post-title, .page-
     </svg>
   </a>
 </div>
+
+<style>
+/* four links: a little closer together than the old two */
+.fika-nav .fika-nav-links { display: flex; align-items: center; gap: clamp(26px, 3.2vw, 56px); }
+.fika-nav .fika-nav-links a { font-size: clamp(22px, 1.75vw, 28px); }
+.fika-nav .fika-nav-links a.on { border-bottom-color: var(--fika-blue); }
+.fika-nav .fika-menu-btn { display: none; }
+@media (max-width: 1100px) { .fika-nav .fika-nav-links { gap: 22px; } .fika-nav .fika-nav-links a { font-size: 21px; } }
+/* phones: one "Menu" button that drops down the links */
+@media (max-width: 760px) {
+  .fika-nav { position: relative; }
+  .fika-nav .fika-menu-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 4px; border: 0; background: none; cursor: pointer;
+    font-family: 'Bebas Neue', Impact, sans-serif; font-size: 22px; letter-spacing: .02em; color: var(--fika-blue); }
+  .fika-nav .fika-menu-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
+  .fika-nav.open .fika-menu-btn svg { transform: rotate(180deg); }
+  .fika-nav .fika-nav-links { position: absolute; top: calc(100% + 12px); left: 50%; z-index: 40; flex-direction: column; align-items: stretch; gap: 2px; min-width: 210px; padding: 10px;
+    border-radius: 18px; background: #fff; box-shadow: 0 14px 40px rgba(0, 74, 173, .18); opacity: 0; visibility: hidden; transform: translate(-50%, -6px);
+    transition: opacity .2s ease, transform .2s ease, visibility 0s .2s; }
+  .fika-nav.open .fika-nav-links { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity .2s ease, transform .2s ease, visibility 0s; }
+  .fika-nav .fika-nav-links a { display: block; padding: 11px 16px; border: 0; border-radius: 12px; font-size: 22px; line-height: 1.1; white-space: nowrap; }
+  .fika-nav .fika-nav-links a:hover, .fika-nav .fika-nav-links a.on { background: #fdeaf2; }
+}
+</style>
+<script>
+(function () {
+  var nav = document.querySelector('.fika-header .fika-nav');
+  if (!nav) return;
+  var here = location.pathname.replace(/\/+$/, '') || '/';
+  [].slice.call(nav.querySelectorAll('.fika-nav-links a')).forEach(function (a) {
+    var p = a.getAttribute('href').replace(/\/+$/, '') || '/';
+    if (p === here) { a.classList.add('on'); a.setAttribute('aria-current', 'page'); }
+  });
+  var btn = nav.querySelector('.fika-menu-btn');
+  function set(on) { nav.classList.toggle('open', on); btn.setAttribute('aria-expanded', on ? 'true' : 'false'); }
+  btn.addEventListener('click', function (e) { e.stopPropagation(); set(!nav.classList.contains('open')); });
+  document.addEventListener('click', function (e) { if (!nav.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+})();
+</script>
 <!-- /wp:html -->

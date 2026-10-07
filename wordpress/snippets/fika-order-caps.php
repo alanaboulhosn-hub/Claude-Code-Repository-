@@ -111,7 +111,7 @@ add_action( 'woocommerce_check_cart_items', function () {
 
 // ---------- Home page: label, stop at the cap, trim the bag ----------
 add_action( 'wp_footer', function () {
-	if ( ! is_front_page() && ! is_page( 'shop' ) ) {
+	if ( ! is_front_page() && ! is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) ) {
 		return;
 	}
 	$caps = array();

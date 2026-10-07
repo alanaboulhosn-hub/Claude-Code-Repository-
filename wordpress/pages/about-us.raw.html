@@ -1,0 +1,142 @@
+<!-- wp:block {"ref":239} /-->
+
+<!-- wp:html -->
+<style>
+/* shared by the Mix your own, Ready Mix and About us banners */
+.fika-hero.fika-shop-hero { min-height: 82vh; justify-content: center; align-items: center; }
+.fika-shop-hero .fsh-in { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 150px 6% 70px; text-align: center; }
+.fika-shop-hero .fsh-kicker { margin: 0 0 6px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: clamp(20px, 1.8vw, 26px); color: #fff; text-shadow: 0 1px 10px rgba(120, 30, 70, .55); }
+.fika-shop-hero .fsh-title { margin: 0 0 26px; font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-weight: 400; font-size: clamp(44px, 6.2vw, 96px); line-height: 1.02;
+  color: #004aad; text-shadow: 0 2px 18px rgba(255, 255, 255, .35); }
+.fika-shop-hero .fsh-text { margin: 0 auto; max-width: 980px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: clamp(18px, 1.6vw, 24px); line-height: 1.6;
+  color: #fff; text-shadow: 0 1px 10px rgba(120, 30, 70, .55); }
+@media (max-width: 700px) {
+  .fika-hero.fika-shop-hero { min-height: 74vh; }
+  .fika-shop-hero .fsh-in { padding: 130px 20px 50px; }
+}
+</style>
+<!-- FIKA about page banner -->
+<div class="fika-hero fika-shop-hero fika-about-hero">
+  <div class="fsh-in">
+    <p class="fsh-kicker">Stockholm to Beirut</p>
+    <h1 class="fsh-title">About Fika</h1>
+    <p class="fsh-text">We bring authentic Scandinavian candy directly to your doorstep in Lebanon.</p>
+  </div>
+</div>
+<style>
+.fika-hero.fika-about-hero { background: linear-gradient(rgba(240, 128, 172, .30), rgba(240, 128, 172, .30)), url(/wp-content/uploads/2026/10/1-CpGiPMPowHbUltE9.png) 50% 70% / cover no-repeat, #f3b9d0; }
+@keyframes fika-about-hold { from { background-position: 50% 70%; } to { background-position: 50% calc(70% + 100vh); } }
+@supports (animation-timeline: scroll()) {
+  .fika-hero.fika-about-hero { animation: fika-about-hold linear both; animation-timeline: scroll(root block); animation-range: 0 100vh; }
+}
+@supports not (animation-timeline: scroll()) {
+  .fika-hero.fika-about-hero { background-attachment: fixed; background-position: 50% 70%; }
+}
+</style>
+<!-- /wp:html -->
+
+<!-- wp:block {"ref":240} /-->
+
+<!-- wp:html -->
+<!-- FIKA About us page. DRAFT copy: please check and edit the text. The candy carousel of the shared part is hidden
+     here (it is only included so the header bag works on this page too). -->
+<style>
+html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !important; }
+.fika-about .fa-story { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+.fika-about .fa-story p { margin: 0 0 16px; font-family: 'Fanwood Text', Georgia, serif; font-size: 21px; line-height: 1.6; color: #1b2a4a; }
+.fika-about .fa-story p.fa-lede { font-variant: small-caps; font-size: 24px; color: #004aad; }
+.fika-about .fa-story img { display: block; width: 100%; height: auto; border-radius: 28px; box-shadow: 0 14px 40px rgba(0, 74, 173, .12); }
+.fika-about .fa-say { display: inline-block; padding: 2px 12px; border-radius: 999px; background: #fdeaf2; font-variant: normal; font-size: 18px; color: #004aad; }
+.fika-about .fa-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; counter-reset: fa; margin-top: 10px; }
+.fika-about .fa-step { position: relative; padding: 30px 26px 26px; border-radius: 24px; background: #fff; box-shadow: 0 8px 28px rgba(0, 74, 173, .08); }
+.fika-about .fa-step::before { counter-increment: fa; content: counter(fa); display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; margin-bottom: 14px;
+  border-radius: 50%; background: #004aad; color: #fff; font-family: 'Bebas Neue', Impact, sans-serif; font-size: 26px; }
+.fika-about .fa-step h3 { margin: 0 0 8px; font-family: 'Bebas Neue', Impact, sans-serif; font-weight: 400; font-size: 28px; letter-spacing: .02em; color: #004aad; }
+.fika-about .fa-step p { margin: 0; font-family: 'Fanwood Text', Georgia, serif; font-size: 19px; line-height: 1.55; color: #1b2a4a; }
+.fika-about .fa-step a { color: #004aad; font-weight: 700; }
+.fika-about .fa-cta { text-align: center; }
+.fika-about .fa-cta p { max-width: 720px; margin: 0 auto 26px; font-family: 'Fanwood Text', Georgia, serif; font-size: 21px; line-height: 1.6; color: #1b2a4a; }
+.fika-about .fa-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+.fika-about .fa-btns a { display: inline-flex; align-items: center; height: 52px; padding: 0 30px; border-radius: 999px; border: 2px solid #004aad; text-decoration: none;
+  font: 600 14px/1 'Outfit', 'Open Sans', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; transition: background .15s, color .15s; }
+.fika-about .fa-btns a.solid { background: #004aad; color: #fff; }
+.fika-about .fa-btns a.solid:hover { background: #003a8a; border-color: #003a8a; }
+.fika-about .fa-btns a.line { background: #fff; color: #004aad; }
+.fika-about .fa-btns a.line:hover { background: #fdeaf2; }
+@media (max-width: 900px) {
+  .fika-about .fa-story { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .fika-about .fa-steps { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+  .fika-about .fa-story p { font-size: 19px; }
+  .fika-about .fa-story p.fa-lede { font-size: 21px; }
+}
+</style>
+<script>document.documentElement.classList.add('fika-about-page');</script>
+
+<div class="fika-about">
+  <section class="fika-sec fika-whitebg">
+    <div class="fika-inner">
+      <h2 class="fika-h2">Our story</h2>
+      <div class="fa-story">
+        <div>
+          <p class="fa-lede">Fika <span class="fa-say">say &ldquo;fee-ka&rdquo;</span> is the Swedish habit of pausing the day for something sweet and good company.</p>
+          <p>Swedish Fika brings that moment, and Sweden&rsquo;s famous pick-and-mix, to Lebanon. We import authentic Scandinavian candy and deliver it straight to your doorstep, so you can scoop a little of everything, share it, and slow down for a while.</p>
+          <p>Mix your own, 100 g at a time, or grab a Ready Mix bag when you can&rsquo;t decide. Sweet, sour or both, with gelatin-free favourites clearly marked so everyone can join in.</p>
+        </div>
+        <img src="/wp-content/uploads/2026/10/chatgpt-image-jul-31-2026-03_35_52-pm-H0MVQjmp7aMZAJ4u.png" alt="Hand-drawn Fika candy characters holding hands" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <section class="fika-sec fika-pinkbg">
+    <div class="fika-inner">
+      <h2 class="fika-h2">Freshness guaranteed</h2>
+      <div class="fika-cards">
+        <div class="fika-card">
+          <div class="fika-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0z"></path><path d="M12 10v6"></path></svg></div>
+          <h3>Climate control</h3>
+          <p>Our imported sweets travel and rest in temperature-regulated spaces, shielded from the Mediterranean heat, so every bite has the texture it should.</p>
+        </div>
+        <div class="fika-card">
+          <div class="fika-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5h11v9h-11z"></path><path d="M13.5 9.5h4l3 3v3h-7z"></path><circle cx="7" cy="17" r="1.8"></circle><circle cx="17" cy="17" r="1.8"></circle></svg></div>
+          <h3>Fast dispatch</h3>
+          <p>Your selection is packed in a sealed Fika bag and delivered in 1&ndash;2 business days in Beirut, 2&ndash;3 outside. Cash on delivery.</p>
+        </div>
+        <div class="fika-card">
+          <div class="fika-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="5" rx="1"></rect><path d="M5 13v8h14v-8M12 8v13M12 8C10 4 6 4 7 7s5 1 5 1 4 2 5-1-3-3-5 1"></path></svg></div>
+          <h3>Special events</h3>
+          <p>Planning a gathering? We put together corporate boxes and colourful birthday assortments, tailored to your guest list.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fika-sec fika-whitebg">
+    <div class="fika-inner">
+      <h2 class="fika-h2">How it works</h2>
+      <div class="fa-steps">
+        <div class="fa-step"><h3>Pick your sweets</h3><p><a href="/mix-your-own/">Mix your own</a> from 31 candies at $2.50 per 100 g, or choose a 500 g <a href="/ready-mix/">Ready Mix</a> bag for $12.50.</p></div>
+        <div class="fa-step"><h3>Check out</h3><p>Pick your delivery area and pay in cash when your sweets arrive. Create an account and every kilo swims you closer to a free one.</p></div>
+        <div class="fa-step"><h3>Enjoy your fika</h3><p>We deliver all over Lebanon (except Nabatieh and bordering cities), Monday to Saturday.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fika-sec fika-pinkbg">
+    <div class="fika-inner fa-cta">
+      <h2 class="fika-h2">Start your fika</h2>
+      <p>Questions about bulk orders, corporate boxes or a custom pick-and-mix for your event? Send us a note, we&rsquo;d love to help.</p>
+      <div class="fa-btns">
+        <a class="solid" href="/mix-your-own/">Mix your own</a>
+        <a class="line" href="/ready-mix/">Ready Mix</a>
+        <a class="line" href="https://wa.me/96179411565" target="_blank" rel="noopener">WhatsApp us</a>
+      </div>
+    </div>
+  </section>
+</div>
+<!-- /wp:html -->
+
+<!-- wp:block {"ref":241} /-->
+
+<!-- wp:block {"ref":242} /-->

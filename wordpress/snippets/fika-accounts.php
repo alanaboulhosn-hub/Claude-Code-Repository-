@@ -202,7 +202,7 @@ add_filter( 'woocommerce_save_account_details_required_fields', function ( $fiel
 } );
 // "Browse products" / "Return to shop" buttons go to the shop on the home page
 add_filter( 'woocommerce_return_to_shop_redirect', function () {
-	return home_url( '/shop/' );
+	return home_url( '/mix-your-own/' );
 } );
 add_filter( 'woocommerce_account_menu_items', function ( $items ) {
 	unset( $items['downloads'] );
@@ -233,9 +233,9 @@ add_filter( 'gettext', function ( $text, $orig, $domain ) {
 	return $text;
 }, 20, 3 );
 
-// ---------- Home and shop page header: a waving account icon with a drop-down menu ----------
+// ---------- Home, shop and About pages header: a waving account icon with a drop-down menu ----------
 add_action( 'wp_footer', function () {
-	if ( ! is_front_page() && ! is_page( 'shop' ) ) {
+	if ( ! is_front_page() && ! is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) ) {
 		return;
 	}
 	?>

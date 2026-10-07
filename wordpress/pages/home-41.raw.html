@@ -10,7 +10,7 @@
   <div class="fika-content">
     <h1 class="fika-title">Stockholm's finest sweets, in Lebanon</h1>
     <p class="fika-text">Experience authentic, clean-ingredient Swedish pick-and-mix. Hand-selected, gelatin-free, and imported fresh for your afternoon fika.</p>
-    <a class="fika-btn" href="/shop">Explore the shop</a>
+    <a class="fika-btn" href="/mix-your-own/">Explore the shop</a>
   </div>
 </div>
 
@@ -201,7 +201,7 @@
   window.fikaMxView = function (list) {
     if (!FAV) return [];
     var out = list.filter(function (p) { return FAV.indexOf(p.id) !== -1; });
-    out.push({ html: '<a class="mx-card fk-all" href="/shop/"><span class="toons">' + toon('sour-cherries') + toon('bubs-bubblegum-skull') + toon('swedish-fish') +
+    out.push({ html: '<a class="mx-card fk-all" href="/mix-your-own/"><span class="toons">' + toon('sour-cherries') + toon('bubs-bubblegum-skull') + toon('swedish-fish') +
       '</span><span class="t">' + list.length + ' sweets to mix</span><span class="s">Sweet, sour and gelatin-free</span><span class="go">Shop all sweets &rarr;</span></a>' });
     return out;
   };
