@@ -568,3 +568,10 @@ Sent only when the shop clicks for it: Order details (invoice) and Customer note
 Switched off: Completed order, Refunded order, Failed order, Order on-hold (Cancelled order was already off).
 Shop emails to hello@swedishfikalb.com: Cancelled order, Failed order, Payment gateway enabled are on; New order is
 off.
+
+## Trial customer data deleted (2026-10-07, owner's request)
+
+All of it was trials: 6 orders (incl. one in the trash), 6 customer accounts (with their addresses, rewards and
+totals), saved bags, checkout-leaver answers, the analytics customer list, shopping sessions, a queued bag
+reminder, and fika10's "used by" record. Kept: products, pages, settings, the administrator account, the fika10
+code itself. Done with a temporary snippet (dry run first, then delete), removed afterwards.
