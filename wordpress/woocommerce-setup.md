@@ -445,3 +445,6 @@ emails) and the "Your bag is waiting" reminder like the website:
 - Colours and logo settings are set by the snippet (base #004aad, background #fdeaf2, header image, centred).
 - The images were made from the site's font and cartoons: wordpress/email-assets/ (make-email-images.js).
 - Checked with WooCommerce's email preview (sample order) on desktop and phone widths; no emails were sent.
+- Banner photos: Mix your own uses media 26 (fika-background-tpQWboFmUZ8wZ5Om.jpeg, candies spilling from a Fika
+  bag), Ready Mix uses media 27 (fika-background-2-U56KoRAjvfi6k05N.jpeg, a Fika bag pouring into a bowl). Both
+  are portrait photos 1024 px wide, so wide screens show a centred slice, slightly enlarged.

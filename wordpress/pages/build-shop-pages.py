@@ -404,16 +404,18 @@ banner_css = r"""<style>
 </style>"""
 
 IMG_BOWL = '/wp-content/uploads/2026/10/yes28-7vYLz0XjzMVhjx2f.jpg'
+IMG_SCATTER = '/wp-content/uploads/2026/10/fika-background-tpQWboFmUZ8wZ5Om.jpeg'   # media 26: candies spilling from a Fika bag (Mix your own)
+IMG_POURBOWL = '/wp-content/uploads/2026/10/fika-background-2-U56KoRAjvfi6k05N.jpeg'  # media 27: a Fika bag pouring into a bowl (Ready Mix)
 IMG_JARS = '/wp-content/uploads/2026/10/chatgpt-image-jul-7-2026-12_48_32-pm-X3tBK9ZWkKnIvChP.png'
 IMG_POUR = '/wp-content/uploads/2026/10/1-CpGiPMPowHbUltE9.png'
 IMG_GANG = '/wp-content/uploads/2026/10/chatgpt-image-jul-31-2026-03_35_52-pm-H0MVQjmp7aMZAJ4u.png'
 
 mix_hero = banner_css + '\n' + banner('mix', 'Mix your own',
     'Pick your candy, your rules. <span class="fk-n">28</span> Swedish sweets at $2.50 per 100 g: sweet, sour, or mixed, with gelatin-free and gluten-free faves clearly marked, so everyone mixes and snacks happily.',
-    IMG_BOWL, '50% 62%')
+    IMG_SCATTER, '50% 58%')
 ready_hero = banner_css + '\n' + banner('ready', 'Ready Mix',
     'Having a hard time deciding? We got you. Ready Mix bags packed with the best of Scandinavian candy. Choose your vibe (sweet, sour, or mixed) and enjoy the perfect balance in every bite.',
-    IMG_JARS, '50% 60%')
+    IMG_POURBOWL, '50% 62%')
 about_hero = banner_css + '\n' + banner('about', 'About Fika',
     'We bring authentic Scandinavian candy directly to your doorstep in Lebanon.', IMG_POUR, '50% 70%', kicker='Stockholm to Beirut')
 
