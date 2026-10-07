@@ -1,7 +1,10 @@
 <?php
 /**
  * Fika: the pages WooCommerce and WordPress make on their own either get the Fika look or send visitors to our pages.
- * - Product pages (/product/...): Fika header, footer, fonts and bag. "Add to cart" becomes "Add to bag" (the same
+ * - Product pages are closed to customers for now: /product/... sends them to Mix your own (Ready Mix products: /ready-mix/),
+ *   product names in My account and emails are not links, and products are left out of the sitemap. Shop managers
+ *   still see the pages (to work on them). To open them, delete the "closed for now" block below.
+ * - Product pages (/product/...), when open: Fika header, footer, fonts and bag. "Add to cart" becomes "Add to bag" (the same
  *   bag as the shop, so nothing goes into WooCommerce's cart until Checkout). The breadcrumbs, the category/tag line and
  *   "Related products" are hidden; under the details sits the shop carousel ("More sweets to mix", or the other Ready
  *   Mix bags). The pages stay (reviews, search engines and shared links keep working).
@@ -29,6 +32,25 @@ add_action( 'init', function () {
 	remove_action( 'wp_print_styles', 'print_emoji_styles' );
 	remove_action( 'wp_enqueue_scripts', 'wp_enqueue_emoji_styles' );
 	remove_action( 'embed_head', 'print_emoji_detection_script' );
+} );
+
+// ---------- product pages: closed for now (nothing should lead customers there yet) ----------
+add_action( 'template_redirect', function () {
+	if ( ! function_exists( 'is_product' ) || ! is_product() || current_user_can( 'manage_woocommerce' ) ) {
+		return;
+	}
+	wp_safe_redirect( home_url( fika_sp_is_ready( get_queried_object_id() ) ? '/ready-mix/' : '/mix-your-own/' ), 302 );
+	exit;
+}, 1 );
+add_filter( 'woocommerce_order_item_permalink', '__return_false' );
+add_filter( 'woocommerce_cart_item_permalink', '__return_false' );
+add_filter( 'wp_sitemaps_post_types', function ( $types ) {
+	unset( $types['product'] );
+	return $types;
+} );
+add_filter( 'wp_sitemaps_taxonomies', function ( $tax ) {
+	unset( $tax['product_cat'], $tax['product_tag'] );
+	return $tax;
 } );
 
 // ---------- category, tag, search and cart pages go to our pages ----------

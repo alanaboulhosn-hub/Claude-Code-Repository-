@@ -115,7 +115,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			$bag     = has_term( 'ready-mix', 'product_cat', $p->get_id() );
 			$price   = wc_price( wc_get_price_to_display( $p ) ) . ( $bag ? ' per 500 g bag' : ' per 100 g' );
 			$cells[] = '<td width="50%" valign="top" style="width:50%;padding:8px;text-align:center;">' .
-				'<a href="' . esc_url( $p->get_permalink() ) . '" style="text-decoration:none;">' .
+				'<a href="' . esc_url( home_url( $bag ? '/ready-mix/' : '/mix-your-own/' ) ) . '" style="text-decoration:none;">' .
 				( $img ? '<img src="' . esc_url( $img ) . '" width="200" alt="" style="display:block;width:100%;max-width:200px;height:auto;margin:0 auto 8px;border-radius:16px;">' : '' ) .
 				'<span class="fika-pname" style="display:block;">' . esc_html( $p->get_name() ) . '</span></a>' .
 				'<span style="display:block;color:#6c7b9c;font-size:13px;">' . wp_strip_all_tags( $price ) . '</span></td>';

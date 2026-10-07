@@ -549,3 +549,9 @@ snippets were deleted.
 Checked at 1440x900 and 390x844: product pages (candy and Ready Mix), add and change amounts, View bag, the bag on
 Mix your own, Checkout hand-off, every redirect, the 404 page, and home / shop / About / checkout / account pages:
 no sideways scrolling, no script errors, no emoji requests. No test orders were created.
+
+Product pages closed for now (2026-10-07, owner's request: nothing should take a customer there until the product
+page is built): /product/... sends customers to /mix-your-own/ (Ready Mix products to /ready-mix/), temporary 302;
+product names in My account orders and in emails are not links; the win-back "New drops" items link to the shop
+pages; products, categories and tags are out of the sitemap. Shop managers (logged in) still see the styled pages.
+To open them later, remove the "closed for now" block in fika-store-pages.php.
