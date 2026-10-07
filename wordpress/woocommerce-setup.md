@@ -285,3 +285,12 @@ Tabs: All / Accounts / Accounts that ordered / Accounts with no orders yet / Gue
 phone digits match with or without spaces) and click-to-sort columns. "Download CSV" exports what is on screen.
 WooCommerce's own Customers menu item is hidden (this list replaces it; one block in the snippet brings it back).
 Staff accounts (admins, shop managers) only appear if they ordered.
+
+## Max per order (2026-10-07)
+
+Snippet 20 (wordpress/snippets/fika-order-caps.php). Product edit page > Product data > Inventory > "Max per order
+(grams)": e.g. 500 = 500 g of a candy; for Ready Mix 1000 = 2 bags. Empty = no cap (product meta fika_max_g).
+- Enforced by WooCommerce: adding to the cart / changing quantities beyond the cap is refused with "You can order up
+  to 500 g of Peaches per order", and checkout is blocked if a cart is over it.
+- Home page: capped products show "Max 500 g per order" under the price; + (card and bag drawer) stops at the cap with
+  a short tip; a bag already holding more than the cap is trimmed to it when the page opens.
