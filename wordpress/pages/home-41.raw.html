@@ -2,12 +2,12 @@
 
 <!-- wp:html -->
 <style>
-.fika-hero:not(.fika-shop-hero) {
-  background: var(--fika-pink) url(/wp-content/uploads/2026/10/fika-hero-1920.jpg) center bottom / cover no-repeat;
-}
-@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) { background-image: url(/wp-content/uploads/2026/10/fika-hero-1000.jpg); } }
+.fika-hero:not(.fika-shop-hero) { background: var(--fika-pink); }
+.fika-hero:not(.fika-shop-hero) > .fika-photo { background: url(/wp-content/uploads/2026/10/fika-hero-1920.jpg) center bottom / cover no-repeat; }
+@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) > .fika-photo { background-image: url(/wp-content/uploads/2026/10/fika-hero-1000.jpg); } }
 </style>
 <div class="fika-hero">
+  <div class="fika-photo" aria-hidden="true"></div>
   <div class="fika-content">
     <h1 class="fika-title">Stockholm's finest sweets, in Lebanon</h1>
     <p class="fika-text">Experience authentic, clean-ingredient Swedish pick-and-mix. Hand-selected, gelatin-free, and imported fresh for your afternoon fika.</p>
@@ -69,7 +69,7 @@
       eyes.push({ el: e, pu: pu, ix: p[0], iy: p[1], skull: s, cx: 0, cy: 0, r: 0, px: 0, py: 0 });
     });
   });
-  hero.insertBefore(layer, hero.firstChild);
+  (hero.querySelector('.fika-photo') || hero).appendChild(layer);
 
   var scrollAnim = !!(window.CSS ? (CSS.supports ? CSS.supports('animation-timeline: scroll()') : false) : false);
   var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
@@ -85,10 +85,6 @@
     if (fixed) {
       var rc = hero.getBoundingClientRect();
       ox -= rc.left; oy -= rc.top;
-    } else if (scrollAnim) {
-      // The photo holds still while the page scrolls (keyframes fikaPhotoHold)
-      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
-      oy += Math.max(0, Math.min(y, vh));
     }
     var r = Math.max(4.5, EYE_R * s);
     eyes.forEach(function (e) {
@@ -124,7 +120,7 @@
 
   function frame() {
     running = false;
-    var rc = hero.getBoundingClientRect();
+    var rc = layer.getBoundingClientRect();
     var idle = tx === null ? true : (Date.now() - lastMove > 4000);
     var moving = false;
     eyes.forEach(function (e) {
@@ -165,7 +161,7 @@
   }
   window.addEventListener('resize', function () { layout(); kick(); });
   window.addEventListener('load', layout);
-  window.addEventListener('scroll', function () { layout(); kick(); }, { passive: true });
+  window.addEventListener('scroll', function () { kick(); }, { passive: true });
   setTimeout(layout, 400); setTimeout(layout, 1500);
   if (window.ResizeObserver) new ResizeObserver(layout).observe(hero);
   if (window.IntersectionObserver) {

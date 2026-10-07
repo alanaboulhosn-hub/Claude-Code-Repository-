@@ -36,8 +36,23 @@ head = head.replace(photo_line + '\n', '', 1)
 # the photo is a file (media 274, a smaller copy 275 for phones) instead of being pasted into the page: lighter and cached
 HERO_BIG = '/wp-content/uploads/2026/10/fika-hero-1920.jpg'
 HERO_SMALL = '/wp-content/uploads/2026/10/fika-hero-1000.jpg'
-home_hero = ('<style>\n.fika-hero:not(.fika-shop-hero) {\n  background: var(--fika-pink) url(' + HERO_BIG + ') center bottom / cover no-repeat;\n}\n'
-             '@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) { background-image: url(' + HERO_SMALL + '); } }\n</style>\n' + L(290, 455))
+home_hero = ('<style>\n.fika-hero:not(.fika-shop-hero) { background: var(--fika-pink); }\n'
+             '.fika-hero:not(.fika-shop-hero) > .fika-photo { background: url(' + HERO_BIG + ') center bottom / cover no-repeat; }\n'
+             '@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) > .fika-photo { background-image: url(' + HERO_SMALL + '); } }\n</style>\n' + L(290, 455))
+# the photo and the googly eyes sit on one layer that stays still by itself (smooth), instead of being moved on every scroll
+for a, b in [
+    ('<div class="fika-hero">\n', '<div class="fika-hero">\n  <div class="fika-photo" aria-hidden="true"></div>\n'),
+    ('  hero.insertBefore(layer, hero.firstChild);', '  (hero.querySelector(\'.fika-photo\') || hero).appendChild(layer);'),
+    ('''    } else if (scrollAnim) {
+      // The photo holds still while the page scrolls (keyframes fikaPhotoHold)
+      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+      oy += Math.max(0, Math.min(y, vh));
+    }''', '''    }'''),
+    ('    var rc = hero.getBoundingClientRect();\n    var idle', '    var rc = layer.getBoundingClientRect();\n    var idle'),
+    ("  window.addEventListener('scroll', function () { layout(); kick(); }, { passive: true });", "  window.addEventListener('scroll', function () { kick(); }, { passive: true });"),
+]:
+    assert home_hero.count(a) == 1, a
+    home_hero = home_hero.replace(a, b, 1)
 
 # ---------- shared part B: fish cursor + bite + header/banner behaviour ----------
 fish = L(457, 726)
@@ -209,21 +224,16 @@ for a, b in [('<li><a href="/shop/#ready-mix">Ready-Mix</a></li>', '<li><a href=
 def banner(key, title, text, img, pos, kicker=''):
     return r"""<!-- FIKA %(key)s page banner -->
 <div class="fika-hero fika-shop-hero fika-%(key)s-hero">
+  <div class="fika-photo" aria-hidden="true"></div>
   <div class="fsh-in">
     %(kicker)s<h1 class="fsh-title">%(title)s</h1>
     <p class="fsh-text">%(text)s</p>
   </div>
 </div>
 <style>
-.fika-hero.fika-%(key)s-hero { background: linear-gradient(rgba(240, 128, 172, .30), rgba(240, 128, 172, .30)), url(%(img)s) %(pos)s / cover no-repeat, #f3b9d0; }
-@keyframes fika-%(key)s-hold { from { background-position: %(pos)s; } to { background-position: 50%% calc(%(posy)s + 100vh); } }
-@supports (animation-timeline: scroll()) {
-  .fika-hero.fika-%(key)s-hero { animation: fika-%(key)s-hold linear both; animation-timeline: scroll(root block); animation-range: 0 100vh; }
-}
-@supports not (animation-timeline: scroll()) {
-  .fika-hero.fika-%(key)s-hero { background-attachment: fixed; background-position: %(pos)s; }
-}
-</style>""" % {'key': key, 'title': title, 'text': text, 'img': img, 'pos': pos, 'posy': pos.split()[1],
+.fika-hero.fika-%(key)s-hero { background: #f3b9d0; }
+.fika-hero.fika-%(key)s-hero > .fika-photo { background: linear-gradient(rgba(240, 128, 172, .30), rgba(240, 128, 172, .30)), url(%(img)s) %(pos)s / cover no-repeat; }
+</style>""" % {'key': key, 'title': title, 'text': text, 'img': img, 'pos': pos,
                'kicker': ('<p class="fsh-kicker">' + kicker + '</p>\n    ') if kicker else ''}
 
 
@@ -587,6 +597,46 @@ head += "\n" + r"""<style>
 })();
 </script>"""
 
+
+# ---------- still photos: a fixed layer clipped to the hero, instead of moving the background on every scroll ----------
+HOLD_OLD = """/* Photo stays still while the page scrolls over it (no script needed) */
+@keyframes fikaPhotoHold {
+  from { background-position: 50% 100%; }
+  to   { background-position: 50% calc(100% + 100vh); }
+}
+@supports (animation-timeline: scroll()) {
+  .fika-hero { animation: fikaPhotoHold linear both; animation-timeline: scroll(root block); animation-range: 0 100vh; }
+}
+@supports not (animation-timeline: scroll()) {
+  .fika-hero { background-attachment: fixed; background-position: center bottom; }
+}"""
+HOLD_NEW = """/* Photo stays still while the page scrolls over it: it sits on a fixed layer that the hero clips, so the browser
+   keeps it still by itself (smooth) instead of moving it on every scroll. Its top and height follow the hero. */
+.fika-hero { clip-path: inset(0); }
+.fika-hero > .fika-photo { position: fixed; left: 0; top: var(--fika-photo-top, 0px); width: 100%; height: var(--fika-photo-h, 100vh); z-index: 0; pointer-events: none; }"""
+assert head.count(HOLD_OLD) == 1
+head = head.replace(HOLD_OLD, HOLD_NEW, 1)
+head += "\n" + r"""<script>
+(function () {
+  // the still photo layer: same place and size as its hero at the top of the page
+  function size() {
+    [].slice.call(document.querySelectorAll('.fika-hero')).forEach(function (h) {
+      var p = h.querySelector('.fika-photo');
+      if (!p) return;
+      var top = h.getBoundingClientRect().top + (window.pageYOffset || 0);
+      h.style.setProperty('--fika-photo-top', Math.round(top) + 'px');
+      h.style.setProperty('--fika-photo-h', h.offsetHeight + 'px');
+    });
+  }
+  function init() {
+    size();
+    if (window.ResizeObserver) [].slice.call(document.querySelectorAll('.fika-hero')).forEach(function (h) { new ResizeObserver(size).observe(h); });
+    window.addEventListener('resize', size); window.addEventListener('load', size);
+    setTimeout(size, 400); setTimeout(size, 1500);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>"""
 
 # ---------- lighter pages ----------
 # the cute font is embedded once, in the header part (on every page); the shop and footer parts carried copies

@@ -17,20 +17,15 @@
 </style>
 <!-- FIKA mix page banner -->
 <div class="fika-hero fika-shop-hero fika-mix-hero">
+  <div class="fika-photo" aria-hidden="true"></div>
   <div class="fsh-in">
     <h1 class="fsh-title">Mix your own</h1>
     <p class="fsh-text">Pick your candy, your rules. 31 Swedish sweets at $2.50 per 100 g: sweet, sour, or mixed, with gelatin-free and gluten-free faves clearly marked, so everyone mixes and snacks happily.</p>
   </div>
 </div>
 <style>
-.fika-hero.fika-mix-hero { background: linear-gradient(rgba(240, 128, 172, .30), rgba(240, 128, 172, .30)), url(/wp-content/uploads/2026/10/yes28-7vYLz0XjzMVhjx2f.jpg) 50% 62% / cover no-repeat, #f3b9d0; }
-@keyframes fika-mix-hold { from { background-position: 50% 62%; } to { background-position: 50% calc(62% + 100vh); } }
-@supports (animation-timeline: scroll()) {
-  .fika-hero.fika-mix-hero { animation: fika-mix-hold linear both; animation-timeline: scroll(root block); animation-range: 0 100vh; }
-}
-@supports not (animation-timeline: scroll()) {
-  .fika-hero.fika-mix-hero { background-attachment: fixed; background-position: 50% 62%; }
-}
+.fika-hero.fika-mix-hero { background: #f3b9d0; }
+.fika-hero.fika-mix-hero > .fika-photo { background: linear-gradient(rgba(240, 128, 172, .30), rgba(240, 128, 172, .30)), url(/wp-content/uploads/2026/10/yes28-7vYLz0XjzMVhjx2f.jpg) 50% 62% / cover no-repeat; }
 </style>
 <!-- /wp:html -->
 

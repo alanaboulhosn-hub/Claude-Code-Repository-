@@ -39,17 +39,10 @@ body:has(.fika-hero) :is(.entry-title, .page-title, .wp-block-post-title, .page-
   overflow: hidden;
 }
 
-/* Photo stays still while the page scrolls over it (no script needed) */
-@keyframes fikaPhotoHold {
-  from { background-position: 50% 100%; }
-  to   { background-position: 50% calc(100% + 100vh); }
-}
-@supports (animation-timeline: scroll()) {
-  .fika-hero { animation: fikaPhotoHold linear both; animation-timeline: scroll(root block); animation-range: 0 100vh; }
-}
-@supports not (animation-timeline: scroll()) {
-  .fika-hero { background-attachment: fixed; background-position: center bottom; }
-}
+/* Photo stays still while the page scrolls over it: it sits on a fixed layer that the hero clips, so the browser
+   keeps it still by itself (smooth) instead of moving it on every scroll. Its top and height follow the hero. */
+.fika-hero { clip-path: inset(0); }
+.fika-hero > .fika-photo { position: fixed; left: 0; top: var(--fika-photo-top, 0px); width: 100%; height: var(--fika-photo-h, 100vh); z-index: 0; pointer-events: none; }
 .fika-hero * { box-sizing: border-box; }
 
 /* Announcement banner (always visible, always blue) */
@@ -379,6 +372,27 @@ body:has(.fika-hero) :is(.entry-title, .page-title, .wp-block-post-title, .page-
     new MutationObserver(function () { mark(); }).observe(document.body, { childList: true, subtree: true });
     window.addEventListener('scroll', soon, { passive: true });
     window.addEventListener('resize', soon);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+<script>
+(function () {
+  // the still photo layer: same place and size as its hero at the top of the page
+  function size() {
+    [].slice.call(document.querySelectorAll('.fika-hero')).forEach(function (h) {
+      var p = h.querySelector('.fika-photo');
+      if (!p) return;
+      var top = h.getBoundingClientRect().top + (window.pageYOffset || 0);
+      h.style.setProperty('--fika-photo-top', Math.round(top) + 'px');
+      h.style.setProperty('--fika-photo-h', h.offsetHeight + 'px');
+    });
+  }
+  function init() {
+    size();
+    if (window.ResizeObserver) [].slice.call(document.querySelectorAll('.fika-hero')).forEach(function (h) { new ResizeObserver(size).observe(h); });
+    window.addEventListener('resize', size); window.addEventListener('load', size);
+    setTimeout(size, 400); setTimeout(size, 1500);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

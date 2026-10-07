@@ -356,3 +356,7 @@ Each page download roughly halved (home about 2.4 MB to 1.2 MB, Mix your own abo
 - The cute font is embedded once (header part) instead of three times.
 - The product list is downloaded once per page and shared (window.fikaProducts in the header part) by the candies,
   the Ready Mix bags and the flying cartoons (snippet 8); it used to be fetched three times.
+- Still photos without the shake: the home photo (with the googly eyes) and the Mix your own / Ready Mix / About us
+  banner photos sit on their own fixed layer (.fika-photo) that the hero clips, so the browser keeps them still by
+  itself. Before, the photo's position was recalculated on every scroll step, which looked like vibrating on some
+  screens. The eyes no longer need moving on scroll either. CSS and the small sizing script: header part (pattern 239).
