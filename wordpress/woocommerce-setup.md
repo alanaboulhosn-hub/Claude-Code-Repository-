@@ -317,3 +317,21 @@ wordpress/pages/backup/.
   (product pages unchanged). Permalinks were refreshed once.
 - Snippets 8, 10, 11, 16, 20 now also run on the shop page (header bag + account icon, flying candies, fish tracker,
   sign-up cloud, caps). "Return to store" (checkout, account, before-you-go popup, empty-cart button) goes to /shop/.
+
+## Mix your own, Ready Mix, About us (2026-10-07)
+
+The shop page was split into two pages with the same layout, and an About page was added. Built by
+wordpress/pages/build-shop-pages.py (outputs mix-your-own-40, ready-mix-38, about-us, home-41 .raw.html).
+- Mix your own (page 40, /mix-your-own/): the 31 candies only. Banner (bowl photo, still while scrolling), sticky filter
+  bar All / Sweet / Sour / Gelatin-free with counts, search, sort. Pink "Can't decide?" band links to Ready Mix.
+- Ready Mix (page 38, /ready-mix/): the 3 Ready Mix bags only, no filters, 3 per row (1 on phones). Banner with the
+  jars photo (media 21). "Rather pick your own?" band links to Mix your own.
+- About us (page 257, /about-us/): DRAFT copy to edit in WP Admin > Pages. Banner (media 13), Our story (with the
+  mascot drawing, media 16), Freshness guaranteed (3 cards), How it works (3 steps), Start your fika buttons. The
+  delivery wording follows the FAQ (1-2 / 2-3 business days), not the old Contact page's "forty-eight hours".
+- Header menu (pattern 239): Home, Mix your own, Ready Mix, About us; the current page is underlined. On phones the
+  links fold into a "Menu" button. Footer links updated the same way.
+- /shop/ now redirects (301) to /mix-your-own/ (snippet 21). Hero, Fan favourites card and "Return to store" links go
+  to /mix-your-own/.
+- Snippets 8, 10, 11, 16, 20 run on all three pages; the fish tracker (11) shows on Mix your own and Ready Mix.
+- Old pages 37 (Contact) and 39 (Reviews) still exist; the footer still links to Reviews.
