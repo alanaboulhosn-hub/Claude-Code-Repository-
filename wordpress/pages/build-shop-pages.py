@@ -957,11 +957,24 @@ head += "\n" + r"""<script>
 })();
 </script>"""
 
+# ---------- the "page not found" banner (shown by wordpress/snippets/fika-store-pages.php on any 404) ----------
+lost = banner_css + '\n' + _banner('lost', 'This page wandered off',
+    'Maybe someone ate it. The sweets are still right here though.', IMG_JARS, '50% 50%', kicker='Page not found') + r"""
+<style>
+.fika-hero.fika-lost-hero { min-height: 70vh; }
+.fika-lost-hero .fsh-go { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 28px; }
+.fika-lost-hero .fsh-go .fika-btn.alt { background: #fff; color: #004aad; }
+.fika-lost-hero .fsh-go .fika-btn.alt:hover { background: #fdeaf2; }
+</style>"""
+lost = lost.replace('</p>\n  </div>\n</div>', '</p>\n    <div class="fsh-go"><a class="fika-btn" href="/mix-your-own/">Mix your own</a><a class="fika-btn alt" href="/">Back home</a></div>\n  </div>\n</div>', 1)
+assert 'fsh-go"><a' in lost
+
 # ---------- write the parts ----------
 os.makedirs(PARTS, exist_ok=True)
-parts = {'head': head, 'fish': fish, 'mix': mix, 'foot': foot}
+parts = {'head': head, 'fish': fish, 'mix': mix, 'foot': foot, 'lost': lost}
 titles = {'head': 'Fika · styles, banner and header', 'fish': 'Fika · fish cursor and header behaviour',
-          'mix': 'Fika · shop cards, bag and Ready Mix', 'foot': 'Fika · footer'}
+          'mix': 'Fika · shop cards, bag and Ready Mix', 'foot': 'Fika · footer',
+          'lost': 'Fika · page not found banner'}
 for k, v in parts.items():
     open(os.path.join(PARTS, k + '.html'), 'w').write(block(v))
 json.dump(titles, open(os.path.join(PARTS, 'titles.json'), 'w'), indent=1)

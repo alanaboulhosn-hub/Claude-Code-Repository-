@@ -4,11 +4,11 @@
  * - the theme's own font files (Open Sans, Fira Sans, Montserrat as full .ttf files, about 1.3 MB) are not loaded;
  *   our pages use Outfit, Bebas Neue, Fanwood Text and the cute font, and the few spots in Open Sans (bag drawer,
  *   buttons) get a small web copy of Open Sans from Google Fonts instead, so they look the same.
- * Checkout, cart, account and product pages keep the theme fonts.
+ * Also product pages and the page-not-found page (they use the same header and bag). Checkout and account pages keep the theme fonts.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-speed.php
  */
 add_action( 'wp', function () {
-	if ( ! is_front_page() && ! is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) ) {
+	if ( ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404() ) ) {
 		return;
 	}
 	remove_action( 'wp_head', 'wp_print_font_faces', 50 );

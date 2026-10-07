@@ -3,7 +3,7 @@
  * Fika: shop pages. Mix your own (page 40, /mix-your-own/) and Ready Mix (page 38, /ready-mix/) are our own pages:
  * banner, (filters,) the same cards and bag as the home page.
  * - WooCommerce's built-in product catalogue is switched off (has_archive false) so it does not claim /shop/;
- *   single product pages (/product/...) are unchanged.
+ *   single product pages (/product/...) get the Fika look from fika-store-pages.php.
  * - The old /shop/ address sends visitors to /mix-your-own/ (permanent redirect).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-shop-page.php
  */

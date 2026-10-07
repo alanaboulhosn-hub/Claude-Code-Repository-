@@ -564,7 +564,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 
 // ---------- Home page (above the shop cards), Mix your own and Ready Mix (under the banner) ----------
 add_action( 'wp_footer', function () {
-	if ( ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix' ) ) ) || ! is_user_logged_in() ) {
+	if ( ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404() ) || ! is_user_logged_in() ) {
 		return;
 	}
 	$html = fika_swim_html( 'home' );
@@ -654,7 +654,7 @@ add_action( 'wp_footer', function () {
 
 // ---------- Header account menu: show the distance to the free kilo ----------
 add_action( 'wp_footer', function () {
-	if ( ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix' ) ) ) || ! is_user_logged_in() ) {
+	if ( ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404() ) || ! is_user_logged_in() ) {
 		return;
 	}
 	$s = fika_swim_state();

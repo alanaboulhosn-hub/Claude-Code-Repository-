@@ -14,7 +14,7 @@
  */
 
 add_action( 'wp_footer', function () {
-	$home     = is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ); // these pages share the header, shop cards and bag
+	$home     = is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404(); // these pages (and product and not-found pages) share the header, shop cards and bag
 	$checkout = function_exists( 'is_checkout' ) ? is_checkout() : false;
 	if ( ! $home && ! $checkout ) {
 		return;
@@ -329,7 +329,7 @@ FIKA_LIB;
     document.querySelectorAll('.fika-cart').forEach(function (cart) {
       var b = cart.querySelector('.fk-count');
       if (!b) { b = document.createElement('span'); b.className = 'fk-count'; b.setAttribute('aria-hidden', 'true'); cart.appendChild(b); }
-      b.textContent = (Math.round(grams / 100) / 10).toFixed(1) + ' kg';
+      b.textContent = (grams / 1000).toFixed(1).replace(/\.0$/, '') + ' kg';
       b.classList.toggle('on', grams > 0);
       if (lastCount >= 0 && (count > lastCount || grams > lastGrams)) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
       var scale = 1 + 0.45 * (1 - Math.exp(-grams / 1500));

@@ -1,0 +1,37 @@
+<!-- wp:html -->
+<style>
+/* shared by the Mix your own, Ready Mix and About us banners */
+.fika-hero.fika-shop-hero { min-height: 82vh; justify-content: center; align-items: center; }
+.fika-shop-hero .fsh-in { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 150px 6% 70px; text-align: center; }
+/* same type as the home page hero (.fika-title / .fika-text) */
+.fika-shop-hero .fsh-kicker { margin: 0 0 6px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.6; color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, .35); }
+.fika-shop-hero .fsh-title { margin: 0 0 22px; font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-weight: 400; font-size: clamp(40px, 4.4vw, 84px); line-height: 1.15;
+  color: #004aad; }
+.fika-shop-hero .fsh-text { margin: 0 auto; max-width: 640px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.6;
+  color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, .35); }
+@media (max-width: 700px) {
+  .fika-hero.fika-shop-hero { min-height: 74vh; }
+  .fika-shop-hero .fsh-in { padding: 130px 20px 50px; }
+}
+</style>
+<!-- FIKA lost page banner -->
+<div class="fika-hero fika-shop-hero fika-lost-hero">
+  <div class="fika-photo" aria-hidden="true"></div>
+  <div class="fsh-in">
+    <p class="fsh-kicker">Page not found</p>
+    <h1 class="fsh-title">This page wandered off</h1>
+    <p class="fsh-text">Maybe someone ate it. The sweets are still right here though.</p>
+    <div class="fsh-go"><a class="fika-btn" href="/mix-your-own/">Mix your own</a><a class="fika-btn alt" href="/">Back home</a></div>
+  </div>
+</div>
+<style>
+.fika-hero.fika-lost-hero { background: #f3b9d0; }
+.fika-hero.fika-lost-hero > .fika-photo { background: linear-gradient(rgba(240, 128, 172, .30), rgba(240, 128, 172, .30)), url(/wp-content/uploads/2026/10/chatgpt-image-jul-7-2026-12_48_32-pm-X3tBK9ZWkKnIvChP.png) 50% 50% / cover no-repeat; }
+</style>
+<style>
+.fika-hero.fika-lost-hero { min-height: 70vh; }
+.fika-lost-hero .fsh-go { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 28px; }
+.fika-lost-hero .fsh-go .fika-btn.alt { background: #fff; color: #004aad; }
+.fika-lost-hero .fsh-go .fika-btn.alt:hover { background: #fdeaf2; }
+</style>
+<!-- /wp:html -->

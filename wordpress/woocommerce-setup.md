@@ -523,3 +523,29 @@ Rules at the end of the shared footer part (pattern 242), built by build-shop-pa
 - Checked at 360-430 (phones), 768x1024, 1024x768, 1280x800, 1440x900, 1680x1050, 1920x1080, 2560x1440 and
   3440x1440: no sideways scrolling, no errors; phones unchanged. On laptops the only visible change: the Mix your
   own / Ready Mix banner text and the filter bar now start at the logo's edge.
+
+## Front-end clean-up after the QA pass (2026-10-07)
+
+Snippet 38 "Fika store pages" (wordpress/snippets/fika-store-pages.php):
+- Product pages (/product/...): Fika header, footer, fonts, account menu and bag (patterns 239-242 printed around
+  WooCommerce's product template). "Add to cart" is replaced by "Add to bag", which writes the same bag as the shop
+  (candies 100 g at a time, Ready Mix one 500 g bag at a time; order caps apply); then a − / + pill and "View bag".
+  Breadcrumbs, the category/tag line and Related products are hidden; "More sweets to mix" (the shop carousel without
+  this candy) or "More Ready Mixes" sits under the reviews. Hidden or out-of-stock products say "Not available right
+  now". The pages stay for reviews, search engines and shared links.
+- Redirects: product categories Sweet / Sour -> /mix-your-own/?f=sweet / ?f=sour, tag Gelatin-free -> ?f=gf, Ready
+  Mix -> /ready-mix/, other categories and tags -> /mix-your-own/ (301). Searches ?s=... -> /mix-your-own/?q=...
+  and /cart/ -> /mix-your-own/?bag=open (302). Mix your own reads ?f= and ?q=; ?bag=open opens the bag on any of
+  our pages; the address is then cleaned.
+- Missing pages: Fika banner "This page wandered off" (pattern 335, built as part "lost" by build-shop-pages.py)
+  with Mix your own / Back home buttons and the shop carousel; still answers 404 (noindex).
+- The WordPress emoji script (s.w.org) is no longer loaded.
+- The header bag, account menu, cartoons, order caps, rewards, sign-up nudges and lighter fonts (snippets 8, 10,
+  11, 16, 20, 23) now also run on product and not-found pages.
+Also: old pages Contact (37) and Reviews (39) set to draft (they now show the 404 page); the header bag label reads
+"0 kg" / "0.5 kg" like the Bag button; delivery zone 1 is "Outside Beirut" (LB:OB), so checkout shows "Delivery:
+Enter address to calculate" until an area is chosen ($5 inside Beirut, $6 outside); the old "TEMP ... (delete)"
+snippets were deleted.
+Checked at 1440x900 and 390x844: product pages (candy and Ready Mix), add and change amounts, View bag, the bag on
+Mix your own, Checkout hand-off, every redirect, the 404 page, and home / shop / About / checkout / account pages:
+no sideways scrolling, no script errors, no emoji requests. No test orders were created.
