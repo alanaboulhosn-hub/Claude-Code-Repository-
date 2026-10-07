@@ -426,3 +426,22 @@ Snippet 25 (wordpress/snippets/fika-bag-reminder.php):
   into place with a small swell, the wave on top rolls sideways and grows to full height, and the columns bob up
   one after another. Plays once per visit to a page; skipped for visitors who ask for reduced motion, and on
   pages so short that the footer is already on screen. Shared footer part (pattern 242).
+
+## Email look (2026-10-07)
+
+Snippet 28 (wordpress/snippets/fika-emails.php) styles every WooCommerce email (order confirmed / on hold,
+delivered, failed, refunded, cancelled, note, new account, password reset, email check, the shop's own new-order
+emails) and the "Your bag is waiting" reminder like the website:
+- Pink background, the Fika wordmark with three candy cartoons on top (an image, media 304, so the cute font shows
+  in every email app), a white rounded card, small-caps serif headings (Fanwood Text, falling back to Georgia),
+  Outfit / Helvetica for text, pink row lines, blue pill buttons, and the wavy blue footer (wave image media 305)
+  with WhatsApp, email and Instagram.
+- One "Delivery details" box (name, address with delivery area, phone, email) instead of identical billing and
+  shipping addresses.
+- Subjects, headings and closing lines, e.g. "Your Fika order #123 is confirmed" / "Thank you for your order!" /
+  "We are packing your sweets with care..."; "Your Fika sweets have arrived" / "Time for fika!"; "Something went
+  wrong"; "Welcome to Fika!" with the free-kilo line. Text typed in WooCommerce > Settings > Emails (other than
+  WooCommerce's default wording) wins over these.
+- Colours and logo settings are set by the snippet (base #004aad, background #fdeaf2, header image, centred).
+- The images were made from the site's font and cartoons: wordpress/email-assets/ (make-email-images.js).
+- Checked with WooCommerce's email preview (sample order) on desktop and phone widths; no emails were sent.

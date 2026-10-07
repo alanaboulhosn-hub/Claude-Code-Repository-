@@ -124,7 +124,7 @@ if ( ! function_exists( 'fika_bags' ) ) {
 			'<p>You left some Swedish sweets in your bag. We saved it for you, so you can finish your order in one click.</p>' .
 			'<table cellspacing="0" cellpadding="0" style="width:100%;margin:16px 0;">' . $rows .
 			'<tr><td style="padding:10px 0;font-weight:bold;">Candies</td><td style="padding:10px 0;text-align:right;font-weight:bold;">' . wc_price( $total ) . '</td></tr></table>' .
-			'<p style="text-align:center;margin:26px 0;"><a href="' . esc_url( fika_bag_link( $token ) ) . '" style="display:inline-block;padding:14px 30px;border-radius:999px;background:#004aad;color:#ffffff;text-decoration:none;font-weight:bold;">Finish my order</a></p>' .
+			'<p style="text-align:center;margin:26px 0;"><a class="fika-mail-btn" href="' . esc_url( fika_bag_link( $token ) ) . '" style="display:inline-block;padding:14px 30px;border-radius:999px;background:#004aad;color:#ffffff;text-decoration:none;font-weight:bold;">Finish my order</a></p>' .
 			'<p>Delivery inside Beirut takes 1&ndash;2 business days, outside Beirut 2&ndash;3. Cash on delivery.</p>' .
 			'<p style="color:#6c7b9c;font-size:12px;">This is the only reminder we send for this bag. <a href="' . esc_url( fika_bag_link( $token, 'fika_bag_stop' ) ) . '" style="color:#6c7b9c;">No more reminders</a>.</p>';
 		return WC()->mailer()->wrap_message( 'Your bag is waiting', $body );
