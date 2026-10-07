@@ -75,10 +75,11 @@ assert mix.count('<div class="mx-page rm" id="rmPage">') == 1
 mix = mix.replace('<div class="mx-page rm" id="rmPage">', '<span id="ready-mix" class="fk-anchor"></span>\n<div class="mx-page rm" id="rmPage">', 1)
 
 # ---------- home-only: info sections ----------
-home_sections = L(1338, 1501)
+home_sections = L(1338, 1401)
 
 # ---------- shared part D: full-width fix + footer ----------
-foot = L(1503, 1629)
+# (the section styles 1402-1501 travel with the footer: it takes its blue, fonts and spacing from them)
+foot = L(1402, 1501) + '\n' + L(1503, 1629)
 for a, b in [('<li><a href="/ready-mix">Ready-Mix</a></li>', '<li><a href="/shop/#ready-mix">Ready-Mix</a></li>'),
              ('<li><a href="/shop">Mix your own</a></li>', '<li><a href="/shop/">Mix your own</a></li>')]:
     assert foot.count(a) == 1, a
@@ -197,6 +198,8 @@ html.fika-shop-page .mx-track > .fs-none { grid-column: 1 / -1; padding: 30px 0;
 html.fika-shop-page #rmPage { padding-top: 30px; }
 html.fika-shop-page #rmPage .mx-count { display: none; }
 html.fika-shop-page .fs-hide { display: none !important; }
+html.fika-shop-page .fs-bar { transition: transform .25s ease, opacity .2s ease; }
+html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; pointer-events: none; }
 html.fika-shop-page .fk-anchor { display: block; position: relative; top: -170px; }
 @media (max-width: 1100px) { html.fika-shop-page .mx-track { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 34px 26px; } }
 @media (max-width: 700px) {
@@ -298,6 +301,10 @@ html.fika-shop-page .fk-anchor { display: block; position: relative; top: -170px
       var h = document.querySelector('.fika-header');
       var b = h ? h.getBoundingClientRect().bottom : 96;
       document.documentElement.style.setProperty('--fs-top', Math.max(0, Math.round(b)) + 'px');
+      // slide the bar away once the footer comes up, so it never sits over it
+      var f = document.querySelector('.fika-footer');
+      var off = f ? f.getBoundingClientRect().top - Math.max(b + bar.offsetHeight + 20, window.innerHeight * 0.7) : 1;
+      bar.classList.toggle('fs-off', 0 > off);
     }
     top(); window.addEventListener('resize', top); window.addEventListener('scroll', top, { passive: true }); setTimeout(top, 600);
     // the Ready Mix cards are drawn by their own script: re-apply the filter whenever they change

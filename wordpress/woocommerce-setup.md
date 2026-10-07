@@ -311,6 +311,8 @@ wordpress/pages/backup/.
   /shop/#ready-mix opens on Ready Mix (footer link).
 - Favourites (featured, shown first everywhere): BUBS Bubblegum Skull, Tutti Frutti Sour Melon, Sour Cherries, Sour
   Watermelon Pacifier, BUBS Banana Toffee Ovals, Tutti Frutti Passion (menu_order -60 ... -10).
+- The footer's styles (blue, fonts, spacing; formerly with the home info sections) are part of the shared footer, so
+  the footer looks the same on both pages. The shop filter bar slides away when the footer comes into view.
 - Snippet 21 (fika-shop-page.php): WooCommerce's own product catalogue is switched off so /shop/ is our page
   (product pages unchanged). Permalinks were refreshed once.
 - Snippets 8, 10, 11, 16, 20 now also run on the shop page (header bag + account icon, flying candies, fish tracker,
