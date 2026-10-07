@@ -487,3 +487,25 @@ A "Purchase" event is sent to a Facebook/Meta pixel if one is ever added. Tested
   summary with product photos, Weight lines, quantity and price columns, a Candies total, the Finish my order button
   and a pink Delivery box (Inside / Outside Beirut, Cash on delivery). Friendlier subjects added for cancelled,
   note, refunded, invoice and password-reset emails.
+
+## Win-back emails (2026-10-07)
+
+Snippet 35 (wordpress/snippets/fika-winback.php), WP Admin > WooCommerce > Win-back emails.
+- Who: everyone who ordered, plus account holders who never ordered; the quiet period starts at their last order
+  (or account creation). Shop staff, test addresses and unsubscribed addresses are left out.
+- Email 1 at 30 days: "It's been a while, {name}! Here's what's new at Fika" / "We miss you!": New drops (candies
+  added in the last 45 days, otherwise the favourites) with photos and prices, the news box (title and text edited in
+  WP Admin; default: Lördagsmys), "Pick your mix" button. Never-ordered account holders get their own opening line.
+- Email 2, 14 days after email 1 if still no order: "A little treat to welcome you back: 10% off": a personal code
+  COMEBACK-XXXXXX (percent off the candies, individual use, one use, only for their email, valid 14 days) and a
+  "Use my 10%" button. The link keeps the code in a cookie and adds it as soon as the bag reaches the cart (the
+  customer's email is filled in, as WooCommerce requires for personal codes). Tested: $7.50 of candies -> $6.75.
+- Ordering again starts over and counts as "came back". Every email has an Unsubscribe link (signed); the list
+  is option fika_marketing_stop. Order emails are not affected by unsubscribing.
+- Runs daily at about 10:00 Beirut (Action Scheduler, 07:00 UTC), at most 50 emails per run.
+- Mode: Test (default: only alan.aboulhosn@gmail.com), Live (everyone due) or Off. Switch to Live at launch.
+  Settings: discount %, validity, timing (30 / 14 days), test addresses, previews of both emails to any address
+  (an email 2 preview creates a real code for that address). Lists customers with their next email and date, and
+  recent activity. Shop managers: GET /wp-json/fika/v1/winback-preview?n=1|2 renders without sending.
+- Checked: timing rules on examples, current audience (5 customers, first emails due 6 Nov 2026), a run in Test
+  mode sent nothing.
