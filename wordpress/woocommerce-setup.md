@@ -252,6 +252,8 @@ Done:
   Fika <hello@swedishfikalb.com> for every email, return path on, SMTP smtp.hostinger.com : 465 SSL, login
   hello@swedishfikalb.com. Mailer is "Default (PHP)" until the mailbox password is entered.
 
-To finish (owner, 1 minute): WP Admin > WP Mail SMTP > Settings > Mailer "Other SMTP" > enter the
-hello@swedishfikalb.com mailbox password > Save > Tools > Email Test. In the Hostinger panel, Emails >
-swedishfikalb.com > DNS / Authentication: make sure SPF, DKIM and DMARC all show as set up.
+Optional while testing (owner): WP Admin > WP Mail SMTP > Settings > Mailer "Other SMTP" > enter the
+hello@swedishfikalb.com mailbox password > Save > Tools > Email Test. This only uses the mailbox to send; it
+changes nothing on the live site or the mailbox.
+Do NOT change swedishfikalb.com DNS (SPF / DKIM / DMARC) while the Website Builder store is live: that is part
+of the launch step, planned separately (see CLAUDE.md).
