@@ -52,6 +52,9 @@ body, #outer_wrapper, #wrapper { background-color: #fdeaf2 !important; }
 #body_content_inner, #body_content_inner p, #body_content_inner td, #body_content_inner th, .td, address, .font-family { font-family: $sans !important; color: #1b2a4a !important; }
 #body_content_inner { font-size: 16px !important; line-height: 1.6 !important; }
 #body_content_inner p { margin: 0 0 14px !important; }
+.email-introduction { padding-bottom: 0 !important; margin-bottom: 0 !important; }
+.email-introduction p:last-child { margin-bottom: 0 !important; }
+.email-introduction + h2, .email-introduction + .email-order-detail-heading { margin-top: 20px !important; }
 h2, .email-order-detail-heading { font-family: $serif !important; font-variant: small-caps; font-weight: 400 !important; font-size: 25px !important; color: #004aad !important; margin: 26px 0 8px !important; }
 h2 span, .email-order-detail-heading span { font-family: $sans !important; font-variant: normal; font-size: 13px !important; color: #6c7b9c !important; }
 h3 { font-family: $sans !important; font-weight: 600 !important; font-size: 16px !important; color: #004aad !important; }
@@ -69,6 +72,8 @@ hr, .email-separator, .email-order-details + br { border-color: #f3dbe6 !importa
 .fika-mail-box { background: #fdeaf2; border-radius: 18px; padding: 18px 22px !important; }
 .fika-mail-box h2 { margin: 0 0 6px !important; font-size: 22px !important; }
 .fika-mail-box p, .fika-mail-box address { margin: 0 !important; font-style: normal; line-height: 1.55 !important; color: #1b2a4a !important; }
+.fika-mail-box td { padding: 3px 0 !important; vertical-align: top; font-size: 15px !important; }
+#body_content_inner .fika-mail-box td.k { width: 1%; white-space: nowrap; color: #004aad !important; font-weight: 600 !important; padding-right: 18px !important; }
 .fika-mail-btn { display: inline-block; background: #004aad; color: #ffffff !important; border-radius: 999px; padding: 14px 32px; font-family: $sans; font-weight: 600; font-size: 15px; text-decoration: none !important; }
 #template_footer { background: transparent !important; border: 0 !important; margin: 0 !important; }
 #template_footer > tbody > tr > td, #template_footer td td { padding-top: 0 !important; }
@@ -103,17 +108,33 @@ add_action( 'woocommerce_email', function ( $mailer ) {
 		if ( ! is_a( $order, 'WC_Order' ) ) {
 			return;
 		}
-		$addr  = $order->get_formatted_shipping_address();
-		$addr  = $addr ? $addr : $order->get_formatted_billing_address();
-		$phone = $order->get_billing_phone();
-		$mail  = $order->get_billing_email();
+		$pick  = $order->get_shipping_address_1() ? 'shipping' : 'billing';
+		$get   = function ( $f ) use ( $order, $pick ) { return trim( (string) $order->{'get_' . $pick . '_' . $f}() ); };
+		$name  = trim( $get( 'first_name' ) . ' ' . $get( 'last_name' ) );
+		$states = WC()->countries->get_states( $get( 'country' ) );
+		$area  = $get( 'state' ) ? ( isset( $states[ $get( 'state' ) ] ) ? $states[ $get( 'state' ) ] : $get( 'state' ) ) : '';
+		// "Street, apartment, City, Inside / Outside Beirut" (the city is left out when it repeats the street)
+		$place = array_values( array_unique( array_filter( array( $get( 'address_1' ), $get( 'address_2' ), $get( 'city' ), $area ) ) ) );
+		$rows  = array(
+			'Name'         => $name,
+			'Location'     => implode( ', ', $place ),
+			'Phone number' => $order->get_billing_phone(),
+			'Email'        => $order->get_billing_email(),
+		);
+		$rows  = array_filter( $rows );
 		if ( $plain_text ) {
-			echo "\n" . esc_html( wc_strtoupper( 'Delivery details' ) ) . "\n\n" . esc_html( wp_strip_all_tags( str_replace( '<br/>', "\n", $addr ) ) ) . "\n" . esc_html( $phone ) . "\n" . esc_html( $mail ) . "\n";
+			echo "\n" . esc_html( wc_strtoupper( 'Delivery details' ) ) . "\n\n";
+			foreach ( $rows as $k => $v ) {
+				echo esc_html( $k . ': ' . $v ) . "\n";
+			}
 			return;
 		}
+		$html = '';
+		foreach ( $rows as $k => $v ) {
+			$html .= '<tr><td class="k">' . esc_html( $k ) . ':</td><td>' . esc_html( $v ) . '</td></tr>';
+		}
 		echo '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:26px 0 6px;"><tr><td class="fika-mail-box">' .
-			'<h2>Delivery details</h2><address>' . wp_kses_post( $addr ) . '</address>' .
-			( $phone ? '<p>' . esc_html( $phone ) . '</p>' : '' ) . ( $mail ? '<p>' . esc_html( $mail ) . '</p>' : '' ) .
+			'<h2>Delivery details</h2><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' . $html . '</table>' .
 			'</td></tr></table>';
 	}, 20, 3 );
 } );

@@ -460,3 +460,6 @@ emails) and the "Your bag is waiting" reminder like the website:
   block (fika/phone has show_in_order_confirmation false; the phone is in Delivery details); the delivery row reads
   "Delivery: $6.00" without the method's name; "Hi Alan," in the same font as the rest; no closing line on the
   order confirmation / on hold emails; the white card runs straight into the blue wave (no pink gap).
+- Delivery details in emails as labelled rows: Name, Location (street, apartment, city, Inside / Outside Beirut,
+  repeats left out), Phone number, Email; labels in blue, never wrapping. The gap between "Here's a reminder of
+  what you've ordered" and "Order summary" was tightened.
