@@ -66,6 +66,9 @@ rep = [
      """  var grid = document.getElementById('mxGrid');
   if (!grid) return;
   if (window.fikaMxTitle) { var mxH1 = document.querySelector('#shop .mx-h1'); if (mxH1) mxH1.textContent = window.fikaMxTitle; }"""),
+    # no "3 products" count over the Ready Mix bags
+    ("""    $('rmCount').textContent = PRODUCTS.length + ' product' + (PRODUCTS.length === 1 ? '' : 's');""",
+     """    $('rmCount').textContent = ''; $('rmCount').style.display = 'none';"""),
 ]
 for a, b in rep:
     assert mix.count(a) == 1, a[:60]
@@ -90,34 +93,22 @@ for a, b in [('<li><a href="/ready-mix">Ready-Mix</a></li>', '<li><a href="/shop
     foot = foot.replace(a, b, 1)
 
 # ---------- home-only: Fan favourites (the WooCommerce "Featured" products) ----------
-home_favs = r"""<!-- FIKA home: "Fan favourites". The carousel shows the products starred as Featured in WooCommerce
-     (Products list, star column), in the shop's order, followed by a "Shop all sweets" card. -->
+home_favs = r"""<!-- FIKA home: "Mix your own" + "All pick & mix" link. The carousel shows the products starred as Featured
+     in WooCommerce (Products list, star column), in the shop's order. -->
 <style>
-.mx-track > .fk-all { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:30px 20px; border-radius:28px; background:#fdeaf2;
-  color:#004aad; text-align:center; text-decoration:none; box-sizing:border-box; min-height:100%; }
-.mx-track > .fk-all .t { font-family:'NF Le Petit Cochon',cursive; font-size:34px; line-height:1.05; }
-.mx-track > .fk-all .s { font-family:'Fanwood Text',Georgia,serif; font-variant:small-caps; font-size:19px; color:#1b2a4a; }
-.mx-track > .fk-all .go { display:inline-flex; align-items:center; gap:8px; height:48px; padding:0 26px; border-radius:999px; background:#004aad; color:#fff;
-  font:600 14px/1 'Outfit','Open Sans',Arial,sans-serif; letter-spacing:.04em; text-transform:uppercase; transition:background .15s; }
-.mx-track > .fk-all:hover .go { background:#003a8a; }
-.mx-track > .fk-all .toons { display:flex; gap:6px; margin-bottom:4px; }
-.mx-track > .fk-all .toons i { display:block; width:46px; height:46px; }
-.mx-track > .fk-all .toons svg { width:100%; height:100%; }
-@media (max-width:700px) { .mx-track > .fk-all .t { font-size:28px; } }
 /* "All pick & mix": a hand-drawn link next to the title, wobbles on hover */
-#shop .mx-head { align-items:center; }
-#shop .fk-allpm { position:relative; display:inline-flex; align-items:center; gap:6px; margin-top:.4em; padding:4px 2px 12px; color:#ff4f9a; text-decoration:none;
-  font-family:'NF Le Petit Cochon',cursive; font-variant:small-caps; font-size:clamp(20px,1.7vw,30px); line-height:1; transform:rotate(-4deg); transform-origin:left center; transition:transform .2s ease, color .2s; }
+#shop .mx-head { align-items:baseline; }
+html:not(.fika-shop-page) #shop .mx-count:empty { display:none; }
+#shop .fk-allpm { position:relative; display:inline-block; padding:0 2px; color:#ff4f9a; text-decoration:none;
+  font-family:'NF Le Petit Cochon',cursive; font-variant:small-caps; font-size:clamp(20px,1.7vw,30px); line-height:1; transition:transform .2s ease, color .2s; }
 #shop .fk-allpm b { font-weight:400; color:#004aad; display:inline-block; transition:transform .3s ease; }
-#shop .fk-allpm .sq { position:absolute; left:0; bottom:0; width:calc(100% - 38px); height:10px; fill:none; stroke:#ffb3d1; stroke-width:3; stroke-linecap:round; stroke-dasharray:180; stroke-dashoffset:0; }
-#shop .fk-allpm .ar { width:34px; height:24px; fill:none; stroke:#004aad; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; animation:fkNudgeR 1.6s ease-in-out infinite; }
+#shop .fk-allpm .sq { position:absolute; left:0; bottom:-14px; width:100%; height:10px; fill:none; stroke:#ffb3d1; stroke-width:3; stroke-linecap:round; stroke-dasharray:180; stroke-dashoffset:0; }
 #shop .fk-allpm:hover { color:#004aad; animation:fkWob .5s ease; }
 #shop .fk-allpm:hover b { transform:rotate(360deg) scale(1.25); color:#ff4f9a; }
 #shop .fk-allpm:hover .sq { animation:fkDraw .6s ease; }
-@keyframes fkNudgeR { 0%,100% { transform:translateX(0); } 50% { transform:translateX(6px); } }
-@keyframes fkWob { 0%,100% { transform:rotate(-4deg); } 30% { transform:rotate(3deg) scale(1.06); } 65% { transform:rotate(-6deg); } }
+@keyframes fkWob { 0%,100% { transform:rotate(0); } 30% { transform:rotate(4deg) scale(1.06); } 65% { transform:rotate(-3deg); } }
 @keyframes fkDraw { from { stroke-dashoffset:180; } to { stroke-dashoffset:0; } }
-@media (prefers-reduced-motion:reduce) { #shop .fk-allpm .ar, #shop .fk-allpm:hover { animation:none; } }
+@media (prefers-reduced-motion:reduce) { #shop .fk-allpm:hover { animation:none; } }
 </style>
 <script>
 (function () {
@@ -129,19 +120,14 @@ home_favs = r"""<!-- FIKA home: "Fan favourites". The carousel shows the product
     if (hd.querySelector('.fk-allpm')) return;
     var a = document.createElement('a');
     a.className = 'fk-allpm'; a.href = '/mix-your-own/';
-    a.innerHTML = '<span class="w">All pick <b>&amp;</b> mix</span><svg class="sq" viewBox="0 0 120 10" aria-hidden="true"><path d="M2 6c8-6 12 4 20 0s12-6 20 0 12 4 20 0 12-6 20 0 12 4 20 0 12-4 16 0"></path></svg>' +
-      '<svg class="ar" viewBox="0 0 34 24" aria-hidden="true"><path d="M3 15c8-9 17-10 26-4"></path><path d="M22 5l7 6-8 4"></path></svg>';
+    a.innerHTML = '<span class="w">All pick <b>&amp;</b> mix</span><svg class="sq" viewBox="0 0 120 10" aria-hidden="true"><path d="M2 6c8-6 12 4 20 0s12-6 20 0 12 4 20 0 12-6 20 0 12 4 20 0 12-4 16 0"></path></svg>' ;
     hd.appendChild(a);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addLink); else addLink();
-  window.fikaMxCount = function () { return 'Our most-loved sweets. Add them straight to your bag.'; };
-  function toon(slug) { return '<i>' + (window.FIKA_CARTOON ? window.FIKA_CARTOON(slug) : '') + '</i>'; }
+  window.fikaMxCount = function () { return ''; };
   window.fikaMxView = function (list) {
     if (!FAV) return [];
-    var out = list.filter(function (p) { return FAV.indexOf(p.id) !== -1; });
-    out.push({ html: '<a class="mx-card fk-all" href="/shop/"><span class="toons">' + toon('sour-cherries') + toon('bubs-bubblegum-skull') + toon('swedish-fish') +
-      '</span><span class="t">' + list.length + ' sweets to mix</span><span class="s">Sweet, sour and gelatin-free</span><span class="go">Shop all sweets &rarr;</span></a>' });
-    return out;
+    return list.filter(function (p) { return FAV.indexOf(p.id) !== -1; });
   };
   fetch('/wp-json/wc/store/v1/products?featured=true&per_page=24&orderby=menu_order&order=asc', { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
@@ -209,8 +195,6 @@ head += r"""
 # ---------- links that pointed at the old /shop page ----------
 assert home_hero.count('href="/shop"') == 1, 'hero shop button'
 home_hero = home_hero.replace('href="/shop"', 'href="/mix-your-own/"', 1)
-assert home_favs.count('href="/shop/"') == 1
-home_favs = home_favs.replace('href="/shop/"', 'href="/mix-your-own/"', 1)
 for a, b in [('<li><a href="/shop/#ready-mix">Ready-Mix</a></li>', '<li><a href="/ready-mix/">Ready Mix</a></li>\n          <li><a href="/about-us/">About us</a></li>'),
              ('<li><a href="/shop/">Mix your own</a></li>', '<li><a href="/mix-your-own/">Mix your own</a></li>')]:
     assert foot.count(a) == 1, a

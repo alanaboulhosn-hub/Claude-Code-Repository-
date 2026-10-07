@@ -536,7 +536,7 @@
   function sorted() { return PRODUCTS.slice(); }
   function render() {
     var st = read(), keep = grid.scrollLeft;
-    $('rmCount').textContent = PRODUCTS.length + ' product' + (PRODUCTS.length === 1 ? '' : 's');
+    $('rmCount').textContent = ''; $('rmCount').style.display = 'none';
     grid.innerHTML = sorted().map(function (p) {
       var g = st.bag[p.id] || 0;
       return '<article class="mx-card' + (g ? ' has' : '') + '" data-id="' + esc(p.id) + '"><div class="mx-img"><span class="mx-badge">' + (p.gelatin ? 'Pork Gelatin' : 'Gelatin Free') + '</span>' + img(p) + '</div>' +

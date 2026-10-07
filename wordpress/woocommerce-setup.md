@@ -337,4 +337,5 @@ wordpress/pages/build-shop-pages.py (outputs mix-your-own-40, ready-mix-38, abou
 - Old pages 37 (Contact) and 39 (Reviews) still exist; the footer still links to Reviews.
 - Update: Mix your own shows one catalogue (no Sweet / Sour headings), narrowed with the filters. The filter bar now
   sits flush under the header. Home: the carousel title is "Mix your own" with a hand-drawn "All pick & mix" link
-  to /mix-your-own/; the "Sweets made with care" cards were removed from the home page.
+  to /mix-your-own/ (no arrow, on the title's baseline); the "Sweets made with care" cards, the "31 sweets to mix"
+  card, the line under the home title and the "3 products" count over Ready Mix were removed.
