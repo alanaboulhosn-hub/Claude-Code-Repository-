@@ -391,3 +391,9 @@ Snippet 25 (wordpress/snippets/fika-bag-reminder.php):
 - Tested: shop > Checkout > email typed (saved, due in 60 min), email sent, link opened in a fresh browser (bag and
   email restored), order placed (counted as won back); ordering before the hour (no reminder); "No more reminders".
   Test orders 286 and 287 and the saved test bags were deleted.
+- Fix: pressing Checkout in the shop replaces the cart with the bag, which used to drop discount codes, so a
+  shopper who took the popup's 10% and went back to the shop lost it. The hand-off now puts the codes back (FIKA10,
+  a free kilo); a code that no longer applies is skipped. Shared shop part (pattern 241), built by
+  build-shop-pages.py. Tested: 10% applied, back to the shop, bag changed, Checkout: FIKA10 still on the order.
+- WooCommerce email colour (WooCommerce > Settings > Emails > Base colour) set to Fika blue #004aad
+  (was WooCommerce's default purple); applies to order emails and the bag reminder.

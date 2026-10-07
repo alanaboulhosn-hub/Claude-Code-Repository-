@@ -85,6 +85,29 @@ rep = [
      """  var grid = document.getElementById('mxGrid');
   if (!grid) return;
   if (window.fikaMxTitle) { var mxH1 = document.querySelector('#shop .mx-h1'); if (mxH1) mxH1.textContent = window.fikaMxTitle; }"""),
+    # Checkout hand-off: the bag replaces the cart, and discount codes already on it (the 10% from the checkout popup,
+    # a free kilo) are put back afterwards; a code that no longer applies is skipped without stopping the checkout
+    ("""      .then(function (r) {
+        if (!r.ok) throw new Error('cart ' + r.status);
+        return r.headers.get('Nonce') || r.headers.get('X-WC-Store-API-Nonce');
+      })
+      .then(function (nonce) {""",
+     """      .then(function (r) {
+        if (!r.ok) throw new Error('cart ' + r.status);
+        var n = r.headers.get('Nonce') || r.headers.get('X-WC-Store-API-Nonce');
+        return r.json().then(function (c) { return { n: n, codes: (c.coupons || []).map(function (x) { return x.code; }) }; }, function () { return { n: n, codes: [] }; });
+      })
+      .then(function (st) {
+        var nonce = st.n;"""),
+    ("""          (function (part) { chain = chain.then(function () { return storeBatch(nonce, part); }); })(reqs.slice(i, i + 25));
+        }
+        return chain;""",
+     """          (function (part) { chain = chain.then(function () { return storeBatch(nonce, part); }); })(reqs.slice(i, i + 25));
+        }
+        st.codes.forEach(function (code) {
+          chain = chain.then(function () { return storeBatch(nonce, [{ method: 'POST', path: '/wc/store/v1/cart/apply-coupon', body: { code: code } }]).catch(function () {}); });
+        });
+        return chain;"""),
     # no "3 products" count over the Ready Mix bags
     ("""    $('rmCount').textContent = PRODUCTS.length + ' product' + (PRODUCTS.length === 1 ? '' : 's');""",
      """    $('rmCount').textContent = ''; $('rmCount').style.display = 'none';"""),

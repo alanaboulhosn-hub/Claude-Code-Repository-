@@ -284,15 +284,20 @@
     fetch('/wp-json/wc/store/v1/cart', { credentials: 'same-origin' })
       .then(function (r) {
         if (!r.ok) throw new Error('cart ' + r.status);
-        return r.headers.get('Nonce') || r.headers.get('X-WC-Store-API-Nonce');
+        var n = r.headers.get('Nonce') || r.headers.get('X-WC-Store-API-Nonce');
+        return r.json().then(function (c) { return { n: n, codes: (c.coupons || []).map(function (x) { return x.code; }) }; }, function () { return { n: n, codes: [] }; });
       })
-      .then(function (nonce) {
+      .then(function (st) {
+        var nonce = st.n;
         var reqs = [{ method: 'DELETE', path: '/wc/store/v1/cart/items' }];
         lines.forEach(function (l) { reqs.push({ method: 'POST', path: '/wc/store/v1/cart/add-item', body: l }); });
         var chain = Promise.resolve();
         for (var i = 0; reqs.length > i; i += 25) {
           (function (part) { chain = chain.then(function () { return storeBatch(nonce, part); }); })(reqs.slice(i, i + 25));
         }
+        st.codes.forEach(function (code) {
+          chain = chain.then(function () { return storeBatch(nonce, [{ method: 'POST', path: '/wc/store/v1/cart/apply-coupon', body: { code: code } }]).catch(function () {}); });
+        });
         return chain;
       })
       .then(function () {
