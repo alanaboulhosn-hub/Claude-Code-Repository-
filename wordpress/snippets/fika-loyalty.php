@@ -562,9 +562,9 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 	}
 }
 
-// ---------- Home page: the tracker sits just above the shop ----------
+// ---------- Home page (above the shop cards) and shop page (under the banner) ----------
 add_action( 'wp_footer', function () {
-	if ( ! is_front_page() || ! is_user_logged_in() ) {
+	if ( ! ( is_front_page() || is_page( 'shop' ) ) || ! is_user_logged_in() ) {
 		return;
 	}
 	$html = fika_swim_html( 'home' );
@@ -575,7 +575,8 @@ add_action( 'wp_footer', function () {
 	?>
 <script>
 (function () {
-	var tpl = document.getElementById('fikaSwimTpl'), shop = document.getElementById('shop');
+	// home: just above the shop cards; shop page: between the banner and the filter bar
+	var tpl = document.getElementById('fikaSwimTpl'), shop = document.getElementById('fsBar') || document.getElementById('shop');
 	if (!tpl || !shop || document.querySelector('.fika-swim-home')) return;
 	shop.parentNode.insertBefore(tpl.content.cloneNode(true), shop);
 })();
@@ -653,7 +654,7 @@ add_action( 'wp_footer', function () {
 
 // ---------- Header account menu: show the distance to the free kilo ----------
 add_action( 'wp_footer', function () {
-	if ( ! is_front_page() || ! is_user_logged_in() ) {
+	if ( ! ( is_front_page() || is_page( 'shop' ) ) || ! is_user_logged_in() ) {
 		return;
 	}
 	$s = fika_swim_state();

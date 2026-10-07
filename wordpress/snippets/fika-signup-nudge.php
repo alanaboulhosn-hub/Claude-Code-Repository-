@@ -14,7 +14,7 @@
 
 // ---------- Home page cloud ----------
 add_action( 'wp_footer', function () {
-	if ( ! is_front_page() || is_user_logged_in() ) {
+	if ( ! ( is_front_page() || is_page( 'shop' ) ) || is_user_logged_in() ) {
 		return;
 	}
 	$acct = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' );

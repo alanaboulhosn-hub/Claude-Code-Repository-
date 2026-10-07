@@ -14,7 +14,7 @@
  */
 
 add_action( 'wp_footer', function () {
-	$home     = is_front_page();
+	$home     = is_front_page() || is_page( 'shop' ); // the home page and the shop page share the header, shop cards and bag
 	$checkout = function_exists( 'is_checkout' ) ? is_checkout() : false;
 	if ( ! $home && ! $checkout ) {
 		return;

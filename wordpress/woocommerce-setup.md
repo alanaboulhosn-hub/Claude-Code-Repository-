@@ -295,3 +295,23 @@ Snippet 20 (wordpress/snippets/fika-order-caps.php). Product edit page > Product
 - Home page: + (card and bag drawer) stops at the cap and shows a short "Max 500 g per order" tip (no label under the
   price); a bag already holding more than the cap is trimmed to it when the page opens.
 Caps set: BUBS Forest Berry Ovals (product 121) max 100 g per order (2026-10-07).
+
+## Shop page + Fan favourites (2026-10-07)
+
+Pages are now built from shared parts (WordPress synced patterns, WP Admin > Appearance/Patterns), so the home page and
+the shop page use one copy of the header, cards, bag and footer. Source and build: wordpress/pages/build-shop-pages.py,
+parts in wordpress/pages/parts/ (ids.json: head 239, fish 240, mix 241, foot 242). Backups of the pages as they were:
+wordpress/pages/backup/.
+- Home (page 41): hero + eyes, then "Fan favourites": the products starred as Featured in WooCommerce (Products list,
+  star column), in shop order, then a pink "31 sweets to mix / Shop all sweets" card. Ready Mix and the rest unchanged.
+- Shop (page 40, /shop/): banner with the candy-bowl photo (media 28) that stays still while scrolling, pink wash,
+  "Mix your own & Ready mix" and the description. Sticky filter bar under the header: All / Sweet / Sour / Gelatin-free /
+  Ready Mix (with counts), search, sort (Most popular = shop order, A to Z, Z to A). Cards in a grid (4 per row desktop,
+  3 tablet, 2 phone) in Sweet and Sour sections, Ready Mix section below. Same bag as the home page.
+  /shop/#ready-mix opens on Ready Mix (footer link).
+- Favourites (featured, shown first everywhere): BUBS Bubblegum Skull, Tutti Frutti Sour Melon, Sour Cherries, Sour
+  Watermelon Pacifier, BUBS Banana Toffee Ovals, Tutti Frutti Passion (menu_order -60 ... -10).
+- Snippet 21 (fika-shop-page.php): WooCommerce's own product catalogue is switched off so /shop/ is our page
+  (product pages unchanged). Permalinks were refreshed once.
+- Snippets 8, 10, 11, 16, 20 now also run on the shop page (header bag + account icon, flying candies, fish tracker,
+  sign-up cloud, caps). "Return to store" (checkout, account, before-you-go popup, empty-cart button) goes to /shop/.

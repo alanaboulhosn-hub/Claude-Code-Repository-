@@ -227,7 +227,7 @@ add_action( 'wp_footer', function () {
     if (act === 'reason') {
       var r = b.getAttribute('data-r');
       track(r);
-      if (r === 'change-order') { hide(); busy = true; location.href = '/#shop'; return; }
+      if (r === 'change-order') { hide(); busy = true; location.href = '/shop/'; return; }
       if (offerAvailable()) stepOffer(r); else stepThanks();
       return;
     }
