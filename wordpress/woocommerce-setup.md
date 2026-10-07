@@ -339,6 +339,8 @@ wordpress/pages/build-shop-pages.py (outputs mix-your-own-40, ready-mix-38, abou
   sits flush under the header. Home: the carousel title is "Mix your own" with a hand-drawn "All pick & mix" link
   to /mix-your-own/ (no arrow, on the title's baseline); the "Sweets made with care" cards, the "31 sweets to mix"
   card, the line under the home title and the "3 products" count over Ready Mix were removed.
-- Update: on Mix your own and Ready Mix each row of cards drops in (with a small bounce, left to right) as it
-  scrolls into view; changing a filter, search or sort plays it again. Adding to the bag does not replay it.
-  Visitors who ask their device for reduced motion see the cards without the animation.
+- Update: on every page (home, Mix your own, Ready Mix, About us) the blocks fade in as they scroll into view:
+  banner text, titles, product cards, About sections and cards, FAQ questions, the pink bands and the footer columns.
+  Blocks side by side fade one after another. Changing a filter, search or sort fades the cards in again; adding to
+  the bag does not. Visitors who ask their device for reduced motion see everything without the fade. The script is
+  in the shared header part (pattern 239). It replaced the earlier drop-in on the shop pages.

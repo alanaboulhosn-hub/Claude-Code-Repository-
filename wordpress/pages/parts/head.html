@@ -329,4 +329,58 @@ body:has(.fika-hero) :is(.entry-title, .page-title, .wp-block-post-title, .page-
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
 })();
 </script>
+<style>
+.fk-fade { opacity: 0; }
+.fk-fade.fk-in { opacity: 1; transition: opacity .8s ease var(--fk-d, 0ms); }
+@media (prefers-reduced-motion: reduce) { .fk-fade { opacity: 1; } }
+</style>
+<script>
+(function () {
+  var SEL = ['.fika-content > *', '.fsh-in > *', '.mx-head', '.mx-track > .mx-card',
+    '.fika-inner > *:not(.fika-cards):not(.fa-steps):not(.fika-faq)', '.fika-cards > *', '.fa-steps > *', '.fika-faq > details',
+    '.fs-cross', '.fika-foot-grid > *', '.fika-foot-bottom'].join(',');
+  var seen = {}, wait = [], tick = 0;
+  window.fikaFadeReset = function () { seen = {}; };
+  function key(e) {
+    if (!e.classList.contains('mx-card')) return '';
+    var t = e.parentNode;
+    return (t.id || 'x') + ':' + (e.getAttribute('data-id') || '');
+  }
+  function mark() {
+    [].slice.call(document.querySelectorAll(SEL)).forEach(function (e) {
+      if (e.fkDone) return;
+      e.fkDone = 1;
+      var k = key(e);
+      if (k) { if (seen[k]) return; }
+      e.classList.add('fk-fade');
+      wait.push(e);
+    });
+    check();
+  }
+  // a block fades in once its top is in the lower part of the screen, or above it (after a jump down the page)
+  function check() {
+    tick = 0;
+    var line = window.innerHeight * 0.92, n = new Map();
+    wait = wait.filter(function (e) {
+      if (!e.isConnected) return false;
+      if (e.getBoundingClientRect().top > line) return true;
+      // blocks side by side fade one after another
+      var i = n.get(e.parentNode) || 0; n.set(e.parentNode, i + 1);
+      e.style.setProperty('--fk-d', (Math.min(i, 5) * 90) + 'ms');
+      e.classList.add('fk-in');
+      var k = key(e); if (k) seen[k] = 1;
+      setTimeout(function () { e.classList.remove('fk-fade', 'fk-in'); e.style.removeProperty('--fk-d'); }, 1500);
+      return false;
+    });
+  }
+  function soon() { if (!tick) tick = requestAnimationFrame(check); }
+  function init() {
+    mark();
+    new MutationObserver(function () { mark(); }).observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('scroll', soon, { passive: true });
+    window.addEventListener('resize', soon);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
 <!-- /wp:html -->
