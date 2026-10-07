@@ -422,3 +422,7 @@ Snippet 25 (wordpress/snippets/fika-bag-reminder.php):
   still apply. Shared shop part (pattern 241).
 - Mix your own: the "Most popular / A to Z / Z to A" sort menu and its code were removed; the candies always show in
   the shop order (favourites first), narrowed by the filter chips and the search.
+- Footer (all four pages) comes in like a wave instead of fading: as it scrolls into view the blue water rises
+  into place with a small swell, the wave on top rolls sideways and grows to full height, and the columns bob up
+  one after another. Plays once per visit to a page; skipped for visitors who ask for reduced motion, and on
+  pages so short that the footer is already on screen. Shared footer part (pattern 242).

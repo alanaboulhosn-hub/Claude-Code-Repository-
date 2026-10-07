@@ -726,7 +726,7 @@ head += "\n" + r"""<style>
 (function () {
   var SEL = ['.fika-content > *', '.fsh-in > *', '.mx-head', '.mx-track > .mx-card',
     '.fika-inner > *:not(.fika-cards):not(.fa-steps):not(.fika-faq)', '.fika-cards > *', '.fa-steps > *', '.fika-faq > details',
-    '.fs-cross', '.fika-foot-grid > *', '.fika-foot-bottom'].join(',');
+    '.fs-cross'].join(',');
   var seen = {}, wait = [], tick = 0;
   window.fikaFadeReset = function () { seen = {}; };
   function key(e) {
@@ -810,6 +810,48 @@ head += "\n" + r"""<script>
     setTimeout(size, 400); setTimeout(size, 1500);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>"""
+
+# ---------- footer: comes in like a wave (instead of fading) ----------
+# The blue water rises into view, the wave on top rolls sideways and swells, and the columns bob up on it.
+# The wave path is two periods wide so it can roll and end exactly where it started.
+WAVE_OLD = '<path fill="#004aad" d="M0,28 C120,56 240,0 360,28 C480,56 600,0 720,28 C840,56 960,0 1080,28 C1200,56 1320,0 1440,28 L1440,56 L0,56 Z"/>'
+WAVE_NEW = ('<path fill="#004aad" d="M0,28' + ''.join(' C%d,56 %d,0 %d,28 C%d,56 %d,0 %d,28' % (x + 120, x + 240, x + 360, x + 480, x + 600, x + 720) for x in range(0, 2880, 720)) +
+            ' L2880,56 L0,56 Z"/>')
+assert foot.count(WAVE_OLD) == 1
+foot = foot.replace(WAVE_OLD, WAVE_NEW, 1)
+foot += "\n" + r"""<style>
+.fika-footer .fika-foot-wave { overflow: hidden; margin-bottom: -1px; position: relative; z-index: 1; }
+.fika-footer.fk-tide { clip-path: inset(0); }
+.fk-tide .fika-foot-wave { transform: translateY(90px) scaleY(.3); transform-origin: 50% 100%; }
+.fk-tide .fika-foot-body { transform: translateY(90px); }
+.fk-tide .fika-foot-grid > *, .fk-tide .fika-foot-bottom { transform: translateY(34px); }
+.fk-tide.fk-tide-in .fika-foot-wave, .fk-tide.fk-tide-in .fika-foot-body { transform: none; transition: transform 1.1s cubic-bezier(.2, 1.2, .35, 1); }
+.fk-tide.fk-tide-in .fika-foot-wave path { animation: fkRoll 2.2s cubic-bezier(.25, .6, .3, 1) both; }
+.fk-tide.fk-tide-in .fika-foot-grid > *, .fk-tide.fk-tide-in .fika-foot-bottom { transform: none; transition: transform 1s cubic-bezier(.3, 1.6, .5, 1) var(--fk-bob, .3s); }
+@keyframes fkRoll { from { transform: translateX(0); } to { transform: translateX(-1440px); } }
+</style>
+<script>
+(function () {
+  var f = document.querySelector('.fika-footer');
+  if (!f) return;
+  if (window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false) return;
+  // only when the footer is still below the screen (not on a short page where it shows straight away)
+  if (window.innerHeight > f.getBoundingClientRect().top) return;
+  f.classList.add('fk-tide');
+  [].slice.call(f.querySelectorAll('.fika-foot-grid > *, .fika-foot-bottom')).forEach(function (e, i) { e.style.setProperty('--fk-bob', (0.3 + i * 0.12) + 's'); });
+  var done = false;
+  function check() {
+    if (done) return;
+    if (f.getBoundingClientRect().top > window.innerHeight * 0.96) return;
+    done = true;
+    f.classList.add('fk-tide-in');
+    window.removeEventListener('scroll', check);
+    setTimeout(function () { f.classList.remove('fk-tide', 'fk-tide-in'); }, 2600);
+  }
+  window.addEventListener('scroll', check, { passive: true });
+  check();
 })();
 </script>"""
 

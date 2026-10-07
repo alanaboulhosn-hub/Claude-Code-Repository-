@@ -331,7 +331,7 @@ body:has(.fika-hero) :is(.entry-title, .page-title, .wp-block-post-title, .page-
 (function () {
   var SEL = ['.fika-content > *', '.fsh-in > *', '.mx-head', '.mx-track > .mx-card',
     '.fika-inner > *:not(.fika-cards):not(.fa-steps):not(.fika-faq)', '.fika-cards > *', '.fa-steps > *', '.fika-faq > details',
-    '.fs-cross', '.fika-foot-grid > *', '.fika-foot-bottom'].join(',');
+    '.fs-cross'].join(',');
   var seen = {}, wait = [], tick = 0;
   window.fikaFadeReset = function () { seen = {}; };
   function key(e) {
