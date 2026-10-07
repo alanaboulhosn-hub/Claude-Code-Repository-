@@ -365,6 +365,10 @@ head += r"""
 # ---------- links that pointed at the old /shop page ----------
 assert home_hero.count('href="/shop"') == 1, 'hero shop button'
 home_hero = home_hero.replace('href="/shop"', 'href="/mix-your-own/"', 1)
+# no "Explore the shop" button in the home hero
+HERO_BTN = '    <a class="fika-btn" href="/mix-your-own/">Explore the shop</a>\n'
+assert home_hero.count(HERO_BTN) == 1
+home_hero = home_hero.replace(HERO_BTN, '', 1)
 for a, b in [('<li><a href="/shop/#ready-mix">Ready-Mix</a></li>', '<li><a href="/ready-mix/">Ready Mix</a></li>\n          <li><a href="/about-us/">About us</a></li>'),
              ('<li><a href="/shop/">Mix your own</a></li>', '<li><a href="/mix-your-own/">Mix your own</a></li>')]:
     assert foot.count(a) == 1, a
