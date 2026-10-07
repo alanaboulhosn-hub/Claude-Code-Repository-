@@ -582,7 +582,7 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
 })();
 </script>"""
 
-mix_cross = r"""<div class="fs-cross"><div><span class="t">Can&rsquo;t decide?</span><span class="s">Grab a Ready Mix bag: 500 g of our favourites, $12.50</span></div><a class="go" href="/ready-mix/">See the Ready Mix &rarr;</a></div>"""
+mix_cross = r"""<div class="fs-cross"><div><span class="t">Can&rsquo;t decide?</span></div><a class="go" href="/ready-mix/">Grab a Ready Mix! &rarr;</a></div>"""
 
 # ---------- Ready Mix: just the 3 bags, no filters ----------
 ready_page = r"""<!-- FIKA Ready Mix page: the Ready Mix bags only (the candy carousel of the shared part is hidden) -->
