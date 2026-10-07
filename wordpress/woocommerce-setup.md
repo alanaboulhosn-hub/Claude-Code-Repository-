@@ -207,8 +207,11 @@ Snippet 10 "Fika accounts" (wordpress/snippets/fika-accounts.php):
 - WordPress Users list: "Fika orders" and "Kg delivered" columns.
 - My account menu: Dashboard, Orders, Delivery address, Account details, Log out (Downloads removed, billing
   address hidden since billing always uses the delivery address). Last name optional.
-- Home page header: person icon left of the bag; "Log in or sign up", or "Hi <name>! Your account" with a
-  green dot when signed in. window.FIKA_USER = {in, name, url} is printed on every page.
+- Home page header: person icon left of the bag (green dot when signed in). On hover it waves and drops down
+  a menu: signed out "Log in" / "Sign up" (to /my-account/#login or #register, which scrolls to and focuses
+  that form); signed in "Hi <name>!", kg delivered, Orders, Delivery address, Account details, Log out.
+  On phones the first tap opens the menu. window.FIKA_USER = {in, name, url, kg, menu} is printed on every page.
+- Account notice boxes (e.g. "No order has been made yet"): icon, text and button centred on one line, pill buttons.
 
 My account page (88): Fika skin block wordpress/pages/store-skin-account.html above [woocommerce_my_account]
 (centred logo, "Your account", Return to store, white cards, blue pill buttons, phone layout).

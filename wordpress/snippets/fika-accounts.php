@@ -145,14 +145,31 @@ add_filter( 'manage_users_custom_column', function ( $out, $col, $user_id ) {
 	return $out;
 }, 10, 3 );
 
-// ---------- Tell the page header who is logged in ----------
+// ---------- Tell the page header who is logged in (and where the account menu links go) ----------
 add_action( 'wp_footer', function () {
+	$in   = is_user_logged_in();
 	$u    = wp_get_current_user();
+	$base = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' );
 	$data = array(
-		'in'   => is_user_logged_in(),
-		'name' => is_user_logged_in() ? ( $u->first_name ? $u->first_name : $u->display_name ) : '',
-		'url'  => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : '/my-account/',
+		'in'   => $in,
+		'name' => $in ? ( $u->first_name ? $u->first_name : $u->display_name ) : '',
+		'url'  => $base,
 	);
+	if ( $in && function_exists( 'wc_get_account_endpoint_url' ) ) {
+		$t            = fika_customer_totals( $u->ID );
+		$data['kg']   = fika_kg_text( $t['grams'] );
+		$data['menu'] = array(
+			array( 'Orders', wc_get_account_endpoint_url( 'orders' ) ),
+			array( 'Delivery address', wc_get_account_endpoint_url( 'edit-address' ) ),
+			array( 'Account details', wc_get_account_endpoint_url( 'edit-account' ) ),
+			array( 'Log out', wc_logout_url() ),
+		);
+	} else {
+		$data['menu'] = array(
+			array( 'Log in', $base . '#login' ),
+			array( 'Sign up', $base . '#register' ),
+		);
+	}
 	echo '<script>window.FIKA_USER = ' . wp_json_encode( $data ) . ';</script>';
 }, 1 );
 
@@ -194,7 +211,7 @@ add_filter( 'gettext', function ( $text, $orig, $domain ) {
 	return $text;
 }, 20, 3 );
 
-// ---------- Home page header: an account icon next to the bag ----------
+// ---------- Home page header: a waving account icon with a drop-down menu ----------
 add_action( 'wp_footer', function () {
 	if ( ! is_front_page() ) {
 		return;
@@ -202,32 +219,130 @@ add_action( 'wp_footer', function () {
 	?>
 <style>
 .fika-header .fika-cart { grid-column: 3; grid-row: 1; }
-.fika-acct { grid-column: 3; grid-row: 1; justify-self: end; align-self: center; position: relative; display: flex; align-items: center; margin-right: 62px; padding: 8px; color: var(--fika-blue, #004aad); text-decoration: none; }
-.fika-acct svg { width: 28px; height: 28px; transition: transform .3s cubic-bezier(.3, 1.6, .5, 1); }
-.fika-acct:hover svg { transform: translateY(-2px) scale(1.08); }
-.fika-acct .fa-tip { position: absolute; top: 100%; left: 50%; transform: translate(-50%, 4px); white-space: nowrap; padding: 5px 11px; border-radius: 999px; background: #004aad; color: #fff;
-  font: 600 12.5px/1.2 'Outfit', 'Open Sans', Arial, sans-serif; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
-.fika-acct:hover .fa-tip, .fika-acct:focus-visible .fa-tip { opacity: 1; transform: translate(-50%, 8px); }
-.fika-acct.in::after { content: ''; position: absolute; right: 6px; bottom: 7px; width: 9px; height: 9px; border-radius: 50%; background: #2fb36b; border: 2px solid #fdeaf2; }
+.fika-acct { grid-column: 3; grid-row: 1; justify-self: end; align-self: center; position: relative; margin-right: 62px; z-index: 30; }
+.fika-acct .fa-btn { position: relative; display: flex; align-items: center; padding: 8px; color: var(--fika-blue, #004aad); text-decoration: none; background: none; border: 0; cursor: pointer; }
+.fika-acct svg { width: 30px; height: 30px; overflow: visible; }
+.fika-acct .fa-arm { transform-origin: 17px 15.5px; transform: rotate(120deg) scale(.6); opacity: 0; transition: transform .25s ease, opacity .2s ease; }
+.fika-acct .fa-head { transform-origin: 12px 8px; transition: transform .25s ease; }
+.fika-acct:hover .fa-arm, .fika-acct.open .fa-arm { opacity: 1; animation: faWave .9s ease-in-out infinite; }
+.fika-acct:hover .fa-head, .fika-acct.open .fa-head { transform: rotate(-8deg); }
+@keyframes faWave { 0%, 100% { transform: rotate(-4deg); } 25% { transform: rotate(26deg); } 50% { transform: rotate(-4deg); } 75% { transform: rotate(26deg); } }
+.fika-acct.in .fa-btn::after { content: ''; position: absolute; right: 5px; bottom: 7px; width: 9px; height: 9px; border-radius: 50%; background: #2fb36b; border: 2px solid #fdeaf2; }
+/* the drop-down: a white card under the icon (padding-top bridges the gap so it stays open while moving the mouse down) */
+.fika-acct .fa-menu { position: absolute; top: 100%; right: -14px; padding-top: 10px; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity .2s ease, transform .2s ease, visibility 0s .2s; }
+.fika-acct:hover .fa-menu, .fika-acct:focus-within .fa-menu, .fika-acct.open .fa-menu { opacity: 1; visibility: visible; transform: none; transition: opacity .2s ease, transform .2s ease, visibility 0s; }
+.fika-acct.shut .fa-menu { opacity: 0 !important; visibility: hidden !important; }
+.fika-acct .fa-card { position: relative; min-width: 210px; padding: 10px; border-radius: 18px; background: #fff; box-shadow: 0 14px 40px rgba(0, 74, 173, .18); }
+.fika-acct .fa-card::before { content: ''; position: absolute; top: -6px; right: 26px; width: 14px; height: 14px; background: #fff; border-radius: 3px; transform: rotate(45deg); }
+.fika-acct .fa-hi { position: relative; padding: 8px 14px 10px; margin-bottom: 4px; border-bottom: 1px solid #f3dbe6; font: 600 15px/1.2 'Outfit', 'Open Sans', Arial, sans-serif; color: #1b2a4a; }
+.fika-acct .fa-hi small { display: block; margin-top: 3px; font-weight: 400; font-size: 13px; color: #6b7894; }
+.fika-acct .fa-card a { position: relative; display: block; padding: 10px 14px; border-radius: 12px; font-family: 'Bebas Neue', Impact, sans-serif; font-size: 21px; letter-spacing: .03em; line-height: 1.1; color: #004aad; text-decoration: none; white-space: nowrap; }
+.fika-acct .fa-card a:hover, .fika-acct .fa-card a:focus-visible { background: #fdeaf2; outline: 0; }
+.fika-acct .fa-card a.fa-main { background: #004aad; color: #fff; text-align: center; margin-top: 4px; }
+.fika-acct .fa-card a.fa-main:hover { background: #003a8a; }
+.fika-acct .fa-card a.fa-out { color: #6b7894; }
 @media (max-width: 700px) {
-  .fika-acct { margin-right: 74px; padding: 6px; }
-  .fika-acct svg { width: 24px; height: 24px; }
-  .fika-acct .fa-tip { display: none; }
+  .fika-acct { margin-right: 74px; }
+  .fika-acct .fa-btn { padding: 6px; }
+  .fika-acct svg { width: 25px; height: 25px; }
+  .fika-acct .fa-menu { right: -86px; }
+  .fika-acct .fa-card::before { right: 96px; }
 }
+@media (prefers-reduced-motion: reduce) { .fika-acct:hover .fa-arm, .fika-acct.open .fa-arm { animation: none; } }
 </style>
 <script>
 (function () {
 	var h = document.querySelector('.fika-header'), cart = h ? h.querySelector('.fika-cart') : null;
 	if (!cart || h.querySelector('.fika-acct')) return;
-	var u = window.FIKA_USER || { in: false, name: '', url: '/my-account/' };
-	var a = document.createElement('a');
-	a.className = 'fika-acct' + (u.in ? ' in' : '');
-	a.href = u.url;
-	var tip = u.in ? ('Hi ' + (u.name || 'there') + '! Your account') : 'Log in or sign up';
-	a.setAttribute('aria-label', tip);
-	a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg><span class="fa-tip"></span>';
-	a.querySelector('.fa-tip').textContent = tip;
-	h.insertBefore(a, cart);
+	var u = window.FIKA_USER || { in: false, name: '', url: '/my-account/', menu: [['Log in', '/my-account/#login'], ['Sign up', '/my-account/#register']] };
+	var wrap = document.createElement('div');
+	wrap.className = 'fika-acct' + (u.in ? ' in' : '');
+	var btn = document.createElement('a');
+	btn.className = 'fa-btn';
+	btn.href = u.url;
+	btn.setAttribute('aria-haspopup', 'true');
+	btn.setAttribute('aria-expanded', 'false');
+	btn.setAttribute('aria-label', u.in ? 'Your account' : 'Log in or sign up');
+	btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+		'<g class="fa-head"><circle cx="12" cy="8" r="4"></circle></g>' +
+		'<path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>' +
+		'<g class="fa-arm"><path d="M17 15.5 20.2 9.6"></path><circle cx="20.9" cy="8.2" r="1.4" fill="currentColor" stroke="none"></circle></g></svg>';
+	var menu = document.createElement('div');
+	menu.className = 'fa-menu';
+	var card = document.createElement('div');
+	card.className = 'fa-card';
+	card.setAttribute('role', 'menu');
+	if (u.in) {
+		var hi = document.createElement('div');
+		hi.className = 'fa-hi';
+		hi.textContent = 'Hi ' + (u.name || 'there') + '!';
+		if (u.kg) { var sm = document.createElement('small'); sm.textContent = u.kg + ' of sweets delivered'; hi.appendChild(sm); }
+		card.appendChild(hi);
+	}
+	(u.menu || []).forEach(function (m, i) {
+		var a = document.createElement('a');
+		a.href = m[1];
+		a.textContent = m[0];
+		a.setAttribute('role', 'menuitem');
+		if (!u.in && i === 1) a.className = 'fa-main';
+		if (u.in && m[0] === 'Log out') a.className = 'fa-out';
+		card.appendChild(a);
+	});
+	menu.appendChild(card);
+	wrap.appendChild(btn);
+	wrap.appendChild(menu);
+	h.insertBefore(wrap, cart);
+
+	function setOpen(on) {
+		if (on) wrap.classList.add('open'); else wrap.classList.remove('open');
+		btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+	}
+	// Phones and tablets (no hover): the first tap opens the menu, a tap elsewhere closes it
+	var noHover = window.matchMedia && window.matchMedia('(hover: none)').matches;
+	btn.addEventListener('click', function (e) {
+		if (noHover) {
+			e.preventDefault();
+			setOpen(!wrap.classList.contains('open'));
+		}
+	});
+	document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) setOpen(false); });
+	document.addEventListener('keydown', function (e) {
+		if (e.key === 'Escape' && wrap.classList.contains('open')) { setOpen(false); btn.focus(); }
+	});
+	// After choosing an item with the mouse, let the menu fold away even though the pointer is still over it
+	card.addEventListener('click', function () { wrap.classList.add('shut'); setOpen(false); });
+	wrap.addEventListener('mouseleave', function () { wrap.classList.remove('shut'); });
+})();
+</script>
+	<?php
+}, 30 );
+
+// ---------- My account page: "Log in" / "Sign up" links from the header jump to the right form ----------
+add_action( 'wp_footer', function () {
+	if ( ! function_exists( 'is_account_page' ) || ! is_account_page() || is_user_logged_in() ) {
+		return;
+	}
+	?>
+<style>
+body.woocommerce-account #customer_login > div { transition: box-shadow .4s ease; }
+body.woocommerce-account #customer_login > div.fika-pick { box-shadow: 0 0 0 3px #004aad, 0 6px 24px rgba(0, 74, 173, .12); }
+</style>
+<script>
+(function () {
+	function pick() {
+		var reg = location.hash === '#register', log = location.hash === '#login';
+		if (!reg && !log) return;
+		var col = document.querySelector(reg ? '#customer_login .u-column2' : '#customer_login .u-column1');
+		var field = document.getElementById(reg ? 'fika_first_name' : 'username');
+		if (!col || !field) return;
+		document.querySelectorAll('#customer_login > div').forEach(function (d) { d.classList.remove('fika-pick'); });
+		col.classList.add('fika-pick');
+		col.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		setTimeout(function () { field.focus({ preventScroll: true }); }, 350);
+		setTimeout(function () { col.classList.remove('fika-pick'); }, 2400);
+	}
+	pick();
+	window.addEventListener('hashchange', pick);
 })();
 </script>
 	<?php

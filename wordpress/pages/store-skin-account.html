@@ -88,14 +88,24 @@ body.woocommerce-account .woocommerce-MyAccount-content > p:first-child { font-f
 .fika-acct-note { grid-column: 1 / -1; margin: 0; font-size: 15px; color: #6b7894; }
 
 /* Newer WooCommerce notice banners (inside the account pages) */
-body.woocommerce-account .wc-block-components-notice-banner { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 16px; padding: 16px 18px; border: 0; border-radius: 16px; background: var(--fika-pink); color: #1b2a4a; font-size: 15.5px; }
-body.woocommerce-account .wc-block-components-notice-banner > svg { flex: none; fill: #fff; background: var(--fika-blue); border-radius: 50%; padding: 2px; }
+body.woocommerce-account .wc-block-components-notice-banner { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; padding: 16px 18px; border: 0; border-radius: 16px; background: var(--fika-pink); color: #1b2a4a; font-size: 15.5px; line-height: 1.4; }
+body.woocommerce-account .wc-block-components-notice-banner > svg { flex: none; align-self: center; margin: 0; fill: #fff; background: var(--fika-blue); border-radius: 50%; padding: 2px; }
 body.woocommerce-account .wc-block-components-notice-banner.is-error > svg { background: #d6336c; }
 body.woocommerce-account .wc-block-components-notice-banner.is-success > svg { background: #2fb36b; }
-body.woocommerce-account .wc-block-components-notice-banner__content { flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 6px 10px; align-self: center; }
 body.woocommerce-account .wc-block-components-notice-banner:focus { outline: 0; }
-body.woocommerce-account .woocommerce > .woocommerce-notices-wrapper .wc-block-components-notice-banner, body.woocommerce-account .woocommerce-notices-wrapper .wc-block-components-notice-banner { background: #fff; box-shadow: 0 6px 24px rgba(0, 74, 173, .08); margin-bottom: 22px; }
-body.woocommerce-account .wc-block-components-notice-banner__content .button { order: 2; float: none; min-height: 40px; padding: 0 20px; margin: 0 0 0 auto; font-size: 13px; border-radius: 999px; }
+body.woocommerce-account .woocommerce-notices-wrapper .wc-block-components-notice-banner { background: #fff; box-shadow: 0 6px 24px rgba(0, 74, 173, .08); margin-bottom: 22px; }
+/* text on the left, button on the right, both centred on the same line */
+body.woocommerce-account .wc-block-components-notice-banner > .wc-block-components-notice-banner__content {
+  flex: 1; display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 16px; align-self: center; margin: 0; }
+body.woocommerce-account .wc-block-components-notice-banner > .wc-block-components-notice-banner__content .button,
+body.woocommerce-account .wc-block-components-notice-banner > .wc-block-components-notice-banner__content .wc-forward {
+  order: 2; flex: none; float: none !important; display: inline-flex !important; align-items: center; justify-content: center; width: auto !important; height: 40px; min-height: 0;
+  margin: 0 !important; padding: 0 20px !important; border: 0 !important; border-radius: 999px !important; background: var(--fika-blue) !important; color: #fff !important; opacity: 1 !important;
+  font: 600 13px/1 'Outfit', Arial, sans-serif !important; letter-spacing: .04em; text-transform: uppercase; text-decoration: none !important; white-space: nowrap; }
+body.woocommerce-account .wc-block-components-notice-banner > .wc-block-components-notice-banner__content .wc-forward:hover { background: #003a8a !important; }
+@media (max-width: 560px) {
+  body.woocommerce-account .wc-block-components-notice-banner > .wc-block-components-notice-banner__content { flex-wrap: wrap; justify-content: flex-start; gap: 10px; }
+}
 body.woocommerce-account label[for=account_last_name] .required { display: none; }
 /* Billing always uses the delivery address, so only the delivery address is shown */
 body.woocommerce-account .woocommerce-Addresses { grid-template-columns: minmax(0, 1fr) !important; }
