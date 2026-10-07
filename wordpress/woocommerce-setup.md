@@ -339,3 +339,6 @@ wordpress/pages/build-shop-pages.py (outputs mix-your-own-40, ready-mix-38, abou
   sits flush under the header. Home: the carousel title is "Mix your own" with a hand-drawn "All pick & mix" link
   to /mix-your-own/ (no arrow, on the title's baseline); the "Sweets made with care" cards, the "31 sweets to mix"
   card, the line under the home title and the "3 products" count over Ready Mix were removed.
+- Update: on Mix your own and Ready Mix each row of cards drops in (with a small bounce, left to right) as it
+  scrolls into view; changing a filter, search or sort plays it again. Adding to the bag does not replay it.
+  Visitors who ask their device for reduced motion see the cards without the animation.

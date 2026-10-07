@@ -282,6 +282,64 @@ html.fika-shop-page .fk-anchor { display: none; }
 }
 </style>"""
 
+# ---------- shop pages: each row of cards drops in as it scrolls into view ----------
+# Cards are re-drawn on every bag change, so a card plays once; a filter / search / sort change plays the rows again.
+# Written without the logical-and operator and the less-than sign: WordPress rewrites them.
+drop_rows = r"""<style>
+html.fika-shop-page .mx-track > .mx-card.fk-drop { opacity: 0; transform: translateY(-46px); }
+html.fika-shop-page .mx-track > .mx-card.fk-drop.fk-in { opacity: 1; transform: none;
+  transition: opacity .45s ease var(--fk-d, 0ms), transform .75s cubic-bezier(.3, 1.45, .55, 1) var(--fk-d, 0ms); }
+@media (prefers-reduced-motion: reduce) { html.fika-shop-page .mx-track > .mx-card.fk-drop { opacity: 1; transform: none; } }
+</style>
+<script>
+(function () {
+  var seen = {}, wait = [], tick = 0;
+  window.fikaDropReset = function () { seen = {}; };
+  function land(c) {
+    c.classList.add('fk-in');
+    seen[c.getAttribute('data-id') || ''] = 1;
+    // tidy up afterwards so the card's own hover effects keep working
+    setTimeout(function () { c.classList.remove('fk-drop', 'fk-in'); c.style.removeProperty('--fk-d'); }, 1400);
+  }
+  function prep(track) {
+    var row = null, col = 0;
+    [].slice.call(track.children).forEach(function (c) {
+      if (!c.classList.contains('mx-card')) return;
+      if (seen[c.getAttribute('data-id') || '']) return;
+      if (c.classList.contains('fk-drop')) return;
+      // cards in the same row land one after another, left to right
+      var t = c.offsetTop;
+      if (t === row) { col++; } else { row = t; col = 0; }
+      c.style.setProperty('--fk-d', (col * 90) + 'ms');
+      c.classList.add('fk-drop');
+      wait.push(c);
+    });
+    check();
+  }
+  // a card lands once its top is in the lower part of the screen, or above it (after a jump down the page)
+  function check() {
+    tick = 0;
+    var line = window.innerHeight * 0.92;
+    wait = wait.filter(function (c) {
+      if (!c.isConnected) return false;
+      if (line > c.getBoundingClientRect().top) { land(c); return false; }
+      return true;
+    });
+  }
+  function soon() { if (!tick) tick = requestAnimationFrame(check); }
+  function init() {
+    if (!document.documentElement.classList.contains('fika-shop-page')) return;
+    window.addEventListener('scroll', soon, { passive: true });
+    window.addEventListener('resize', soon);
+    [].slice.call(document.querySelectorAll('#mxGrid, #rmGrid')).forEach(function (track) {
+      new MutationObserver(function () { prep(track); }).observe(track, { childList: true });
+      prep(track);
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>"""
+
 # ---------- Mix your own: the 31 candies with filters, search and sort (no Ready Mix) ----------
 mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin-free), search and sort over the candies.
      Written without the logical-and operator and the less-than sign: WordPress rewrites them. -->
@@ -368,6 +426,7 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
     [].slice.call(bar.querySelectorAll('.fs-chip')).forEach(function (b) { b.querySelector('small').textContent = n[b.getAttribute('data-f')]; });
   }
   function update(scroll) {
+    if (window.fikaDropReset) window.fikaDropReset();
     if (window.fikaMxRender) window.fikaMxRender();
     if (scroll) {
       var bar = document.getElementById('fsBar'), top = bar.getBoundingClientRect().top + window.pageYOffset - parseFloat(getComputedStyle(bar).top || 0);
@@ -545,8 +604,8 @@ def ref(k):
 
 
 home = '\n\n'.join([ref('head'), block(home_hero), ref('fish'), block(home_favs), ref('mix'), block(home_sections), ref('foot')]) + '\n'
-mixp = '\n\n'.join([ref('head'), block(mix_hero), block(grid_css), block(mix_bar), ref('fish'), ref('mix'), block(mix_cross), ref('foot')]) + '\n'
-ready = '\n\n'.join([ref('head'), block(ready_hero), block(grid_css), block(ready_page), ref('fish'), ref('mix'), block(ready_cross), ref('foot')]) + '\n'
+mixp = '\n\n'.join([ref('head'), block(mix_hero), block(grid_css), block(mix_bar), ref('fish'), ref('mix'), block(drop_rows), block(mix_cross), ref('foot')]) + '\n'
+ready = '\n\n'.join([ref('head'), block(ready_hero), block(grid_css), block(ready_page), ref('fish'), ref('mix'), block(drop_rows), block(ready_cross), ref('foot')]) + '\n'
 about = '\n\n'.join([ref('head'), block(about_hero), ref('fish'), block(about_body), ref('mix'), ref('foot')]) + '\n'
 for name, html in (('home-41', home), ('mix-your-own-40', mixp), ('ready-mix-38', ready), ('about-us', about)):
     open(os.path.join(HERE, name + '.raw.html'), 'w').write(html)
