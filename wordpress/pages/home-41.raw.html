@@ -1531,6 +1531,7 @@ html, body { overflow-x: clip; }
   max-width: 1100px; margin: 0 auto;
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px;
 }
+.fika-footer .fika-foot-shop { justify-self: center; }
 .fika-footer .fika-foot-logo {
   font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps;
   font-size: 64px; line-height: 1; color: var(--fika-pink); text-decoration: none;
@@ -1570,6 +1571,7 @@ html, body { overflow-x: clip; }
   .fika-footer .fika-foot-wave { height: 36px; }
   .fika-footer .fika-foot-body { padding: 28px 6% 0; }
   .fika-footer .fika-foot-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .fika-footer .fika-foot-shop { justify-self: stretch; }
   .fika-footer .fika-foot-brand { grid-column: 1 / -1; text-align: center; }
   .fika-footer .fika-foot-tag { margin-left: auto; margin-right: auto; }
   .fika-footer .fika-foot-social { justify-content: center; }
@@ -1599,7 +1601,7 @@ html, body { overflow-x: clip; }
           </a>
         </div>
       </div>
-      <div>
+      <div class="fika-foot-shop">
         <h4>Shop</h4>
         <ul>
           <li><a href="/shop">Mix your own</a></li>
