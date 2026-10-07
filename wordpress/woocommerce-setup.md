@@ -294,3 +294,4 @@ Snippet 20 (wordpress/snippets/fika-order-caps.php). Product edit page > Product
   to 500 g of Peaches per order", and checkout is blocked if a cart is over it.
 - Home page: capped products show "Max 500 g per order" under the price; + (card and bag drawer) stops at the cap with
   a short tip; a bag already holding more than the cap is trimmed to it when the page opens.
+Caps set: BUBS Forest Berry Ovals (product 121) max 100 g per order (2026-10-07).
