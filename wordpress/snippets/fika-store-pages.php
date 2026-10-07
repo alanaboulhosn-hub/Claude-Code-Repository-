@@ -221,7 +221,7 @@ html.fika-ready-product #rmGrid .mx-card[data-id="<?php echo esc_attr( $id ); ?>
     if (!b) return;
     var g = +read().bag[id] || 0, add = b.getAttribute('data-a') === '+';
     set(add ? g + step : Math.max(0, g - step));
-    if (add) { try { if (typeof window.fbq === 'function') window.fbq('track', 'AddToCart', { value: price * step / 100, currency: 'USD', content_name: name }); } catch (e) {} }
+    if (add) { try { var ev = { value: price * step / 100, currency: 'USD', content_name: name, content_ids: [id.replace(/\D/g, '')] }; if (typeof window.fikaTrack === 'function') window.fikaTrack('AddToCart', ev); else if (typeof window.fbq === 'function') window.fbq('track', 'AddToCart', ev); } catch (e) {} }
   });
   box.querySelector('.fk-buy-view').addEventListener('click', function (e) {
     var cart = document.querySelector('.fika-cart');

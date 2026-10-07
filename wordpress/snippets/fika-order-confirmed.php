@@ -111,7 +111,8 @@ add_action( 'wp_footer', function () {
 	// clean the address bar, so a refresh or a shared link does not show the popup again
 	try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
 	try { if (sessionStorage.getItem('fika_oc_' + D.id)) return; sessionStorage.setItem('fika_oc_' + D.id, '1'); } catch (e) {}
-	try { if (typeof window.fbq === 'function') window.fbq('track', 'Purchase', { value: D.value, currency: D.cur }); } catch (e) {}
+	// same event ID as the server's Purchase (wordpress/snippets/fika-meta.php), so Meta counts the order once
+	try { if (typeof window.fikaTrack === 'function') window.fikaTrack('Purchase', { value: D.value, currency: D.cur }, 'purchase.' + D.id); else if (typeof window.fbq === 'function') window.fbq('track', 'Purchase', { value: D.value, currency: D.cur }); } catch (e) {}
 	function esc(s) { var d = document.createElement('span'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
 	function toon(s) { return window.FIKA_CARTOON ? window.FIKA_CARTOON(s) : ''; }
 	function show() {

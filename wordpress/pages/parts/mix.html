@@ -177,7 +177,7 @@
   function total() { var t = 0; for (var k in bag) t += bag[k]; return t; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function byId(id) { for (var i = 0; i < PRODUCTS.length; i++) if (PRODUCTS[i].id === id) return PRODUCTS[i]; return meta[id] || {}; }
-  function pixel(ev, x) { try { if (typeof window.fbq === 'function') window.fbq('track', ev, x); } catch (e) {} }
+  function pixel(ev, x) { try { if (typeof window.fikaTrack === 'function') window.fikaTrack(ev, x); else if (typeof window.fbq === 'function') window.fbq('track', ev, x); } catch (e) {} }
 
   function img(p) {
     if (p.img) return '<img loading="lazy" decoding="async" src="' + esc(p.img) + '"' + (p.srcset ? ' srcset="' + esc(p.srcset) + '" sizes="(max-width: 700px) 46vw, 300px"' : '') + ' alt="' + esc(p.name) + '">';
@@ -225,7 +225,7 @@
   grid.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-a]'); if (!b) return;
     var id = b.closest('.mx-card').getAttribute('data-id'), cur = bag[id] || 0;
-    if (b.getAttribute('data-a') === '+') { bag[id] = cur + STEP; bump(); pixel('AddToCart', { value: byId(id).price || PRICE_100G, currency: 'USD', content_name: byId(id).name }); }
+    if (b.getAttribute('data-a') === '+') { bag[id] = cur + STEP; bump(); pixel('AddToCart', { value: byId(id).price || PRICE_100G, currency: 'USD', content_name: byId(id).name, content_ids: [String(id).replace(/\D/g, '')] }); }
     else { bag[id] = Math.max(0, cur - STEP); if (!bag[id]) delete bag[id]; }
     save(); render();
   });
@@ -314,7 +314,7 @@
     e.preventDefault();
     var sub = cost(); if (!sub) return;
     if (going) return;
-    pixel('InitiateCheckout', { value: sub, currency: 'USD', num_items: Object.keys(bag).length });
+    pixel('InitiateCheckout', { value: sub, currency: 'USD', num_items: Object.keys(bag).length, content_ids: Object.keys(bag).map(function (k) { return k.replace(/\D/g, ''); }) });
     sendToCheckout();
   });
   // After an order is placed WooCommerce empties its cart: empty the bag as well
@@ -572,7 +572,7 @@
   function money(n) { return '$' + n.toFixed(2); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function gText(g) { return g >= 1000 ? (g / 1000) + ' kg' : g + 'g'; }
-  function pixel(ev, x) { try { if (typeof window.fbq === 'function') window.fbq('track', ev, x); } catch (e) {} }
+  function pixel(ev, x) { try { if (typeof window.fikaTrack === 'function') window.fikaTrack(ev, x); else if (typeof window.fbq === 'function') window.fbq('track', ev, x); } catch (e) {} }
   function setIds() { PRODUCTS.forEach(function (p, i) { if (!p.id) p.id = 'r' + i; p.hue = p.hue != null ? p.hue : (i * 61 + 340) % 360; }); }
   setIds();
 
@@ -602,7 +602,7 @@
     var id = b.closest('.mx-card').getAttribute('data-id'), p = byId(id), st = read(), cur = st.bag[id] || 0;
     if (b.getAttribute('data-a') === '+') {
       st.bag[id] = cur + BAG_G; st.meta[id] = { name: p.name, price: p.price / (BAG_G / 100) };
-      pixel('AddToCart', { value: p.price, currency: 'USD', content_name: p.name });
+      pixel('AddToCart', { value: p.price, currency: 'USD', content_name: p.name, content_ids: [String(id).replace(/\D/g, '')] });
       var f = document.getElementById('mxFab'); if (f) { f.classList.remove('bump'); void f.offsetWidth; f.classList.add('bump'); }
     } else { st.bag[id] = Math.max(0, cur - BAG_G); if (!st.bag[id]) { delete st.bag[id]; delete st.meta[id]; } }
     write(st); render();

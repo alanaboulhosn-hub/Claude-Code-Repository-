@@ -941,6 +941,21 @@ OLD_FETCH = "fetch('" + OLD_URL + "', { credentials: 'same-origin' })"
 assert mix.count(OLD_FETCH) == 2
 mix = mix.replace(OLD_FETCH, "(window.fikaProducts ? window.fikaProducts() : fetch('" + PRODUCTS_URL + "', { credentials: 'same-origin' }))")
 
+# Meta pixel (wordpress/snippets/fika-meta.php): events go through window.fikaTrack (browser + server copy, one event
+# ID) when it is there; Add to bag also says which product (content_ids = the WooCommerce product number)
+OLD_PIXEL = "function pixel(ev, x) { try { if (typeof window.fbq === 'function') window.fbq('track', ev, x); } catch (e) {} }"
+assert mix.count(OLD_PIXEL) == 2
+mix = mix.replace(OLD_PIXEL, "function pixel(ev, x) { try { if (typeof window.fikaTrack === 'function') window.fikaTrack(ev, x); else if (typeof window.fbq === 'function') window.fbq('track', ev, x); } catch (e) {} }")
+OLD_ATC = "pixel('AddToCart', { value: byId(id).price || PRICE_100G, currency: 'USD', content_name: byId(id).name });"
+assert mix.count(OLD_ATC) == 1
+mix = mix.replace(OLD_ATC, "pixel('AddToCart', { value: byId(id).price || PRICE_100G, currency: 'USD', content_name: byId(id).name, content_ids: [String(id).replace(/\\D/g, '')] });")
+OLD_RATC = "pixel('AddToCart', { value: p.price, currency: 'USD', content_name: p.name });"
+assert mix.count(OLD_RATC) == 1
+mix = mix.replace(OLD_RATC, "pixel('AddToCart', { value: p.price, currency: 'USD', content_name: p.name, content_ids: [String(id).replace(/\\D/g, '')] });")
+OLD_IC = "pixel('InitiateCheckout', { value: sub, currency: 'USD', num_items: Object.keys(bag).length });"
+assert mix.count(OLD_IC) == 1
+mix = mix.replace(OLD_IC, "pixel('InitiateCheckout', { value: sub, currency: 'USD', num_items: Object.keys(bag).length, content_ids: Object.keys(bag).map(function (k) { return k.replace(/\\D/g, ''); }) });")
+
 # the number of candies in the copy (".fk-n") follows the shop: hidden products are not counted
 head += "\n" + r"""<script>
 (function () {
@@ -1040,14 +1055,15 @@ body .fika-legal.fika-legal { width: 100vw !important; max-width: 100vw !importa
 <p>You pay cash on delivery. We never ask for or keep card details.</p>
 
 <h2>Your browser</h2>
-<p>Your bag is kept in your own browser (local storage) until you go to the checkout. The shop also uses the small cookies it needs to run the checkout and your login, and one that keeps a discount code you opened from one of our emails. We do not use advertising or tracking cookies.</p>
+<p>Your bag is kept in your own browser (local storage) until you go to the checkout. The shop also uses the small cookies it needs to run the checkout and your login, and one that keeps a discount code you opened from one of our emails. We also use the Meta Pixel (Facebook and Instagram): it tells Meta which pages you visit on our shop, what you add to your bag and when you order, so we can measure and show our ads. Meta sets its own cookies for this. For orders, we send Meta your email, phone number, name and area in a scrambled (hashed) form that cannot be read back, so it can match the order to an ad. You can control ads from Meta in your Facebook or Instagram ad settings.</p>
 
 <h2>Who else sees it</h2>
 <ul>
 <li>The person delivering your order gets your name, phone number and address.</li>
 <li>Our hosting and email provider (Hostinger) stores the website and sends our emails for us.</li>
+<li>Meta (Facebook and Instagram) receives the shop activity described above, to measure our ads.</li>
 </ul>
-<p>We do not sell your details or share them with advertisers.</p>
+<p>We do not sell your details.</p>
 
 <h2>How long we keep it</h2>
 <p>Orders are kept for as long as we need them for our records and the law. Saved bags are deleted after 30 days. Your account stays until you ask us to close it.</p>

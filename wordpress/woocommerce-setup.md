@@ -594,3 +594,22 @@ code itself. Done with a temporary snippet (dry run first, then delete), removed
      record  default._bimi  "v=BIMI1; l=https://swedishfikalb.com/<path>/fika-logo-icon.svg;".
      Do this only after the site sends through the mailbox (SMTP password set in WP Mail SMTP): with DMARC
      enforced, mail sent by the web server's own mailer would be rejected.
+
+## Meta Pixel + Conversions API (2026-10-07)
+
+Snippet 43 "Fika: Meta pixel + Conversions API" (wordpress/snippets/fika-meta.php). Settings: WP Admin >
+WooCommerce > Meta pixel (pixel ID, Conversions API access token, test event code, on/off, skip shop staff).
+Off until the owner enters the pixel ID and token there (the token is stored in the database only).
+- Browser pixel on every shop page; each event also sent from the server with the same event ID (Meta dedupes):
+  PageView (all pages), AddToCart (shop cards, Ready Mix cards, product page; with content_ids = product number),
+  InitiateCheckout (bag Checkout button; value, items, content_ids), Purchase (server: in the background when the
+  order is placed, with hashed email, phone (961...), name, area, country, IP, browser, _fbp/_fbc; browser: on the
+  Order confirmed popup; event ID purchase.<order id>). Each order gets a note "Meta: purchase sent ..." or the
+  error Meta gave.
+- Shop calls go through window.fikaTrack (mix part via build-shop-pages.py, product page in fika-store-pages.php,
+  popup in fika-order-confirmed.php).
+- Tested with a dummy pixel ID and token and one test order (deleted): all four events with event IDs in the
+  browser, the server copies sent, the Purchase reached Meta (rejected the dummy token as expected).
+- Privacy policy draft updated to mention the Meta Pixel (still a draft).
+- For testing on the temporary domain: enter the Test event code so server events show under Test events only;
+  remove it at launch. Browser events from the test domain do reach the real pixel.
