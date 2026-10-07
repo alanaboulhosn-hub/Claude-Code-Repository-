@@ -238,3 +238,20 @@ Snippet 11 "Fika rewards" (wordpress/snippets/fika-loyalty.php), needs snippet 1
 - Header account menu: "x kg to your free kilo" / "Free kilo unlocks on delivery" / "Your free kilo is ready!".
 - Shop managers (signed in) can preview on the home page: /?fika_fish=5.2&fika_pending=1.
 - Snippet 10 also sets the display name to the first name for accounts created at checkout.
+
+## Email sending (2026-10-07)
+
+Why emails would land in spam: they were sent as cesar.aboulhosn@hotmail.com from Hostinger's web server
+(a Hotmail address sent by a non-Microsoft server fails SPF/DMARC), with the temporary site address as name.
+
+Done:
+- WooCommerce emails: from "Fika" <hello@swedishfikalb.com>; footer "Fika · Swedish pick-and-mix in Lebanon /
+  Questions? Reply to this email or WhatsApp us on 79 411 565."
+- Site title: "Fika" (was the temporary hostingersite.com address; used in email subjects and browser tabs).
+- Plugin WP Mail SMTP 4.10 installed and preset (wordpress/snippets/one-time-smtp-preset.php): sender forced to
+  Fika <hello@swedishfikalb.com> for every email, return path on, SMTP smtp.hostinger.com : 465 SSL, login
+  hello@swedishfikalb.com. Mailer is "Default (PHP)" until the mailbox password is entered.
+
+To finish (owner, 1 minute): WP Admin > WP Mail SMTP > Settings > Mailer "Other SMTP" > enter the
+hello@swedishfikalb.com mailbox password > Save > Tools > Email Test. In the Hostinger panel, Emails >
+swedishfikalb.com > DNS / Authentication: make sure SPF, DKIM and DMARC all show as set up.
