@@ -397,3 +397,25 @@ Snippet 25 (wordpress/snippets/fika-bag-reminder.php):
   build-shop-pages.py. Tested: 10% applied, back to the shop, bag changed, Checkout: FIKA10 still on the order.
 - WooCommerce email colour (WooCommerce > Settings > Emails > Base colour) set to Fika blue #004aad
   (was WooCommerce's default purple); applies to order emails and the bag reminder.
+
+## Lördagsmys, hidden products, reviews band, bag suggestions (2026-10-07)
+
+- About us: new section "Lördagsmys, now in Lebanon" (after Our story): the Swedish Saturday-cosiness ritual, the
+  bowl everyone picks into, and how it fits Lebanese family weekends; three cards (Everyone picks / One big bowl /
+  Slow down together) and a "Build your Saturday bowl" button. Section backgrounds alternate again. DRAFT copy.
+- Out of stock and hidden (WooCommerce: stock status "Out of stock", catalogue visibility "Hidden"):
+  BUBS Wild Berry Pomegranate Oval (108), BUBS Tutti Frutti Diamond (119), Sour Pineapple (114). The shop now asks
+  WooCommerce for shop-visible products only (catalog_visibility=catalog), so hidden products disappear from the
+  cards, filters, counts and favourites; bags that held them drop them. To bring one back: set it to In stock and
+  visibility "Shop and search results". The candy counts in the copy (banner, About, pink band) follow the shop.
+- Home: "Loved across Lebanon" reviews band (after Ready Mix), a slow moving row of review cards that pauses on
+  hover. It shows real, approved WooCommerce product reviews with 4 or 5 stars (first name + initial, product,
+  "Verified buyer"), and stays hidden while there are none. WooCommerce set to "Reviews can only be left by
+  verified owners". Reviews arrive on product pages and are managed in WP Admin > Products > Reviews.
+  The old Reviews page (39) holds placeholder testimonials and press quotes written when the site was generated;
+  they are not used anywhere.
+- BUBS: product names, images and pages already read "BUBS"; only web addresses (slugs) are lower case.
+- Bag drawer: "You may also like", four candies like the ones in the bag, each with an add button and the reason
+  (Also BUBS, Berry flavour, Fish shaped, Also sour...). Scored on brand, flavour and shape (from the name),
+  sweet / sour category and gelatin-free; ties keep the shop order. An empty bag shows "Popular picks". The caps
+  still apply. Shared shop part (pattern 241).

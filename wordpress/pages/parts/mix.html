@@ -341,7 +341,7 @@
         '<button class="mx-qb" data-q="+" data-id="' + id + '" type="button" aria-label="More ' + esc(byId(id).name) + '">+</button></div>' +
         '<div class="mx-lp">' + money(bag[id] / 100 * per) + '</div><button class="mx-rm" data-id="' + id + '" type="button" aria-label="Remove">&times;</button></div>';
     });
-    $('mxItems').innerHTML = html || '<div class="mx-none">Your bag is empty.</div>';
+    $('mxItems').innerHTML = (html || '<div class="mx-none">Your bag is empty.</div>') + suggest();
     var g = total(), sub = cost(), has = g > 0;
     var kg = (g / 1000).toFixed(1).replace(/\.0$/, '') + ' kg';
     $('mxKg').textContent = kg; $('mxFabN').textContent = kg;
@@ -350,6 +350,46 @@
   }
   function render() { renderGrid(); renderBag(); }
   window.fikaMxRender = render;
+
+  // ---- "You may also like": candies like the ones in the bag ----
+  // Each candy gets traits from its WooCommerce category (sweet / sour), gelatin tag and name (brand, flavour, shape);
+  // candies sharing more traits with the bag score higher; ties keep the shop order (favourites first).
+  // (Written without the logical-and operator and the less-than sign: WordPress rewrites them.)
+  var FAM = {
+    brand: [/bubs/, /tutti frutti/, /fizzy/],
+    taste: [/berr|cherr|strawberr|raspberr/, /lemon|pineapple|passion/, /cola/, /melon/, /apple|pear|peach|banana/, /licorice|salty/, /toffee|bubblegum/],
+    shape: [/skull/, /oval/, /fish/, /ring/, /teeth|pacifier/]
+  };
+  var WHY = { brand0: 'Also BUBS', brand1: 'Also Tutti Frutti', brand2: 'Also fizzy', taste0: 'Berry flavour', taste1: 'Zesty citrus', taste2: 'Cola flavour',
+    taste3: 'Melon flavour', taste4: 'Fruity', taste5: 'Salty sweet', taste6: 'Creamy sweet', shape0: 'Skull shaped', shape1: 'Oval shaped', shape2: 'Fish shaped',
+    shape3: 'Ring shaped', shape4: 'Fun shapes' };
+  // weights: same brand 3, same flavour or shape 2.5, same sweet / sour 2, both gelatin-free 0.5
+  function traits(p) {
+    var n = String(p.name || '').toLowerCase(), fam = [];
+    var cats = (p.cats || []).filter(function (c) { return c === 'sweet' ? true : c === 'sour'; });
+    if (!p.cats) { if (/sour/.test(n)) cats.push('sour'); if (/sweet/.test(n)) cats.push('sweet'); }
+    Object.keys(FAM).forEach(function (k) { FAM[k].forEach(function (re, i) { if (re.test(n)) fam.push(k + i); }); });
+    return { cats: cats, gf: !p.gelatin, fam: fam };
+  }
+  function suggest() {
+    var ids = Object.keys(bag), mine = ids.map(function (id) { return traits(byId(id)); });
+    var list = PRODUCTS.filter(function (p) { return p.name ? !bag[p.id] : false; }).map(function (p, i) {
+      var t = traits(p), s = 0, best = '', bestW = 0;
+      function add(w, label) { s += w; if (w > bestW) { bestW = w; best = label; } }
+      mine.forEach(function (b) {
+        t.fam.forEach(function (f) { if (b.fam.indexOf(f) !== -1) add(f.charAt(0) === 'b' ? 3 : (f.charAt(0) === 't' ? 2.5 : 2.5), WHY[f]); });
+        t.cats.forEach(function (c) { if (b.cats.indexOf(c) !== -1) add(2, c === 'sour' ? 'Also sour' : 'Also sweet'); });
+        if (t.gf ? b.gf : false) add(0.5, 'Gelatin-free');
+      });
+      return { p: p, s: s - i * 0.01, why: best };
+    }).sort(function (a, b) { return b.s - a.s; }).slice(0, 4);
+    if (!list.length) return '';
+    return '<div class="mx-sug"><h4>' + (ids.length ? 'You may also like' : 'Popular picks') + '</h4><div class="mx-sug-row">' + list.map(function (x) {
+      var p = x.p;
+      return '<div class="mx-sc"><span class="mx-sc-img">' + img(p) + '</span><b>' + esc(p.name) + '</b><small>' + esc(x.why || money(p.price || PRICE_100G) + ' per 100 g') + '</small>' +
+        '<button class="mx-qb mx-sc-add" data-q="+" data-id="' + p.id + '" type="button" aria-label="Add 100 g of ' + esc(p.name) + '">+</button></div>';
+    }).join('') + '</div></div>';
+  }
 
   function fitX(el) {
     el.style.setProperty('margin-left', '0px', 'important'); el.style.setProperty('margin-right', '0px', 'important');
@@ -363,7 +403,7 @@
   render(); fitAll(); place(); setTimeout(place, 500);
 
   if (AUTO_FROM_WOOCOMMERCE && window.fetch) {
-    (window.fikaProducts ? window.fikaProducts() : fetch('/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc', { credentials: 'same-origin' }))
+    (window.fikaProducts ? window.fikaProducts() : fetch('/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc&catalog_visibility=catalog', { credentials: 'same-origin' }))
       .then(function (r) { if (!r.ok) throw new Error('no store api'); return r.json(); })
       .then(function (list) {
         if (!list || !list.length) return;
@@ -592,7 +632,7 @@
   render(); fitAll();
 
   if (AUTO_FROM_WOOCOMMERCE && window.fetch) {
-    (window.fikaProducts ? window.fikaProducts() : fetch('/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc', { credentials: 'same-origin' }))
+    (window.fikaProducts ? window.fikaProducts() : fetch('/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc&catalog_visibility=catalog', { credentials: 'same-origin' }))
       .then(function (r) { if (!r.ok) throw new Error('no store api'); return r.json(); })
       .then(function (list) {
         var ta = document.createElement('textarea'), dec = function (t) { ta.innerHTML = t || ''; return ta.value; };
@@ -613,4 +653,17 @@
   } catch (err) { try { console.log('[FIKA ready-mix] error', err); } catch (e) {} }
 })();
 </script>
+<style>
+/* bag drawer: "You may also like" */
+.mx-sug { margin: 22px 0 12px; }
+.mx-sug h4 { margin: 0 0 10px; font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-weight: 400; font-size: 24px; color: var(--fika-blue); }
+.mx-sug-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.mx-sc { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 12px 8px 12px; border: 1px solid #eaeef7; border-radius: 16px;
+  background: #fff; font-family: 'Outfit', 'Open Sans', Arial, sans-serif; color: var(--fika-blue); }
+.mx-sc-img { display: block; width: 76px; height: 76px; }
+.mx-sc-img img, .mx-sc-img .mx-ph { width: 100%; height: 100%; object-fit: contain; display: block; }
+.mx-sc b { margin-top: 6px; font-weight: 500; font-size: 13.5px; line-height: 1.25; }
+.mx-sc small { margin-top: 3px; font-size: 12px; color: #e0447f; }
+.mx-drawer .mx-sc-add { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; font-size: 17px; }
+</style>
 <!-- /wp:html -->

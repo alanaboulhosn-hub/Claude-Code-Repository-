@@ -108,6 +108,53 @@ rep = [
           chain = chain.then(function () { return storeBatch(nonce, [{ method: 'POST', path: '/wc/store/v1/cart/apply-coupon', body: { code: code } }]).catch(function () {}); });
         });
         return chain;"""),
+    # the bag drawer: "You may also like", candies like the ones in the bag (or "Popular picks" when it is empty)
+    ("""    $('mxItems').innerHTML = html || '<div class="mx-none">Your bag is empty.</div>';""",
+     """    $('mxItems').innerHTML = (html || '<div class="mx-none">Your bag is empty.</div>') + suggest();"""),
+    ("""  function render() { renderGrid(); renderBag(); }
+  window.fikaMxRender = render;""",
+     """  function render() { renderGrid(); renderBag(); }
+  window.fikaMxRender = render;
+
+  // ---- "You may also like": candies like the ones in the bag ----
+  // Each candy gets traits from its WooCommerce category (sweet / sour), gelatin tag and name (brand, flavour, shape);
+  // candies sharing more traits with the bag score higher; ties keep the shop order (favourites first).
+  // (Written without the logical-and operator and the less-than sign: WordPress rewrites them.)
+  var FAM = {
+    brand: [/bubs/, /tutti frutti/, /fizzy/],
+    taste: [/berr|cherr|strawberr|raspberr/, /lemon|pineapple|passion/, /cola/, /melon/, /apple|pear|peach|banana/, /licorice|salty/, /toffee|bubblegum/],
+    shape: [/skull/, /oval/, /fish/, /ring/, /teeth|pacifier/]
+  };
+  var WHY = { brand0: 'Also BUBS', brand1: 'Also Tutti Frutti', brand2: 'Also fizzy', taste0: 'Berry flavour', taste1: 'Zesty citrus', taste2: 'Cola flavour',
+    taste3: 'Melon flavour', taste4: 'Fruity', taste5: 'Salty sweet', taste6: 'Creamy sweet', shape0: 'Skull shaped', shape1: 'Oval shaped', shape2: 'Fish shaped',
+    shape3: 'Ring shaped', shape4: 'Fun shapes' };
+  // weights: same brand 3, same flavour or shape 2.5, same sweet / sour 2, both gelatin-free 0.5
+  function traits(p) {
+    var n = String(p.name || '').toLowerCase(), fam = [];
+    var cats = (p.cats || []).filter(function (c) { return c === 'sweet' ? true : c === 'sour'; });
+    if (!p.cats) { if (/sour/.test(n)) cats.push('sour'); if (/sweet/.test(n)) cats.push('sweet'); }
+    Object.keys(FAM).forEach(function (k) { FAM[k].forEach(function (re, i) { if (re.test(n)) fam.push(k + i); }); });
+    return { cats: cats, gf: !p.gelatin, fam: fam };
+  }
+  function suggest() {
+    var ids = Object.keys(bag), mine = ids.map(function (id) { return traits(byId(id)); });
+    var list = PRODUCTS.filter(function (p) { return p.name ? !bag[p.id] : false; }).map(function (p, i) {
+      var t = traits(p), s = 0, best = '', bestW = 0;
+      function add(w, label) { s += w; if (w > bestW) { bestW = w; best = label; } }
+      mine.forEach(function (b) {
+        t.fam.forEach(function (f) { if (b.fam.indexOf(f) !== -1) add(f.charAt(0) === 'b' ? 3 : (f.charAt(0) === 't' ? 2.5 : 2.5), WHY[f]); });
+        t.cats.forEach(function (c) { if (b.cats.indexOf(c) !== -1) add(2, c === 'sour' ? 'Also sour' : 'Also sweet'); });
+        if (t.gf ? b.gf : false) add(0.5, 'Gelatin-free');
+      });
+      return { p: p, s: s - i * 0.01, why: best };
+    }).sort(function (a, b) { return b.s - a.s; }).slice(0, 4);
+    if (!list.length) return '';
+    return '<div class="mx-sug"><h4>' + (ids.length ? 'You may also like' : 'Popular picks') + '</h4><div class="mx-sug-row">' + list.map(function (x) {
+      var p = x.p;
+      return '<div class="mx-sc"><span class="mx-sc-img">' + img(p) + '</span><b>' + esc(p.name) + '</b><small>' + esc(x.why || money(p.price || PRICE_100G) + ' per 100 g') + '</small>' +
+        '<button class="mx-qb mx-sc-add" data-q="+" data-id="' + p.id + '" type="button" aria-label="Add 100 g of ' + esc(p.name) + '">+</button></div>';
+    }).join('') + '</div></div>';
+  }"""),
     # no "3 products" count over the Ready Mix bags
     ("""    $('rmCount').textContent = PRODUCTS.length + ' product' + (PRODUCTS.length === 1 ? '' : 's');""",
      """    $('rmCount').textContent = ''; $('rmCount').style.display = 'none';"""),
@@ -115,6 +162,19 @@ rep = [
 for a, b in rep:
     assert mix.count(a) == 1, a[:60]
     mix = mix.replace(a, b, 1)
+mix += "\n" + r"""<style>
+/* bag drawer: "You may also like" */
+.mx-sug { margin: 22px 0 12px; }
+.mx-sug h4 { margin: 0 0 10px; font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-weight: 400; font-size: 24px; color: var(--fika-blue); }
+.mx-sug-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.mx-sc { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 12px 8px 12px; border: 1px solid #eaeef7; border-radius: 16px;
+  background: #fff; font-family: 'Outfit', 'Open Sans', Arial, sans-serif; color: var(--fika-blue); }
+.mx-sc-img { display: block; width: 76px; height: 76px; }
+.mx-sc-img img, .mx-sc-img .mx-ph { width: 100%; height: 100%; object-fit: contain; display: block; }
+.mx-sc b { margin-top: 6px; font-weight: 500; font-size: 13.5px; line-height: 1.25; }
+.mx-sc small { margin-top: 3px; font-size: 12px; color: #e0447f; }
+.mx-drawer .mx-sc-add { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; font-size: 17px; }
+</style>"""
 # the Ready Mix section gets an anchor for links (/shop/#ready-mix)
 assert mix.count('<div class="mx-page rm" id="rmPage">') == 1
 mix = mix.replace('<div class="mx-page rm" id="rmPage">', '<span id="ready-mix" class="fk-anchor"></span>\n<div class="mx-page rm" id="rmPage">', 1)
@@ -171,10 +231,62 @@ html:not(.fika-shop-page) #shop .mx-count:empty { display:none; }
     if (!FAV) return [];
     return list.filter(function (p) { return FAV.indexOf(p.id) !== -1; });
   };
-  fetch('/wp-json/wc/store/v1/products?featured=true&per_page=24&orderby=menu_order&order=asc', { credentials: 'same-origin' })
+  fetch('/wp-json/wc/store/v1/products?featured=true&per_page=24&orderby=menu_order&order=asc&catalog_visibility=catalog', { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
     .then(function (l) { FAV = (l || []).map(function (x) { return 'w' + x.id; }); if (window.fikaMxRender) window.fikaMxRender(); })
     .catch(function () { FAV = []; });
+})();
+</script>"""
+
+# ---------- home-only: reviews band (real WooCommerce product reviews, 4 and 5 stars; hidden while there are none) ----------
+# Reviews come from customers who bought (WooCommerce: "Reviews can only be left by verified owners"), approved in
+# WP Admin > Products > Reviews. Written without the logical-and operator and the less-than sign: WordPress rewrites them.
+home_reviews = r"""<section class="fika-sec fk-rev" id="fkReviews" hidden aria-label="Customer reviews">
+  <h2 class="fika-h2">Loved across Lebanon</h2>
+  <div class="fk-rev-band"><div class="fk-rev-track" id="fkRevTrack"></div></div>
+</section>
+<style>
+.fk-rev { padding: 70px 0 60px; background: #fff; overflow: hidden; }
+.fk-rev .fika-h2 { text-align: center; margin: 0 0 30px; }
+.fk-rev-band { position: relative; overflow: hidden; width: 100vw; margin-left: calc(50% - 50vw); -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+.fk-rev-track { display: flex; gap: 22px; width: max-content; padding: 10px 0 18px; animation: fkRevMove var(--fk-rev-t, 60s) linear infinite; }
+.fk-rev-band:hover .fk-rev-track, .fk-rev-band:focus-within .fk-rev-track { animation-play-state: paused; }
+@keyframes fkRevMove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.fk-rc { flex: none; width: 330px; box-sizing: border-box; padding: 22px 24px 20px; border-radius: 24px; background: #fdeaf2; color: #1b2a4a; display: flex; flex-direction: column; gap: 10px; }
+.fk-rc .st { color: #004aad; font-size: 19px; letter-spacing: 3px; line-height: 1; }
+.fk-rc .st i { font-style: normal; color: #f3b9d0; }
+.fk-rc q { quotes: none; font-family: 'Fanwood Text', Georgia, serif; font-size: 19px; line-height: 1.5; }
+.fk-rc .who { margin-top: auto; font: 600 14px/1.3 'Outfit', 'Open Sans', Arial, sans-serif; color: #004aad; }
+.fk-rc .who small { display: block; font-weight: 400; color: #6c7b9c; }
+.fk-rc .ok { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: #fff; font-size: 11px; font-weight: 600; color: #1f8a4c; vertical-align: 1px; }
+@media (max-width: 700px) { .fk-rev { padding: 50px 0 40px; } .fk-rc { width: 270px; padding: 18px 18px 16px; } .fk-rc q { font-size: 17px; } }
+@media (prefers-reduced-motion: reduce) { .fk-rev-band { overflow-x: auto; } .fk-rev-track { animation: none; } }
+</style>
+<script>
+(function () {
+  var box = document.getElementById('fkReviews'), track = document.getElementById('fkRevTrack');
+  if (!box) return;
+  function esc(s) { var d = document.createElement('span'); d.textContent = String(s); return d.innerHTML; }
+  function text(h) { var d = document.createElement('div'); d.innerHTML = h || ''; return (d.textContent || '').replace(/\s+/g, ' ').trim(); }
+  function who(name) { var p = String(name || '').trim().split(/\s+/); return p.length > 1 ? p[0] + ' ' + p[p.length - 1].charAt(0) + '.' : (p[0] || 'A Fika customer'); }
+  fetch('/wp-json/wc/store/v1/products/reviews?per_page=30&orderby=date_gmt&order=desc', { credentials: 'same-origin' })
+    .then(function (r) { return r.json(); })
+    .then(function (list) {
+      var good = (list || []).filter(function (r) { return r.rating >= 4 ? text(r.review).length > 3 : false; });
+      if (!good.length) return;
+      var cards = good.map(function (r) {
+        var t = text(r.review); if (t.length > 190) t = t.slice(0, 187).replace(/\s+\S*$/, '') + '…';
+        var stars = ''; for (var i = 1; 5 >= i; i++) stars += i > r.rating ? '<i>★</i>' : '★';
+        return '<figure class="fk-rc"><div class="st" aria-label="' + r.rating + ' out of 5 stars">' + stars + '</div><q>' + esc(t) + '</q>' +
+          '<figcaption class="who">' + esc(who(r.reviewer)) + (r.verified ? '<span class="ok">Verified buyer</span>' : '') + '<small>' + esc(text(r.product_name)) + '</small></figcaption></figure>';
+      });
+      // repeat until the band is full, then twice over for a seamless loop
+      var row = cards.slice(); while (8 > row.length) row = row.concat(cards);
+      track.innerHTML = row.join('') + row.join('');
+      track.style.setProperty('--fk-rev-t', Math.max(30, row.length * 7) + 's');
+      [].slice.call(track.children).slice(row.length).forEach(function (c) { c.setAttribute('aria-hidden', 'true'); });
+      box.hidden = false;
+    }).catch(function () {});
 })();
 </script>"""
 
@@ -281,7 +393,7 @@ IMG_POUR = '/wp-content/uploads/2026/10/1-CpGiPMPowHbUltE9.png'
 IMG_GANG = '/wp-content/uploads/2026/10/chatgpt-image-jul-31-2026-03_35_52-pm-H0MVQjmp7aMZAJ4u.png'
 
 mix_hero = banner_css + '\n' + banner('mix', 'Mix your own',
-    'Pick your candy, your rules. 31 Swedish sweets at $2.50 per 100 g: sweet, sour, or mixed, with gelatin-free and gluten-free faves clearly marked, so everyone mixes and snacks happily.',
+    'Pick your candy, your rules. <span class="fk-n">28</span> Swedish sweets at $2.50 per 100 g: sweet, sour, or mixed, with gelatin-free and gluten-free faves clearly marked, so everyone mixes and snacks happily.',
     IMG_BOWL, '50% 62%')
 ready_hero = banner_css + '\n' + banner('ready', 'Ready Mix',
     'Having a hard time deciding? We got you. Ready Mix bags packed with the best of Scandinavian candy. Choose your vibe (sweet, sour, or mixed) and enjoy the perfect balance in every bite.',
@@ -460,7 +572,7 @@ html.fika-ready-page #rmGrid { grid-template-columns: repeat(3, minmax(0, 1fr));
 </style>
 <script>document.documentElement.classList.add('fika-shop-page', 'fika-ready-page');</script>"""
 
-ready_cross = r"""<div class="fs-cross"><div><span class="t">Rather pick your own?</span><span class="s">31 sweets at $2.50 per 100 g, mixed exactly how you like</span></div><a class="go" href="/mix-your-own/">Mix your own &rarr;</a></div>"""
+ready_cross = r"""<div class="fs-cross"><div><span class="t">Rather pick your own?</span><span class="s"><span class="fk-n">28</span> sweets at $2.50 per 100 g, mixed exactly how you like</span></div><a class="go" href="/mix-your-own/">Mix your own &rarr;</a></div>"""
 
 # ---------- About us (draft copy, built from the wording on the old Contact page) ----------
 about_body = r"""<!-- FIKA About us page. DRAFT copy: please check and edit the text. The candy carousel of the shared part is hidden
@@ -479,6 +591,13 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
 .fika-about .fa-step h3 { margin: 0 0 8px; font-family: 'Bebas Neue', Impact, sans-serif; font-weight: 400; font-size: 28px; letter-spacing: .02em; color: #004aad; }
 .fika-about .fa-step p { margin: 0; font-family: 'Fanwood Text', Georgia, serif; font-size: 19px; line-height: 1.55; color: #1b2a4a; }
 .fika-about .fa-step a { color: #004aad; font-weight: 700; }
+.fika-about .fa-mys { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); margin-bottom: 46px; }
+.fika-about .fa-mys img { aspect-ratio: 4 / 3; object-fit: cover; }
+.fika-about .fa-ritual .fika-card p { margin: 8px 0 0; }
+.fika-about .fa-mys-go { margin: 34px 0 0; text-align: center; }
+.fika-about .fa-mys-go a { display: inline-flex; align-items: center; height: 52px; padding: 0 30px; border-radius: 999px; background: #004aad; color: #fff; text-decoration: none;
+  font: 600 14px/1 'Outfit', 'Open Sans', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.fika-about .fa-mys-go a:hover { background: #003a8a; }
 .fika-about .fa-cta { text-align: center; }
 .fika-about .fa-cta p { max-width: 720px; margin: 0 auto 26px; font-family: 'Fanwood Text', Georgia, serif; font-size: 21px; line-height: 1.6; color: #1b2a4a; }
 .fika-about .fa-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
@@ -489,7 +608,7 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
 .fika-about .fa-btns a.line { background: #fff; color: #004aad; }
 .fika-about .fa-btns a.line:hover { background: #fdeaf2; }
 @media (max-width: 900px) {
-  .fika-about .fa-story { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .fika-about .fa-story, .fika-about .fa-mys { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .fika-about .fa-steps { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 700px) {
@@ -516,6 +635,38 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
 
   <section class="fika-sec fika-pinkbg">
     <div class="fika-inner">
+      <h2 class="fika-h2">L&ouml;rdagsmys, now in Lebanon</h2>
+      <div class="fa-story fa-mys">
+        <img src="IMG_BOWLPIC" alt="A glass bowl full of Swedish pick-and-mix" loading="lazy">
+        <div>
+          <p class="fa-lede">L&ouml;rdagsmys <span class="fa-say">say &ldquo;leur-dahgs-mees&rdquo;</span> means &ldquo;Saturday cosiness&rdquo;, and in Sweden it is a little ritual of its own.</p>
+          <p>When Saturday comes, Swedish families slow down. Everyone heads to the pick-and-mix wall, each person scoops a few favourites, and it all ends up in one big bowl in the middle of the table. For generations, Swedish children have saved their sweets for Saturday, and the waiting is half the fun.</p>
+          <p>In Lebanon, weekends already belong to family: long lunches, cousins, neighbours dropping by. We think l&ouml;rdagsmys fits right in. Bring the bowl to the table, let everyone add their favourites, and make Saturday the sweetest day of the week.</p>
+        </div>
+      </div>
+      <div class="fika-cards fa-ritual">
+        <div class="fika-card">
+          <div class="fika-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"></circle><circle cx="17" cy="9" r="2.5"></circle><path d="M2.5 20c.6-3.6 2.8-5.5 5.5-5.5s4.9 1.9 5.5 5.5"></path><path d="M14 15.2c.9-.5 1.9-.7 3-.7 2.3 0 4.1 1.6 4.6 4.5"></path></svg></div>
+          <h3>Everyone picks</h3>
+          <p>Each person chooses a few favourites: sour for one, sweet for another, gelatin-free for whoever needs it.</p>
+        </div>
+        <div class="fika-card">
+          <div class="fika-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 9 0 0 1-18 0z"></path><circle cx="8" cy="8" r="1.6"></circle><circle cx="12.5" cy="6.5" r="1.6"></circle><circle cx="16.5" cy="8.5" r="1.6"></circle></svg></div>
+          <h3>One big bowl</h3>
+          <p>Pour it all together in the middle of the table, so everyone can reach and nobody has to share by the piece.</p>
+        </div>
+        <div class="fika-card">
+          <div class="fika-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.7a4.3 4.3 0 0 1 7.5 2.8c0 5.4-7.5 10-7.5 10z"></path></svg></div>
+          <h3>Slow down together</h3>
+          <p>A film, a board game or a long chat. Phones down, sweets out, and the whole family around the bowl.</p>
+        </div>
+      </div>
+      <p class="fa-mys-go"><a href="/mix-your-own/">Build your Saturday bowl &rarr;</a></p>
+    </div>
+  </section>
+
+  <section class="fika-sec fika-whitebg">
+    <div class="fika-inner">
       <h2 class="fika-h2">Freshness guaranteed</h2>
       <div class="fika-cards">
         <div class="fika-card">
@@ -537,18 +688,18 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
     </div>
   </section>
 
-  <section class="fika-sec fika-whitebg">
+  <section class="fika-sec fika-pinkbg">
     <div class="fika-inner">
       <h2 class="fika-h2">How it works</h2>
       <div class="fa-steps">
-        <div class="fa-step"><h3>Pick your sweets</h3><p><a href="/mix-your-own/">Mix your own</a> from 31 candies at $2.50 per 100 g, or choose a 500 g <a href="/ready-mix/">Ready Mix</a> bag for $12.50.</p></div>
+        <div class="fa-step"><h3>Pick your sweets</h3><p><a href="/mix-your-own/">Mix your own</a> from <span class="fk-n">28</span> candies at $2.50 per 100 g, or choose a 500 g <a href="/ready-mix/">Ready Mix</a> bag for $12.50.</p></div>
         <div class="fa-step"><h3>Check out</h3><p>Pick your delivery area and pay in cash when your sweets arrive. Create an account and every kilo swims you closer to a free one.</p></div>
         <div class="fa-step"><h3>Enjoy your fika</h3><p>We deliver all over Lebanon (except Nabatieh and bordering cities), Monday to Saturday.</p></div>
       </div>
     </div>
   </section>
 
-  <section class="fika-sec fika-pinkbg">
+  <section class="fika-sec fika-whitebg">
     <div class="fika-inner fa-cta">
       <h2 class="fika-h2">Start your fika</h2>
       <p>Questions about bulk orders, corporate boxes or a custom pick-and-mix for your event? Send us a note, we&rsquo;d love to help.</p>
@@ -559,7 +710,7 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
       </div>
     </div>
   </section>
-</div>""".replace('IMG_GANG', IMG_GANG)
+</div>""".replace('IMG_GANG', IMG_GANG).replace('IMG_BOWLPIC', IMG_BOWL)
 
 
 # ---------- every page: blocks fade in as they scroll into view (lives in the shared header part) ----------
@@ -671,16 +822,34 @@ for k in ('mix', 'foot'):
     globals()[k] = FONT_FACE.sub('', v, 1)
 # the product list is fetched once per page and shared (the candies, the Ready Mix bags and the flying cartoons used to
 # fetch it separately)
-PRODUCTS_URL = '/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc'
+# only products shown in the shop: one set to "Hidden" in WooCommerce (e.g. out of stock for a while) is left out
+OLD_URL = '/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc'
+PRODUCTS_URL = OLD_URL + '&catalog_visibility=catalog'
 head += "\n" + r"""<script>
 window.fikaProducts = function () {
   if (!window.fikaProductsP) window.fikaProductsP = fetch('URL', { credentials: 'same-origin' });
   return window.fikaProductsP.then(function (r) { return r.clone(); });
 };
 </script>""".replace('URL', PRODUCTS_URL)
-OLD_FETCH = "fetch('" + PRODUCTS_URL + "', { credentials: 'same-origin' })"
+OLD_FETCH = "fetch('" + OLD_URL + "', { credentials: 'same-origin' })"
 assert mix.count(OLD_FETCH) == 2
-mix = mix.replace(OLD_FETCH, '(window.fikaProducts ? window.fikaProducts() : ' + OLD_FETCH + ')')
+mix = mix.replace(OLD_FETCH, "(window.fikaProducts ? window.fikaProducts() : fetch('" + PRODUCTS_URL + "', { credentials: 'same-origin' }))")
+
+# the number of candies in the copy (".fk-n") follows the shop: hidden products are not counted
+head += "\n" + r"""<script>
+(function () {
+  function fill() {
+    var el = document.querySelectorAll('.fk-n');
+    if (!el.length) return;
+    if (!window.fikaProducts) return;
+    window.fikaProducts().then(function (r) { return r.json(); }).then(function (l) {
+      var n = (l || []).filter(function (p) { return !(p.categories || []).some(function (c) { return c.slug === 'ready-mix'; }); }).length;
+      if (n) [].slice.call(el).forEach(function (e) { e.textContent = n; });
+    }).catch(function () {});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fill); else fill();
+})();
+</script>"""
 
 # ---------- write the parts ----------
 os.makedirs(PARTS, exist_ok=True)
@@ -702,7 +871,7 @@ def ref(k):
     return '<!-- wp:block {"ref":%d} /-->' % ids[k]
 
 
-home = '\n\n'.join([ref('head'), block(home_hero), ref('fish'), block(home_favs), ref('mix'), block(home_sections), ref('foot')]) + '\n'
+home = '\n\n'.join([ref('head'), block(home_hero), ref('fish'), block(home_favs), ref('mix'), block(home_reviews), block(home_sections), ref('foot')]) + '\n'
 mixp = '\n\n'.join([ref('head'), block(mix_hero), block(grid_css), block(mix_bar), ref('fish'), ref('mix'), block(mix_cross), ref('foot')]) + '\n'
 ready = '\n\n'.join([ref('head'), block(ready_hero), block(grid_css), block(ready_page), ref('fish'), ref('mix'), block(ready_cross), ref('foot')]) + '\n'
 about = '\n\n'.join([ref('head'), block(about_hero), ref('fish'), block(about_body), ref('mix'), ref('foot')]) + '\n'

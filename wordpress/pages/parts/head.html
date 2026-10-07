@@ -399,8 +399,22 @@ body:has(.fika-hero) :is(.entry-title, .page-title, .wp-block-post-title, .page-
 </script>
 <script>
 window.fikaProducts = function () {
-  if (!window.fikaProductsP) window.fikaProductsP = fetch('/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc', { credentials: 'same-origin' });
+  if (!window.fikaProductsP) window.fikaProductsP = fetch('/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc&catalog_visibility=catalog', { credentials: 'same-origin' });
   return window.fikaProductsP.then(function (r) { return r.clone(); });
 };
+</script>
+<script>
+(function () {
+  function fill() {
+    var el = document.querySelectorAll('.fk-n');
+    if (!el.length) return;
+    if (!window.fikaProducts) return;
+    window.fikaProducts().then(function (r) { return r.json(); }).then(function (l) {
+      var n = (l || []).filter(function (p) { return !(p.categories || []).some(function (c) { return c.slug === 'ready-mix'; }); }).length;
+      if (n) [].slice.call(el).forEach(function (e) { e.textContent = n; });
+    }).catch(function () {});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fill); else fill();
+})();
 </script>
 <!-- /wp:html -->

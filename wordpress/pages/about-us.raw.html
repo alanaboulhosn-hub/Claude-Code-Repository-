@@ -49,6 +49,13 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
 .fika-about .fa-step h3 { margin: 0 0 8px; font-family: 'Bebas Neue', Impact, sans-serif; font-weight: 400; font-size: 28px; letter-spacing: .02em; color: #004aad; }
 .fika-about .fa-step p { margin: 0; font-family: 'Fanwood Text', Georgia, serif; font-size: 19px; line-height: 1.55; color: #1b2a4a; }
 .fika-about .fa-step a { color: #004aad; font-weight: 700; }
+.fika-about .fa-mys { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); margin-bottom: 46px; }
+.fika-about .fa-mys img { aspect-ratio: 4 / 3; object-fit: cover; }
+.fika-about .fa-ritual .fika-card p { margin: 8px 0 0; }
+.fika-about .fa-mys-go { margin: 34px 0 0; text-align: center; }
+.fika-about .fa-mys-go a { display: inline-flex; align-items: center; height: 52px; padding: 0 30px; border-radius: 999px; background: #004aad; color: #fff; text-decoration: none;
+  font: 600 14px/1 'Outfit', 'Open Sans', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.fika-about .fa-mys-go a:hover { background: #003a8a; }
 .fika-about .fa-cta { text-align: center; }
 .fika-about .fa-cta p { max-width: 720px; margin: 0 auto 26px; font-family: 'Fanwood Text', Georgia, serif; font-size: 21px; line-height: 1.6; color: #1b2a4a; }
 .fika-about .fa-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
@@ -59,7 +66,7 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
 .fika-about .fa-btns a.line { background: #fff; color: #004aad; }
 .fika-about .fa-btns a.line:hover { background: #fdeaf2; }
 @media (max-width: 900px) {
-  .fika-about .fa-story { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .fika-about .fa-story, .fika-about .fa-mys { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .fika-about .fa-steps { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 700px) {
@@ -86,6 +93,38 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
 
   <section class="fika-sec fika-pinkbg">
     <div class="fika-inner">
+      <h2 class="fika-h2">L&ouml;rdagsmys, now in Lebanon</h2>
+      <div class="fa-story fa-mys">
+        <img src="/wp-content/uploads/2026/10/yes28-7vYLz0XjzMVhjx2f.jpg" alt="A glass bowl full of Swedish pick-and-mix" loading="lazy">
+        <div>
+          <p class="fa-lede">L&ouml;rdagsmys <span class="fa-say">say &ldquo;leur-dahgs-mees&rdquo;</span> means &ldquo;Saturday cosiness&rdquo;, and in Sweden it is a little ritual of its own.</p>
+          <p>When Saturday comes, Swedish families slow down. Everyone heads to the pick-and-mix wall, each person scoops a few favourites, and it all ends up in one big bowl in the middle of the table. For generations, Swedish children have saved their sweets for Saturday, and the waiting is half the fun.</p>
+          <p>In Lebanon, weekends already belong to family: long lunches, cousins, neighbours dropping by. We think l&ouml;rdagsmys fits right in. Bring the bowl to the table, let everyone add their favourites, and make Saturday the sweetest day of the week.</p>
+        </div>
+      </div>
+      <div class="fika-cards fa-ritual">
+        <div class="fika-card">
+          <div class="fika-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"></circle><circle cx="17" cy="9" r="2.5"></circle><path d="M2.5 20c.6-3.6 2.8-5.5 5.5-5.5s4.9 1.9 5.5 5.5"></path><path d="M14 15.2c.9-.5 1.9-.7 3-.7 2.3 0 4.1 1.6 4.6 4.5"></path></svg></div>
+          <h3>Everyone picks</h3>
+          <p>Each person chooses a few favourites: sour for one, sweet for another, gelatin-free for whoever needs it.</p>
+        </div>
+        <div class="fika-card">
+          <div class="fika-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 9 0 0 1-18 0z"></path><circle cx="8" cy="8" r="1.6"></circle><circle cx="12.5" cy="6.5" r="1.6"></circle><circle cx="16.5" cy="8.5" r="1.6"></circle></svg></div>
+          <h3>One big bowl</h3>
+          <p>Pour it all together in the middle of the table, so everyone can reach and nobody has to share by the piece.</p>
+        </div>
+        <div class="fika-card">
+          <div class="fika-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.7a4.3 4.3 0 0 1 7.5 2.8c0 5.4-7.5 10-7.5 10z"></path></svg></div>
+          <h3>Slow down together</h3>
+          <p>A film, a board game or a long chat. Phones down, sweets out, and the whole family around the bowl.</p>
+        </div>
+      </div>
+      <p class="fa-mys-go"><a href="/mix-your-own/">Build your Saturday bowl &rarr;</a></p>
+    </div>
+  </section>
+
+  <section class="fika-sec fika-whitebg">
+    <div class="fika-inner">
       <h2 class="fika-h2">Freshness guaranteed</h2>
       <div class="fika-cards">
         <div class="fika-card">
@@ -107,18 +146,18 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
     </div>
   </section>
 
-  <section class="fika-sec fika-whitebg">
+  <section class="fika-sec fika-pinkbg">
     <div class="fika-inner">
       <h2 class="fika-h2">How it works</h2>
       <div class="fa-steps">
-        <div class="fa-step"><h3>Pick your sweets</h3><p><a href="/mix-your-own/">Mix your own</a> from 31 candies at $2.50 per 100 g, or choose a 500 g <a href="/ready-mix/">Ready Mix</a> bag for $12.50.</p></div>
+        <div class="fa-step"><h3>Pick your sweets</h3><p><a href="/mix-your-own/">Mix your own</a> from <span class="fk-n">28</span> candies at $2.50 per 100 g, or choose a 500 g <a href="/ready-mix/">Ready Mix</a> bag for $12.50.</p></div>
         <div class="fa-step"><h3>Check out</h3><p>Pick your delivery area and pay in cash when your sweets arrive. Create an account and every kilo swims you closer to a free one.</p></div>
         <div class="fa-step"><h3>Enjoy your fika</h3><p>We deliver all over Lebanon (except Nabatieh and bordering cities), Monday to Saturday.</p></div>
       </div>
     </div>
   </section>
 
-  <section class="fika-sec fika-pinkbg">
+  <section class="fika-sec fika-whitebg">
     <div class="fika-inner fa-cta">
       <h2 class="fika-h2">Start your fika</h2>
       <p>Questions about bulk orders, corporate boxes or a custom pick-and-mix for your event? Send us a note, we&rsquo;d love to help.</p>
