@@ -509,3 +509,17 @@ Snippet 35 (wordpress/snippets/fika-winback.php), WP Admin > WooCommerce > Win-b
   recent activity. Shop managers: GET /wp-json/fika/v1/winback-preview?n=1|2 renders without sending.
 - Checked: timing rules on examples, current audience (5 customers, first emails due 6 Nov 2026), a run in Test
   mode sent nothing.
+
+## Every screen size (2026-10-07)
+
+Rules at the end of the shared footer part (pattern 242), built by build-shop-pages.py:
+- One content column: side margin = max(10% of the screen, (screen - 1320 px) / 2), 1480 px from 2200 px wide.
+  Header, home hero text, product grids and carousels, filter bar, sections and footer start at the same edge.
+  Up to about 1650 px wide this is the same 10% margin as before.
+- Heroes: home at most 900 px tall (and at most 92% of the width on upright tablets); page banners between 460 and
+  760 px (82% of the screen height before). The home hero text column no longer narrows on wide screens
+  (title max 10.6em, text 34em).
+- From 2000 px wide the hero title grows to at most 108 px and the text to 24 px.
+- Checked at 360-430 (phones), 768x1024, 1024x768, 1280x800, 1440x900, 1680x1050, 1920x1080, 2560x1440 and
+  3440x1440: no sideways scrolling, no errors; phones unchanged. On laptops the only visible change: the Mix your
+  own / Ready Mix banner text and the filter bar now start at the logo's edge.

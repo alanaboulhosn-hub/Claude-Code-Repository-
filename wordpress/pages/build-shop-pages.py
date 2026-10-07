@@ -391,7 +391,7 @@ def _split(key, img, ratio, top, mid, bottom):
   .fika-hero.fika-%(key)s-hero > .fika-photo { background: linear-gradient(180deg, %(top)s 0%%, %(mid)s 52%%, %(bottom)s 100%%); }
   .fika-hero.fika-%(key)s-hero > .fika-photo::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: calc(var(--fika-photo-h, 82vh) * %(ratio)s);
     background: url(%(img)s) center / cover no-repeat; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 180px); mask-image: linear-gradient(90deg, transparent 0, #000 180px); }
-  .fika-hero.fika-%(key)s-hero .fsh-in { margin: 0 auto 0 0; max-width: calc(100vw - var(--fika-photo-h, 82vh) * %(ratio)s + 60px); padding-left: max(6%%, calc((100vw - 1180px) / 2)); padding-right: 30px; text-align: left; }
+  .fika-hero.fika-%(key)s-hero .fsh-in { margin: 0 auto 0 0; max-width: calc(100vw - var(--fika-photo-h, 82vh) * %(ratio)s + 60px); padding-left: var(--fk-side, 10vw); padding-right: 30px; text-align: left; }
   .fika-hero.fika-%(key)s-hero .fsh-text { margin: 0; }
 }
 </style>""" % {'key': key, 'img': img, 'ratio': ratio, 'top': top, 'mid': mid, 'bottom': bottom}
@@ -882,6 +882,36 @@ foot += "\n" + r"""<style>
   check();
 })();
 </script>"""
+
+# ---------- every screen size: one content width, heroes with sensible heights ----------
+# Up to about 1650 px wide nothing changes (the side margin stays 10% of the screen). Wider screens keep the content
+# in one centred column of at most 1320 px (1480 px from 2200 px wide), so the logo, hero text, product grid, filter
+# bar, sections and footer line up, and the heroes stop growing with very tall screens. In the footer part: it comes
+# last on every page, so these rules win.
+foot += "\n" + r"""<style>
+:root { --fk-max: 1320px; --fk-side: max(10vw, calc((100vw - var(--fk-max)) / 2)); }
+@media (min-width: 2200px) { :root { --fk-max: 1480px; } }
+@media (min-width: 761px) {
+  .fika-header, .fika-header:not(.fika-top) { padding-left: var(--fk-side) !important; padding-right: var(--fk-side) !important; }
+  .fika-hero:not(.fika-shop-hero) { min-height: min(100vh, 900px); }
+  .fika-hero:not(.fika-shop-hero) .fika-content { max-width: none; box-sizing: border-box; padding-left: var(--fk-side); padding-right: var(--fk-side); }
+  .fika-hero:not(.fika-shop-hero) .fika-title { max-width: 10.6em; }
+  .fika-hero:not(.fika-shop-hero) .fika-text { max-width: 34em; }
+  .fika-hero.fika-shop-hero { min-height: clamp(460px, 82vh, 760px); }
+  .mx-page { --g: var(--fk-side); }
+  html.fika-shop-page .mx-track { padding-left: var(--fk-side); padding-right: var(--fk-side); }
+  html.fika-shop-page .fs-bar { padding-left: var(--fk-side); padding-right: var(--fk-side); }
+  .fika-sec:not(.fika-footer):not(.fs-bar) { padding-left: var(--fk-side); padding-right: var(--fk-side); }
+  .fika-footer .fika-foot-body { padding-left: var(--fk-side); padding-right: var(--fk-side); }
+}
+/* tall, narrow screens (tablets held upright): a shorter home hero, so the title is not far below the menu */
+@media (min-width: 761px) and (orientation: portrait) { .fika-hero:not(.fika-shop-hero) { min-height: min(100vh, 900px, 92vw); } }
+/* very large screens: the hero type grows a little further */
+@media (min-width: 2000px) {
+  .fika-title, .fika-shop-hero .fsh-title { font-size: clamp(84px, 3.6vw, 108px); }
+  .fika-text, .fika-shop-hero .fsh-text, .fika-shop-hero .fsh-kicker { font-size: clamp(19px, 0.9vw, 24px); }
+}
+</style>"""
 
 # no Reviews link in the footer until there is a reviews page
 FOOT_REVIEWS = '          <li><a href="/reviews">Reviews</a></li>\n'
