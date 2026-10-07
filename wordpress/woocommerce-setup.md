@@ -274,3 +274,12 @@ Snippet 16 "Fika sign-up nudges" (wordpress/snippets/fika-signup-nudge.php). Vis
   to a free kilo." "Create my account" ticks WooCommerce's "Create an account with Fika" box and puts the cursor
   in "Create a password"; the card then reads "Your account comes with this order". "Log in" opens WooCommerce's
   login and returns to checkout.
+
+## Fika customers list (2026-10-07)
+
+Snippet 17 (wordpress/snippets/fika-customers-admin.php): WP Admin > WooCommerce > Fika customers.
+One table of everyone: people with an account and people who ordered as guests (grouped by email).
+Columns: name, email, phone, type (Account / Guest), signed up, orders (Processing, On hold, Completed; links to
+their orders), delivered (Completed), kg delivered, spent (minus refunds), last order.
+Tabs: All / Accounts / Accounts that ordered / Accounts with no orders yet / Guests. "Download CSV" exports the tab.
+Staff accounts (admins, shop managers) only appear if they ordered.
