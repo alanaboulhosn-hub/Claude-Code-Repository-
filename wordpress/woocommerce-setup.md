@@ -344,3 +344,15 @@ wordpress/pages/build-shop-pages.py (outputs mix-your-own-40, ready-mix-38, abou
   Blocks side by side fade one after another. Changing a filter, search or sort fades the cards in again; adding to
   the bag does not. Visitors who ask their device for reduced motion see everything without the fade. The script is
   in the shared header part (pattern 239). It replaced the earlier drop-in on the shop pages.
+
+## Lighter pages (2026-10-07)
+
+Each page download roughly halved (home about 2.4 MB to 1.2 MB, Mix your own about 2.8 MB to 1.35 MB):
+- Snippet 23 (fika-speed.php): on home, Mix your own, Ready Mix and About us the theme's font files (Open Sans,
+  Fira Sans, Montserrat as .ttf, about 1.3 MB) are not loaded; Open Sans comes as a small web font from Google Fonts.
+  Checkout, cart, account and product pages are unchanged.
+- The home hero photo is a file (media 274, phones get the smaller 275) instead of being pasted into the page
+  (the home page itself went from 590 KB to 280 KB).
+- The cute font is embedded once (header part) instead of three times.
+- The product list is downloaded once per page and shared (window.fikaProducts in the header part) by the candies,
+  the Ready Mix bags and the flying cartoons (snippet 8); it used to be fetched three times.

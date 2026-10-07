@@ -346,7 +346,8 @@ FIKA_LIB;
   var flyReady = false, prodMap = null;
   function products() {
     if (prodMap) return Promise.resolve(prodMap);
-    return fetch('/wp-json/wc/store/v1/products?per_page=100', { credentials: 'same-origin' })
+    // the page's shared product list (one download for the whole page), when there is one
+    return (window.fikaProducts ? window.fikaProducts() : fetch('/wp-json/wc/store/v1/products?per_page=100', { credentials: 'same-origin' }))
       .then(function (r) { return r.json(); })
       .then(function (list) {
         prodMap = {};

@@ -33,7 +33,11 @@ assert photo_line.lstrip().startswith('background: var(--fika-pink) url(data:ima
 head = head.replace(photo_line + '\n', '', 1)
 
 # ---------- home-only: hero + skull eyes (+ the hero photo, which only the home page needs) ----------
-home_hero = '<style>\n.fika-hero:not(.fika-shop-hero) {\n' + photo_line + '\n}\n</style>\n' + L(290, 455)
+# the photo is a file (media 274, a smaller copy 275 for phones) instead of being pasted into the page: lighter and cached
+HERO_BIG = '/wp-content/uploads/2026/10/fika-hero-1920.jpg'
+HERO_SMALL = '/wp-content/uploads/2026/10/fika-hero-1000.jpg'
+home_hero = ('<style>\n.fika-hero:not(.fika-shop-hero) {\n  background: var(--fika-pink) url(' + HERO_BIG + ') center bottom / cover no-repeat;\n}\n'
+             '@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) { background-image: url(' + HERO_SMALL + '); } }\n</style>\n' + L(290, 455))
 
 # ---------- shared part B: fish cursor + bite + header/banner behaviour ----------
 fish = L(457, 726)
@@ -583,6 +587,27 @@ head += "\n" + r"""<style>
 })();
 </script>"""
 
+
+# ---------- lighter pages ----------
+# the cute font is embedded once, in the header part (on every page); the shop and footer parts carried copies
+FONT_FACE = re.compile(r"@font-face\s*\{\s*font-family:\s*'NF Le Petit Cochon';[^}]*\}\s*")
+assert len(FONT_FACE.findall(head)) == 1
+for k in ('mix', 'foot'):
+    v = globals()[k]
+    assert len(FONT_FACE.findall(v)) == 1, k
+    globals()[k] = FONT_FACE.sub('', v, 1)
+# the product list is fetched once per page and shared (the candies, the Ready Mix bags and the flying cartoons used to
+# fetch it separately)
+PRODUCTS_URL = '/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc'
+head += "\n" + r"""<script>
+window.fikaProducts = function () {
+  if (!window.fikaProductsP) window.fikaProductsP = fetch('URL', { credentials: 'same-origin' });
+  return window.fikaProductsP.then(function (r) { return r.clone(); });
+};
+</script>""".replace('URL', PRODUCTS_URL)
+OLD_FETCH = "fetch('" + PRODUCTS_URL + "', { credentials: 'same-origin' })"
+assert mix.count(OLD_FETCH) == 2
+mix = mix.replace(OLD_FETCH, '(window.fikaProducts ? window.fikaProducts() : ' + OLD_FETCH + ')')
 
 # ---------- write the parts ----------
 os.makedirs(PARTS, exist_ok=True)

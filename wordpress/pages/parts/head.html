@@ -383,4 +383,10 @@ body:has(.fika-hero) :is(.entry-title, .page-title, .wp-block-post-title, .page-
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
+<script>
+window.fikaProducts = function () {
+  if (!window.fikaProductsP) window.fikaProductsP = fetch('/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc', { credentials: 'same-origin' });
+  return window.fikaProductsP.then(function (r) { return r.clone(); });
+};
+</script>
 <!-- /wp:html -->
