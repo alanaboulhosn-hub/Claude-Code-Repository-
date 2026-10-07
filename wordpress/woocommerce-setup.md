@@ -613,3 +613,18 @@ Off until the owner enters the pixel ID and token there (the token is stored in 
 - Privacy policy draft updated to mention the Meta Pixel (still a draft).
 - For testing on the temporary domain: enter the Test event code so server events show under Test events only;
   remove it at launch. Browser events from the test domain do reach the real pixel.
+
+## Launch checklist (collected 2026-10-07; launch is planned with the owner)
+
+1. Domain: screenshot every DNS record of swedishfikalb.com first; change only the website records (A / CNAME);
+   MX, SPF, DKIM and DMARC stay as they are; then send and receive a test email on hello@swedishfikalb.com.
+2. Email: owner enters the hello@swedishfikalb.com mailbox password in WP Mail SMTP (removes "via
+   srv1317.main-hosting.eu"); send a test email.
+3. Settings > Reading: untick "Discourage search engines".
+4. Meta: WooCommerce > Meta pixel: pixel ID + Conversions API token, tick On, "Save and send a test event", leave
+   Test event code empty. (Integration already installed and active, snippet 43.)
+5. Win-back emails stay in Test mode (owner: not part of the launch). Bag reminder and order confirmation are live.
+6. Privacy policy (page 3) stays a draft until the owner says to publish it.
+7. Product pages stay closed to customers until they are designed (fika-store-pages.php "closed for now").
+8. Owner decision: the "New order" email to the shop (currently off).
+9. Optional: Gmail sender picture (Google account on hello@ with email-assets/fika-logo-icon-512.png).
