@@ -131,10 +131,16 @@ add_action( 'woocommerce_account_dashboard', function () {
 	<?php
 }, 5 );
 
-// ---------- WordPress Users list: Fika orders + kg delivered ----------
+// ---------- WordPress Users list: phone, sign-up date, Fika orders + kg delivered ----------
 add_filter( 'manage_users_columns', function ( $cols ) {
+	$cols['fika_phone']  = 'Phone';
+	$cols['fika_joined'] = 'Signed up';
 	$cols['fika_orders'] = 'Fika orders';
 	$cols['fika_kg']     = 'Kg delivered';
+	return $cols;
+} );
+add_filter( 'manage_users_sortable_columns', function ( $cols ) {
+	$cols['fika_joined'] = 'registered';
 	return $cols;
 } );
 add_filter( 'manage_users_custom_column', function ( $out, $col, $user_id ) {
@@ -142,7 +148,23 @@ add_filter( 'manage_users_custom_column', function ( $out, $col, $user_id ) {
 		$t = fika_customer_totals( $user_id );
 		return 'fika_orders' === $col ? (string) (int) $t['orders'] : esc_html( fika_kg_text( $t['grams'] ) );
 	}
+	if ( 'fika_phone' === $col ) {
+		$phone = get_user_meta( $user_id, 'billing_phone', true );
+		return $phone ? esc_html( $phone ) : '&mdash;';
+	}
+	if ( 'fika_joined' === $col ) {
+		$u = get_userdata( $user_id );
+		return $u ? esc_html( wp_date( 'j M Y, H:i', strtotime( $u->user_registered . ' UTC' ) ) ) : '';
+	}
 	return $out;
+}, 10, 3 );
+
+// ---------- Log out: straight back to the home page, signed out ----------
+add_filter( 'woocommerce_logout_default_redirect_url', function () {
+	return home_url( '/' );
+} );
+add_filter( 'logout_redirect', function ( $to, $requested, $user ) {
+	return ( $user instanceof WP_User && ! user_can( $user, 'edit_posts' ) ) ? home_url( '/' ) : $to;
 }, 10, 3 );
 
 // ---------- Tell the page header who is logged in (and where the account menu links go) ----------
@@ -162,7 +184,7 @@ add_action( 'wp_footer', function () {
 			array( 'Orders', wc_get_account_endpoint_url( 'orders' ) ),
 			array( 'Delivery address', wc_get_account_endpoint_url( 'edit-address' ) ),
 			array( 'Account details', wc_get_account_endpoint_url( 'edit-account' ) ),
-			array( 'Log out', wc_logout_url() ),
+			array( 'Log out', html_entity_decode( wc_logout_url( home_url( '/' ) ) ) ), // a plain URL, not HTML (&amp; broke the security check)
 		);
 	} else {
 		$data['menu'] = array(

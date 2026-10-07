@@ -204,7 +204,9 @@ Snippet 10 "Fika accounts" (wordpress/snippets/fika-accounts.php):
   refunded. Helpers for the reward work: fika_customer_totals( $user_id ), fika_order_grams( $order ).
   **Mark orders Completed once delivered**, otherwise they don't count.
 - My account dashboard: "N kg of sweets delivered" and "N orders delivered" cards.
-- WordPress Users list: "Fika orders" and "Kg delivered" columns.
+- WordPress Users list: "Phone", "Signed up" (sortable), "Fika orders" and "Kg delivered" columns.
+- Log out (header menu or My account) goes straight to the home page, signed out. (The header link used to carry
+  HTML-escaped &amp; in its URL, which failed WordPress's security check and showed "Do you really want to log out?".)
 - My account menu: Dashboard, Orders, Delivery address, Account details, Log out (Downloads removed, billing
   address hidden since billing always uses the delivery address). Last name optional.
 - Home page header: person icon left of the bag (green dot when signed in). On hover it waves and drops down
