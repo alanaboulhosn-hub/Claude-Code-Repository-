@@ -216,20 +216,24 @@ Snippet 10 "Fika accounts" (wordpress/snippets/fika-accounts.php):
 My account page (88): Fika skin block wordpress/pages/store-skin-account.html above [woocommerce_my_account]
 (centred logo, "Your account", Return to store, white cards, blue pill buttons, phone layout).
 
-## Fika rewards: swim to your free kilo (2026-10-07)
+## Fika rewards: swim to your free kilo (2026-10-07, updated)
 
 Snippet 11 "Fika rewards" (wordpress/snippets/fika-loyalty.php), needs snippet 10. Signed-in customers only.
 - Home page (just above the shop) and My account dashboard: a cartoon Swedish fish swims along a water lane
-  to the customer's delivered kilos (Completed orders) out of 8 kg, with kg marks and a "FREE" bag at the end.
-  It swims in when scrolled into view (bubbles, tail wag); orders still Processing / On hold show as a striped
-  stretch ahead of the fish ("+x kg on its way, counted once delivered").
-- Every 8 kg delivered (FIKA_SWIM_GOAL) automatically creates a one-time code FREEKG-XXXXXX when the order is
-  marked Completed: fixed $25 off the cart (FIKA_FREE_KG_VALUE = 1 kg at $2.50 / 100 g), delivery not
-  included, individual use, usage limit 1, locked to the customer's email. Codes are listed in user meta
-  fika_rewards and in Marketing > Coupons (description "Fika free kilo #n for ...").
-- While a code is unused the fish waits at the finish (jumping, confetti) with the code and a Copy button;
-  checkout shows "Your free kilo is ready" with a "Use my free kilo" button that applies it.
-  Once used, the next lap starts (kilos beyond each 8 kg carry over).
-- Header account menu shows "x kg to your free kilo" / "Your free kilo is ready!".
-- Shop managers (signed in) can preview on the home page: /?fika_fish=5.2 (&fika_pending=1) or /?fika_fish=8.
-- Snippet 10 also now sets the display name to the first name for accounts created at checkout.
+  towards 8 kg. The lane shows delivered kilos (Completed, deep blue), kilos on their way (Processing /
+  On hold, light blue) and what is in the bag right now (candy stripes). As the customer presses + / − in
+  the shop the fish swims forwards or turns round and swims back, gram by gram.
+- **Undelivered** is a new order status (order screen dropdown and bulk action "Change status to undelivered").
+  Undelivered, Cancelled, Failed and Refunded orders do not count. The fish starts from where the customer last
+  saw it, so after an order is marked Undelivered it visibly swims back.
+- Every 8 kg *delivered* creates a one-time code FREEKG-XXXXXX (Marketing > Coupons, description
+  "Fika free kilo #n for ..."), locked to the customer's email. At checkout it is worth exactly 1 kg of the
+  sweets in the bag (most expensive first; a smaller bag is simply free); delivery is not included.
+  Placed-but-not-delivered orders move the fish but never unlock the code ("unlocks once delivered").
+  If delivered kilos fall back below the mark (order marked Undelivered), an unused code is withdrawn.
+- The free kilo does not count towards the next 8 kg; anything beyond each 8 kg carries over to the next lap.
+- The free kilo can be combined with FIKA10 (both coupons now have individual use off).
+- Checkout shows "Your free kilo is ready" with a "Use my free kilo" button.
+- Header account menu: "x kg to your free kilo" / "Free kilo unlocks on delivery" / "Your free kilo is ready!".
+- Shop managers (signed in) can preview on the home page: /?fika_fish=5.2&fika_pending=1.
+- Snippet 10 also sets the display name to the first name for accounts created at checkout.
