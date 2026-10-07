@@ -20,6 +20,8 @@ add_action( 'woocommerce_init', function () {
 		'location'          => 'contact',
 		'type'              => 'text',
 		'required'          => true,
+		// shown in the emails' Delivery details, not again under "Additional information"
+		'show_in_order_confirmation' => false,
 		'attributes'        => array(
 			'autocomplete' => 'tel',
 		),

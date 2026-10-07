@@ -455,3 +455,8 @@ emails) and the "Your bag is waiting" reminder like the website:
 - Banner type matches the home hero on every page: title in the cute font clamp(40px, 4.4vw, 84px), line 1.15;
   text (and the About kicker) white small-caps Fanwood Text clamp(16px, 1.5vw, 19px), line 1.6, shadow
   0 1px 8px rgba(0,0,0,.35). Checked equal on 1280, 1920 and 390 px wide screens.
+- Order email clean-up (checked on order 313, rendered without sending): no "Pay with cash upon delivery." note
+  (the cash-on-delivery instructions are left out of emails only); no "Additional information / Phone number"
+  block (fika/phone has show_in_order_confirmation false; the phone is in Delivery details); the delivery row reads
+  "Delivery: $6.00" without the method's name; "Hi Alan," in the same font as the rest; no closing line on the
+  order confirmation / on hold emails; the white card runs straight into the blue wave (no pink gap).

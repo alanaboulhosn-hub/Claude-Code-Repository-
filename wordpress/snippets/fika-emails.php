@@ -42,7 +42,7 @@ body, #outer_wrapper, #wrapper { background-color: #fdeaf2 !important; }
 #inner_wrapper, #inner_wrapper > table, #template_header_image { background: transparent !important; background-color: transparent !important; box-shadow: none !important; border: 0 !important; }
 #template_header_image { padding: 10px 24px 18px !important; text-align: center !important; }
 #template_header_image img { display: inline-block !important; width: 300px !important; max-width: 80% !important; height: auto !important; }
-#template_container { background-color: #ffffff !important; border: 0 !important; border-radius: 28px !important; box-shadow: 0 10px 30px rgba(0, 74, 173, .10) !important; overflow: hidden; }
+#template_container { background-color: #ffffff !important; border: 0 !important; border-radius: 28px 28px 0 0 !important; box-shadow: none !important; overflow: hidden; }
 #template_header { background-color: #ffffff !important; border-radius: 28px 28px 0 0 !important; }
 #header_wrapper { padding: 38px 40px 0 !important; text-align: center !important; }
 #header_wrapper h1, h1 { font-family: $serif !important; font-variant: small-caps; font-weight: 400 !important; font-size: 36px !important; line-height: 1.15 !important;
@@ -52,7 +52,6 @@ body, #outer_wrapper, #wrapper { background-color: #fdeaf2 !important; }
 #body_content_inner, #body_content_inner p, #body_content_inner td, #body_content_inner th, .td, address, .font-family { font-family: $sans !important; color: #1b2a4a !important; }
 #body_content_inner { font-size: 16px !important; line-height: 1.6 !important; }
 #body_content_inner p { margin: 0 0 14px !important; }
-.email-introduction p:first-child { font-family: $serif !important; font-variant: small-caps; font-size: 21px !important; color: #004aad !important; }
 h2, .email-order-detail-heading { font-family: $serif !important; font-variant: small-caps; font-weight: 400 !important; font-size: 25px !important; color: #004aad !important; margin: 26px 0 8px !important; }
 h2 span, .email-order-detail-heading span { font-family: $sans !important; font-variant: normal; font-size: 13px !important; color: #6c7b9c !important; }
 h3 { font-family: $sans !important; font-weight: 600 !important; font-size: 16px !important; color: #004aad !important; }
@@ -71,7 +70,8 @@ hr, .email-separator, .email-order-details + br { border-color: #f3dbe6 !importa
 .fika-mail-box h2 { margin: 0 0 6px !important; font-size: 22px !important; }
 .fika-mail-box p, .fika-mail-box address { margin: 0 !important; font-style: normal; line-height: 1.55 !important; color: #1b2a4a !important; }
 .fika-mail-btn { display: inline-block; background: #004aad; color: #ffffff !important; border-radius: 999px; padding: 14px 32px; font-family: $sans; font-weight: 600; font-size: 15px; text-decoration: none !important; }
-#template_footer { background: transparent !important; border: 0 !important; }
+#template_footer { background: transparent !important; border: 0 !important; margin: 0 !important; }
+#template_footer > tbody > tr > td, #template_footer td td { padding-top: 0 !important; }
 #credit { padding: 0 !important; border: 0 !important; color: #fdeaf2 !important; }
 #credit p { margin: 0 !important; }
 @media screen and (max-width: 600px) {
@@ -88,7 +88,7 @@ add_filter( 'woocommerce_email_footer_text', function () {
 	$serif = "'Fanwood Text',Georgia,'Times New Roman',serif";
 	$sans  = "'Outfit','Helvetica Neue',Helvetica,Arial,sans-serif";
 	$link  = 'color:#fdeaf2 !important;text-decoration:none;';
-	return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin-top:26px;"><tr><td style="padding:0;line-height:0;font-size:0;">' .
+	return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0;"><tr><td bgcolor="#ffffff" style="padding:0;line-height:0;font-size:0;background:#ffffff;">' .
 		'<img src="' . $wave . '" width="600" height="28" alt="" style="display:block;width:100%;height:28px;border:0;"></td></tr>' .
 		'<tr><td bgcolor="#004aad" style="background:#004aad;color:#fdeaf2;text-align:center;font-family:' . $serif . ';font-variant:small-caps;font-size:16px;line-height:1.7;padding:16px 24px 30px;">' .
 		'<span style="font-size:24px;color:#ffffff;">Fika</span><br>Swedish pick-and-mix, delivered across Lebanon<br>' .
@@ -118,13 +118,37 @@ add_action( 'woocommerce_email', function ( $mailer ) {
 	}, 20, 3 );
 } );
 
+// ---------- order emails: no "Pay with cash upon delivery." note; the delivery row reads "Delivery: $6.00" ----------
+add_action( 'woocommerce_email_before_order_table', function () {
+	global $wp_filter;
+	if ( empty( $wp_filter['woocommerce_email_before_order_table'] ) ) {
+		return;
+	}
+	foreach ( $wp_filter['woocommerce_email_before_order_table']->callbacks as $prio => $cbs ) {
+		foreach ( $cbs as $cb ) {
+			if ( is_array( $cb['function'] ) ? ( is_object( $cb['function'][0] ) ? ( 'email_instructions' === $cb['function'][1] ? is_a( $cb['function'][0], 'WC_Gateway_COD' ) : false ) : false ) : false ) {
+				remove_action( 'woocommerce_email_before_order_table', $cb['function'], $prio );
+			}
+		}
+	}
+}, 1 );
+add_filter( 'woocommerce_get_order_item_totals', function ( $rows, $order ) {
+	if ( ! doing_action( 'woocommerce_email_order_details' ) || ! isset( $rows['shipping'] ) ) {
+		return $rows;
+	}
+	$cost                      = (float) $order->get_shipping_total() + (float) $order->get_shipping_tax();
+	$rows['shipping']['label'] = 'Delivery:';
+	$rows['shipping']['value'] = $cost > 0 ? wc_price( $cost, array( 'currency' => $order->get_currency() ) ) : 'Free';
+	$rows['shipping']['meta']  = ''; // WooCommerce's email layout prints the delivery method's name from here
+	return $rows;
+}, 20, 2 );
+
 // ---------- friendlier subjects, headings and closing lines (WooCommerce settings win when filled in) ----------
 if ( ! function_exists( 'fika_mail_copy' ) ) {
 	function fika_mail_copy() {
-		$delivery = 'We are packing your sweets with care. Delivery inside Beirut takes 1–2 business days, outside Beirut 2–3 (no deliveries on Sundays), and you pay in cash when they arrive.';
 		return array(
-			'customer_processing_order' => array( 'subject' => 'Your Fika order #{order_number} is confirmed', 'heading' => 'Thank you for your order!', 'additional_content' => $delivery ),
-			'customer_on_hold_order'    => array( 'subject' => 'We have your Fika order #{order_number}', 'heading' => 'Thank you for your order!', 'additional_content' => $delivery ),
+			'customer_processing_order' => array( 'subject' => 'Your Fika order #{order_number} is confirmed', 'heading' => 'Thank you for your order!', 'additional_content' => '' ),
+			'customer_on_hold_order'    => array( 'subject' => 'We have your Fika order #{order_number}', 'heading' => 'Thank you for your order!', 'additional_content' => '' ),
 			'customer_completed_order'  => array( 'subject' => 'Your Fika sweets have arrived', 'heading' => 'Time for fika!', 'additional_content' => 'We hope every bite is a little treat. Tell us what you loved with a review on the candy’s page, and tag us @swedishfika.lb.' ),
 			'customer_failed_order'     => array( 'subject' => 'Your Fika order #{order_number} didn’t go through', 'heading' => 'Something went wrong', 'additional_content' => 'Your sweets are not lost: try again from the shop, or message us on WhatsApp 79 411 565 and we will sort it out together.' ),
 			'customer_refunded_order'   => array( 'heading' => 'Your refund is on its way', 'additional_content' => 'Questions about your refund? Reply to this email or WhatsApp us on 79 411 565.' ),
