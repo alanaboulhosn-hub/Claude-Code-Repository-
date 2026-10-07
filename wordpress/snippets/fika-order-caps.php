@@ -4,7 +4,7 @@
  * - Product edit page > Inventory: "Max per order (grams)". Candies in 100 g steps, Ready Mix in 500 g bags.
  *   Empty = no cap. Stored in product meta fika_max_g.
  * - Enforced by WooCommerce (cart, Store API used by the bag and checkout, and the final checkout check).
- * - Home page: capped candies show "Max 500 g per order"; + stops at the cap (card and bag drawer) with a short note;
+ * - Home page: + stops at the cap (card and bag drawer) and shows a short "Max 500 g per order" note;
  *   a bag that already holds more than the cap is trimmed to it.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-order-caps.php
  */
@@ -126,7 +126,6 @@ add_action( 'wp_footer', function () {
 	}
 	?>
 <style>
-.mx-card .fk-cap { margin: -2px 0 8px; font: 600 12.5px/1.2 'Outfit', 'Open Sans', Arial, sans-serif; color: #6b7894; letter-spacing: .01em; }
 .fk-captip { position: fixed; z-index: 100000; padding: 7px 12px; border-radius: 999px; background: #1b2a4a; color: #fff; font: 600 13px/1.2 'Outfit', 'Open Sans', Arial, sans-serif; white-space: nowrap; pointer-events: none;
   transform: translate(-50%, calc(-100% - 22px)); opacity: 0; transition: opacity .18s ease, transform .18s ease; }
 .fk-captip.on { opacity: 1; transform: translate(-50%, calc(-100% - 34px)); }
@@ -168,22 +167,6 @@ add_action( 'wp_footer', function () {
 			say(b, 'Max ' + c.t + ' per order');
 		}
 	}, true);
-	// "Max 500 g per order" under the price on capped cards (cards are re-drawn often, so keep it in place)
-	function label() {
-		document.querySelectorAll('.mx-card[data-id]').forEach(function (card) {
-			var c = CAPS[pid(card.getAttribute('data-id'))];
-			if (!c || card.querySelector('.fk-cap')) return;
-			var price = card.querySelector('.mx-price');
-			if (!price) return;
-			var d = document.createElement('div');
-			d.className = 'fk-cap';
-			d.textContent = 'Max ' + c.t + ' per order';
-			price.parentNode.insertBefore(d, price.nextSibling);
-		});
-	}
-	label();
-	var mo = new MutationObserver(label);
-	document.querySelectorAll('#shop, #rmPage').forEach(function (sec) { mo.observe(sec, { childList: true, subtree: true }); });
 })();
 </script>
 	<?php
