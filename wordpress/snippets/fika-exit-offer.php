@@ -7,6 +7,7 @@
  * Any other reason leads to a one-time offer: 10% off the candies with coupon FIKA10
  * (WooCommerce coupon: percent, individual use, usage limit 1 per customer, checked by email).
  * The offer is shown once per browser; reasons are counted in the option "fika_exit_reasons".
+ * WP Admin > WooCommerce > Checkout leavers shows the counts and can reset them.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-exit-offer.php
  */
 
@@ -38,9 +39,87 @@ add_action( 'rest_api_init', function () {
 	register_rest_route( 'fika/v1', '/exit-reasons', array(
 		'methods'             => 'DELETE',
 		'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
-		'callback'            => function () { delete_option( 'fika_exit_reasons' ); return array( 'reset' => true ); },
+		'callback'            => function () { fika_exit_reset(); return array( 'reset' => true ); },
 	) );
 } );
+
+if ( ! function_exists( 'fika_exit_reset' ) ) {
+	function fika_exit_reset() {
+		delete_option( 'fika_exit_reasons' );
+		update_option( 'fika_exit_reasons_since', time(), false );
+	}
+}
+
+// ---------- WP Admin > WooCommerce > Checkout leavers ----------
+add_action( 'admin_menu', function () {
+	add_submenu_page( 'woocommerce', 'Checkout leavers', 'Checkout leavers', 'manage_woocommerce', 'fika-checkout-leavers', 'fika_exit_admin_page' );
+}, 60 );
+add_action( 'admin_post_fika_exit_reset', function () {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		wp_die( 'Not allowed.' );
+	}
+	check_admin_referer( 'fika_exit_reset' );
+	fika_exit_reset();
+	wp_safe_redirect( admin_url( 'admin.php?page=fika-checkout-leavers&reset=1' ) );
+	exit;
+} );
+if ( ! function_exists( 'fika_exit_admin_page' ) ) {
+	function fika_exit_admin_page() {
+		$c       = get_option( 'fika_exit_reasons', array() );
+		$n       = function ( $k ) use ( $c ) { return isset( $c[ $k ] ) ? (int) $c[ $k ] : 0; };
+		$reasons = array(
+			'delivery-price' => 'Delivery is too expensive',
+			'delivery-time'  => 'Delivery takes too long',
+			'product-price'  => 'The candies are too expensive',
+			'change-order'   => 'I want to change my order',
+			'other'          => 'Another reason',
+		);
+		$total   = 0;
+		foreach ( $reasons as $k => $label ) {
+			$total += $n( $k );
+		}
+		$applied  = $n( 'offer-applied' );
+		$declined = $n( 'offer-declined' );
+		$since    = (int) get_option( 'fika_exit_reasons_since', 0 );
+		$pct      = function ( $x, $of ) { return $of ? round( 100 * $x / $of ) . '%' : '–'; };
+		?>
+<div class="wrap">
+	<h1>Checkout leavers</h1>
+	<p>What shoppers answered in the &ldquo;Leaving already?&rdquo; popup on the checkout, and what they did with the one-time 10% offer (FIKA10).
+	Anonymous counts only. <?php echo $since ? 'Counting since ' . esc_html( wp_date( 'j F Y, H:i', $since ) ) . '.' : ''; ?></p>
+		<?php if ( isset( $_GET['reset'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
+	<div class="notice notice-success is-dismissible"><p>The counts were reset to zero.</p></div>
+		<?php endif; ?>
+	<h2>Why they wanted to leave</h2>
+	<table class="widefat striped" style="max-width:640px">
+		<thead><tr><th>Reason</th><th style="width:90px">Shoppers</th><th style="width:90px">Share</th></tr></thead>
+		<tbody>
+		<?php foreach ( $reasons as $k => $label ) : ?>
+			<tr><td><?php echo esc_html( $label ); ?></td><td><?php echo (int) $n( $k ); ?></td><td><?php echo esc_html( $pct( $n( $k ), $total ) ); ?></td></tr>
+		<?php endforeach; ?>
+		</tbody>
+		<tfoot><tr><th>Total</th><th><?php echo (int) $total; ?></th><th></th></tr></tfoot>
+	</table>
+	<h2>The 10% offer</h2>
+	<table class="widefat striped" style="max-width:640px">
+		<thead><tr><th>Answer</th><th style="width:90px">Shoppers</th><th style="width:90px">Share</th></tr></thead>
+		<tbody>
+			<tr><td>Applied the 10% and stayed</td><td><?php echo (int) $applied; ?></td><td><?php echo esc_html( $pct( $applied, $applied + $declined ) ); ?></td></tr>
+			<tr><td>Said &ldquo;No thanks, I&rsquo;ll leave&rdquo;</td><td><?php echo (int) $declined; ?></td><td><?php echo esc_html( $pct( $declined, $applied + $declined ) ); ?></td></tr>
+		</tbody>
+	</table>
+	<p class="description" style="max-width:640px">&ldquo;I want to change my order&rdquo; goes back to the shop without an offer. Shoppers who already used the offer,
+	have another discount code, or hold a free kilo are not offered the 10%. Closing the popup without answering is not counted.</p>
+	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:20px"
+		onsubmit="return confirm('Reset all counts to zero? This cannot be undone.');">
+		<input type="hidden" name="action" value="fika_exit_reset">
+		<?php wp_nonce_field( 'fika_exit_reset' ); ?>
+		<button type="submit" class="button">Reset counts</button>
+	</form>
+</div>
+		<?php
+	}
+}
 
 add_action( 'wp_footer', function () {
 	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {

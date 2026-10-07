@@ -46,6 +46,45 @@ add_action( 'woocommerce_store_api_checkout_update_order_from_request', function
 	}
 }, 10, 2 );
 
+// No billing address: every order is cash on delivery, so the delivery address is all we need.
+// Checkout hides the "Use same address for billing" box and the billing form (guests and signed-in customers alike;
+// WooCommerce unticks the box for customers whose saved billing address differs), and keeps the box ticked.
+// The order's billing address is a copy of the delivery address (the email and phone stay as entered).
+add_action( 'woocommerce_store_api_checkout_update_order_from_request', function ( $order ) {
+	if ( ! $order->get_shipping_address_1() ) {
+		return;
+	}
+	foreach ( array( 'first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country' ) as $f ) {
+		$order->{'set_billing_' . $f}( $order->{'get_shipping_' . $f}() );
+	}
+}, 20 );
+add_action( 'wp_footer', function () {
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+		return;
+	}
+	?>
+<style>
+.wc-block-checkout__use-address-for-billing, .wp-block-woocommerce-checkout-billing-address-block, .wc-block-checkout__billing-fields { display: none !important; }
+</style>
+<script>
+(function () {
+	function keep() {
+		try {
+			var sel = wp.data.select( 'wc/store/checkout' ), act = wp.data.dispatch( 'wc/store/checkout' );
+			if ( sel.getUseShippingAsBilling() === false ) { ( act.__internalSetUseShippingAsBilling || act.setUseShippingAsBilling )( true ); }
+		} catch ( e ) {}
+	}
+	function start() {
+		if ( ! window.wp || ! wp.data ) { return setTimeout( start, 200 ); }
+		keep();
+		wp.data.subscribe( keep );
+	}
+	start();
+})();
+</script>
+	<?php
+}, 30 );
+
 // Lebanon: no postal codes, so hide the field.
 add_filter( 'woocommerce_get_country_locale', function ( $locale ) {
 	$locale['LB']['postcode'] = array(

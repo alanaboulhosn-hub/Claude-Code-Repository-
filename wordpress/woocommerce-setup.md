@@ -360,3 +360,14 @@ Each page download roughly halved (home about 2.4 MB to 1.2 MB, Mix your own abo
   banner photos sit on their own fixed layer (.fika-photo) that the hero clips, so the browser keeps them still by
   itself. Before, the photo's position was recalculated on every scroll step, which looked like vibrating on some
   screens. The eyes no longer need moving on scroll either. CSS and the small sizing script: header part (pattern 239).
+
+## No billing address + Checkout leavers screen (2026-10-07)
+
+- Checkout asks for the delivery address only. The "Use same address for billing" box and the billing form are
+  hidden for guests and signed-in customers alike (WooCommerce used to untick the box, and show the billing form,
+  for customers whose saved billing address differed). The order's billing address is a copy of the delivery
+  address; the email and phone stay as entered. Snippet 5 (fika-checkout.php). Tested with a signed-in test
+  customer and a test order (both deleted).
+- WP Admin > WooCommerce > Checkout leavers (snippet 9, fika-exit-offer.php): the reasons shoppers gave in the
+  "Leaving already?" popup with shares, what they did with the 10% offer, the date counting started, and a
+  "Reset counts" button. The test counts were reset on 7 October 2026.
