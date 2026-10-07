@@ -452,3 +452,6 @@ emails) and the "Your bag is waiting" reminder like the website:
   fades into a pink panel matching its background, with the title and text on the left in blue. Up to 1024 px wide
   (tablets, phones) the full-width banner stays, which is already sharp there. banner(..., split=...) in
   build-shop-pages.py.
+- Banner type matches the home hero on every page: title in the cute font clamp(40px, 4.4vw, 84px), line 1.15;
+  text (and the About kicker) white small-caps Fanwood Text clamp(16px, 1.5vw, 19px), line 1.6, shadow
+  0 1px 8px rgba(0,0,0,.35). Checked equal on 1280, 1920 and 390 px wide screens.

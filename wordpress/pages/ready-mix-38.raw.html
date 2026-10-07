@@ -5,11 +5,12 @@
 /* shared by the Mix your own, Ready Mix and About us banners */
 .fika-hero.fika-shop-hero { min-height: 82vh; justify-content: center; align-items: center; }
 .fika-shop-hero .fsh-in { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 150px 6% 70px; text-align: center; }
-.fika-shop-hero .fsh-kicker { margin: 0 0 6px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: clamp(20px, 1.8vw, 26px); color: #fff; text-shadow: 0 1px 10px rgba(120, 30, 70, .55); }
-.fika-shop-hero .fsh-title { margin: 0 0 26px; font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-weight: 400; font-size: clamp(44px, 6.2vw, 96px); line-height: 1.02;
-  color: #004aad; text-shadow: 0 2px 18px rgba(255, 255, 255, .35); }
-.fika-shop-hero .fsh-text { margin: 0 auto; max-width: 980px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: clamp(18px, 1.6vw, 24px); line-height: 1.6;
-  color: #fff; text-shadow: 0 1px 10px rgba(120, 30, 70, .55); }
+/* same type as the home page hero (.fika-title / .fika-text) */
+.fika-shop-hero .fsh-kicker { margin: 0 0 6px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.6; color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, .35); }
+.fika-shop-hero .fsh-title { margin: 0 0 22px; font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-weight: 400; font-size: clamp(40px, 4.4vw, 84px); line-height: 1.15;
+  color: #004aad; }
+.fika-shop-hero .fsh-text { margin: 0 auto; max-width: 640px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.6;
+  color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, .35); }
 @media (max-width: 700px) {
   .fika-hero.fika-shop-hero { min-height: 74vh; }
   .fika-shop-hero .fsh-in { padding: 130px 20px 50px; }
@@ -33,8 +34,7 @@
   .fika-hero.fika-ready-hero > .fika-photo::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: calc(var(--fika-photo-h, 82vh) * 0.808);
     background: url(/wp-content/uploads/2026/10/fika-background-2-U56KoRAjvfi6k05N.jpeg) center / cover no-repeat; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 180px); mask-image: linear-gradient(90deg, transparent 0, #000 180px); }
   .fika-hero.fika-ready-hero .fsh-in { margin: 0 auto 0 0; max-width: calc(100vw - var(--fika-photo-h, 82vh) * 0.808 + 60px); padding-left: max(6%, calc((100vw - 1180px) / 2)); padding-right: 30px; text-align: left; }
-  .fika-hero.fika-ready-hero .fsh-text { margin: 0; max-width: 620px; color: #1b2a4a; text-shadow: none; }
-  .fika-hero.fika-ready-hero .fsh-title { text-shadow: none; }
+  .fika-hero.fika-ready-hero .fsh-text { margin: 0; }
 }
 </style>
 <!-- /wp:html -->
