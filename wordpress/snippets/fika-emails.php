@@ -8,7 +8,7 @@
  *   for the delivery address).
  * - Friendlier subjects, headings and closing lines. Anything typed in WooCommerce > Settings > Emails for an
  *   email (other than WooCommerce's own default wording) wins over these.
- * Images: media 304 (wordmark, fika-email-logo.png) and 305 (wave, fika-email-wave.png).
+ * Images: media 304 (wordmark, fika-email-logo.png); footer pictures 317-321 (fika-email-foot-*.png).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-emails.php
  */
 
@@ -37,8 +37,8 @@ add_filter( 'woocommerce_email_styles', function ( $css ) {
 	$sans  = "'Outfit', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 	return $css . "
 @import url('https://fonts.googleapis.com/css2?family=Fanwood+Text&family=Outfit:wght@400;500;600&display=swap');
-body, #outer_wrapper, #wrapper { background-color: #fdeaf2 !important; }
-#wrapper { padding: 28px 12px 0 !important; }
+body, #outer_wrapper, #wrapper { background-color: #fdeaf2 !important; background-image: linear-gradient(#fdeaf2, #fdeaf2) !important; }
+#wrapper { padding: 28px 12px 0 !important; box-sizing: border-box !important; }
 #inner_wrapper, #inner_wrapper > table, #template_header_image { background: transparent !important; background-color: transparent !important; box-shadow: none !important; border: 0 !important; }
 #template_header_image { padding: 10px 24px 18px !important; text-align: center !important; }
 #template_header_image img { display: inline-block !important; width: 300px !important; max-width: 80% !important; height: auto !important; }
@@ -72,7 +72,7 @@ hr, .email-separator, .email-order-details + br { border-color: #f3dbe6 !importa
 .fika-mail-box { background: #fdeaf2; border-radius: 18px; padding: 18px 22px !important; }
 .fika-mail-box h2 { margin: 0 0 6px !important; font-size: 22px !important; }
 .fika-mail-box p, .fika-mail-box address { margin: 0 !important; font-style: normal; line-height: 1.55 !important; color: #1b2a4a !important; }
-.fika-mail-box td { padding: 3px 0 !important; vertical-align: top; font-size: 15px !important; }
+.fika-mail-box td { padding: 3px 0 !important; vertical-align: top; font-size: 15px !important; word-break: break-word; overflow-wrap: anywhere; }
 #body_content_inner .fika-mail-box td.k { width: 1%; white-space: nowrap; color: #004aad !important; font-weight: 600 !important; padding-right: 18px !important; }
 .fika-mail-btn { display: inline-block; background: #004aad; color: #ffffff !important; border-radius: 999px; padding: 14px 32px; font-family: $sans; font-weight: 600; font-size: 15px; text-decoration: none !important; }
 #template_footer { background: transparent !important; border: 0 !important; margin: 0 !important; }
@@ -80,25 +80,46 @@ hr, .email-separator, .email-order-details + br { border-color: #f3dbe6 !importa
 #credit { padding: 0 !important; border: 0 !important; color: #fdeaf2 !important; }
 #credit p { margin: 0 !important; }
 @media screen and (max-width: 600px) {
+  #wrapper { padding: 18px 8px 0 !important; }
+  #template_header_image { padding: 6px 10px 14px !important; }
   #header_wrapper { padding: 30px 22px 0 !important; }
-  #body_content_inner_cell { padding: 18px 22px 28px !important; }
+  #body_content_inner_cell { padding: 18px 20px 28px !important; }
   #header_wrapper h1, h1 { font-size: 30px !important; }
+  #body_content_inner, #body_content_inner p, #body_content_inner td, #body_content_inner th { font-size: 15px !important; }
+  .email-order-item-meta { font-size: 13px !important; }
+  .fika-mail-box { padding: 14px 14px !important; }
+  #body_content_inner .fika-mail-box td.k { padding-right: 10px !important; }
 }
 ";
 }, 20 );
 
 // ---------- footer: the wave and the blue band, like the website ----------
+// Made of pictures (media 317-321): phone apps in dark mode recolour backgrounds but never pictures, so a coloured
+// band next to the wave picture came out in two different blues. The three buttons are separate linked pictures.
 add_filter( 'woocommerce_email_footer_text', function () {
-	$wave  = esc_url( home_url( FIKA_MAIL_WAVE ) );
-	$serif = "'Fanwood Text',Georgia,'Times New Roman',serif";
-	$sans  = "'Outfit','Helvetica Neue',Helvetica,Arial,sans-serif";
-	$link  = 'color:#fdeaf2 !important;text-decoration:none;';
-	return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0;"><tr><td bgcolor="#ffffff" style="padding:0;line-height:0;font-size:0;background:#ffffff;">' .
-		'<img src="' . $wave . '" width="600" height="28" alt="" style="display:block;width:100%;height:28px;border:0;"></td></tr>' .
-		'<tr><td bgcolor="#004aad" style="background:#004aad;color:#fdeaf2;text-align:center;font-family:' . $serif . ';font-variant:small-caps;font-size:16px;line-height:1.7;padding:16px 24px 30px;">' .
-		'<span style="font-size:24px;color:#ffffff;">Fika</span><br>Swedish pick-and-mix, delivered across Lebanon<br>' .
-		'<a href="https://wa.me/96179411565" style="' . $link . '">WhatsApp 79 411 565</a> &nbsp;&middot;&nbsp; <a href="mailto:hello@swedishfikalb.com" style="' . $link . '">hello@swedishfikalb.com</a> &nbsp;&middot;&nbsp; <a href="https://instagram.com/swedishfika.lb" style="' . $link . '">@swedishfika.lb</a><br>' .
-		'<span style="font-family:' . $sans . ';font-variant:normal;font-size:12px;color:#c9d4ea;">Questions about your order? Just reply to this email.</span></td></tr></table>';
+	$u    = function ( $f ) { return esc_url( home_url( '/wp-content/uploads/2026/10/' . $f ) ); };
+	$img  = function ( $f, $w, $h, $alt ) use ( $u ) {
+		return '<img src="' . $u( $f ) . '" width="' . $w . '" height="' . $h . '" alt="' . esc_attr( $alt ) . '" style="display:block;width:100%;max-width:' . $w . 'px;height:auto;border:0;outline:none;">';
+	};
+	$cell = function ( $href, $f, $alt ) use ( $img ) {
+		return '<td width="33.33%" style="width:33.33%;padding:0;line-height:0;font-size:0;"><a href="' . esc_url( $href ) . '" style="display:block;text-decoration:none;">' . $img( $f, 200, 64, $alt ) . '</a></td>';
+	};
+	return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0;border-collapse:collapse;">' .
+		'<tr><td bgcolor="#ffffff" style="padding:0;line-height:0;font-size:0;background:#ffffff;">' . $img( 'fika-email-foot-top.png', 600, 116, 'Fika - Swedish pick-and-mix, delivered across Lebanon' ) . '</td></tr>' .
+		'<tr><td style="padding:0;line-height:0;font-size:0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;"><tr>' .
+		$cell( 'https://wa.me/96179411565', 'fika-email-foot-wa.png', 'WhatsApp 79 411 565' ) .
+		$cell( 'mailto:hello@swedishfikalb.com', 'fika-email-foot-mail.png', 'Email hello@swedishfikalb.com' ) .
+		$cell( 'https://instagram.com/swedishfika.lb', 'fika-email-foot-ig.png', 'Instagram @swedishfika.lb' ) .
+		'</tr></table></td></tr>' .
+		'<tr><td style="padding:0;line-height:0;font-size:0;">' . $img( 'fika-email-foot-bottom.png', 600, 62, 'WhatsApp 79 411 565, hello@swedishfikalb.com, @swedishfika.lb. Questions about your order? Just reply to this email.' ) . '</td></tr>' .
+		'</table>';
+}, 20 );
+
+// ---------- keep the light colours in phone apps that switch emails to dark mode (iPhone Mail, Outlook) ----------
+add_filter( 'woocommerce_mail_content', function ( $html ) {
+	$meta = '<meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only">' .
+		'<style>:root { color-scheme: light only; supported-color-schemes: light only; }</style>';
+	return false !== stripos( $html, '<head>' ) ? preg_replace( '/<head>/i', '<head>' . $meta, $html, 1 ) : $meta . $html;
 }, 20 );
 
 // ---------- one "Delivery details" block instead of billing + shipping ----------

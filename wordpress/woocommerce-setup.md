@@ -474,3 +474,10 @@ signed-in customers, "See my orders"; candy cartoons and a cartoon burst. The or
 order key, only for orders from the last 24 hours; the popup shows once (the link is cleaned from the address bar).
 Without JavaScript, or when the order link is opened later, the Order received page shows as normal.
 A "Purchase" event is sent to a Facebook/Meta pixel if one is ever added. Tested with test order 315 (deleted).
+- Emails on phones in dark mode: the emails now tell mail apps to keep the light colours (color-scheme "light only",
+  respected by iPhone Mail and Outlook), and the pink background is also set as a flat gradient, which Gmail's dark
+  mode does not repaint. The footer is made of pictures (media 317-321: wave and Fika band, three linked buttons
+  WhatsApp / Email us / Instagram, and the contact line), because dark mode recolours backgrounds but never
+  pictures; a coloured band beside the wave picture showed up as a light-blue block. Images and the script that
+  makes them: wordpress/email-assets/ (foot-img.js). Phone layout: text back to 15 px (WooCommerce shrank it to
+  12 px), long values wrap, nothing wider than the screen (checked at 360 and 390 px).
