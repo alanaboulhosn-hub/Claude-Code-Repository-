@@ -9,9 +9,9 @@
  *   stops counting, the fish swims back from where the customer last saw it.
  * - The free kilo itself does not count towards the next 8 kg.
  * - Every 8 kg DELIVERED earns a personal one-time code: 1 kg of sweets free (worth exactly the customer's
- *   own 1 kg, most expensive sweets first; delivery not included), locked to the customer's email, and it can
- *   be combined with the 10% before-you-go offer. If delivered kilos later drop below the mark (an order is
- *   marked Undelivered), an unused code is withdrawn.
+ *   own 1 kg, most expensive sweets first; delivery not included), locked to the customer's email. It does not
+ *   combine with the 10% before-you-go offer, and that offer is not made to customers holding a free kilo.
+ *   If delivered kilos later drop below the mark (an order is marked Undelivered), an unused code is withdrawn.
  * - Shown on the home page (above the shop) and the My account dashboard; never to visitors who are not signed in.
  *   At checkout a "Use my free kilo" button applies the code.
  * - Shop managers can preview on the home page: ?fika_fish=5.2 (delivered kg) &fika_pending=1 (kg on the way).
@@ -138,7 +138,7 @@ if ( ! function_exists( 'fika_swim_rewards' ) ) {
 			$c->set_code( $code );
 			$c->set_discount_type( 'fixed_cart' );
 			$c->set_amount( FIKA_FREE_KG_VALUE );
-			$c->set_individual_use( false );
+			$c->set_individual_use( true ); // not combined with the 10% before-you-go offer
 			$c->set_usage_limit( 1 );
 			$c->set_usage_limit_per_user( 1 );
 			$c->set_email_restrictions( array( $user->user_email ) );
@@ -310,7 +310,7 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 	<div class="fs-reward">
 		<div class="fs-code"><span>Your code</span><b><?php echo esc_html( $s['code'] ); ?></b></div>
 		<button type="button" class="fs-copy" data-code="<?php echo esc_attr( $s['code'] ); ?>">Copy code</button>
-		<p>Use it at checkout: 1 kg of the sweets in your bag is free, whichever you pick (delivery not included). One use, for your account only, and it works together with other Fika offers.</p>
+		<p>Use it at checkout: 1 kg of the sweets in your bag is free, whichever you pick (delivery not included). One use, for your account only.</p>
 	</div>
 	<?php endif; ?>
 </section>
@@ -620,6 +620,7 @@ add_action( 'wp_footer', function () {
 <script>
 (function () {
 	var CODE = <?php echo wp_json_encode( $s['code'] ); ?>;
+	window.FIKA_FREEKG = CODE; // the before-you-go popup (snippet 9) then skips its 10% offer
 	function applied() {
 		try { return (wp.data.select('wc/store/cart').getCartData().coupons || []).some(function (c) { return (c.code || '').toLowerCase() === CODE.toLowerCase(); }); } catch (e) { return false; }
 	}

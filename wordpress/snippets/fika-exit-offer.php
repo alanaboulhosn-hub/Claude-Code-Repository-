@@ -115,7 +115,12 @@ add_action( 'wp_footer', function () {
   function cartEmpty() {
     try { return !(wp.data.select('wc/store/cart').getCartData().items || []).length; } catch (e) { return false; }
   }
-  function offerAvailable() { return !ls(OFFER_KEY) && !hasCoupon(); }
+  // No 10% offer for customers holding a free kilo (snippet 11): the codes don't combine, and $25 off beats 10%
+  function freeKilo() {
+    if (window.FIKA_FREEKG) return true;
+    try { return (wp.data.select('wc/store/cart').getCartData().coupons || []).some(function (x) { return (x.code || '').toLowerCase().indexOf('freekg-') === 0; }); } catch (e) { return false; }
+  }
+  function offerAvailable() { return !ls(OFFER_KEY) && !hasCoupon() && !freeKilo(); }
   function track(reason) {
     try {
       fetch('/wp-json/fika/v1/exit-reason', { method: 'POST', keepalive: true, credentials: 'same-origin',

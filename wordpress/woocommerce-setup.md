@@ -232,7 +232,8 @@ Snippet 11 "Fika rewards" (wordpress/snippets/fika-loyalty.php), needs snippet 1
   Placed-but-not-delivered orders move the fish but never unlock the code ("unlocks once delivered").
   If delivered kilos fall back below the mark (order marked Undelivered), an unused code is withdrawn.
 - The free kilo does not count towards the next 8 kg; anything beyond each 8 kg carries over to the next lap.
-- The free kilo can be combined with FIKA10 (both coupons now have individual use off).
+- The free kilo does not combine with FIKA10 (both are individual use), and the before-you-go popup skips its
+  10% offer for customers holding a free kilo (applied or unused); it still asks the reason.
 - Checkout shows "Your free kilo is ready" with a "Use my free kilo" button.
 - Header account menu: "x kg to your free kilo" / "Free kilo unlocks on delivery" / "Your free kilo is ready!".
 - Shop managers (signed in) can preview on the home page: /?fika_fish=5.2&fika_pending=1.
