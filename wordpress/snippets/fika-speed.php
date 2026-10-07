@@ -8,7 +8,7 @@
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-speed.php
  */
 add_action( 'wp', function () {
-	if ( ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404() ) ) {
+	if ( ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us', 'privacy-policy' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404() ) ) {
 		return;
 	}
 	remove_action( 'wp_head', 'wp_print_font_faces', 50 );

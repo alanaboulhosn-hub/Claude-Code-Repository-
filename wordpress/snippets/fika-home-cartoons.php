@@ -14,7 +14,7 @@
  */
 
 add_action( 'wp_footer', function () {
-	$home     = is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404(); // these pages (and product and not-found pages) share the header, shop cards and bag
+	$home     = is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us', 'privacy-policy' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404(); // these pages (and product and not-found pages) share the header, shop cards and bag
 	$checkout = function_exists( 'is_checkout' ) ? is_checkout() : false;
 	if ( ! $home && ! $checkout ) {
 		return;

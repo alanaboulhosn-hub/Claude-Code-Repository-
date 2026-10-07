@@ -575,3 +575,22 @@ All of it was trials: 6 orders (incl. one in the trash), 6 customer accounts (wi
 totals), saved bags, checkout-leaver answers, the analytics customer list, shopping sessions, a queued bag
 reminder, and fika10's "used by" record. Kept: products, pages, settings, the administrator account, the fika10
 code itself. Done with a temporary snippet (dry run first, then delete), removed afterwards.
+
+## Back-end tidy-up (2026-10-07)
+
+- Search engines: "Discourage search engines" is ON for the test site (blog_public 0, robots noindex) so the
+  temporary address is not listed. TURN IT OFF AT LAUNCH (Settings > Reading), on the real domain.
+- Deleted WordPress's sample "Hello world!" post and its sample comment.
+- Privacy policy (page 3, /privacy-policy/): written for Fika, built by build-shop-pages.py
+  (privacy-policy-3.raw.html) with the Fika header, footer and bag. Saved as a DRAFT for the owner to review;
+  publish it at launch. The old WordPress template text is in pages/backup/privacy-policy-3.before.html.
+  The header features (account menu, cartoons, sign-up nudge, caps, lighter fonts) also run on it.
+- Inbox icon (the round sender picture that shows "F"): email-assets/fika-logo-icon.svg (square, SVG Tiny PS,
+  the BIMI format) and fika-logo-icon-512.png. Ways to show it, all done by the owner (mailbox / DNS):
+  1. Gmail, free: create a Google account on hello@swedishfikalb.com ("use my current email address") and set
+     fika-logo-icon-512.png as its profile picture. Gmail often shows it for that sender; not guaranteed.
+  2. BIMI (Yahoo, AOL, Fastmail and others; Gmail and Apple Mail also need a paid VMC/CMC certificate):
+     DMARC on swedishfikalb.com at p=quarantine or p=reject, the SVG uploaded to the live site, and a DNS TXT
+     record  default._bimi  "v=BIMI1; l=https://swedishfikalb.com/<path>/fika-logo-icon.svg;".
+     Do this only after the site sends through the mailbox (SMTP password set in WP Mail SMTP): with DMARC
+     enforced, mail sent by the web server's own mailer would be rejected.

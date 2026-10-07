@@ -235,7 +235,7 @@ add_filter( 'gettext', function ( $text, $orig, $domain ) {
 
 // ---------- Home, shop and About pages header: a waving account icon with a drop-down menu ----------
 add_action( 'wp_footer', function () {
-	if ( ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404() ) ) {
+	if ( ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us', 'privacy-policy' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404() ) ) {
 		return;
 	}
 	?>
