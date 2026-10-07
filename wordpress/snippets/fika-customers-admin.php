@@ -2,7 +2,9 @@
 /**
  * Fika: WooCommerce > Fika customers — one list of everyone: people with an account and people who ordered as guests.
  * Columns: name, email, phone, type (Account / Guest), signed up, orders, delivered, kg delivered, total spent, last order.
- * Tabs: All / Accounts / Accounts that ordered / Accounts with no orders / Guests. "Download CSV" exports the current tab.
+ * Tabs: All / Accounts / Accounts that ordered / Accounts with no orders / Guests. Search (name, email, phone) and
+ * click-to-sort columns. "Download CSV" exports what is on screen (tab + search + sort).
+ * WooCommerce's own Customers page is hidden from the menu (this list replaces it; remove that one line to bring it back).
  * Orders counted: Processing, On hold and Completed ("delivered" = Completed). Shop managers only.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-customers-admin.php
  */
@@ -94,6 +96,49 @@ if ( ! function_exists( 'fika_customer_tabs' ) ) {
 	}
 }
 
+if ( ! function_exists( 'fika_customer_view' ) ) {
+	// The rows for a tab, narrowed by a search and sorted by a column
+	function fika_customer_view( $tab, $search, $orderby, $order ) {
+		$tabs = fika_customer_tabs();
+		$tab  = isset( $tabs[ $tab ] ) ? $tab : 'all';
+		$rows = array_values( array_filter( fika_customer_rows(), $tabs[ $tab ][1] ) );
+		$q    = strtolower( trim( $search ) );
+		if ( '' !== $q ) {
+			$digits = preg_replace( '/\D/', '', $q );
+			$rows   = array_values( array_filter( $rows, function ( $r ) use ( $q, $digits ) {
+				if ( false !== strpos( strtolower( $r['name'] . ' ' . $r['email'] ), $q ) ) {
+					return true;
+				}
+				return strlen( $digits ) >= 3 && false !== strpos( preg_replace( '/\D/', '', $r['phone'] ), $digits );
+			} ) );
+		}
+		$cols = fika_customer_sort_columns();
+		if ( isset( $cols[ $orderby ] ) ) {
+			$f = $cols[ $orderby ];
+			usort( $rows, function ( $a, $b ) use ( $f ) {
+				$x = $a[ $f ];
+				$y = $b[ $f ];
+				return is_string( $x ) ? strcasecmp( $x, $y ) : ( $x <=> $y );
+			} );
+			if ( 'desc' === $order ) {
+				$rows = array_reverse( $rows );
+			}
+		} else {
+			usort( $rows, function ( $a, $b ) {
+				return max( $b['joined'], $b['last'] ) <=> max( $a['joined'], $a['last'] );
+			} );
+		}
+		return array( $tab, $rows );
+	}
+}
+
+if ( ! function_exists( 'fika_customer_sort_columns' ) ) {
+	// column key => row field
+	function fika_customer_sort_columns() {
+		return array( 'name' => 'name', 'email' => 'email', 'phone' => 'phone', 'type' => 'type', 'joined' => 'joined', 'orders' => 'orders', 'done' => 'done', 'grams' => 'grams', 'spent' => 'spent', 'last' => 'last' );
+	}
+}
+
 if ( ! function_exists( 'fika_orders_admin_url' ) ) {
 	function fika_orders_admin_url( $args ) {
 		$hpos = class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' ) && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
@@ -102,15 +147,21 @@ if ( ! function_exists( 'fika_orders_admin_url' ) ) {
 }
 
 if ( ! function_exists( 'fika_customers_page_html' ) ) {
-	function fika_customers_page_html( $tab ) {
-		$tabs = fika_customer_tabs();
-		$tab  = isset( $tabs[ $tab ] ) ? $tab : 'all';
-		$all  = fika_customer_rows();
-		$rows = array_values( array_filter( $all, $tabs[ $tab ][1] ) );
-		usort( $rows, function ( $a, $b ) {
-			return max( $b['joined'], $b['last'] ) <=> max( $a['joined'], $a['last'] );
-		} );
-		$base = admin_url( 'admin.php?page=fika-customers' );
+	function fika_customers_page_html( $tab, $search = '', $orderby = '', $order = '' ) {
+		$tabs  = fika_customer_tabs();
+		$all   = fika_customer_rows();
+		$order = 'desc' === $order ? 'desc' : 'asc';
+		list( $tab, $rows ) = fika_customer_view( $tab, $search, $orderby, $order );
+		$base  = admin_url( 'admin.php?page=fika-customers' );
+		$state = array_filter( array( 'tab' => $tab, 's' => $search, 'orderby' => $orderby, 'order' => $orderby ? $order : '' ) );
+		// a sortable column header (WordPress list-table style, with the arrow)
+		$th = function ( $key, $label, $width ) use ( $base, $state, $orderby, $order ) {
+			$is   = $orderby === $key;
+			$next = $is && 'asc' === $order ? 'desc' : 'asc';
+			$url  = add_query_arg( array_merge( $state, array( 'orderby' => $key, 'order' => $next ) ), $base );
+			$cls  = $is ? 'sorted ' . $order : 'sortable ' . ( 'asc' === $next ? 'desc' : 'asc' );
+			return '<th scope="col" class="manage-column ' . esc_attr( $cls ) . '" style="width:' . esc_attr( $width ) . '"' . ( $is ? ' aria-sort="' . ( 'asc' === $order ? 'ascending' : 'descending' ) . '"' : '' ) . '><a href="' . esc_url( $url ) . '"><span>' . esc_html( $label ) . '</span><span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span></a></th>';
+		};
 		$date = function ( $t ) {
 			return $t ? esc_html( wp_date( 'j M Y', $t ) ) : '&mdash;';
 		};
@@ -118,7 +169,7 @@ if ( ! function_exists( 'fika_customers_page_html' ) ) {
 		?>
 <div class="wrap fika-customers">
 	<h1 class="wp-heading-inline">Fika customers</h1>
-	<a class="page-title-action" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'fika_customers_csv', 'tab' => $tab ), admin_url( 'admin-post.php' ) ), 'fika_customers_csv' ) ); ?>">Download CSV</a>
+	<a class="page-title-action" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array_merge( $state, array( 'action' => 'fika_customers_csv' ) ), admin_url( 'admin-post.php' ) ), 'fika_customers_csv' ) ); ?>">Download CSV</a>
 	<hr class="wp-header-end">
 	<p class="description">Everyone with a Fika account, and everyone who ordered as a guest. Orders count when Processing, On hold or Completed; "Delivered" and "Kg delivered" count Completed orders only.</p>
 	<ul class="subsubsub">
@@ -127,17 +178,34 @@ if ( ! function_exists( 'fika_customers_page_html' ) ) {
 		foreach ( $tabs as $k => $t ) :
 			$n = count( array_filter( $all, $t[1] ) );
 			?>
-			<li><?php echo $i++ ? ' | ' : ''; ?><a href="<?php echo esc_url( add_query_arg( 'tab', $k, $base ) ); ?>"<?php echo $k === $tab ? ' class="current" aria-current="page"' : ''; ?>><?php echo esc_html( $t[0] ); ?> <span class="count">(<?php echo (int) $n; ?>)</span></a></li>
+			<li><?php echo $i++ ? ' | ' : ''; ?><a href="<?php echo esc_url( add_query_arg( array_merge( $state, array( 'tab' => $k ) ), $base ) ); ?>"<?php echo $k === $tab ? ' class="current" aria-current="page"' : ''; ?>><?php echo esc_html( $t[0] ); ?> <span class="count">(<?php echo (int) $n; ?>)</span></a></li>
 		<?php endforeach; ?>
 	</ul>
+	<form method="get" class="search-form fika-search">
+		<input type="hidden" name="page" value="fika-customers">
+		<?php foreach ( array( 'tab', 'orderby', 'order' ) as $k ) : ?>
+			<?php if ( ! empty( $state[ $k ] ) ) : ?><input type="hidden" name="<?php echo esc_attr( $k ); ?>" value="<?php echo esc_attr( $state[ $k ] ); ?>"><?php endif; ?>
+		<?php endforeach; ?>
+		<p class="search-box">
+			<label class="screen-reader-text" for="fika-customer-search">Search customers</label>
+			<input type="search" id="fika-customer-search" name="s" value="<?php echo esc_attr( $search ); ?>" placeholder="Name, email or phone">
+			<input type="submit" class="button" value="Search customers">
+			<?php if ( '' !== $search ) : ?><a class="button-link fika-clear" href="<?php echo esc_url( add_query_arg( array_diff_key( $state, array( 's' => 1 ) ), $base ) ); ?>">Clear</a><?php endif; ?>
+		</p>
+	</form>
+	<?php if ( '' !== $search ) : ?>
+		<p class="fika-results"><?php echo (int) count( $rows ); ?> result<?php echo 1 === count( $rows ) ? '' : 's'; ?> for &ldquo;<?php echo esc_html( $search ); ?>&rdquo;</p>
+	<?php endif; ?>
 	<table class="wp-list-table widefat fixed striped">
 		<thead><tr>
-			<th style="width:16%">Name</th><th style="width:20%">Email</th><th style="width:11%">Phone</th><th style="width:8%">Type</th>
-			<th style="width:9%">Signed up</th><th style="width:6%">Orders</th><th style="width:7%">Delivered</th><th style="width:7%">Kg delivered</th><th style="width:7%">Spent</th><th style="width:9%">Last order</th>
+			<?php
+			echo $th( 'name', 'Name', '16%' ) . $th( 'email', 'Email', '20%' ) . $th( 'phone', 'Phone', '11%' ) . $th( 'type', 'Type', '8%' ) . $th( 'joined', 'Signed up', '9%' ) . // phpcs:ignore
+				$th( 'orders', 'Orders', '7%' ) . $th( 'done', 'Delivered', '8%' ) . $th( 'grams', 'Kg delivered', '9%' ) . $th( 'spent', 'Spent', '7%' ) . $th( 'last', 'Last order', '9%' ); // phpcs:ignore
+			?>
 		</tr></thead>
 		<tbody>
 		<?php if ( ! $rows ) : ?>
-			<tr><td colspan="10">Nobody here yet.</td></tr>
+			<tr><td colspan="10"><?php echo '' !== $search ? 'No customers match your search.' : 'Nobody here yet.'; ?></td></tr>
 		<?php endif; ?>
 		<?php foreach ( $rows as $r ) : ?>
 			<tr>
@@ -156,7 +224,10 @@ if ( ! function_exists( 'fika_customers_page_html' ) ) {
 		</tbody>
 	</table>
 	<style>
-	.fika-customers .subsubsub { margin-bottom: 10px; }
+	.fika-customers .subsubsub { margin: 8px 0 10px; }
+	.fika-customers .fika-search .search-box { margin: 4px 0 10px; display: flex; gap: 6px; align-items: center; }
+	.fika-customers .fika-search input[type=search] { min-width: 240px; }
+	.fika-customers .fika-results { clear: both; margin: 0 0 8px; color: #50575e; }
 	.fika-customers table { clear: both; }
 	.fika-customers .fika-badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
 	.fika-customers .fika-badge-acc { background: #dcebff; color: #004aad; }
@@ -170,19 +241,28 @@ if ( ! function_exists( 'fika_customers_page_html' ) ) {
 
 add_action( 'admin_menu', function () {
 	add_submenu_page( 'woocommerce', 'Fika customers', 'Fika customers', 'manage_woocommerce', 'fika-customers', function () {
-		echo fika_customers_page_html( isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'all' ); // phpcs:ignore WordPress.Security
+		$g = function ( $k ) {
+			return isset( $_GET[ $k ] ) ? sanitize_text_field( wp_unslash( $_GET[ $k ] ) ) : ''; // phpcs:ignore WordPress.Security
+		};
+		echo fika_customers_page_html( sanitize_key( $g( 'tab' ) ), $g( 's' ), sanitize_key( $g( 'orderby' ) ), sanitize_key( $g( 'order' ) ) ); // phpcs:ignore WordPress.Security
 	} );
 }, 60 );
 
-// "Download CSV" for the tab being viewed
+// This list replaces WooCommerce > Customers, so that menu item is hidden (delete this block to bring it back)
+add_action( 'admin_menu', function () {
+	remove_submenu_page( 'woocommerce', 'wc-admin&path=/customers' );
+}, 999 );
+
+// "Download CSV": exactly what is on screen (tab, search, sort)
 add_action( 'admin_post_fika_customers_csv', function () {
 	if ( ! current_user_can( 'manage_woocommerce' ) ) {
 		wp_die( 'Not allowed.' );
 	}
 	check_admin_referer( 'fika_customers_csv' );
-	$tabs = fika_customer_tabs();
-	$tab  = isset( $_GET['tab'], $tabs[ sanitize_key( wp_unslash( $_GET['tab'] ) ) ] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'all';
-	$rows = array_values( array_filter( fika_customer_rows(), $tabs[ $tab ][1] ) );
+	$g = function ( $k ) {
+		return isset( $_GET[ $k ] ) ? sanitize_text_field( wp_unslash( $_GET[ $k ] ) ) : '';
+	};
+	list( $tab, $rows ) = fika_customer_view( sanitize_key( $g( 'tab' ) ), $g( 's' ), sanitize_key( $g( 'orderby' ) ), 'desc' === $g( 'order' ) ? 'desc' : 'asc' );
 	nocache_headers();
 	header( 'Content-Type: text/csv; charset=utf-8' );
 	header( 'Content-Disposition: attachment; filename=fika-customers-' . $tab . '-' . gmdate( 'Y-m-d' ) . '.csv' );

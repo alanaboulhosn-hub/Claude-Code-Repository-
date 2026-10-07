@@ -281,5 +281,7 @@ Snippet 17 (wordpress/snippets/fika-customers-admin.php): WP Admin > WooCommerce
 One table of everyone: people with an account and people who ordered as guests (grouped by email).
 Columns: name, email, phone, type (Account / Guest), signed up, orders (Processing, On hold, Completed; links to
 their orders), delivered (Completed), kg delivered, spent (minus refunds), last order.
-Tabs: All / Accounts / Accounts that ordered / Accounts with no orders yet / Guests. "Download CSV" exports the tab.
+Tabs: All / Accounts / Accounts that ordered / Accounts with no orders yet / Guests. Search box (name, email or phone;
+phone digits match with or without spaces) and click-to-sort columns. "Download CSV" exports what is on screen.
+WooCommerce's own Customers menu item is hidden (this list replaces it; one block in the snippet brings it back).
 Staff accounts (admins, shop managers) only appear if they ordered.
