@@ -186,3 +186,29 @@ Before-you-go popup (snippet 9, wordpress/snippets/fika-exit-offer.php):
   individual use, usage limit 1 per customer (WooCommerce checks by email). "Apply" applies it to the cart
   in place. The offer is shown once per browser (localStorage fika_exit_offer_v1).
 - Reason counts: GET /wp-json/fika/v1/exit-reasons (shop managers); DELETE the same URL resets them.
+
+## Customer accounts (2026-10-07)
+
+Groundwork for loyalty offers such as "the 8th kg is free".
+
+WooCommerce settings (Settings > Accounts & Privacy): sign-up on the My account page and at checkout,
+customers choose their own password, guest checkout still allowed, log-in reminder at checkout,
+sign-up privacy line "Your details are only used to run your Fika account and deliver your orders."
+
+Snippet 10 "Fika accounts" (wordpress/snippets/fika-accounts.php):
+- Sign-up form: first name + phone (both required; phone needs at least 7 digits), email, password.
+  The phone is saved as billing/shipping phone and as the checkout contact field fika/phone, so checkout
+  and Account details are pre-filled. Earlier guest orders with the same email are linked to the new account.
+- Totals per customer, user meta fika_totals {orders, grams, updated}: Completed orders only, 100 g per
+  candy unit, 500 g per Ready Mix bag, refunds taken off. Recomputed whenever an order changes status or is
+  refunded. Helpers for the reward work: fika_customer_totals( $user_id ), fika_order_grams( $order ).
+  **Mark orders Completed once delivered**, otherwise they don't count.
+- My account dashboard: "N kg of sweets delivered" and "N orders delivered" cards.
+- WordPress Users list: "Fika orders" and "Kg delivered" columns.
+- My account menu: Dashboard, Orders, Delivery address, Account details, Log out (Downloads removed, billing
+  address hidden since billing always uses the delivery address). Last name optional.
+- Home page header: person icon left of the bag; "Log in or sign up", or "Hi <name>! Your account" with a
+  green dot when signed in. window.FIKA_USER = {in, name, url} is printed on every page.
+
+My account page (88): Fika skin block wordpress/pages/store-skin-account.html above [woocommerce_my_account]
+(centred logo, "Your account", Return to store, white cards, blue pill buttons, phone layout).
