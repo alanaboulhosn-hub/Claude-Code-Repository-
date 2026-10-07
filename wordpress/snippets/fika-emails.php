@@ -74,6 +74,7 @@ hr, .email-separator, .email-order-details + br { border-color: #f3dbe6 !importa
 .fika-mail-box p, .fika-mail-box address { margin: 0 !important; font-style: normal; line-height: 1.55 !important; color: #1b2a4a !important; }
 .fika-mail-box td { padding: 3px 0 !important; vertical-align: top; font-size: 15px !important; word-break: break-word; overflow-wrap: anywhere; }
 #body_content_inner .fika-mail-box td.k { width: 1%; white-space: nowrap; color: #004aad !important; font-weight: 600 !important; padding-right: 18px !important; }
+#body_content_inner .fika-pname { color: #004aad !important; font-weight: 500; }
 .fika-mail-btn { display: inline-block; background: #004aad; color: #ffffff !important; border-radius: 999px; padding: 14px 32px; font-family: $sans; font-weight: 600; font-size: 15px; text-decoration: none !important; }
 #template_footer { background: transparent !important; border: 0 !important; margin: 0 !important; }
 #template_footer > tbody > tr > td, #template_footer td td { padding-top: 0 !important; }
@@ -193,12 +194,13 @@ if ( ! function_exists( 'fika_mail_copy' ) ) {
 			'customer_on_hold_order'    => array( 'subject' => 'We have your Fika order #{order_number}', 'heading' => 'Thank you for your order!', 'additional_content' => '' ),
 			'customer_completed_order'  => array( 'subject' => 'Your Fika sweets have arrived', 'heading' => 'Time for fika!', 'additional_content' => 'We hope every bite is a little treat. Tell us what you loved with a review on the candy’s page, and tag us @swedishfika.lb.' ),
 			'customer_failed_order'     => array( 'subject' => 'Your Fika order #{order_number} didn’t go through', 'heading' => 'Something went wrong', 'additional_content' => 'Your sweets are not lost: try again from the shop, or message us on WhatsApp 79 411 565 and we will sort it out together.' ),
-			'customer_refunded_order'   => array( 'heading' => 'Your refund is on its way', 'additional_content' => 'Questions about your refund? Reply to this email or WhatsApp us on 79 411 565.' ),
-			'customer_cancelled_order'  => array( 'heading' => 'Your order was cancelled', 'additional_content' => 'If this is a surprise, reply to this email or WhatsApp us on 79 411 565.' ),
-			'customer_note'             => array( 'heading' => 'A note about your order', 'additional_content' => '' ),
+			'customer_refunded_order'   => array( 'subject' => 'Your Fika order #{order_number} has been refunded', 'heading' => 'Your refund is on its way', 'additional_content' => 'Questions about your refund? Reply to this email or WhatsApp us on 79 411 565.' ),
+			'customer_cancelled_order'  => array( 'subject' => 'Your Fika order #{order_number} was cancelled', 'heading' => 'Your order was cancelled', 'additional_content' => 'If this is a surprise, reply to this email or WhatsApp us on 79 411 565.' ),
+			'customer_note'             => array( 'subject' => 'A note about your Fika order #{order_number}', 'heading' => 'A note about your order', 'additional_content' => '' ),
 			'customer_new_account'      => array( 'subject' => 'Welcome to Fika!', 'heading' => 'Welcome to Fika!', 'additional_content' => 'Every kilo you order now swims you closer to a free one. Follow your progress in your account.' ),
-			'customer_reset_password'   => array( 'heading' => 'Reset your password', 'additional_content' => 'Didn’t ask for this? You can safely ignore this email.' ),
+			'customer_reset_password'   => array( 'subject' => 'Reset your Fika password', 'heading' => 'Reset your password', 'additional_content' => 'Didn’t ask for this? You can safely ignore this email.' ),
 			'customer_verify_email'     => array( 'heading' => 'Confirm your email' ),
+			'customer_invoice'          => array( 'subject' => 'Your Fika order #{order_number}', 'heading' => 'Your order details' ),
 		);
 	}
 }

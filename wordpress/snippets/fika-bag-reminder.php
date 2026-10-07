@@ -104,8 +104,10 @@ if ( ! function_exists( 'fika_bags' ) ) {
 	}
 	// the reminder email (WooCommerce layout)
 	function fika_bag_email_html( $token, $r ) {
+		// built from the same parts as WooCommerce's order emails, so it has the exact look of the order confirmation
 		$rows  = '';
 		$total = 0;
+		$grams = 0;
 		foreach ( $r['items'] as $it ) {
 			$p = wc_get_product( $it['var'] ? $it['var'] : $it['id'] );
 			if ( ! $p || ! $p->is_purchasable() ) {
@@ -113,20 +115,35 @@ if ( ! function_exists( 'fika_bags' ) ) {
 			}
 			$line   = (float) wc_get_price_to_display( $p ) * $it['qty'];
 			$total += $line;
-			$rows  .= '<tr><td style="padding:8px 0;border-bottom:1px solid #f3dbe6;">' . esc_html( $p->get_name() ) . '<br><span style="color:#6c7b9c;font-size:13px;">' . esc_html( fika_bag_amount( $it['id'], $it['qty'] ) ) . '</span></td>' .
-				'<td style="padding:8px 0;border-bottom:1px solid #f3dbe6;text-align:right;white-space:nowrap;">' . wc_price( $line ) . '</td></tr>';
+			$grams += $it['qty'] * ( has_term( 'ready-mix', 'product_cat', $it['id'] ) ? 500 : 100 );
+			$thumb  = $p->get_image_id() ? wp_get_attachment_image_url( $p->get_image_id(), 'thumbnail' ) : '';
+			$rows  .= '<tr class="order_item">' .
+				'<td class="td font-family text-align-left email-order-item-thumbnail" width="64" style="width:64px;vertical-align:middle;padding-left:0;padding-right:12px;">' .
+				( $thumb ? '<img src="' . esc_url( $thumb ) . '" width="52" height="52" alt="" style="display:block;width:52px;height:52px;border-radius:12px;">' : '' ) . '</td>' .
+				'<td class="td font-family text-align-left" style="vertical-align:middle;padding-left:0;"><span class="fika-pname">' . esc_html( $p->get_name() ) . '</span><div class="email-order-item-meta">Weight: ' . esc_html( fika_bag_amount( $it['id'], $it['qty'] ) ) . '</div></td>' .
+				'<td class="td font-family text-align-right" style="vertical-align:middle;white-space:nowrap;">&times;' . (int) $it['qty'] . '</td>' .
+				'<td class="td font-family text-align-right" style="vertical-align:middle;white-space:nowrap;padding-right:0;">' . wc_price( $line ) . '</td></tr>';
 		}
 		if ( ! $rows ) {
 			return '';
 		}
-		$hi   = $r['name'] ? 'Hi ' . esc_html( $r['name'] ) . ',' : 'Hi there,';
-		$body = '<p>' . $hi . '</p>' .
-			'<p>You left some Swedish sweets in your bag. We saved it for you, so you can finish your order in one click.</p>' .
-			'<table cellspacing="0" cellpadding="0" style="width:100%;margin:16px 0;">' . $rows .
-			'<tr><td style="padding:10px 0;font-weight:bold;">Candies</td><td style="padding:10px 0;text-align:right;font-weight:bold;">' . wc_price( $total ) . '</td></tr></table>' .
-			'<p style="text-align:center;margin:26px 0;"><a class="fika-mail-btn" href="' . esc_url( fika_bag_link( $token ) ) . '" style="display:inline-block;padding:14px 30px;border-radius:999px;background:#004aad;color:#ffffff;text-decoration:none;font-weight:bold;">Finish my order</a></p>' .
-			'<p>Delivery inside Beirut takes 1&ndash;2 business days, outside Beirut 2&ndash;3. Cash on delivery.</p>' .
-			'<p style="color:#6c7b9c;font-size:12px;">This is the only reminder we send for this bag. <a href="' . esc_url( fika_bag_link( $token, 'fika_bag_stop' ) ) . '" style="color:#6c7b9c;">No more reminders</a>.</p>';
+		$weight = $grams >= 1000 ? rtrim( rtrim( number_format( $grams / 1000, 1, '.', '' ), '0' ), '.' ) . ' kg' : $grams . ' g';
+		$body   = '<div class="email-introduction"><p>' . ( $r['name'] ? 'Hi ' . esc_html( $r['name'] ) . ',' : 'Hi there,' ) . '</p>' .
+			'<p>You left some Swedish sweets in your bag. We saved it for you, so you can finish your order in one click.</p></div>' .
+			'<h2 class="email-order-detail-heading">Your bag<br><span>' . esc_html( $weight ) . ' of pick-and-mix</span></h2>' .
+			'<table class="td font-family email-order-details" role="presentation" cellspacing="0" cellpadding="6" border="0" width="100%" style="width:100%;">' .
+			'<thead><tr><th class="td text-align-left" scope="col" colspan="2" style="padding-left:0;">Product</th><th class="td text-align-right" scope="col">Quantity</th><th class="td text-align-right" scope="col" style="padding-right:0;">Price</th></tr></thead>' .
+			'<tbody>' . $rows . '</tbody>' .
+			'<tfoot><tr class="order-totals order-totals-total"><th class="td text-align-left" scope="row" colspan="3" style="padding-left:0;">Candies:</th><td class="td text-align-right" style="padding-right:0;">' . wc_price( $total ) . '</td></tr></tfoot></table>' .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td align="center" style="text-align:center;padding:30px 0 26px;">' .
+			'<a class="fika-mail-btn" href="' . esc_url( fika_bag_link( $token ) ) . '" style="display:inline-block;padding:14px 32px;border-radius:999px;background:#004aad;color:#ffffff;text-decoration:none;font-weight:600;">Finish my order</a></td></tr></table>' .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:6px 0 6px;"><tr><td class="fika-mail-box">' .
+			'<h2>Delivery</h2><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' .
+			'<tr><td class="k">Inside Beirut:</td><td>1&ndash;2 business days</td></tr>' .
+			'<tr><td class="k">Outside Beirut:</td><td>2&ndash;3 business days</td></tr>' .
+			'<tr><td class="k">Payment:</td><td>Cash on delivery</td></tr>' .
+			'</table></td></tr></table>' .
+			'<p style="margin-top:22px !important;text-align:center;color:#6c7b9c !important;font-size:13px !important;">This is the only reminder we send for this bag. <a href="' . esc_url( fika_bag_link( $token, 'fika_bag_stop' ) ) . '" style="color:#6c7b9c !important;">No more reminders</a>.</p>';
 		return WC()->mailer()->wrap_message( 'Your bag is waiting', $body );
 	}
 	// has this email placed an order since the time given?

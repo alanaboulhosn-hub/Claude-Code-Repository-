@@ -481,3 +481,9 @@ A "Purchase" event is sent to a Facebook/Meta pixel if one is ever added. Tested
   pictures; a coloured band beside the wave picture showed up as a light-blue block. Images and the script that
   makes them: wordpress/email-assets/ (foot-img.js). Phone layout: text back to 15 px (WooCommerce shrank it to
   12 px), long values wrap, nothing wider than the screen (checked at 360 and 390 px).
+- Every WooCommerce email (customer and shop emails, 14 types) and the bag reminder share the order-confirmation
+  template: checked side by side through WooCommerce's preview (logo, card, headings, picture footer, light-colour
+  setting, Delivery details box). The bag reminder is now built from the same parts as the order emails: "Your bag"
+  summary with product photos, Weight lines, quantity and price columns, a Candies total, the Finish my order button
+  and a pink Delivery box (Inside / Outside Beirut, Cash on delivery). Friendlier subjects added for cancelled,
+  note, refunded, invoice and password-reset emails.
