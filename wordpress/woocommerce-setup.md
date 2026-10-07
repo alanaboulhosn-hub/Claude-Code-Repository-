@@ -463,3 +463,14 @@ emails) and the "Your bag is waiting" reminder like the website:
 - Delivery details in emails as labelled rows: Name, Location (street, apartment, city, Inside / Outside Beirut,
   repeats left out), Phone number, Email; labels in blue, never wrapping. The gap between "Here's a reminder of
   what you've ordered" and "Order summary" was tightened.
+
+## Order confirmed popup (2026-10-07)
+
+Snippet 31 (wordpress/snippets/fika-order-confirmed.php). After Place order, WooCommerce's "Order received" page
+still loads as before (kept for WooCommerce and any tools that work on it), then the browser moves straight on to
+the home page, where an "Order confirmed!" popup thanks the customer by first name: order number, bag weight,
+total (cash on delivery), delivery time for their area, where the receipt was emailed, "Keep shopping" and, for
+signed-in customers, "See my orders"; candy cartoons and a cartoon burst. The order is read through its private
+order key, only for orders from the last 24 hours; the popup shows once (the link is cleaned from the address bar).
+Without JavaScript, or when the order link is opened later, the Order received page shows as normal.
+A "Purchase" event is sent to a Facebook/Meta pixel if one is ever added. Tested with test order 315 (deleted).
