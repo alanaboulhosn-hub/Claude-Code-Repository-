@@ -257,3 +257,18 @@ hello@swedishfikalb.com mailbox password > Save > Tools > Email Test. This only 
 changes nothing on the live site or the mailbox.
 Do NOT change swedishfikalb.com DNS (SPF / DKIM / DMARC) while the Website Builder store is live: that is part
 of the launch step, planned separately (see CLAUDE.md).
+
+## Sign-up nudges (2026-10-07)
+
+Snippet 16 "Fika sign-up nudges" (wordpress/snippets/fika-signup-nudge.php). Visitors who are not signed in only.
+- Home page cloud: a white speech bubble pointing at the account icon (the person waves while it shows).
+  First time something goes into the bag: "Make every gram count. Sign up and the 300 g in your bag starts your
+  swim to a free kilo" (grams update live). Otherwise after 20 s of browsing: "Join the Fika crew".
+  Perks (desktop): track your orders, member-only offers, bundles before anyone else. Blue "Sign up, it's free"
+  button (/my-account/#register) + "Already have an account? Log in".
+  Once per visit (sessionStorage fika_nudge_seen_v1); × hides it for 7 days (localStorage fika_nudge_closed_v1);
+  fades by itself after 14 s (10 s on phones; pauses while hovered); hovering the account icon replaces it with the menu.
+- Checkout card above the form: "Make this order count: create a free account and this 800 g starts your swim
+  to a free kilo." "Create my account" ticks WooCommerce's "Create an account with Fika" box and puts the cursor
+  in "Create a password"; the card then reads "Your account comes with this order". "Log in" opens WooCommerce's
+  login and returns to checkout.
