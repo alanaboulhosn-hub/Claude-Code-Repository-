@@ -938,3 +938,40 @@ that email count from then on. Snippet 10 (fika-accounts.php):
     DMARC pass. No DNS change is needed.
 - At launch, the links in emails switch from the test address to swedishfikalb.com, matching the sender. That
   helps as well.
+
+## My account: Rewards and My details; log in goes home (2026-10-08)
+
+- **Log in** (My account form or the header menu's "Log in") now goes to the home page. If the form asked for a
+  different page, such as the checkout's log-in, it keeps that.
+  - Note: WooCommerce passes the referring path ("/my-account/"), so paths are compared.
+  - The confirmation-email link still opens My account > Rewards, with "Your account is confirmed".
+- **Tabs:** Rewards, Orders, My details, Log out. The header dropdown has the same entries: Rewards, Orders,
+  My details, Log out.
+- **Rewards** (the old Dashboard):
+  - WooCommerce's "Hello … From your account dashboard" lines are hidden.
+  - It shows the mystery-taste card, the fish lane, the kg and order totals, then two cards.
+    - "Ready to use": saved codes (with the code), gifts reached but not unlocked ("tap the glowing gift"), and
+      mystery tastes on their way.
+    - "Already used": rewards with "Used on order #N, date", and mystery tastes with their order.
+  - A gift unlocked on the lane moves into "Ready to use" straight away (event `fikareward`).
+  - Code: `fika_rewards_lists()` in fika-loyalty.php. The lane's own code list is hidden on this page.
+- **My details** (edit-account): account details, name/email/phone/password, and below them the delivery address
+  form.
+  - The address form posts to edit-address/shipping, so WooCommerce saves the right address, then comes back here
+    with "Address changed successfully".
+  - /my-account/edit-address/ redirects here (#delivery).
+  - If a save fails validation, WooCommerce shows the errors on the address page itself.
+- Tested with a test customer (deleted): log in goes home, dropdown and tab names, the hidden intro, Ready to use →
+  unlock → code shown, the code used on an order → "Already used", address saved and back on My details, and the
+  old address link redirects.
+
+## Home hero: no pink band above the candies (2026-10-08)
+
+- The original hero photo (1920 x 1072) is plain pink over its top 41 %. On MacBook-shaped screens and phones that
+  showed as a big empty band between the header and the candies.
+- The home hero now uses media 426 (wordpress/pages/media/fika-hero-candy-1920.jpg): the same photo with its top
+  327 px cut off (1920 x 745). A strip of pink about the header's height stays, so the candies start right under
+  the menu.
+- build-shop-pages.py (HERO_CROP) moves the googly-eye positions up by the same amount. One file for all screens:
+  phones zoom into it, so the old 1000 px copy would look soft.
+- Checked at 1440 x 820, 1920 x 1080, 1280 x 900, 768 x 1024 and 390 x 844. The eyes stay on the skulls.

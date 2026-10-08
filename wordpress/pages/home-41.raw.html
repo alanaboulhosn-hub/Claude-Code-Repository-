@@ -3,8 +3,8 @@
 <!-- wp:html -->
 <style>
 .fika-hero:not(.fika-shop-hero) { background: var(--fika-pink); }
-.fika-hero:not(.fika-shop-hero) > .fika-photo { background: url(/wp-content/uploads/2026/10/fika-hero-1920.jpg) center bottom / cover no-repeat; }
-@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) > .fika-photo { background-image: url(/wp-content/uploads/2026/10/fika-hero-1000.jpg); } }
+.fika-hero:not(.fika-shop-hero) > .fika-photo { background: url(/wp-content/uploads/2026/10/fika-hero-candies-1920.jpg) center bottom / cover no-repeat; }
+@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) > .fika-photo { background-image: url(/wp-content/uploads/2026/10/fika-hero-candies-1920.jpg); } }
 </style>
 <div class="fika-hero">
   <div class="fika-photo" aria-hidden="true"></div>
@@ -42,15 +42,15 @@
   if (!hero) return;
   if (hero.querySelector('.fika-eyes')) return;
 
-  var IMG_W = 1920, IMG_H = 1072;
+  var IMG_W = 1920, IMG_H = 745;
   var EYE_R = 7.5;   // eye radius in photo pixels
   var SKULLS = [
-    [[338,498],[365,490]], [[575,493],[602,493]], [[921,497],[937,520]], [[1060,482],[1043,507]],
-    [[1167,504],[1194,499]], [[33,614],[55,636]], [[197,597],[224,600]], [[676,587],[699,598]],
-    [[1266,598],[1284,622]], [[743,704],[745,733]], [[1775,647],[1756,671]], [[1396,782],[1424,784]],
-    [[1493,773],[1519,763]], [[473,800],[467,828]], [[235,885],[211,898]], [[382,889],[411,897]],
-    [[745,827],[775,841]], [[844,879],[865,887]], [[560,923],[538,947]], [[1256,884],[1275,907]],
-    [[1635,952],[1660,946]], [[1260,1014],[1292,1016]]
+    [[338,171],[365,163]], [[575,166],[602,166]], [[921,170],[937,193]], [[1060,155],[1043,180]],
+    [[1167,177],[1194,172]], [[33,287],[55,309]], [[197,270],[224,273]], [[676,260],[699,271]],
+    [[1266,271],[1284,295]], [[743,377],[745,406]], [[1775,320],[1756,344]], [[1396,455],[1424,457]],
+    [[1493,446],[1519,436]], [[473,473],[467,501]], [[235,558],[211,571]], [[382,562],[411,570]],
+    [[745,500],[775,514]], [[844,552],[865,560]], [[560,596],[538,620]], [[1256,557],[1275,580]],
+    [[1635,625],[1660,619]], [[1260,687],[1292,689]]
   ];
 
   var layer = document.createElement('div');

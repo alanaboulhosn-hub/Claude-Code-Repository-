@@ -34,12 +34,24 @@ head = head.replace(photo_line + '\n', '', 1)
 
 # ---------- home-only: hero + skull eyes (+ the hero photo, which only the home page needs) ----------
 # the photo is a file (media 274, a smaller copy 275 for phones) instead of being pasted into the page: lighter and cached
-HERO_BIG = '/wp-content/uploads/2026/10/fika-hero-1920.jpg'
-HERO_SMALL = '/wp-content/uploads/2026/10/fika-hero-1000.jpg'
+# The original photo (1920 x 1072) is plain pink over its top 41 %, so on wide screens (a MacBook, and phones) a
+# big empty band showed between the header and the candies. Media 426 is the same photo with its top 327 px cut
+# off (1920 x 745, wordpress/pages/media/fika-hero-candy-1920.jpg): a strip of pink about the header's height stays,
+# so the candies start right under the menu. The eye positions below move up by the same 327 px. One file for all screens: phones zoom into it, so the smaller copy
+# would look soft.
+HERO_CROP = 327
+HERO_BIG = '/wp-content/uploads/2026/10/fika-hero-candies-1920.jpg'
+HERO_SMALL = HERO_BIG
 home_hero = ('<style>\n.fika-hero:not(.fika-shop-hero) { background: var(--fika-pink); }\n'
              '.fika-hero:not(.fika-shop-hero) > .fika-photo { background: url(' + HERO_BIG + ') center bottom / cover no-repeat; }\n'
              '@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) > .fika-photo { background-image: url(' + HERO_SMALL + '); } }\n</style>\n' + L(290, 455))
 # the photo and the googly eyes sit on one layer that stays still by itself (smooth), instead of being moved on every scroll
+# the googly eyes: the photo is shorter by HERO_CROP, and every eye sits HERO_CROP higher
+assert home_hero.count('var IMG_W = 1920, IMG_H = 1072;') == 1
+home_hero = home_hero.replace('var IMG_W = 1920, IMG_H = 1072;', 'var IMG_W = 1920, IMG_H = %d;' % (1072 - HERO_CROP), 1)
+_sk0 = home_hero.index('var SKULLS = [')
+_sk1 = home_hero.index('];', _sk0)
+home_hero = home_hero[:_sk0] + re.sub(r'\[(\d+),(\d+)\]', lambda m: '[%s,%d]' % (m.group(1), int(m.group(2)) - HERO_CROP), home_hero[_sk0:_sk1]) + home_hero[_sk1:]
 for a, b in [
     ('<div class="fika-hero">\n', '<div class="fika-hero">\n  <div class="fika-photo" aria-hidden="true"></div>\n'),
     ('  hero.insertBefore(layer, hero.firstChild);', '  (hero.querySelector(\'.fika-photo\') || hero).appendChild(layer);'),

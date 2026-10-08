@@ -908,6 +908,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 						confetti(b);
 						setState(b, c, 'claimed');
 						addReward(res.j);
+						try { window.dispatchEvent(new CustomEvent('fikareward', { detail: { lap: s.lap, g: c.g, code: res.j.code, title: res.j.title, text: res.j.text } })); } catch (e) {}
 						words();
 						var sm = document.querySelector('.fika-acct .fa-hi small');
 						if (sm ? !cps.some(function (x) { return x.state === 'ready'; }) : false) sm.textContent = 'Your reward is saved for checkout';
@@ -1063,6 +1064,128 @@ add_action( 'wp_footer', function () {
 		fika_swim_assets();
 	}
 }, 25 );
+
+// ---------- My account > Rewards: ready to use and already used ----------
+// Under the fish lane: every reward the customer can use now (saved codes, gifts reached but not unlocked yet,
+// mystery tastes on their way) and the ones already used, with the order they went on.
+if ( ! function_exists( 'fika_rewards_lists' ) ) {
+	function fika_rewards_lists( $uid ) {
+		$cps    = fika_swim_checkpoints();
+		$ready  = array();
+		$used   = array();
+		$orders = wc_get_orders( array( 'customer_id' => $uid, 'limit' => -1, 'type' => 'shop_order', 'status' => array_keys( wc_get_order_statuses() ) ) );
+		$by     = array();
+		foreach ( $orders as $o ) {
+			foreach ( $o->get_coupon_codes() as $code ) {
+				$by[ strtolower( $code ) ] = $o;
+			}
+		}
+		$claims = fika_swim_claims( $uid );
+		$have   = array();
+		foreach ( $claims as $cl ) {
+			$cp = isset( $cps[ (int) $cl['g'] ] ) ? $cps[ (int) $cl['g'] ] : null;
+			if ( ! $cp ) {
+				continue;
+			}
+			$have[ (int) $cl['lap'] . ':' . (int) $cl['g'] ] = 1;
+			$o = isset( $by[ strtolower( $cl['code'] ) ] ) ? $by[ strtolower( $cl['code'] ) ] : null;
+			if ( fika_swim_code_used( $cl['code'] ) ) {
+				$used[] = array( 'title' => $cp['title'], 'meta' => 'Lap ' . (int) $cl['lap'] . ', ' . $cp['kg'] . ' kg', 'how' => $o ? 'Used on order #' . $o->get_order_number() . ', ' . wc_format_datetime( $o->get_date_created(), 'j M Y' ) : 'Used', 'at' => $o ? $o->get_date_created()->getTimestamp() : (int) $cl['at'] );
+			} else {
+				$ready[] = array( 'k' => (int) $cl['lap'] . ':' . (int) $cl['g'], 'title' => $cp['title'], 'meta' => $cp['text'], 'code' => strtoupper( $cl['code'] ), 'how' => 'Tap “Use” at checkout. It never runs out.' );
+			}
+		}
+		// gifts reached but not unlocked yet (tap the glowing gift on the lane)
+		$reach = fika_swim_reach( $uid );
+		for ( $lap = 1; ( $lap - 1 ) * FIKA_SWIM_LAP < $reach; $lap++ ) {
+			foreach ( $cps as $g => $cp ) {
+				if ( fika_swim_need( $lap, $g ) <= $reach && empty( $have[ $lap . ':' . $g ] ) ) {
+					$ready[] = array( 'k' => $lap . ':' . $g, 'title' => $cp['title'], 'meta' => 'Lap ' . $lap . ', ' . $cp['kg'] . ' kg', 'code' => '', 'how' => 'Reached! Tap the glowing gift on the lane above to unlock it.', 'todo' => 1 );
+				}
+			}
+		}
+		// mystery tastes
+		if ( function_exists( 'fika_taste_list' ) ) {
+			foreach ( fika_taste_list( $uid ) as $k => $t ) {
+				$p    = wc_get_product( (int) $t['pid'] );
+				$name = $p ? html_entity_decode( $p->get_name() ) : 'a sweet';
+				list( $lap, $g ) = array_map( 'intval', explode( ':', $k ) );
+				if ( 'used' === $t['status'] ) {
+					$o      = ! empty( $t['order'] ) ? wc_get_order( (int) $t['order'] ) : null;
+					$used[] = array( 'title' => 'Mystery taste: ' . $name, 'meta' => 'Lap ' . $lap . ', ' . ( $g / 1000 ) . ' kg spin, 50 g free', 'how' => $o ? 'In order #' . $o->get_order_number() . ', ' . wc_format_datetime( $o->get_date_created(), 'j M Y' ) : 'In one of your orders', 'at' => $o ? $o->get_date_created()->getTimestamp() : (int) ( $t['at'] ?? 0 ) );
+				} else {
+					$ready[] = array( 'k' => 't' . $k, 'title' => 'Mystery taste: ' . $name, 'meta' => '50 g, free', 'code' => '', 'how' => 'Joins your next order by itself at checkout.' );
+				}
+			}
+		}
+		usort( $used, function ( $a, $b ) { return $b['at'] - $a['at']; } );
+		return array( $ready, $used );
+	}
+}
+add_action( 'woocommerce_account_dashboard', function () {
+	$uid = get_current_user_id();
+	if ( ! $uid || ! function_exists( 'fika_swim_claims' ) ) {
+		return;
+	}
+	list( $ready, $used ) = fika_rewards_lists( $uid );
+	$row = function ( $r, $cls ) {
+		$h  = '<li class="fr-item ' . $cls . '"' . ( isset( $r['k'] ) ? ' data-k="' . esc_attr( $r['k'] ) . '"' : '' ) . '><div class="fr-t"><b>' . esc_html( $r['title'] ) . '</b><span>' . esc_html( $r['meta'] ) . '</span></div>';
+		$h .= ! empty( $r['code'] ) ? '<div class="fr-c"><code>' . esc_html( $r['code'] ) . '</code></div>' : '';
+		$h .= '<p class="fr-how">' . esc_html( $r['how'] ) . '</p></li>';
+		return $h;
+	};
+	echo '<section class="fika-rw-lists" aria-label="Your rewards"><div class="fr-col"><h3>Ready to use</h3><ul class="fr-ready">';
+	foreach ( $ready as $r ) {
+		echo $row( $r, empty( $r['todo'] ) ? 'is-ready' : 'is-todo' ); // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+	echo '</ul><p class="fr-none"' . ( $ready ? ' hidden' : '' ) . '>Nothing waiting yet. Swim to 1.5 kg for your first mystery spin, and 3 kg for 100 g on us.</p></div>';
+	echo '<div class="fr-col"><h3>Already used</h3><ul>';
+	foreach ( $used as $r ) {
+		echo $row( $r, 'is-used' ); // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+	echo '</ul>' . ( $used ? '' : '<p class="fr-none">Rewards you use show up here, with the order they went on.</p>' ) . '</div></section>';
+	$GLOBALS['fika_rw_lists'] = true;
+}, 6 );
+add_action( 'wp_footer', function () {
+	if ( empty( $GLOBALS['fika_rw_lists'] ) ) {
+		return;
+	}
+	?>
+<style>
+.fika-swim-account .fs-rewards { display: none; }
+.fika-rw-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 18px 0 22px; font-family: 'Outfit', 'Open Sans', Arial, sans-serif; color: #1b2a4a; }
+.fika-rw-lists .fr-col { padding: 20px 22px; border-radius: 22px; background: #fff; box-shadow: 0 10px 34px rgba(0, 74, 173, .08); }
+.fika-rw-lists h3 { margin: 0 0 12px; font: 400 26px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: .02em; color: #004aad; }
+.fika-rw-lists ul { margin: 0; padding: 0; list-style: none; }
+.fika-rw-lists .fr-item { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 14px; margin: 0 0 10px; border-radius: 16px; background: #fdeaf2; }
+.fika-rw-lists .fr-item.is-todo { background: linear-gradient(120deg, #fff6d6, #ffe3ef); }
+.fika-rw-lists .fr-item.is-used { background: #f3f5fa; color: #4c5a78; }
+.fika-rw-lists .fr-t b { display: block; font-weight: 600; font-size: 15.5px; color: #004aad; }
+.fika-rw-lists .is-used .fr-t b { color: #4c5a78; }
+.fika-rw-lists .fr-t span { display: block; font-size: 13px; color: #6b7894; }
+.fika-rw-lists .fr-c { align-self: center; }
+.fika-rw-lists code { padding: 5px 9px; border-radius: 8px; background: #fff; border: 1px dashed #004aad; font: 600 13px/1 ui-monospace, Menlo, Consolas, monospace; color: #004aad; letter-spacing: .03em; }
+.fika-rw-lists .fr-how { grid-column: 1 / -1; margin: 2px 0 0 !important; font-size: 13.5px; }
+.fika-rw-lists .is-used .fr-how::before { content: '\2713  '; color: #2fb36b; font-weight: 700; }
+.fika-rw-lists .fr-none { margin: 0 !important; font-size: 14px; color: #6b7894; }
+@media (max-width: 760px) { .fika-rw-lists { grid-template-columns: 1fr; } .fika-rw-lists .fr-col { padding: 16px; } }
+</style>
+<script>
+(function () {
+  // a gift unlocked on the lane moves into "Ready to use" with its code
+  window.addEventListener('fikareward', function (e) {
+    var r = e.detail || {}, list = document.querySelector('.fika-rw-lists .fr-ready'); if (!list) return;
+    var old = list.querySelector('[data-k="' + r.lap + ':' + r.g + '"]'); if (old) old.remove();
+    var li = document.createElement('li'); li.className = 'fr-item is-ready'; li.setAttribute('data-k', r.lap + ':' + r.g);
+    li.innerHTML = '<div class="fr-t"><b></b><span></span></div><div class="fr-c"><code></code></div><p class="fr-how">Tap \u201cUse\u201d at checkout. It never runs out.</p>';
+    li.querySelector('b').textContent = r.title || ''; li.querySelector('span').textContent = r.text || ''; li.querySelector('code').textContent = String(r.code || '').toUpperCase();
+    list.insertBefore(li, list.firstChild);
+    var none = list.parentNode.querySelector('.fr-none'); if (none) none.hidden = true;
+  });
+})();
+</script>
+	<?php
+}, 26 );
 
 // ---------- Checkout: saved rewards and rewards this order unlocks; the customer picks any mix (or none) ----------
 add_action( 'wp_footer', function () {

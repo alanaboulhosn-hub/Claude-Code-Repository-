@@ -126,7 +126,7 @@ add_action( 'woocommerce_account_dashboard', function () {
 	<div class="fika-acct-stats">
 		<div class="fika-acct-stat"><b><?php echo esc_html( fika_kg_text( $t['grams'] ) ); ?></b><span>of sweets delivered</span></div>
 		<div class="fika-acct-stat"><b><?php echo (int) $t['orders']; ?></b><span><?php echo 1 === (int) $t['orders'] ? 'order delivered' : 'orders delivered'; ?></span></div>
-		<p class="fika-acct-note">Every kilo you order is counted here &mdash; Fika treats for loyal customers are on their way.</p>
+		<p class="fika-acct-note">Every kilo you order is counted here and moves your fish towards the next reward.</p>
 	</div>
 	<?php
 }, 5 );
@@ -159,6 +159,57 @@ add_filter( 'manage_users_custom_column', function ( $out, $col, $user_id ) {
 	return $out;
 }, 10, 3 );
 
+// ---------- Log in: to the home page (unless the form asked for somewhere else, e.g. the checkout) ----------
+add_filter( 'woocommerce_login_redirect', function ( $to, $user ) {
+	// WooCommerce passes the page the form was on, often as a bare path ("/my-account/"): compare paths
+	$acct = untrailingslashit( (string) wp_parse_url( wc_get_page_permalink( 'myaccount' ), PHP_URL_PATH ) );
+	$here = untrailingslashit( (string) wp_parse_url( (string) $to, PHP_URL_PATH ) );
+	if ( ( '' === $here || $here === $acct ) && $user instanceof WP_User && ! user_can( $user, 'edit_posts' ) ) {
+		return home_url( '/' );
+	}
+	return $to;
+}, 20, 2 );
+
+// ---------- My details: account details + delivery address on one page ----------
+// The delivery address form posts to its own address (edit-address/shipping), which is how WooCommerce knows
+// which address it saves; WooCommerce then goes to "edit-address", which comes back here.
+add_action( 'template_redirect', function () {
+	if ( 'GET' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) || ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'edit-address' ) || ! is_user_logged_in() ) {
+		return;
+	}
+	wp_safe_redirect( wc_get_account_endpoint_url( 'edit-account' ) . '#delivery' );
+	exit;
+}, 20 );
+add_action( 'woocommerce_after_edit_account_form', function () {
+	if ( ! class_exists( 'WC_Shortcode_My_Account' ) ) {
+		return;
+	}
+	ob_start();
+	WC_Shortcode_My_Account::edit_address( 'shipping' );
+	$form = ob_get_clean();
+	$form = preg_replace( '#<form\b(?![^>]*\baction=)#i', '<form action="' . esc_url( wc_get_endpoint_url( 'edit-address', 'shipping', wc_get_page_permalink( 'myaccount' ) ) ) . '"', $form, 1 );
+	$note = '<p class="fika-details-note">Filled in for you at checkout, so you don&rsquo;t have to type it each time.</p>';
+	$form = preg_match( '#</h[23]>#i', $form ) ? preg_replace( '#(</h[23]>)#i', '$1' . $note, $form, 1 ) : $note . $form;
+	echo '<section id="delivery" class="fika-details-delivery">' . $form . '</section>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	$GLOBALS['fika_details_css'] = true;
+} );
+add_action( 'wp_footer', function () {
+	if ( empty( $GLOBALS['fika_details_css'] ) ) {
+		return;
+	}
+	echo '<style>.fika-details-delivery{margin-top:34px;padding-top:26px;border-top:1px solid #f3dbe6;scroll-margin-top:120px;}.fika-details-delivery .fika-details-note{margin:-4px 0 14px;color:#6b7894;font-size:14px;}.fika-details-delivery h2,.fika-details-delivery h3{margin-top:0;}</style>';
+}, 30 );
+// the dashboard is the Rewards page: WooCommerce's "Hello … From your account dashboard you can …" lines go
+add_filter( 'body_class', function ( $c ) {
+	if ( function_exists( 'is_account_page' ) && is_account_page() && is_user_logged_in() && ! is_wc_endpoint_url() ) {
+		$c[] = 'fika-rewards-page';
+	}
+	return $c;
+} );
+add_action( 'wp_head', function () {
+	echo '<style>body.fika-rewards-page .woocommerce-MyAccount-content > p{display:none;}</style>' . "\n";
+}, 20 );
+
 // ---------- Log out: straight back to the home page, signed out ----------
 add_filter( 'woocommerce_logout_default_redirect_url', function () {
 	return home_url( '/' );
@@ -181,9 +232,9 @@ add_action( 'wp_footer', function () {
 		$t            = fika_customer_totals( $u->ID );
 		$data['kg']   = fika_kg_text( $t['grams'] );
 		$data['menu'] = array(
+			array( 'Rewards', $base ),
 			array( 'Orders', wc_get_account_endpoint_url( 'orders' ) ),
-			array( 'Delivery address', wc_get_account_endpoint_url( 'edit-address' ) ),
-			array( 'Account details', wc_get_account_endpoint_url( 'edit-account' ) ),
+			array( 'My details', wc_get_account_endpoint_url( 'edit-account' ) ),
 			array( 'Log out', html_entity_decode( wc_logout_url( home_url( '/' ) ) ) ), // a plain URL, not HTML (&amp; broke the security check)
 		);
 	} else {
@@ -204,13 +255,18 @@ add_filter( 'woocommerce_save_account_details_required_fields', function ( $fiel
 add_filter( 'woocommerce_return_to_shop_redirect', function () {
 	return home_url( '/mix-your-own/' );
 } );
+// Tabs: Rewards (the account's front page: fish lane + rewards), Orders, My details (account details and the
+// delivery address on one page), Log out
 add_filter( 'woocommerce_account_menu_items', function ( $items ) {
-	unset( $items['downloads'] );
-	if ( isset( $items['edit-address'] ) ) {
-		$items['edit-address'] = 'Delivery address';
+	unset( $items['downloads'], $items['edit-address'] );
+	if ( isset( $items['dashboard'] ) ) {
+		$items['dashboard'] = 'Rewards';
+	}
+	if ( isset( $items['edit-account'] ) ) {
+		$items['edit-account'] = 'My details';
 	}
 	return $items;
-} );
+}, 20 );
 add_filter( 'gettext', function ( $text, $orig, $domain ) {
 	if ( 'woocommerce' !== $domain || ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
 		return $text;
