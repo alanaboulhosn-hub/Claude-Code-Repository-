@@ -996,3 +996,13 @@ that email count from then on. Snippet 10 (fika-accounts.php):
 - **Reset-password page** (store-skin-account.html, page 88): a rule for the log-in forms stripped the reset
   box's padding, corners and centring. It is now a centred white card with the title "Forgot your password?"
   ("Set a new password" on the new-password step), and a full-width button.
+
+## Log in / Create an account: each message in its own box (2026-10-08)
+
+- WooCommerce prints every message in one bar above both boxes. A script on the logged-out account page
+  (fika-accounts.php) now moves each message into its box, restyled as a soft panel under the box title:
+  - **Create an account:** sign-up errors (e.g. an email already registered), "Almost there! Check your email",
+    and "Send the link again". After a successful sign-up the form is emptied, so it isn't sent twice.
+  - **Log in:** "The email or password is incorrect. Forgot your password?", plus password-reset and
+    confirmation-link messages.
+- Tested on desktop and phone: wrong log-in, a taken email at sign-up, and a new sign-up. Test accounts deleted.

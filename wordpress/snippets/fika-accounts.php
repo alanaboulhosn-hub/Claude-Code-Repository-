@@ -674,3 +674,39 @@ add_action( 'wp_footer', function () {
 	}
 	echo '<style>.fika-past{background:#fdeaf2;border-radius:18px;padding:18px 22px;margin:0 0 20px;}.fika-past b{display:block;font-family:"Fanwood Text",Georgia,serif;font-variant:small-caps;font-weight:400;font-size:22px;color:#004aad;}.fika-past p{margin:6px 0 0;}.fika-past form{margin:12px 0 0;}.fika-past-btn{background:#004aad;color:#fff;border:0;border-radius:999px;padding:11px 22px;font:600 15px Outfit,sans-serif;cursor:pointer;}.fika-past-btn:hover{background:#003a8a;}.fika-past.is-done{background:#e6f4ea;}</style>';
 }, 30 );
+
+// ---------- Log in / Create an account: each message inside its own box ----------
+// WooCommerce prints every message above both boxes. Sign-up messages (errors, "check your email", sending the
+// link again) move into the Create an account box; log-in messages (wrong email or password,
+// "Forgot your password?", password changed, an expired or already-used confirmation link) into the Log in box.
+add_action( 'wp_footer', function () {
+	if ( is_user_logged_in() || ! function_exists( 'is_account_page' ) || ! is_account_page() || is_wc_endpoint_url() ) {
+		return;
+	}
+	// phpcs:disable WordPress.Security.NonceVerification
+	$for = ( isset( $_POST['register'] ) || isset( $_GET['fika-check'] ) ) ? 'register' : 'login';
+	// phpcs:enable
+	?>
+<style>
+#customer_login .fika-in-box { margin: 0 0 18px; }
+#customer_login .fika-in-box .wc-block-components-notice-banner, #customer_login .fika-in-box .woocommerce-error, #customer_login .fika-in-box .woocommerce-message, #customer_login .fika-in-box .woocommerce-info { margin: 0 0 10px !important; box-shadow: none !important; border: 0 !important; border-radius: 14px !important; background: #fdeaf2 !important; padding: 12px 14px !important; }
+#customer_login .fika-in-box .wc-block-components-notice-banner.is-success, #customer_login .fika-in-box .woocommerce-message { background: #e6f4ea !important; }
+#customer_login .fika-in-box .fika-past { margin: 0 0 10px; }
+</style>
+<script>
+(function () {
+  var box = document.querySelector(<?php echo wp_json_encode( 'register' === $for ? '#customer_login .u-column2' : '#customer_login .u-column1' ); ?>);
+  if (!box) return;
+  var moved = [];
+  document.querySelectorAll('.woocommerce > .woocommerce-notices-wrapper > *, .woocommerce > .fika-past').forEach(function (n) { moved.push(n); });
+  if (!moved.length) return;
+  var wrap = document.createElement('div'); wrap.className = 'fika-in-box'; wrap.setAttribute('role', 'alert');
+  moved.forEach(function (n) { wrap.appendChild(n); });
+  var h = box.querySelector('h2');
+  if (h) h.parentNode.insertBefore(wrap, h.nextSibling); else box.insertBefore(wrap, box.firstChild);
+  // signed up: empty the form, so it is not sent a second time
+  if (wrap.querySelector('.is-success, .woocommerce-message')) box.querySelectorAll('form.register input:not([type=hidden]):not([type=checkbox])').forEach(function (i) { i.value = ''; });
+})();
+</script>
+	<?php
+}, 40 );
