@@ -1,6 +1,7 @@
 <?php
 /**
- * Fika: the fish cursor on every page, from the first paint.
+ * Fika: first paint. The fish cursor on every page from the first moment, and no flash of the theme's bare page
+ * (a white page with the page title) while a page loads.
  * - Normal fish everywhere; tilted fish over links and buttons; text cursor in text fields.
  * - Printed at the very top of <head> on every front-end page (shop pages, My account, checkout, page not found),
  *   so the browser never shows the normal arrow while a page loads. The bite animation stays in the
@@ -13,6 +14,12 @@
 add_action( 'wp_head', function () {
 	if ( is_admin() ) {
 		return;
+	}
+	if ( is_page() || is_front_page() || is_404() ) {
+		// The theme puts the page's title (e.g. "Mix your own") first on the page, before our styles that hide it,
+		// so a page that was still loading showed up as a white page with that title. Hidden from the start, the
+		// browser keeps the previous page on screen until the new one has its real content.
+		echo '<style id="fika-first-paint">.hostinger-ai-page-title{display:none!important}</style>' . "\n";
 	}
 	?>
 <style id="fika-cursor">

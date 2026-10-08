@@ -862,3 +862,12 @@ that email count from then on. Snippet 10 (fika-accounts.php):
 - The cursor pictures are kept in wordpress/cursor/ for reference.
 - Checked: the fish (and tilted fish on links) on home, Mix your own, Ready Mix, About us, My account and the 404
   page, a text cursor in fields, and the bite on click.
+
+## No flash of the bare page while loading (2026-10-08)
+
+- Problem: the theme prints the page title (e.g. "Mix your own") first in the page. Our styles that hide it come
+  later, after a large inline font, so a loading page showed as a white page with that title.
+- Fix: snippet 58 (fika-cursor.php, now "first paint") also hides `.hostinger-ai-page-title` from the very top of
+  <head> on every page. The browser keeps the previous page on screen until the new one has its real content.
+- Checked on a slowed connection (150 KB/s), clicking a menu link and reloading: no white or title-only frame. The
+  old page stays up, then the new page appears with its header and banner. The web fonts arrive a moment later.
