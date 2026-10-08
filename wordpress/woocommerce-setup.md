@@ -667,3 +667,15 @@ Customer's choice (2026-10-08, owner): nothing is applied by itself. At checkout
 reward covers at most 1 kg of the order (the priciest sweets; checkout says so on bigger orders). Tested (test
 data deleted): 2 kg bag + 25% = $6.25 off; 1.2 kg bag + 200 g + 1 kg = $30 off (delivery still paid); FIKA10
 refused next to rewards; order placed with two rewards.
+
+Rewards in the order that reaches them (2026-10-08, owner): what counts is delivered + on the way (+ the bag at
+checkout). A gift reached by placed orders lights up and spins (claim on the tracker); a gift the bag reaches
+lights up too ("This bag reaches 3 kg!"). Rewards go ON TOP of the order: what a reward pays for (200 g, 250 g,
+1 kg) does not count, so the paid part of the bag must reach the checkpoint. Example: at 2 kg, a 1.2 kg bag pays
+1 kg (reaching 3 kg) and the 200 g are free. The bag drawer, tracker, header menu and checkout say how much to add
+("Add 500 g more and get 200 g on us in this order", within 1 kg); checkout lists rewards this order unlocks
+("New", claimed and applied with one tap) next to saved ones; lowering the bag takes a reward back off with
+"Rewards go on top: add 200 g more". A refused (Undelivered) order drops out and unused rewards above the new
+total are withdrawn; a reward already used on a later order stays used (accepted risk, $3.20-$16 at most).
+Tested (test data deleted): the 2 kg example at 700 g / 1 kg / 1.2 kg, reward applied and placed, tally lands on
+3.0 kg; 6 kg reached by an order on its way; that order marked Undelivered -> gift locked again.
