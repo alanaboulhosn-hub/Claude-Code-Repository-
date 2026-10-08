@@ -742,3 +742,22 @@ order placed; marked Undelivered -> taste saved again, spin still refused, back 
 Banner photos swapped (2026-10-08, owner): Mix your own now uses the bag pouring into a bowl (media 27,
 fika-background-2-...jpeg), Ready Mix the candies spilling from a bag (media 26, fika-background-...jpeg); each photo
 keeps its own position and wide-screen fade colours. Built by build-shop-pages.py, pages 40 and 38 republished.
+
+## Fika dashboard (2026-10-08)
+
+Snippet 49 "Fika: shop dashboard" (wordpress/snippets/fika-dashboard.php): WP Admin > Fika dashboard (left menu,
+under Dashboard) + a "Fika: last 7 days" box on the WordPress Dashboard. Periods 7 / 30 / 90 days / all time,
+compared with the period before. Shows: sales (sweets after discounts), orders, average order (with delivery), kg
+sold, estimated gross profit (landing cost per kg set on the page, default $16), delivery fees, new / returning
+customers, refused or cancelled; daily sales chart; launch health (SMTP, search engines, Meta, win-back mode,
+privacy page, New order email, background jobs); top sweets by kg; delivery areas; leading customers (all time:
+orders, kg, spend, last order, rewards lane); rewards claimed / used / cost and mystery tastes; FIKA10 and win-back
+codes used; bag recovery (saved bags, reminders, orders after a reminder); why shoppers left the checkout;
+refused / cancelled / refunded orders; latest customer notes. Orders with "TEST ORDER" in the note are left out.
+Cached 10 minutes ("Refresh"). WhatsApp / email complaints are not on the site.
+
+Full launch test (2026-10-08): every page on desktop and phone (no script errors, no sideways scrolling, redirects
+and not-found pages right), guest order outside Beirut ($20 + $6, phone, area, weights, confirmation email,
+popup, bag emptied), signed-in rewards and mystery tastes (tested earlier the same day). Home page 1.6-2.4 s on a
+phone; two bursts of rapid requests stalled ~11 s at the hosting CDN (hcdn) - consider turning on page caching at
+launch. Real activity seen: alan.aboulhosn@gmail.com had 3 saved bags today (1 reminder sent), left in place.
