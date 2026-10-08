@@ -786,3 +786,27 @@ launch. Real activity seen: alan.aboulhosn@gmail.com had 3 saved bags today (1 r
 - /shop, product addresses, categories, search and /cart were already redirected. Anything else shows the Fika "page not found".
 - /privacy-policy still returns "page not found" on purpose (draft).
 - To add more, edit the `$map` in fika-store-pages.php (snippet 38).
+
+## Pre-launch polish (2026-10-08)
+
+- **Browser tab icon:** media 400 (email-assets/fika-site-icon-512.png, the logo cropped tighter), set as the Site Icon.
+- **Titles:** the tagline is "Swedish candy, delivered in Lebanon". The home page title is now
+  "Fika – Swedish candy, delivered in Lebanon"; other pages are "<Page> – Fika".
+- **Share previews and Google description:** snippet 53, fika-seo.php. It adds a meta description plus Open Graph and
+  Twitter tags on home, Mix your own, Ready Mix and About us. The share picture is media 401
+  (email-assets/fika-share-1200x630.jpg, the candy bowl). og:url follows the site address, so it switches to
+  swedishfikalb.com with the domain.
+- **Page caching:** the LiteSpeed Cache plugin is activated, and snippet 55 (fika-cache.php) makes it work.
+  - Problem: the Hostinger theme marked every page "do not cache" on woocommerce_cart_updated, which WooCommerce
+    fires on every page for a new visitor. The snippet removes that one hook.
+  - Cached: the guest views of the shop pages and the redirects (cached pages answer in about 0.2–0.4 s at the
+    server). The checkout, My account, signed-in visitors and the REST API are not cached.
+  - Products, prices, stock and the bag load in the browser, so cached pages are never stale.
+  - The cache is cleared when a snippet, a synced pattern (header/footer) or the Meta settings change. Otherwise use
+    the admin bar: LiteSpeed Cache > Purge All.
+  - Tested with a guest order from a cached page ($26; test orders deleted) and a desktop + phone sweep.
+- **Meta PageView with caching:** the PageView event ID is now made in the browser, and the server copy goes through
+  /fika/v1/meta like the other browser events. A cached page would otherwise give every visitor the same event ID.
+- **"New order" email to the shop:** on, to hello@swedishfikalb.com, from WooCommerce > Settings > Emails. It was
+  tested by sending to a test address, then the recipient was set back. Until the SMTP password is entered it is sent
+  "via srv1317" and may land in spam.

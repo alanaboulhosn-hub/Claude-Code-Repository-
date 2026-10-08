@@ -5,6 +5,8 @@
  *   on/off, skip signed-in shop staff). The token is kept in the database, never in this file.
  * - Events (browser pixel + the same event from the server):
  *     PageView          every shop page (not the admin, not the order-received hop)
+ *                       (ID made in the browser, server copy through the same route as the other browser events,
+ *                       so it works with page caching)
  *     AddToCart         + on a candy or Ready Mix card, product page "Add to bag" (value, content_ids)
  *     InitiateCheckout  the bag's Checkout button (value, number of items)
  *     Purchase          the order: sent from the server in the background when the order is placed (email, phone,
@@ -118,29 +120,15 @@ add_action( 'wp_head', function () {
 		return;
 	}
 	$s   = fika_meta_set();
-	$pv  = 'pv.' . wp_generate_uuid4();
 	$am  = array();
 	if ( is_user_logged_in() ) {
 		$me = wp_get_current_user();
 		$am = array_filter( array( 'em' => strtolower( $me->user_email ), 'ph' => fika_meta_phone( get_user_meta( $me->ID, 'billing_phone', true ) ), 'external_id' => 'wp' . $me->ID ) );
 	}
-	// the same PageView from the server, after the page is sent
-	$url  = home_url( isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-	$user = fika_meta_request_user();
-	add_action( 'shutdown', function () use ( $pv, $user, $url ) {
-		// finish the page for the visitor first
-		if ( function_exists( 'fastcgi_finish_request' ) ) {
-			fastcgi_finish_request();
-		} elseif ( function_exists( 'litespeed_finish_request' ) ) {
-			litespeed_finish_request();
-		}
-		fika_meta_send( array( fika_meta_event( 'PageView', $pv, null, $user, $url ) ) );
-	} );
 	?>
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', <?php echo wp_json_encode( $s['pixel'] ); ?>, <?php echo wp_json_encode( (object) $am ); ?>);
-fbq('track', 'PageView', {}, { eventID: <?php echo wp_json_encode( $pv ); ?> });
 // browser event + the same event from the server (same event ID, so Meta counts it once)
 window.fikaTrack = function (ev, data, id) {
   data = data || {};
@@ -152,6 +140,8 @@ window.fikaTrack = function (ev, data, id) {
     if (navigator.sendBeacon) navigator.sendBeacon(<?php echo wp_json_encode( rest_url( 'fika/v1/meta' ) ); ?>, new Blob([body], { type: 'text/plain' }));
   } catch (e) {}
 };
+// PageView: the event ID is made here, not in the page, so it stays unique when the page is served from the cache
+fikaTrack('PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=<?php echo esc_attr( $s['pixel'] ); ?>&amp;ev=PageView&amp;noscript=1"></noscript>
 	<?php
@@ -167,7 +157,7 @@ add_action( 'rest_api_init', function () {
 				return new WP_REST_Response( null, 204 );
 			}
 			$in = json_decode( $req->get_body(), true );
-			if ( ! is_array( $in ) || empty( $in['ev'] ) || ! in_array( $in['ev'], array( 'AddToCart', 'InitiateCheckout', 'ViewContent' ), true ) ) {
+			if ( ! is_array( $in ) || empty( $in['ev'] ) || ! in_array( $in['ev'], array( 'PageView', 'AddToCart', 'InitiateCheckout', 'ViewContent' ), true ) ) {
 				return new WP_REST_Response( null, 204 );
 			}
 			// a little limit per visitor (60 events a minute)
