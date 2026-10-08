@@ -1006,3 +1006,17 @@ that email count from then on. Snippet 10 (fika-accounts.php):
   - **Log in:** "The email or password is incorrect. Forgot your password?", plus password-reset and
     confirmation-link messages.
 - Tested on desktop and phone: wrong log-in, a taken email at sign-up, and a new sign-up. Test accounts deleted.
+
+## Customer data wiped again (2026-10-08, owner's request: everything so far was trials)
+
+- **Deleted:**
+  - every order (#418);
+  - every non-staff account: alan.aboul@gmail.com, alan.aboulhosn@gmail.com and sarahnatalieaboulhosn@gmail.com;
+  - the personal reward code SWIM3-OBP8AC;
+  - saved bags (5), checkout-leaving answers (1), spin locks (5), shopping sessions (5), the pending bag
+    reminder (1) and customer lookup rows (3);
+  - the admin's reward/taste meta and the dashboard caches.
+- **Kept:** the admin account (cesar.aboulhosn@hotmail.com), the 34 products, the FIKA10 code (unused) and all
+  settings, pages and snippets.
+- Anyone who used the old accounts must sign up again; their email is free to register.
+- Done with a temporary snippet (dry run first, then delete), which was then removed.
