@@ -1105,3 +1105,47 @@ that email count from then on. Snippet 10 (fika-accounts.php):
   - The background connected to the photo's edge became white; the candy and its soft shadow are unchanged.
   - The old photos (129, 128) are still in the media library.
 - Cleanup: the temporary snippets and the CDN test uploads (452, 453) were deleted.
+
+## Launch run-through (2026-10-08)
+
+Full check of the shop on desktop and phone, every customer journey, the emails and WP Admin.
+
+**Fixed during the run-through**
+- **Checkout delivery wording:** before an area is chosen, WooCommerce said "No available delivery option",
+  which reads like an error. It now says "Working out your delivery…" (snippet 5).
+- **Duplicate email confirmation:** WooCommerce 11.1 has its own "Confirm your email address" prompt, which
+  appeared on the Orders tab next to ours. Ours is the only one now: two filters in snippet 10, and the
+  WooCommerce email "Verify email" is off.
+- **Empty country for new accounts:** a new account's checkout had no country, so it asked for a postcode and
+  region and the order failed. The country now defaults to Lebanon for everyone (snippet 5).
+- **Clock:** the site ran on UTC. It is set to Asia/Beirut, so order times and emails show Lebanon time.
+
+**Checked and working**
+- Crawl: 8 pages on desktop and phone, every link: no broken page, no failed request, no script error.
+- Guest order: bag, delivery fee by area, confirmation popup, "Your Fika order is confirmed" email to the
+  customer, "New order" email to the shop.
+- Account: sign-up sends one email only ("Confirm your email for Fika"). The button logs the customer in and
+  lands on the home page with a welcome message. Later logins are email and password only, and land on the
+  home page. Wrong password, forgot password (one email, working link), log out and every My account tab work.
+- Rewards: spin pop-up at 1.5 kg, mystery taste on the Rewards tab with "Use".
+- Bag reminder: typing an email at the checkout and leaving saves the bag. The reminder email lists the
+  bag; "Finish my order" refills it on another device and opens the checkout with the email filled in; a bad
+  link goes to the shop; "No more reminders" works.
+- Back end: COD is the only payment; delivery zones are Beirut $5 and outside Beirut $6, Lebanon only. The 34
+  products all have a price and photo. Three are set to "Out of stock" by hand: BUBS Wild Berry Pomegranate Oval,
+  Sour Pineapple, BUBS Tutti Frutti Diamond. The Fika dashboard, Fika customers, Checkout leavers, Win-back
+  emails (Test mode) and Meta pixel pages all open without errors. Background jobs run on time; the only failed
+  jobs belong to the switched-off Hostinger plugins (harmless).
+
+**Customer data cleared:** every order (including drafts), every customer account, saved bags, reminder
+opt-outs, spin locks, the admin's reward totals, sessions, the customer and analytics tables, and the FIKA10 use
+count. The store has 0 orders and 0 customers; only the admin account (cesar.aboulhosn@hotmail.com) remains. The
+"New order" email goes to hello@swedishfikalb.com again. The temporary test snippets were deleted.
+
+**Still to do at launch** (also on the Fika dashboard under "Launch health"):
+- WP Mail SMTP: enter the hello@swedishfikalb.com mailbox password. Until then, emails go out through the web
+  server and can land in spam.
+- Settings > Reading: untick "Discourage search engines".
+- Meta pixel ID and token.
+- Hostinger CDN: turn off "Smart Image Optimization" once the domain points here.
+- Privacy policy: still a draft.

@@ -765,3 +765,9 @@ add_action( 'wp_footer', function () {
 </script>
 	<?php
 }, 50 );
+
+// ---------- WooCommerce 11.1's own "Confirm your email address to check for past orders" ----------
+// The same job as our confirmation above (done once, at sign-up), so it is switched off: no second prompt on the
+// Orders tab of a confirmed account, and no second "verify your email" email.
+add_filter( 'woocommerce_customer_email_verification_should_show_prompt', '__return_false', 99 );
+add_filter( 'woocommerce_email_enabled_customer_verify_email', '__return_false', 99 );

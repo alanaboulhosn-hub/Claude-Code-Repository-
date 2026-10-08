@@ -145,3 +145,29 @@ add_action( 'woocommerce_checkout_create_order_line_item', function ( $item, $ca
 		$item->add_meta_data( $label['key'], $label['value'], true );
 	}
 }, 10, 3 );
+
+// While the checkout works out the price after the delivery area is picked (about 3 seconds), WooCommerce says
+// "No available delivery option". Every area of Lebanon has a price, so it only ever means "one moment": say that.
+add_action( 'wp_enqueue_scripts', function () {
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+		return;
+	}
+	wp_enqueue_script( 'wp-hooks' );
+	wp_add_inline_script( 'wp-hooks', "(function(){ var W = { 'No available delivery option': 'Working out your delivery…', 'No available shipping option': 'Working out your delivery…', 'No delivery options available': 'Working out your delivery…', 'No shipping options available': 'Working out your delivery…' }; wp.hooks.addFilter('i18n.gettext', 'fika/delivery-wording', function (t, text) { return W[text] || W[t] || t; }); })();", 'after' );
+}, 5 );
+
+// Lebanon for everyone. A new account has no saved country, so WooCommerce left the checkout's country empty and
+// asked for a postal code and a typed-in region (the order could not be placed until "Lebanon" was picked). Guests
+// already got Lebanon from the store's base location. The shop only delivers in Lebanon.
+foreach ( array( 'woocommerce_customer_get_shipping_country', 'woocommerce_customer_get_billing_country' ) as $fika_hook ) {
+	add_filter( $fika_hook, function ( $country ) {
+		return '' === (string) $country ? 'LB' : $country;
+	} );
+}
+add_action( 'woocommerce_created_customer', function ( $customer_id ) {
+	foreach ( array( 'shipping_country', 'billing_country' ) as $k ) {
+		if ( ! get_user_meta( $customer_id, $k, true ) ) {
+			update_user_meta( $customer_id, $k, 'LB' );
+		}
+	}
+} );
