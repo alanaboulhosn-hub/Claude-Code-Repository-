@@ -628,3 +628,26 @@ Off until the owner enters the pixel ID and token there (the token is stored in 
 7. Product pages stay closed to customers until they are designed (fika-store-pages.php "closed for now").
 8. Owner decision: the "New order" email to the shop (currently off).
 9. Optional: Gmail sender picture (Google account on hello@ with email-assets/fika-logo-icon-512.png).
+
+## Loyalty: checkpoints at 3, 6 and 10 kg (2026-10-08)
+
+Snippet 11 (wordpress/snippets/fika-loyalty.php) replaces the old "1 kg free at 8 kg":
+- 10 kg laps (repeating: 13, 16, 20 kg ...). Checkpoints: 3 kg = $5 off the next order (SWIM3-XXXXXX),
+  6 kg = 25% off up to 1 kg (SWIM6-, 25% of the customer's own first kilo, most expensive first; $6.25 at
+  $25/kg), 10 kg = $25 off the next order (SWIM10-).
+- A checkpoint's gift lights up and spins only when its kilos are DELIVERED (Completed); kilos on the way show
+  "unlocks once delivered". Tapping the lit gift claims the reward: a personal one-use code (email-locked,
+  individual use: no stacking with other rewards, FIKA10 or win-back codes; no 10% before-you-go offer while a
+  reward is held). Claimed codes are listed under the tracker and at checkout with a "Use" button (one per order;
+  choosing another swaps it). No expiry.
+- The part of an order paid by a reward does not count (e.g. $5 = 200 g at the order's price per gram).
+- Undelivered / cancelled / refunded orders stop counting; unused rewards above the new total are withdrawn.
+- The tracker shows the first lap with an unclaimed reached reward, else the current lap. User meta
+  fika_swim_claims; claim endpoint POST /wp-json/fika/v1/swim-claim (signed-in, REST nonce).
+- Economics at $16/kg landing cost and $25/kg price ($9/kg margin): per 10 kg cycle rewards cost about
+  $3.20 + $6.25 + $25 = $34.45 at the most if every code is used on full orders ($25 off is a cash discount,
+  not candy at cost) -> see the note in the chat of 2026-10-08.
+- Sign-up nudges and the privacy policy draft now say "Fika rewards" instead of "free kilo".
+- Tested with a test customer and test orders (deleted): states locked / on its way / ready / claimed / used,
+  claim, both codes at checkout ($5.00 and $6.25 off), grams paid by a reward not counted (1.2 kg -> 1.0 kg),
+  withdrawal after "Undelivered", 10 kg and the start of lap 2, desktop and phone, My account.

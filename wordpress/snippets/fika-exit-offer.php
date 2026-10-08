@@ -109,7 +109,7 @@ if ( ! function_exists( 'fika_exit_admin_page' ) ) {
 		</tbody>
 	</table>
 	<p class="description" style="max-width:640px">&ldquo;I want to change my order&rdquo; goes back to the shop without an offer. Shoppers who already used the offer,
-	have another discount code, or hold a free kilo are not offered the 10%. Closing the popup without answering is not counted.</p>
+	have another discount code, or hold a Fika reward are not offered the 10%. Closing the popup without answering is not counted.</p>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:20px"
 		onsubmit="return confirm('Reset all counts to zero? This cannot be undone.');">
 		<input type="hidden" name="action" value="fika_exit_reset">
@@ -195,10 +195,10 @@ add_action( 'wp_footer', function () {
   function cartEmpty() {
     try { return !(wp.data.select('wc/store/cart').getCartData().items || []).length; } catch (e) { return false; }
   }
-  // No 10% offer for customers holding a free kilo (snippet 11): the codes don't combine, and $25 off beats 10%
+  // No 10% offer for customers holding a Fika reward (snippet 11): the codes don't combine
   function freeKilo() {
     if (window.FIKA_FREEKG) return true;
-    try { return (wp.data.select('wc/store/cart').getCartData().coupons || []).some(function (x) { return (x.code || '').toLowerCase().indexOf('freekg-') === 0; }); } catch (e) { return false; }
+    try { return (wp.data.select('wc/store/cart').getCartData().coupons || []).some(function (x) { return /^swim(3|6|10)-/.test((x.code || '').toLowerCase()); }); } catch (e) { return false; }
   }
   function offerAvailable() { return !ls(OFFER_KEY) && !hasCoupon() && !freeKilo(); }
   function track(reason) {
