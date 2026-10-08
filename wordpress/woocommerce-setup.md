@@ -761,3 +761,17 @@ and not-found pages right), guest order outside Beirut ($20 + $6, phone, area, w
 popup, bag emptied), signed-in rewards and mystery tastes (tested earlier the same day). Home page 1.6-2.4 s on a
 phone; two bursts of rapid requests stalled ~11 s at the hosting CDN (hcdn) - consider turning on page caching at
 launch. Real activity seen: alan.aboulhosn@gmail.com had 3 saved bags today (1 reminder sent), left in place.
+
+## Fresh start: customer data wiped (2026-10-08)
+
+- All customer data from testing (including the owner's own trial use of the alan account) was deleted.
+  - This covers orders, customer accounts, saved bags, exit reasons, sessions, pending bag reminders, spin locks
+    and the admin's loyalty/taste tallies. The dashboard caches were cleared too.
+  - Kept: the 34 products, all settings and snippets, and the admin account.
+- The temporary wipe snippet was deleted afterwards.
+
+## Rewards lane: stripes follow the bar's curve
+
+- The striped "in your bag" part of the rewards lane was a rectangle sitting on the rounded bar.
+- The water, on-the-way and in-bag fills now sit inside a rounded `.fs-clip` layer, so they take the bar's curved shape.
+  The stripes also fill the bar's full height.

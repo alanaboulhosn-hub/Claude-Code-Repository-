@@ -483,9 +483,11 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 			<?php endforeach; ?>
 		</div>
 		<div class="fs-lane">
-			<div class="fs-seg fs-water"><svg class="fs-wave" viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 Q15 0 30 6 T60 6 T90 6 T120 6 V12 H0 Z"/></svg></div>
-			<div class="fs-seg fs-way"></div>
-			<div class="fs-seg fs-inbag"></div>
+			<div class="fs-clip">
+				<div class="fs-seg fs-water"><svg class="fs-wave" viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 Q15 0 30 6 T60 6 T90 6 T120 6 V12 H0 Z"/></svg></div>
+				<div class="fs-seg fs-way"></div>
+				<div class="fs-seg fs-inbag"></div>
+			</div>
 			<?php foreach ( $s['cps'] as $cp ) : ?><i class="fs-flag" data-g="<?php echo (int) $cp['g']; ?>"></i><?php endforeach; ?>
 			<?php foreach ( $s['spins'] as $sp ) : ?><button type="button" class="fs-spin is-<?php echo esc_attr( $sp['state'] ); ?>" data-g="<?php echo (int) $sp['g']; ?>" aria-label="<?php echo esc_attr( $sp['kg'] . ' kg: mystery spin, a free 50 g taste' ); ?>"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#fff"/><g class="w"><path d="M20 20L20 4A16 16 0 0 1 33.9 12z" fill="#ff6fa5"/><path d="M20 20L33.9 12A16 16 0 0 1 33.9 28z" fill="#ffd23f"/><path d="M20 20L33.9 28A16 16 0 0 1 20 36z" fill="#4aa8ff"/><path d="M20 20L20 36A16 16 0 0 1 6.1 28z" fill="#7ad67a"/><path d="M20 20L6.1 28A16 16 0 0 1 6.1 12z" fill="#c77dff"/><path d="M20 20L6.1 12A16 16 0 0 1 20 4z" fill="#ff9f43"/></g><circle cx="20" cy="20" r="18" fill="none" stroke="#004aad" stroke-width="2.6"/><circle cx="20" cy="20" r="5.5" fill="#fff" stroke="#004aad" stroke-width="2"/><text x="20" y="23" text-anchor="middle" font-family="Bebas Neue, Impact, sans-serif" font-size="9" fill="#004aad">?</text></svg></button><?php endforeach; ?>
 			<div class="fs-fish" aria-hidden="true"><div class="fs-turn">
@@ -540,12 +542,13 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 .fika-swim .fs-track { position: relative; }
 .fika-swim .fs-lane { position: relative; height: 62px; border-radius: 999px; background: #fdeaf2; overflow: visible;
   background-image: repeating-linear-gradient(90deg, transparent 0 16px, rgba(0, 74, 173, .08) 16px 26px); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 50%; }
+.fika-swim .fs-clip { position: absolute; inset: 0; border-radius: 999px; overflow: hidden; pointer-events: none; }
 .fika-swim .fs-seg { position: absolute; top: 0; bottom: 0; left: 0; width: 0; overflow: hidden; }
 .fika-swim .fs-water { border-radius: 999px; z-index: 1; background: linear-gradient(180deg, #6fb6ff 0%, #2f86ea 55%, #1c6fd6 100%); box-shadow: inset 0 -6px 12px rgba(0, 40, 120, .18); }
 .fika-swim .fs-water::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 70%, rgba(255,255,255,.35) 0 3px, transparent 4px), radial-gradient(circle at 55% 40%, rgba(255,255,255,.3) 0 2px, transparent 3px), radial-gradient(circle at 80% 75%, rgba(255,255,255,.3) 0 2.5px, transparent 3.5px); background-size: 90px 62px; animation: fsBub 4s linear infinite; }
 .fika-swim .fs-wave { position: absolute; left: 0; top: -2px; width: 200%; height: 12px; fill: rgba(255, 255, 255, .35); animation: fsWave 3s linear infinite; }
 .fika-swim .fs-way { z-index: 0; border-radius: 0 999px 999px 0; background: linear-gradient(180deg, #d4e9ff, #a9d3ff); }
-.fika-swim .fs-inbag { z-index: 0; top: 6px; bottom: 6px; border-radius: 0 999px 999px 0; background: repeating-linear-gradient(135deg, rgba(255, 111, 165, .55) 0 8px, rgba(255, 210, 63, .55) 8px 16px); background-size: 22.6px 22.6px; animation: fsCandy 1s linear infinite; }
+.fika-swim .fs-inbag { z-index: 0; border-radius: 0 999px 999px 0; background: repeating-linear-gradient(135deg, rgba(255, 111, 165, .55) 0 8px, rgba(255, 210, 63, .55) 8px 16px); background-size: 22.6px 22.6px; animation: fsCandy 1s linear infinite; }
 .fika-swim .fs-fish { position: absolute; top: 50%; left: 0; width: var(--fw); height: var(--fw); margin-top: calc(var(--fw) / -2); z-index: 2; pointer-events: none; will-change: transform; }
 .fika-swim .fs-turn { width: 100%; height: 100%; transform: scaleX(-1); transition: transform .35s ease; }
 .fika-swim.is-back .fs-turn { transform: scaleX(1); }
