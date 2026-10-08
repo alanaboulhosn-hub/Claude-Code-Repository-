@@ -720,3 +720,12 @@ Snippet 46 "Fika: 2nd-order mystery taste" (wordpress/snippets/fika-taste.php):
   popup count it as 50 g. Cost: 50 g at landing cost, about $0.80, once per customer.
 - Tested (test data deleted): teaser, spin with All and Gelatin-free, result card, free line at checkout ($20 bag
   -> $25 with delivery, taste $0, not editable), order placed (line meta), card gone, tracker 0.8 kg; phone view.
+
+Mystery tastes on the lane (2026-10-08, owner): the spin is no longer "the 2nd order"; it is two stops on every
+15 kg lap, at 1.5 kg and 12.5 kg (little wheels in the water; gifts stay above). A stop lights up and spins once the
+orders, or the bag being filled, reach it; tapping it opens the candy wheel (same filters). The win (user meta
+fika_tastes, one per lap and stop) joins the order that reaches the stop, or a later one: the free 50 g line is in
+the cart only while the bag reaches the stop (it follows quantity changes at checkout). The bag drawer says "Add
+200 g more to reach 1.5 kg and get a mystery spin" / "a mystery spin is waiting on your rewards lane". Cost: 2 x 50 g
+per lap, about $1.60 (about 12c per paid kilo). Tested (test data deleted): 1 kg delivered + 300 g / 600 g bag,
+spin from the lane, taste in and out at 600 g / 400 g / 600 g, order placed with it (650 g), stop shown as used.

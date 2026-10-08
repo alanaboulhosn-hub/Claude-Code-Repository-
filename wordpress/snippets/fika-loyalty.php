@@ -383,12 +383,20 @@ if ( ! function_exists( 'fika_swim_state' ) ) {
 		foreach ( $claims as $cl ) {
 			$claimed[ (int) $cl['lap'] . ':' . (int) $cl['g'] ] = $cl['code'];
 		}
-		$cps = fika_swim_checkpoints();
-		// the lap on show: the first one with a reached reward still to claim, else the one being swum
+		$cps    = fika_swim_checkpoints();
+		$stops  = function_exists( 'fika_taste_stops' ) ? fika_taste_stops() : array();
+		$tastes = function_exists( 'fika_taste_list' ) ? fika_taste_list( $uid ) : array();
+		// the lap on show: the first one with a reached reward (or spin) still to take, else the one being swum
 		$lap = (int) floor( ( $t['delivered'] + $t['placed'] ) / FIKA_SWIM_LAP ) + 1;
 		for ( $l = 1; $l < $lap; $l++ ) {
 			foreach ( $cps as $g => $cp ) {
 				if ( ! isset( $claimed[ $l . ':' . $g ] ) ) {
+					$lap = $l;
+					break 2;
+				}
+			}
+			foreach ( $stops as $g ) {
+				if ( ! isset( $tastes[ $l . ':' . $g ] ) ) {
 					$lap = $l;
 					break 2;
 				}
@@ -409,10 +417,18 @@ if ( ! function_exists( 'fika_swim_state' ) ) {
 			}
 			$list[] = array( 'g' => $g, 'kg' => $cp['kg'], 'badge' => $cp['badge'], 'title' => $cp['title'], 'unlock' => $cp['unlock'], 'text' => $cp['text'], 'rg' => $cp['rg'], 'state' => $state, 'code' => 'claimed' === $state ? $code : '' );
 		}
+		$spins = array();
+		foreach ( $stops as $g ) {
+			$tk = isset( $tastes[ $lap . ':' . $g ] ) ? $tastes[ $lap . ':' . $g ] : null;
+			$st = $tk ? ( 'used' === $tk['status'] ? 'used' : 'won' ) : ( $d + $o >= $g ? 'ready' : 'locked' );
+			$pn = $tk ? wc_get_product( (int) $tk['pid'] ) : null;
+			$spins[] = array( 'g' => $g, 'kg' => $g / 1000, 'state' => $st, 'name' => $pn ? html_entity_decode( $pn->get_name() ) : '' );
+		}
 		return array(
 			'uid'     => $uid,
 			'name'    => $u->first_name ? $u->first_name : $u->display_name,
 			'lap'     => $lap,
+			'spins'   => $spins,
 			'd'       => $d,
 			'o'       => $o,
 			'cps'     => $list,
@@ -436,6 +452,7 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 			'd'     => $s['d'],
 			'o'     => $s['o'],
 			'cps'   => $s['cps'],
+			'spins' => $s['spins'],
 			'claim' => $s['preview'] ? '' : rest_url( 'fika/v1/swim-claim' ),
 			'nonce' => wp_create_nonce( 'wp_rest' ),
 		);
@@ -470,6 +487,7 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 			<div class="fs-seg fs-way"></div>
 			<div class="fs-seg fs-inbag"></div>
 			<?php foreach ( $s['cps'] as $cp ) : ?><i class="fs-flag" data-g="<?php echo (int) $cp['g']; ?>"></i><?php endforeach; ?>
+			<?php foreach ( $s['spins'] as $sp ) : ?><button type="button" class="fs-spin is-<?php echo esc_attr( $sp['state'] ); ?>" data-g="<?php echo (int) $sp['g']; ?>" aria-label="<?php echo esc_attr( $sp['kg'] . ' kg: mystery spin, a free 50 g taste' ); ?>"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#fff"/><g class="w"><path d="M20 20L20 4A16 16 0 0 1 33.9 12z" fill="#ff6fa5"/><path d="M20 20L33.9 12A16 16 0 0 1 33.9 28z" fill="#ffd23f"/><path d="M20 20L33.9 28A16 16 0 0 1 20 36z" fill="#4aa8ff"/><path d="M20 20L20 36A16 16 0 0 1 6.1 28z" fill="#7ad67a"/><path d="M20 20L6.1 28A16 16 0 0 1 6.1 12z" fill="#c77dff"/><path d="M20 20L6.1 12A16 16 0 0 1 20 4z" fill="#ff9f43"/></g><circle cx="20" cy="20" r="18" fill="none" stroke="#004aad" stroke-width="2.6"/><circle cx="20" cy="20" r="5.5" fill="#fff" stroke="#004aad" stroke-width="2"/><text x="20" y="23" text-anchor="middle" font-family="Bebas Neue, Impact, sans-serif" font-size="9" fill="#004aad">?</text></svg></button><?php endforeach; ?>
 			<div class="fs-fish" aria-hidden="true"><div class="fs-turn">
 				<svg viewBox="0 0 100 100"><defs><linearGradient id="fsFishG<?php echo $wid; ?>" x1="0" x2="1"><stop offset="0" stop-color="#ff6a3d"/><stop offset="1" stop-color="#e3241f"/></linearGradient></defs>
 					<g class="fs-tail"><path d="M62 38 L90 22 C85 40 85 62 90 79 L62 64 Z" fill="#e3241f" stroke="#a3160f" stroke-width="2.6" stroke-linejoin="round"/></g>
@@ -582,6 +600,18 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 .fika-swim .fs-badge { display: inline-block; min-width: 38px; padding: 3px 8px; border-radius: 999px; background: #e6ebf5; color: #8b97b3; font: 400 15px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: .04em; text-align: center; }
 .fika-swim .fs-flag { position: absolute; top: 6px; bottom: 6px; left: 0; width: 0; border-left: 2px dashed rgba(0, 74, 173, .28); z-index: 1; pointer-events: none; }
 .fika-swim .fs-ticks i.m { color: #004aad; font-weight: 700; }
+/* mystery spin stops: little wheels in the lane */
+.fika-swim .fs-spin { position: absolute; top: 50%; left: 0; z-index: 3; width: 32px; height: 32px; margin: -16px 0 0 -16px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: default; }
+.fika-swim .fs-spin svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.fika-swim .fs-spin.is-locked { filter: grayscale(1); opacity: .55; }
+.fika-swim .fs-spin.is-ready, .fika-swim .fs-spin.is-bag, .fika-swim .fs-spin.is-won { cursor: pointer; }
+.fika-swim .fs-spin.is-ready svg, .fika-swim .fs-spin.is-bag svg { filter: drop-shadow(0 0 5px rgba(255, 210, 63, 1)) drop-shadow(0 0 10px rgba(255, 111, 165, .8)); }
+.fika-swim .fs-spin.is-ready .w, .fika-swim .fs-spin.is-bag .w { transform-origin: 20px 20px; animation: fsWheel 1.6s linear infinite; }
+.fika-swim .fs-spin.is-ready { animation: fsTap 1.6s ease-in-out infinite; }
+.fika-swim .fs-spin.is-used { opacity: .5; }
+.fika-swim .fs-spin.is-won::after, .fika-swim .fs-spin.is-used::after { content: '\2713'; position: absolute; right: -4px; top: -4px; width: 15px; height: 15px; border-radius: 50%; background: #2fb36b; color: #fff; font: 700 10px/15px Arial, sans-serif; text-align: center; }
+@keyframes fsWheel { to { transform: rotate(360deg); } }
+@media (max-width: 700px) { .fika-swim .fs-spin { width: 26px; height: 26px; margin: -13px 0 0 -13px; } }
 /* on its way: unlocks once delivered */
 .fika-swim .fs-cp.is-way rect { fill: #eaf4ff; stroke: #7fb7f2; }
 .fika-swim .fs-cp.is-way path { stroke: #7fb7f2; }
@@ -640,7 +670,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 		var lane = el.querySelector('.fs-lane'), fish = el.querySelector('.fs-fish');
 		var water = el.querySelector('.fs-water'), way = el.querySelector('.fs-way'), inbag = el.querySelector('.fs-inbag');
 		var big = el.querySelector('.fs-big b'), sub = el.querySelector('.fs-sub'), legend = el.querySelector('.fs-legend'), title = el.querySelector('.fs-title');
-		var ticks = el.querySelectorAll('.fs-ticks i'), flags = el.querySelectorAll('.fs-flag'), btns = el.querySelectorAll('.fs-cp');
+		var ticks = el.querySelectorAll('.fs-ticks i'), flags = el.querySelectorAll('.fs-flag'), btns = el.querySelectorAll('.fs-cp'), wheels = el.querySelectorAll('.fs-spin'), spins = s.spins || [];
 		var rewards = el.querySelector('.fs-rewards');
 		var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
 		var seenKey = 'fika_swim_seen_' + s.uid, partyKey = 'fika_swim_party_' + s.uid;
@@ -665,6 +695,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			for (var i = 0; i < ticks.length; i++) ticks[i].style.left = x(+ticks[i].getAttribute('data-i') * 1000, W, fw) + 'px';
 			for (var j = 0; j < flags.length; j++) flags[j].style.left = x(+flags[j].getAttribute('data-g'), W, fw) + 'px';
 			for (var k = 0; k < btns.length; k++) btns[k].style.left = x(+btns[k].getAttribute('data-g'), W, fw) + 'px';
+			for (var q = 0; q < wheels.length; q++) wheels[q].style.left = x(+wheels[q].getAttribute('data-g'), W, fw) + 'px';
 			if (big) big.textContent = kg(cur);
 		}
 		function setState(b, c, st) {
@@ -674,7 +705,13 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			b.title = st === 'ready' ? 'Tap to claim ' + c.title : st === 'claimed' ? c.title + ' claimed' : st === 'used' ? c.title + ' used' : st === 'bag' ? c.title + ': unlocked by this bag, use it at checkout' : c.title + ' at ' + c.kg + ' kg';
 		}
 		// gifts the bag reaches light up (they are used at checkout, in the order that reaches them)
+		function wheelOf(g) { for (var i = 0; i < wheels.length; i++) if (+wheels[i].getAttribute('data-g') === g) return wheels[i]; return null; }
 		function lights() {
+			spins.forEach(function (sp) {
+				if (sp.state !== 'locked' ? sp.state !== 'bag' : false) return;
+				var st = s.d + s.o + bagG >= sp.g ? 'bag' : 'locked', w = wheelOf(sp.g);
+				if (w ? st !== sp.state : false) { sp.state = st; w.className = 'fs-spin is-' + st; }
+			});
 			cps.forEach(function (c) {
 				if (c.state !== 'locked' ? c.state !== 'bag' : false) return;
 				var st = s.d + s.o + bagG >= c.g ? 'bag' : 'locked', b = btn(c.g);
@@ -686,13 +723,19 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			var name = s.name ? ', ' + s.name : '';
 			var ready = cps.filter(function (c) { return c.state === 'ready'; });
 			var lit = cps.filter(function (c) { return c.state === 'bag'; });
+			var spinNow = spins.filter(function (x) { return x.state === 'ready' || x.state === 'bag'; });
 			var tot = s.d + s.o + bagG, next = null;
-			for (var i = 0; i < cps.length; i++) if (cps[i].state === 'locked' ? cps[i].g > tot : false) { next = cps[i]; break; }
+			var ahead = cps.filter(function (c) { return c.state === 'locked' ? c.g > tot : false; }).concat(spins.filter(function (x) { return x.state === 'locked' ? x.g > tot : false; }).map(function (x) { return { g: x.g, title: 'a mystery spin' }; }));
+			ahead.sort(function (a, b) { return a.g - b.g; });
+			next = ahead[0] || null;
 			sub.innerHTML = '';
 			if (lit.length ? !ready.length : false) {
 				var L = lit[lit.length - 1], lt = L.title.replace(/^A whole/, 'a whole');
 				title.textContent = 'This bag unlocks ' + lt + '!';
 				sub.appendChild(document.createTextNode('Go to checkout and tap \u201cUse\u201d: the sweets come off this very order' + name + '.'));
+			} else if (spinNow.length ? !ready.length : false) {
+				title.textContent = 'Mystery spin unlocked!';
+				sub.appendChild(document.createTextNode('Tap the little wheel on the lane and spin for a free 50 g mystery taste' + name + '.'));
 			} else if (ready.length) {
 				title.textContent = 'You made it to ' + ready[0].kg + ' kg!';
 				sub.appendChild(document.createTextNode('Tap the glowing gift to unlock ' + ready[0].unlock + name + '.'));
@@ -813,6 +856,16 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 					.catch(function () { b.removeAttribute('aria-busy'); alert('Sorry, something went wrong. Please try again.'); });
 			});
 		});
+		Array.prototype.forEach.call(wheels, function (w) {
+			w.addEventListener('click', function () {
+				var g = +w.getAttribute('data-g'), sp = spins.filter(function (x) { return x.g === g; })[0];
+				if (!sp) return;
+				if (sp.state === 'won' || sp.state === 'used') { title.textContent = 'Your mystery taste: ' + sp.name; sub.textContent = sp.state === 'won' ? '50 g, free: it joins your order at checkout.' : 'Already in one of your orders. Enjoy!'; return; }
+				if (sp.state === 'locked') { title.textContent = 'Mystery spin at ' + sp.kg + ' kg'; sub.textContent = 'Reach ' + sp.kg + ' kg and spin the candy wheel for a free 50 g taste.'; return; }
+				if (!window.fikaTasteWheel) return;
+				window.fikaTasteWheel({ lap: s.lap, g: g, bag: bagG, done: function (j) { sp.state = 'won'; sp.name = j.name; w.className = 'fs-spin is-won'; words(); } });
+			});
+		});
 		el.addEventListener('click', function (e) {
 			var copy = e.target.closest ? e.target.closest('.fs-copy') : null;
 			if (!copy) return;
@@ -880,6 +933,19 @@ add_action( 'wp_footer', function () {
 	foreach ( fika_swim_unclaimed( $uid, $reach + FIKA_SWIM_LAP ) as $u ) {
 		$next[] = array( $u[2], $cps[ $u[1] ]['title'], $cps[ $u[1] ]['rg'] );
 	}
+	// mystery spin stops (fika-taste.php) not spun yet
+	if ( function_exists( 'fika_taste_stops' ) ) {
+		$tl = fika_taste_list( $uid );
+		for ( $lap = 1; ( $lap - 1 ) * FIKA_SWIM_LAP < $reach + FIKA_SWIM_LAP; $lap++ ) {
+			foreach ( fika_taste_stops() as $g ) {
+				$need = ( $lap - 1 ) * FIKA_SWIM_LAP + $g;
+				if ( $need <= $reach + FIKA_SWIM_LAP && empty( $tl[ $lap . ':' . $g ] ) ) {
+					$next[] = array( $need, 'a mystery spin (a free 50 g taste)', 0 );
+				}
+			}
+		}
+		usort( $next, function ( $a, $b ) { return $a[0] - $b[0]; } );
+	}
 	$saved = count( fika_swim_open_codes( $uid ) );
 	?>
 <style>.mx-df .fk-rw-note { margin: 0 0 10px; padding: 9px 12px; border-radius: 12px; background: #fff6d6; color: #1b2a4a; font: 500 13.5px/1.35 'Outfit', 'Open Sans', Arial, sans-serif; }
@@ -904,8 +970,10 @@ add_action( 'wp_footer', function () {
 		var cpKg = nx ? ((nx[0] - 1) % <?php echo (int) FIKA_SWIM_LAP; ?> + 1) / 1000 : 0;
 		note.innerHTML = ''; note.classList.toggle('is-on', nx ? (g > 0 ? toCp <= 0 : false) : false);
 		function add(t, bold) { var x = bold ? document.createElement('b') : document.createTextNode(t); if (bold) x.textContent = t; note.appendChild(x); }
-		if (nx ? (g > 0 ? toCp <= 0 : false) : false) {
-			add('This bag reaches ' + cpKg + ' kg and unlocks '); add(low(nx[1]), true); add('! Tap \u201cUse\u201d at checkout and they come off this order.');
+		if (nx ? (g > 0 ? (toCp <= 0 ? nx[2] === 0 : false) : false) : false) {
+			add('This bag reaches ' + cpKg + ' kg: '); add('a mystery spin', true); add(' is waiting on your rewards lane. Spin it and 50 g of a surprise candy join this order, free.');
+		} else if (nx ? (g > 0 ? toCp <= 0 : false) : false) {
+			add('This bag reaches ' + cpKg + ' kg and unlocks '); add(low(nx[1]), true); add('! Tap “Use” at checkout and they come off this order.');
 		} else if (nx ? (g > 0 ? toCp <= 1000 : false) : false) {
 			add('Add '); add(amt(toCp) + ' more', true); add(' to reach ' + cpKg + ' kg and get '); add(low(nx[1]), true); add(' in this order.');
 		} else if (waiting) {

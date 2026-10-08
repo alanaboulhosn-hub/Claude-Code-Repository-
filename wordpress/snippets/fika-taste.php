@@ -1,44 +1,34 @@
 <?php
 /**
- * Fika: the 2nd-order mystery taste — spin the wheel, win 50 g of a candy, free in the next order.
- * - Signed-in customers with at least one order (placed or delivered) get one spin, once. Before their first order
- *   they see a teaser ("your 2nd order comes with a surprise").
- * - The wheel holds every candy in the shop (in stock, shown in the shop, not Ready Mix). The customer can narrow it
- *   first: All sweets, Gelatin-free, Gluten-free, Vegan (a filter shows once products carry the tag gelatin-free,
- *   gluten-free or vegan). They tap the candy button in the middle; the server picks the candy (so the result
- *   cannot be chosen), the wheel lands on it.
- * - The win is kept on the account (user meta fika_taste) and goes into the next order by itself: a free line
- *   "Mystery taste: 50 g" of that candy (price 0, one per order, quantity fixed) is added whenever the bag reaches
- *   the checkout with something else in it. Removing it at checkout keeps it for a later order. When an order with
- *   it is placed, the taste is used.
- * - The free 50 g does not count towards the rewards track. Cost: 50 g at landing cost (about $0.80).
- * - Shown above the rewards tracker (home, Mix your own, Ready Mix) and on the My account dashboard; the bag drawer
- *   says the taste is coming.
+ * Fika: mystery tastes — two spin stops on the rewards lane (1.5 kg and 12.5 kg of every 15 kg lap).
+ * - When the customer's orders (placed or delivered), or the bag they are filling, pass a stop, the little wheel on
+ *   the lane lights up and spins. Tapping it opens the candy wheel: every candy in the shop (in stock, shown in the
+ *   shop, not Ready Mix) with its photo, narrowed first if they like: All sweets, Gelatin-free, Gluten-free, Vegan
+ *   (a filter shows once products carry the tag gelatin-free, gluten-free or vegan). They tap the candy button; the
+ *   server picks the candy (so the result cannot be chosen) and the wheel lands on it.
+ * - The win (user meta fika_tastes: lap, stop, candy, won / used) goes into the order that reaches the stop, or the
+ *   next one: a free line "Mystery taste: 50 g, free" of that candy (price 0, quantity locked), added once the
+ *   bag at checkout reaches the stop and has something else in it. Removing it at checkout keeps it for a later
+ *   order. Placing the order uses it; the order line says "Mystery taste: 50 g, free" for packing.
+ * - The free 50 g does not count towards the rewards track. Cost: 50 g at landing cost (about $0.80) per stop.
+ * - A card above the tracker (home, Mix your own, Ready Mix, My account) and a line in the bag drawer say which
+ *   taste is waiting. Needs snippet 11 (Fika rewards).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-taste.php
  */
 
-if ( ! function_exists( 'fika_taste_get' ) ) {
-	function fika_taste_get( $uid ) {
-		$t = get_user_meta( (int) $uid, 'fika_taste', true );
+if ( ! function_exists( 'fika_taste_list' ) ) {
+	// the spin stops of a lap (grams into the lap)
+	function fika_taste_stops() {
+		return array( 1500, 12500 );
+	}
+	// [ 'lap:g' => { lap, g, pid, status (won / used), at, order } ]
+	function fika_taste_list( $uid ) {
+		$t = get_user_meta( (int) $uid, 'fika_tastes', true );
 		return is_array( $t ) ? $t : array();
 	}
-	// orders that count (placed or delivered)
-	function fika_taste_orders( $uid ) {
-		if ( ! $uid || ! function_exists( 'wc_get_orders' ) ) {
-			return 0;
-		}
-		return count( wc_get_orders( array( 'customer_id' => (int) $uid, 'status' => array( 'wc-processing', 'wc-on-hold', 'wc-completed' ), 'limit' => 2, 'return' => 'ids', 'type' => 'shop_order' ) ) );
-	}
-	// 'teaser' (no order yet), 'spin' (may spin), 'won' (taste waiting), 'used', or '' (not signed in)
-	function fika_taste_state( $uid ) {
-		if ( ! $uid ) {
-			return '';
-		}
-		$t = fika_taste_get( $uid );
-		if ( ! empty( $t['status'] ) ) {
-			return 'used' === $t['status'] ? 'used' : 'won';
-		}
-		return fika_taste_orders( $uid ) >= 1 ? 'spin' : 'teaser';
+	function fika_taste_need( $key ) {
+		list( $lap, $g ) = array_map( 'intval', explode( ':', $key ) );
+		return ( $lap - 1 ) * ( defined( 'FIKA_SWIM_LAP' ) ? FIKA_SWIM_LAP : 15000 ) + $g;
 	}
 	// the candies on the wheel, with the filters they belong to
 	function fika_taste_candies() {
@@ -66,38 +56,44 @@ if ( ! function_exists( 'fika_taste_get' ) ) {
 	function fika_taste_is_item( $cart_item ) {
 		return ! empty( $cart_item['fika_taste'] );
 	}
-	// put the won taste in the cart (once), when there is something else in it
+	// put won tastes in the cart once the bag reaches their stop (and has something else in it); take them out if not
 	function fika_taste_ensure() {
 		static $busy = false;
-		if ( $busy || ! is_user_logged_in() || ! function_exists( 'WC' ) || ! WC()->cart ) {
+		if ( $busy || ! is_user_logged_in() || ! function_exists( 'WC' ) || ! WC()->cart || ! function_exists( 'fika_swim_reach' ) ) {
 			return;
 		}
-		$t = fika_taste_get( get_current_user_id() );
-		if ( empty( $t['status'] ) || 'won' !== $t['status'] || empty( $t['pid'] ) ) {
-			return;
-		}
-		if ( WC()->session && WC()->session->get( 'fika_taste_later' ) ) {
-			return;
-		}
-		$has = false;
+		$uid  = get_current_user_id();
+		$won  = array_filter( fika_taste_list( $uid ), function ( $t ) { return 'won' === $t['status']; } );
+		$have = array();
 		$other = false;
-		foreach ( WC()->cart->get_cart() as $item ) {
+		foreach ( WC()->cart->get_cart() as $key => $item ) {
 			if ( fika_taste_is_item( $item ) ) {
-				$has = true;
+				$have[ $item['fika_taste'] ] = $key;
 			} else {
 				$other = true;
 			}
 		}
-		$busy = true;
-		if ( $other && ! $has ) {
-			$p = wc_get_product( (int) $t['pid'] );
-			if ( $p && $p->is_purchasable() && $p->is_in_stock() ) {
-				WC()->cart->add_to_cart( (int) $t['pid'], 1, 0, array(), array( 'fika_taste' => 1 ) );
+		if ( ! $won && ! $have ) {
+			return;
+		}
+		$reach = fika_swim_reach( $uid ) + fika_swim_cart_grams();
+		$later = WC()->session ? (array) WC()->session->get( 'fika_taste_later' ) : array();
+		$busy  = true;
+		$GLOBALS['fika_taste_auto'] = true; // our own removals are not "keep it for later"
+		foreach ( $have as $k => $cart_key ) {
+			if ( ! $other || empty( $won[ $k ] ) || fika_taste_need( $k ) > $reach ) {
+				WC()->cart->remove_cart_item( $cart_key );
 			}
-		} elseif ( $has && ! $other ) {
-			foreach ( WC()->cart->get_cart() as $key => $item ) {
-				if ( fika_taste_is_item( $item ) ) {
-					WC()->cart->remove_cart_item( $key );
+		}
+		$GLOBALS['fika_taste_auto'] = false;
+		if ( $other ) {
+			foreach ( $won as $k => $t ) {
+				if ( isset( $have[ $k ] ) || ! empty( $later[ $k ] ) || fika_taste_need( $k ) > $reach ) {
+					continue;
+				}
+				$p = wc_get_product( (int) $t['pid'] );
+				if ( $p && $p->is_purchasable() && $p->is_in_stock() ) {
+					WC()->cart->add_to_cart( (int) $t['pid'], 1, 0, array(), array( 'fika_taste' => $k ) );
 				}
 			}
 		}
@@ -112,18 +108,18 @@ add_action( 'woocommerce_add_to_cart', function ( $key, $pid, $qty, $vid, $var, 
 	}
 }, 20, 6 );
 add_action( 'woocommerce_cart_loaded_from_session', 'fika_taste_ensure', 99 );
+// the bag changed at checkout: the taste follows (in only while the bag reaches its stop)
+add_action( 'woocommerce_after_cart_item_quantity_update', function () {
+	fika_taste_ensure();
+}, 20 );
 add_action( 'woocommerce_cart_item_removed', function ( $key, $cart ) {
 	$removed = isset( $cart->removed_cart_contents[ $key ] ) ? $cart->removed_cart_contents[ $key ] : array();
 	if ( fika_taste_is_item( $removed ) ) {
-		// taken out by the customer: keep it for a later order (unless the bag itself was emptied)
-		$other = false;
-		foreach ( $cart->get_cart() as $item ) {
-			if ( ! fika_taste_is_item( $item ) ) {
-				$other = true;
-			}
-		}
-		if ( $other && WC()->session ) {
-			WC()->session->set( 'fika_taste_later', 1 );
+		// taken out by the customer (not by us): keep it for a later order
+		if ( WC()->session && empty( $GLOBALS['fika_taste_auto'] ) ) {
+			$later = (array) WC()->session->get( 'fika_taste_later' );
+			$later[ $removed['fika_taste'] ] = 1;
+			WC()->session->set( 'fika_taste_later', $later );
 		}
 		return;
 	}
@@ -154,48 +150,64 @@ add_action( 'woocommerce_checkout_create_order_line_item', function ( $item, $ca
 	if ( fika_taste_is_item( $values ) ) {
 		$item->delete_meta_data( 'Weight' );
 		$item->add_meta_data( 'Mystery taste', '50 g, free', true );
-		$item->add_meta_data( '_fika_taste', 1, true );
+		$item->add_meta_data( '_fika_taste', $values['fika_taste'], true );
 	}
 }, 20, 3 );
-// the order is placed: the taste is used
+// the order is placed: its tastes are used
 add_action( 'woocommerce_store_api_checkout_order_processed', function ( $order ) {
 	$uid = $order->get_customer_id();
 	if ( ! $uid ) {
 		return;
 	}
+	$list = fika_taste_list( $uid );
+	$hit  = false;
 	foreach ( $order->get_items() as $item ) {
-		if ( $item->get_meta( '_fika_taste' ) ) {
-			$t           = fika_taste_get( $uid );
-			$t['status'] = 'used';
-			$t['order']  = $order->get_id();
-			update_user_meta( $uid, 'fika_taste', $t );
-			if ( WC()->session ) {
-				WC()->session->set( 'fika_taste_later', null );
-			}
-			return;
+		$k = (string) $item->get_meta( '_fika_taste' );
+		if ( $k && isset( $list[ $k ] ) ) {
+			$list[ $k ]['status'] = 'used';
+			$list[ $k ]['order']  = $order->get_id();
+			$hit                  = true;
 		}
+	}
+	if ( $hit ) {
+		update_user_meta( $uid, 'fika_tastes', $list );
+	}
+	if ( WC()->session ) {
+		WC()->session->set( 'fika_taste_later', null );
 	}
 } );
 // (the free 50 g does not count towards the rewards track: see fika_swim_order_grams in fika-loyalty.php)
 
-// ---------- spin: POST /wp-json/fika/v1/taste-spin { filter } ----------
+// ---------- spin: POST /wp-json/fika/v1/taste-spin { lap, g, filter, bag } ----------
 add_action( 'rest_api_init', function () {
 	register_rest_route( 'fika/v1', '/taste-spin', array(
 		'methods'             => 'POST',
 		'permission_callback' => function () { return is_user_logged_in(); },
 		'callback'            => function ( $req ) {
 			$uid = get_current_user_id();
-			$st  = fika_taste_state( $uid );
-			if ( 'spin' !== $st ) {
-				return new WP_REST_Response( array( 'error' => 'won' === $st || 'used' === $st ? 'You already spun the wheel.' : 'The wheel opens after your first order.' ), 400 );
+			$lap = (int) $req->get_param( 'lap' );
+			$g   = (int) $req->get_param( 'g' );
+			$key = $lap . ':' . $g;
+			if ( $lap < 1 || ! in_array( $g, fika_taste_stops(), true ) || ! function_exists( 'fika_swim_reach' ) ) {
+				return new WP_REST_Response( array( 'error' => 'This spin does not exist.' ), 400 );
 			}
-			$f    = sanitize_key( (string) $req->get_param( 'filter' ) );
-			$list = array_values( array_filter( fika_taste_candies(), function ( $c ) use ( $f ) { return 'all' === $f || '' === $f || in_array( $f, $c['f'], true ); } ) );
-			if ( ! $list ) {
+			$list = fika_taste_list( $uid );
+			if ( isset( $list[ $key ] ) ) {
+				return new WP_REST_Response( array( 'error' => 'You already spun this wheel.' ), 400 );
+			}
+			// the stop has to be reached by the orders, plus what is in the bag (the taste only joins an order that reaches it)
+			$bag = min( 20000, max( 0, (int) $req->get_param( 'bag' ) ) );
+			if ( fika_taste_need( $key ) > fika_swim_reach( $uid ) + max( $bag, fika_swim_cart_grams() ) ) {
+				return new WP_REST_Response( array( 'error' => 'Fill your bag up to this stop to spin.' ), 400 );
+			}
+			$f     = sanitize_key( (string) $req->get_param( 'filter' ) );
+			$cands = array_values( array_filter( fika_taste_candies(), function ( $c ) use ( $f ) { return 'all' === $f || '' === $f || in_array( $f, $c['f'], true ); } ) );
+			if ( ! $cands ) {
 				return new WP_REST_Response( array( 'error' => 'No sweets in this filter right now.' ), 400 );
 			}
-			$win = $list[ wp_rand( 0, count( $list ) - 1 ) ];
-			update_user_meta( $uid, 'fika_taste', array( 'pid' => $win['id'], 'filter' => $f ? $f : 'all', 'status' => 'won', 'at' => time() ) );
+			$win          = $cands[ wp_rand( 0, count( $cands ) - 1 ) ];
+			$list[ $key ] = array( 'lap' => $lap, 'g' => $g, 'pid' => $win['id'], 'filter' => $f ? $f : 'all', 'status' => 'won', 'at' => time() );
+			update_user_meta( $uid, 'fika_tastes', $list );
 			return array( 'id' => $win['id'], 'name' => $win['name'], 'img' => $win['img'] );
 		},
 	) );
@@ -205,13 +217,17 @@ add_action( 'rest_api_init', function () {
 if ( ! function_exists( 'fika_taste_assets' ) ) {
 	function fika_taste_assets( $where ) {
 		$uid = get_current_user_id();
-		$st  = fika_taste_state( $uid );
-		if ( ! $st || 'used' === $st ) {
+		if ( ! $uid ) {
 			return;
 		}
-		$t    = fika_taste_get( $uid );
-		$won  = ( 'won' === $st && ! empty( $t['pid'] ) ) ? wc_get_product( (int) $t['pid'] ) : null;
-		$cand = 'spin' === $st ? fika_taste_candies() : array();
+		$waiting = array();
+		foreach ( fika_taste_list( $uid ) as $k => $t ) {
+			$p = 'won' === $t['status'] ? wc_get_product( (int) $t['pid'] ) : null;
+			if ( $p ) {
+				$waiting[] = array( 'key' => $k, 'name' => html_entity_decode( $p->get_name() ), 'img' => $p->get_image_id() ? wp_get_attachment_image_url( $p->get_image_id(), 'woocommerce_thumbnail' ) : '' );
+			}
+		}
+		$cand = fika_taste_candies();
 		$have = array();
 		foreach ( $cand as $c ) {
 			foreach ( $c['f'] as $f ) {
@@ -225,11 +241,10 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 			}
 		}
 		$data = array(
-			'st'      => $st,
 			'where'   => $where,
+			'waiting' => $waiting,
 			'cand'    => $cand,
 			'filters' => $filters,
-			'won'     => $won ? array( 'name' => html_entity_decode( $won->get_name() ), 'img' => $won->get_image_id() ? wp_get_attachment_image_url( $won->get_image_id(), 'woocommerce_thumbnail' ) : '' ) : null,
 			'spin'    => rest_url( 'fika/v1/taste-spin' ),
 			'nonce'   => wp_create_nonce( 'wp_rest' ),
 			'bag'     => home_url( '/mix-your-own/?bag=open' ),
@@ -291,41 +306,34 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 	var D = <?php echo wp_json_encode( $data ); ?>;
 	var GIFT = '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#fff"/><path d="M20 26c0-7 9-11 12-3 3-8 12-4 12 3" fill="none" stroke="#ff4f91" stroke-width="4" stroke-linecap="round"/><rect x="14" y="26" width="36" height="24" rx="5" fill="#ff6fa5" stroke="#004aad" stroke-width="3"/><path d="M32 26v24M14 36h36" stroke="#ffd23f" stroke-width="4"/><text x="32" y="47" text-anchor="middle" font-family="Bebas Neue, Impact, sans-serif" font-size="11" fill="#004aad">?</text></svg>';
 	function esc(s) { var d = document.createElement('span'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
-	function card() {
-		var c = document.createElement('section');
-		c.className = 'fk-taste fk-taste-' + D.where;
-		if (D.st === 'teaser') {
-			c.innerHTML = '<div class="ft-ico">' + GIFT + '</div><div class="ft-txt"><b>Your 2nd order comes with a surprise</b><span>After your first order, spin the candy wheel and win a free 50 g mystery taste.</span></div>';
-		} else if (D.st === 'spin') {
-			c.innerHTML = '<div class="ft-ico">' + GIFT + '</div><div class="ft-txt"><b>Spin for your mystery taste!</b><span>Your 2nd order comes with 50 g of a surprise candy, free. Choose the kind of sweets, tap the candy, see where it lands.</span></div><button type="button" class="ft-go">Spin the wheel</button>';
-			c.querySelector('.ft-go').addEventListener('click', wheel);
-		} else if (D.won) {
-			c.innerHTML = '<div class="ft-won"></div><div class="ft-txt"><b>Your mystery taste: ' + esc(D.won.name) + '</b><span>50 g, free in your next order. It joins your bag by itself at checkout.</span></div>';
-			if (D.won.img) c.querySelector('.ft-won').style.backgroundImage = 'url("' + D.won.img.replace(/"/g, '') + '")';
-		} else { return null; }
-		return c;
+	// a card for each taste waiting for its order
+	function cards() {
+		return D.waiting.map(function (w) {
+			var c = document.createElement('section');
+			c.className = 'fk-taste fk-taste-' + D.where;
+			c.innerHTML = '<div class="ft-won"></div><div class="ft-txt"><b></b><span>50 g, free. It joins the order that reaches its stop on the lane (or your next one) by itself at checkout.</span></div>';
+			c.querySelector('b').textContent = 'Your mystery taste: ' + w.name;
+			if (w.img) c.querySelector('.ft-won').style.backgroundImage = 'url("' + w.img.replace(/"/g, '') + '")';
+			return c;
+		});
 	}
 	function mount() {
-		var c = card();
-		if (!c || document.querySelector('.fk-taste')) return;
-		if (D.where === 'account') {
-			var acct = document.querySelector('.fika-swim-account') || document.querySelector('.woocommerce-MyAccount-content > *');
-			if (acct) acct.parentNode.insertBefore(c, acct);
-		} else {
-			var spot = document.querySelector('.fika-swim-home') || document.getElementById('fsBar') || document.getElementById('shop');
-			if (spot) spot.parentNode.insertBefore(c, spot);
-		}
+		if (document.querySelector('.fk-taste')) return;
+		var spot = D.where === 'account' ? (document.querySelector('.fika-swim-account') || document.querySelector('.woocommerce-MyAccount-content > *')) : (document.querySelector('.fika-swim-home') || document.getElementById('fsBar') || document.getElementById('shop'));
+		if (spot) cards().forEach(function (c) { spot.parentNode.insertBefore(c, spot); });
 		// the bag drawer: the taste is coming
 		var go = document.getElementById('mxGo');
-		if (go ? D.st === 'won' ? !!D.won : false : false) {
+		if (go ? D.waiting.length > 0 : false) {
 			var n = document.createElement('p'); n.className = 'fk-taste-note';
-			n.innerHTML = 'Your mystery taste <b></b> (50 g, free) joins this order at checkout.';
-			n.querySelector('b').textContent = D.won.name;
+			n.innerHTML = 'Your mystery taste <b></b> (50 g, free) joins your order at checkout.';
+			n.querySelector('b').textContent = D.waiting.map(function (w) { return w.name; }).join(' + ');
 			go.parentNode.insertBefore(n, go);
 		}
 	}
 	// ---- the wheel ----
-	function wheel() {
+	// opened from a lit spin stop on the lane: o = { lap, g, bag (grams in the bag), done(result) }
+	function wheel(o) {
+		o = o || {};
 		var COLS = ['#ff6fa5', '#ffd23f', '#4aa8ff', '#7ad67a', '#c77dff', '#ff9f43'];
 		var filter = 'all', list = [], spinning = false, angle = 0;
 		var veil = document.createElement('div');
@@ -338,11 +346,12 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 			'<svg class="w" viewBox="0 0 320 320" aria-hidden="true"><g class="rot"></g></svg>' +
 			'<button class="fk-wheel-spin" type="button" aria-label="Spin"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 20l-5-6v12zM34 20l5-6v12z" fill="#fff"/><ellipse cx="20" cy="20" rx="14" ry="10" fill="#fff"/><path d="M12 15l5 10M19 13l5 14M26 14l3 8" stroke="#ff4f91" stroke-width="2.4" stroke-linecap="round"/></svg>SPIN</button></div>' +
 			'<p class="fk-wheel-now" aria-live="polite"></p>' +
-			'<div class="fk-wheel-res"><img alt=""><h2></h2><p>50 g of it is yours, free. It joins your next order by itself at checkout.</p><a class="ft-go" href="' + D.bag + '">Fill my bag</a></div></div>';
+			'<div class="fk-wheel-res"><img alt=""><h2></h2><p>50 g of it is yours, free. It joins your order by itself at checkout.</p><button type="button" class="ft-go">Back to my sweets</button></div></div>';
 		document.body.appendChild(veil);
 		var cardEl = veil.querySelector('.fk-wheel-card'), rot = veil.querySelector('.rot'), chips = veil.querySelector('.fk-wheel-chips'), now = veil.querySelector('.fk-wheel-now'), spin = veil.querySelector('.fk-wheel-spin');
-		function close() { if (spinning) return; veil.remove(); if (cardEl.classList.contains('is-done')) location.reload(); }
+		function close() { if (spinning) return; veil.remove(); }
 		veil.querySelector('.fk-wheel-x').addEventListener('click', close);
+		veil.querySelector('.fk-wheel-res .ft-go').addEventListener('click', close);
 		veil.addEventListener('click', function (e) { if (e.target === veil) close(); });
 		D.filters.forEach(function (f) {
 			var b = document.createElement('button'); b.type = 'button'; b.textContent = f[1]; b.setAttribute('data-f', f[0]);
@@ -395,7 +404,7 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 			Array.prototype.forEach.call(chips.children, function (x) { x.disabled = true; });
 			// a slow wind-up while the server picks the candy
 			rot.style.transition = 'transform 1.2s cubic-bezier(.5, 0, 1, .6)'; angle += 540; rot.style.transform = 'rotate(' + angle + 'deg)'; live();
-			fetch(D.spin, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': D.nonce }, body: JSON.stringify({ filter: filter }) })
+			fetch(D.spin, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': D.nonce }, body: JSON.stringify({ filter: filter, lap: o.lap, g: o.g, bag: o.bag || 0 }) })
 				.then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.id) throw new Error(j.error || 'Sorry, the wheel got stuck. Please try again.'); return j; }); })
 				.then(function (j) {
 					var i = -1; list.forEach(function (c, k) { if (c.id === j.id) i = k; });
@@ -408,13 +417,14 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 						var res = veil.querySelector('.fk-wheel-res');
 						res.querySelector('h2').textContent = j.name + '!';
 						if (j.img) res.querySelector('img').src = j.img; else res.querySelector('img').remove();
-						setTimeout(function () { cardEl.classList.add('is-done'); confetti(); }, 700);
+						setTimeout(function () { cardEl.classList.add('is-done'); confetti(); if (o.done) o.done(j); }, 700);
 					}, 4700);
 				})
 				.catch(function (ex) { spinning = false; spin.disabled = false; Array.prototype.forEach.call(chips.children, function (x) { x.disabled = false; }); now.textContent = ex.message; });
 		});
 		draw();
 	}
+	window.fikaTasteWheel = wheel;
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(mount, 0); }); else setTimeout(mount, 0);
 })();
 </script>
