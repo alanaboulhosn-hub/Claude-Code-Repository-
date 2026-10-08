@@ -683,3 +683,7 @@ Tested (test data deleted): the 2 kg example at 700 g / 1 kg / 1.2 kg, reward ap
 Hints count to the checkpoint first (2026-10-08, owner): at 2.2 kg "Add 800 g more to reach 3 kg and get 200 g on
 us in this order"; at 3 kg "You reached 3 kg! Add 200 g on top and they are on us"; at 3.2 kg "This bag unlocks
 200 g on us!". Same steps in the bag drawer, checkout, tracker and header menu.
+
+Saved rewards (2026-10-08, owner): no "on top" rule once a reward is saved: it can be used on any later order,
+even an order of just the free candy (tested: 200 g + "200 g on us" = $0 + $5 delivery; 1 kg + "a whole kilo on
+us" = $0 + $5 delivery). The "on top" rule only applies to a reward used in the order that reaches it.
