@@ -1191,3 +1191,20 @@ Snippet 43 (fika-meta.php) now sends 8 events, each from the browser and from th
   and confirm the email.
 - Tool for the launch top-up: wordpress/tools/import-old-store/ (the CSV is not committed).
 - Note: new orders get WooCommerce numbers (the next is about #946), lower than the old #1455.
+
+## Launch: swedishfikalb.com (2026-10-09)
+
+- The owner connected swedishfikalb.com to the WordPress site in hPanel. Hostinger set the WordPress address to
+  https://swedishfikalb.com and replaced the old address everywhere (a database scan found no
+  lightgoldenrodyellow-skunk-967361.hostingersite.com left). The temporary address now answers 403.
+- Hostinger's CDN bot check ("Checking your browser") answers headless browsers first; real browsers, Googlebot,
+  facebookexternalhit and WhatsApp get the page directly. Tests store the passed check (qa2/live-state.json).
+- Email: WP Mail SMTP sends through smtp.hostinger.com as hello@swedishfikalb.com. Gmail shows DKIM, SPF and DMARC
+  pass, inbox. Hostinger refuses mail to @example.com ("data not accepted"), so test-order customer emails show as
+  failed; the same email to hello@ went through.
+- Search engines: on (blog_public = 1), sitemap at /wp-sitemap.xml.
+- Checked on the live domain: 8 pages x desktop/phone, no broken links or errors; old Builder addresses redirect;
+  share tags use the new domain; guest order with both emails (links and images on swedishfikalb.com); account
+  sign-up, confirm link, login, wrong password, tabs, spin; signed-in checkout handoff.
+- Meta pixel was already on during these tests, so test order #946 ($26) reached Meta as a Purchase. Test orders,
+  account and saved bags were deleted; 455 imported orders and the admin account remain.
