@@ -476,8 +476,7 @@ if ( ! function_exists( 'fika_past_orders' ) ) {
 			return 0;
 		}
 		update_user_meta( $user_id, 'fika_email_ok', strtolower( $u->user_email ) );
-		// the link keeps working for its 7 days: mail scanners (Outlook, work inboxes) open links before the
-		// customer does, and a second tap should simply log them in
+		// the link token stays: its first use gives it 30 more minutes (see the link handler)
 		$n = 0;
 		foreach ( fika_past_orders( $u->user_email ) as $oid ) {
 			$o = wc_get_order( $oid );
@@ -605,8 +604,19 @@ add_action( 'template_redirect', function () {
 		if ( ! $ok ) {
 			// an older link (a newer one replaced it) after the email was already confirmed: nothing went wrong
 			$done = $u && fika_email_confirmed( $uid ) && ( ! is_user_logged_in() || get_current_user_id() === $uid );
+			if ( $done ? is_user_logged_in() : false ) {
+				wp_safe_redirect( home_url( '/' ) );
+				exit;
+			}
 			wp_safe_redirect( add_query_arg( 'fika-linked', $done ? 'done' : 'expired', $acct ) );
 			exit;
+		}
+		// verifying happens once: the first open starts a 30-minute window (mail scanners open links before the
+		// customer does), after which the link stops working and logging in is the usual email + password
+		if ( empty( $t['used'] ) ) {
+			$t['used'] = time();
+			$t['exp']  = min( (int) $t['exp'], time() + 30 * MINUTE_IN_SECONDS );
+			update_user_meta( $uid, 'fika_link_token', $t );
 		}
 		$n = fika_link_past_orders( $uid );
 		if ( ! is_user_logged_in() ) {
@@ -614,7 +624,8 @@ add_action( 'template_redirect', function () {
 			wp_set_auth_cookie( $uid, true );
 			do_action( 'wp_login', $u->user_login, $u );
 		}
-		wp_safe_redirect( add_query_arg( 'fika-linked', $n, $acct ) );
+		// straight to the home page, with a short welcome there
+		wp_safe_redirect( add_query_arg( 'fika-welcome', $n, home_url( '/' ) ) );
 		exit;
 	}
 	$uid = 0;
@@ -720,3 +731,37 @@ add_action( 'wp_footer', function () {
 </script>
 	<?php
 }, 40 );
+
+// ---------- the welcome on the home page after tapping "Verify" in the email ----------
+add_action( 'wp_footer', function () {
+	if ( ! isset( $_GET['fika-welcome'] ) || ! is_user_logged_in() || ! is_front_page() ) { // phpcs:ignore WordPress.Security.NonceVerification
+		return;
+	}
+	$n    = absint( $_GET['fika-welcome'] ); // phpcs:ignore WordPress.Security.NonceVerification
+	$u    = wp_get_current_user();
+	$name = $u->first_name ? $u->first_name : '';
+	$line = $n ? sprintf( '%d earlier %s joined your account and count toward your rewards.', $n, 1 === $n ? 'order' : 'orders' ) : 'Every kilo you order now moves your fish towards free sweets.';
+	?>
+<div class="fika-welcome" role="status"><b>Your account is confirmed<?php echo $name ? ', ' . esc_html( $name ) : ''; ?>!</b><span><?php echo esc_html( $line ); ?></span><button type="button" aria-label="Close">&times;</button></div>
+<style>
+.fika-welcome { position: fixed; left: 50%; top: 148px; z-index: 100000; display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; width: min(460px, calc(100% - 32px)); box-sizing: border-box; padding: 16px 18px 16px 22px; border-radius: 20px; background: #fff; box-shadow: 0 18px 50px rgba(0, 74, 173, .22); font-family: 'Outfit', 'Open Sans', Arial, sans-serif; color: #1b2a4a; transform: translateX(-50%); animation: fkWelIn .5s cubic-bezier(.2, 1.3, .4, 1) both; }
+.fika-welcome b { font: 400 24px/1.1 'Bebas Neue', Impact, sans-serif; letter-spacing: .02em; color: #004aad; }
+.fika-welcome span { grid-column: 1; font-size: 14.5px; line-height: 1.45; }
+.fika-welcome button { grid-column: 2; grid-row: 1 / span 2; align-self: start; width: 32px; height: 32px; border: 0; border-radius: 50%; background: #fdeaf2; color: #004aad; font-size: 20px; line-height: 1; cursor: pointer; }
+.fika-welcome.out { animation: fkWelOut .35s ease forwards; }
+@media (max-width: 760px) { .fika-welcome { top: 118px; } }
+@keyframes fkWelIn { from { opacity: 0; transform: translate(-50%, -14px) scale(.96); } to { opacity: 1; transform: translateX(-50%); } }
+@keyframes fkWelOut { to { opacity: 0; transform: translate(-50%, -10px); } }
+</style>
+<script>
+(function () {
+  var w = document.querySelector('.fika-welcome'); if (!w) return;
+  function bye() { w.classList.add('out'); setTimeout(function () { w.remove(); }, 400); }
+  w.querySelector('button').addEventListener('click', bye);
+  setTimeout(bye, 7000);
+  // a clean address, so a reload does not show it again
+  try { var u = new URL(location.href); u.searchParams.delete('fika-welcome'); history.replaceState(null, '', u.toString()); } catch (e) {}
+})();
+</script>
+	<?php
+}, 50 );

@@ -1059,3 +1059,17 @@ that email count from then on. Snippet 10 (fika-accounts.php):
 - **Tested:** desktop and phone; autoplay, Next, dots, tapping a side clip, sound, auto-advance after the end,
   pause when scrolled away, and the side pictures after scrolling and turning. The test browser cannot play H.264,
   so WebM copies stood in for the test only. Real browsers (Chrome, Safari, Firefox, Edge, iOS, Android) play the MP4s.
+
+## "Verify" goes to the home page, once (2026-10-08)
+
+- Tapping "Verify and confirm my email" now logs the customer in and lands on the **home page** (not My account)
+  with a short welcome under the header: "Your account is confirmed, <name>!", plus "N earlier orders joined your
+  account…" when old orders were connected.
+  - It closes after 7 s or with ×, and the address is cleaned, so a reload doesn't show it again.
+- **Verifying happens once.** The first open of the link starts a 30-minute window, so a mail scanner opening it
+  first doesn't spoil the customer's tap. After that the link stops working.
+  - Opening an old link logged out: "Your email is already confirmed – log in below".
+  - Opening it already logged in: the home page.
+  - Every later log-in is the usual email + password, which also goes to the home page.
+- Tested: sign-up → scanner open → customer tap (home, logged in, welcome; gone after reload) → log out → password
+  log-in (home, no welcome) → link after the window (log-in page, or home when logged in). Test account deleted.
