@@ -51,7 +51,7 @@ add_action( 'wp_footer', function () {
 	$grams  = 0;
 	foreach ( $order->get_items() as $item ) {
 		$pid    = $item->get_product_id();
-		$grams += $item->get_quantity() * ( has_term( 'ready-mix', 'product_cat', $pid ) ? 500 : 100 );
+		$grams += $item->get_meta( '_fika_taste' ) ? 50 : $item->get_quantity() * ( has_term( 'ready-mix', 'product_cat', $pid ) ? 500 : 100 ); // the free mystery taste is 50 g
 	}
 	$weight = $grams >= 1000 ? rtrim( rtrim( number_format( $grams / 1000, 1, '.', '' ), '0' ), '.' ) . ' kg' : $grams . ' g';
 	$email  = $order->get_billing_email();

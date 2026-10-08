@@ -702,3 +702,21 @@ us" = $0 + $5 delivery). The "on top" rule only applies to a reward used in the 
   lap. Rewards on about the 4th, 8th, 13th and 19th order.
 - Tested (test data deleted): customer at 9.2 kg: 3 and 6 kg ready, 800 g bag unlocks 400 g; checkout with all
   three: $20 bag - $17.50 + $5 delivery = $7.50; desktop and phone.
+
+## 2nd-order mystery taste: spin the wheel (2026-10-08)
+
+Snippet 46 "Fika: 2nd-order mystery taste" (wordpress/snippets/fika-taste.php):
+- Signed-in customers with at least one order get one spin (once). Before the first order a teaser card says the
+  2nd order comes with a surprise. The card sits above the rewards tracker (home, Mix your own, Ready Mix) and on
+  My account.
+- The wheel shows every candy in the shop (in stock, visible, not Ready Mix) with its photo. Filters: All sweets,
+  Gelatin-free, Gluten-free, Vegan; a filter shows once products carry the tag gelatin-free / gluten-free / vegan
+  (today only gelatin-free exists: tag candies "gluten-free" and "vegan" in WP Admin > Products > Tags to add the
+  other two). Tap the candy button: the server picks the candy (user meta fika_taste), the wheel lands on it.
+- The win goes into the next order by itself: a free line "Mystery taste: 50 g, free" of that candy (price 0,
+  quantity locked), added whenever the bag reaches checkout with something else in it; removing it at checkout
+  keeps it for a later order. Placing the order uses it. The order line says "Mystery taste: 50 g, free" for packing.
+- It does not count towards the rewards track (fika-loyalty.php skips it). Checkout bag and the Order confirmed
+  popup count it as 50 g. Cost: 50 g at landing cost, about $0.80, once per customer.
+- Tested (test data deleted): teaser, spin with All and Gelatin-free, result card, free line at checkout ($20 bag
+  -> $25 with delivery, taste $0, not editable), order placed (line meta), card gone, tracker 0.8 kg; phone view.

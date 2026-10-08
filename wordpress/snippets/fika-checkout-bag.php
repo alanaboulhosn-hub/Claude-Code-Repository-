@@ -191,12 +191,14 @@ add_action( 'wp_footer', function () {
         if (!pick.length) { out.push({ key: 'm' + it.id, img: img, grams: grams }); return; }
         pick.forEach(function (id) { var q = products[id]; out.push({ key: 'm' + it.id + '-' + id, img: q.piece || q.img, piece: !!q.piece, cartoon: q.cartoon, grams: grams / pick.length }); });
       } else {
-        out.push({ key: 'c' + it.id, img: p.piece || img, piece: !!p.piece, cartoon: p.cartoon || '', grams: it.quantity * 100 });
+        out.push({ key: 'c' + it.id + (isTaste(it) ? 't' : ''), img: p.piece || img, piece: !!p.piece, cartoon: p.cartoon || '', grams: isTaste(it) ? 50 : it.quantity * 100 });
       }
     });
     return out;
   }
 
+  // the free 50 g mystery taste (wordpress/snippets/fika-taste.php)
+  function isTaste(it) { return (it.item_data || []).some(function (d) { return (d.name || d.key) === 'Mystery taste'; }); }
   function render(items) {
     if (!mount()) return;
     var W = Math.floor(win.clientWidth), H = Math.floor(win.clientHeight);
@@ -205,7 +207,7 @@ add_action( 'wp_footer', function () {
     var total = 0;
     list.forEach(function (e) { total += e.grams; });
     var shown = 0;
-    items.forEach(function (it) { var p = products[it.id] || { cats: [] }; shown += it.quantity * (p.cats.indexOf('ready-mix') !== -1 ? 500 : 100); });
+    items.forEach(function (it) { var p = products[it.id] || { cats: [] }; shown += isTaste(it) ? 50 : it.quantity * (p.cats.indexOf('ready-mix') !== -1 ? 500 : 100); });
     kgEl.textContent = shown ? (shown >= 1000 ? (Math.round(shown / 100) / 10) + ' kg' : shown + ' g') : '';
     emptyEl.style.display = total ? 'none' : 'flex';
 

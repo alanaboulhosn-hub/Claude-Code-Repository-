@@ -86,6 +86,12 @@ if ( ! function_exists( 'fika_swim_order_grams' ) ) {
 	// Grams an order adds to the swim: everything except the part paid by a reward (at the order's own price per gram)
 	function fika_swim_order_grams( $order ) {
 		$grams = fika_order_grams( $order );
+		// the free 2nd-order mystery taste (fika-taste.php) does not count
+		foreach ( $order->get_items() as $item ) {
+			if ( $item->get_meta( '_fika_taste' ) ) {
+				$grams -= 100 * (int) $item->get_quantity();
+			}
+		}
 		if ( $grams <= 0 ) {
 			return 0;
 		}
@@ -162,6 +168,9 @@ if ( ! function_exists( 'fika_swim_claims' ) ) {
 		}
 		$g = 0;
 		foreach ( WC()->cart->get_cart() as $item ) {
+			if ( ! empty( $item['fika_taste'] ) ) {
+				continue; // the free mystery taste does not count
+			}
 			$g += ( has_term( 'ready-mix', 'product_cat', $item['product_id'] ) ? 500 : 100 ) * (int) $item['quantity'];
 		}
 		return $g;
