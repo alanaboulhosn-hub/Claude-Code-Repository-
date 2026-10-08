@@ -176,6 +176,34 @@ add_action( 'woocommerce_store_api_checkout_order_processed', function ( $order 
 		WC()->session->set( 'fika_taste_later', null );
 	}
 } );
+// an order with a taste was refused / cancelled / refunded: the customer never got it, so the same candy is
+// saved again as their bonus (no new spin); it rejoins the next order that reaches the stop
+add_action( 'woocommerce_order_status_changed', function ( $order_id, $from, $to, $order ) {
+	if ( ! $order || ! $order->get_customer_id() || ! in_array( $to, array( 'cancelled', 'failed', 'refunded', 'undelivered' ), true ) ) {
+		return;
+	}
+	$uid  = $order->get_customer_id();
+	$list = fika_taste_list( $uid );
+	$hit  = false;
+	foreach ( $list as $k => $t ) {
+		if ( 'used' === $t['status'] && (int) ( $t['order'] ?? 0 ) === (int) $order_id ) {
+			$list[ $k ]['status'] = 'won';
+			unset( $list[ $k ]['order'] );
+			$hit = true;
+		}
+	}
+	if ( $hit ) {
+		update_user_meta( $uid, 'fika_tastes', $list );
+		$order->add_order_note( 'Fika: the mystery taste in this order is saved again for the customer (no new spin).' );
+	}
+}, 20, 4 );
+
+// an account is deleted: remove its spin locks too
+add_action( 'delete_user', function ( $uid ) {
+	global $wpdb;
+	$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( 'fika_spin_' . (int) $uid . '_' ) . '%' ) );
+} );
+
 // (the free 50 g does not count towards the rewards track: see fika_swim_order_grams in fika-loyalty.php)
 
 // ---------- spin: POST /wp-json/fika/v1/taste-spin { lap, g, filter, bag } ----------
@@ -195,14 +223,21 @@ add_action( 'rest_api_init', function () {
 			if ( isset( $list[ $key ] ) ) {
 				return new WP_REST_Response( array( 'error' => 'You already spun this wheel.' ), 400 );
 			}
+			// one spin per account, stop and lap, even with two taps at the same moment: add_option only succeeds once
+			$lock = 'fika_spin_' . $uid . '_' . $lap . '_' . $g;
+			if ( ! add_option( $lock, time(), '', 'no' ) ) {
+				return new WP_REST_Response( array( 'error' => 'You already spun this wheel.' ), 400 );
+			}
 			// the stop has to be reached by the orders, plus what is in the bag (the taste only joins an order that reaches it)
 			$bag = min( 20000, max( 0, (int) $req->get_param( 'bag' ) ) );
 			if ( fika_taste_need( $key ) > fika_swim_reach( $uid ) + max( $bag, fika_swim_cart_grams() ) ) {
+				delete_option( $lock );
 				return new WP_REST_Response( array( 'error' => 'Fill your bag up to this stop to spin.' ), 400 );
 			}
 			$f     = sanitize_key( (string) $req->get_param( 'filter' ) );
 			$cands = array_values( array_filter( fika_taste_candies(), function ( $c ) use ( $f ) { return 'all' === $f || '' === $f || in_array( $f, $c['f'], true ); } ) );
 			if ( ! $cands ) {
+				delete_option( $lock );
 				return new WP_REST_Response( array( 'error' => 'No sweets in this filter right now.' ), 400 );
 			}
 			$win          = $cands[ wp_rand( 0, count( $cands ) - 1 ) ];

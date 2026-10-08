@@ -729,3 +729,12 @@ the cart only while the bag reaches the stop (it follows quantity changes at che
 200 g more to reach 1.5 kg and get a mystery spin" / "a mystery spin is waiting on your rewards lane". Cost: 2 x 50 g
 per lap, about $1.60 (about 12c per paid kilo). Tested (test data deleted): 1 kg delivered + 300 g / 600 g bag,
 spin from the lane, taste in and out at 600 g / 400 g / 600 g, order placed with it (650 g), stop shown as used.
+Spin rules (2026-10-08, owner): one spin per account, per stop, per lap; no way round it. The spin is recorded on
+the account on the server (user meta fika_tastes, plus an atomic lock option fika_spin_<user>_<lap>_<stop> taken
+before the candy is picked), so reloading, leaving, emptying the bag, another browser or device, clearing cookies,
+or tapping several times at once cannot spin again ("You already spun this wheel"). The server picks the candy.
+Emptying the bag takes the free 50 g out of the cart but keeps the candy saved on the account; it comes back by
+itself when the bag reaches the stop again. If an order with the taste is refused / cancelled / refunded, the same
+candy is saved again (order note), no new spin. Deleting an account removes its spin locks. Tested (test data
+deleted): 3 spins at once -> 1 accepted; reload, second browser, emptied bag -> refused; candy back at 600 g;
+order placed; marked Undelivered -> taste saved again, spin still refused, back in the next checkout.
