@@ -1095,3 +1095,13 @@ that email count from then on. Snippet 10 (fika-accounts.php):
 - **BUBS order caps:** all BUBS products are capped at 200 g per order (fika_max_g = 200), except Forest Berry
   Ovals at 100 g. The page cache now clears itself when a product's "Max per order" changes, because the caps are
   written into the shop pages.
+
+## Two product photos on white (2026-10-08)
+
+- BUBS Fruity Lemon Mix Skulls (product 118) and BUBS Forest Berry Ovals (121) were the only product photos with a
+  grey background (248 and about 241, with a darker vignette). All the other product photos are white (253-255)
+  and were left untouched, at the owner's request.
+- The new main photos are media 483 and 484 (wordpress/pages/media/products/).
+  - The background connected to the photo's edge became white; the candy and its soft shadow are unchanged.
+  - The old photos (129, 128) are still in the media library.
+- Cleanup: the temporary snippets and the CDN test uploads (452, 453) were deleted.
