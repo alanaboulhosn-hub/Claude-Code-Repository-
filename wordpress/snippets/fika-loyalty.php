@@ -615,6 +615,21 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 .fika-swim .fs-spin.is-won::after, .fika-swim .fs-spin.is-used::after { content: '\2713'; position: absolute; right: -4px; top: -4px; width: 15px; height: 15px; border-radius: 50%; background: #2fb36b; color: #fff; font: 700 10px/15px Arial, sans-serif; text-align: center; }
 @keyframes fsWheel { to { transform: rotate(360deg); } }
 @media (max-width: 700px) { .fika-swim .fs-spin { width: 26px; height: 26px; margin: -13px 0 0 -13px; } }
+/* a spin waiting (skipped when it popped up): a bouncy "Tap to spin!" label above the little wheel */
+.fika-swim .fs-spin.is-ready::before, .fika-swim .fs-spin.is-bag::before { content: 'Tap to spin!'; position: absolute; left: 50%; bottom: calc(100% + 9px); z-index: 4; padding: 6px 11px 5px; border-radius: 999px; background: #ff4f91; color: #fff; font: 400 16px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: .05em; white-space: nowrap; box-shadow: 0 4px 12px rgba(255, 79, 145, .45); transform: translateX(-50%); animation: fsHop 1s cubic-bezier(.3, 0, .4, 1) infinite; pointer-events: auto; }
+.fika-swim .fs-spin.is-ready::after, .fika-swim .fs-spin.is-bag::after { content: ''; position: absolute; left: 50%; bottom: calc(100% + 3px); z-index: 4; width: 0; height: 0; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: #ff4f91; animation: fsHopTip 1s cubic-bezier(.3, 0, .4, 1) infinite; }
+.fika-swim .fs-spin.is-ready, .fika-swim .fs-spin.is-bag { z-index: 5; }
+@keyframes fsHop { 0%, 100% { transform: translate(-50%, 0); } 45% { transform: translate(-50%, -9px); } 60% { transform: translate(-50%, -7px); } }
+@keyframes fsHopTip { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-9px); } 60% { transform: translateY(-7px); } }
+/* phones: little room between the badges, so a short "Spin!"; the 3 kg badge sits right next to the 1.5 kg wheel,
+   so that label leans left of its wheel */
+@media (max-width: 700px) {
+  .fika-swim .fs-spin.is-ready::before, .fika-swim .fs-spin.is-bag::before { content: 'Spin!'; font-size: 15px; padding: 5px 9px 4px; }
+  .fika-swim .fs-spin[data-g="1500"].is-ready::before, .fika-swim .fs-spin[data-g="1500"].is-bag::before { left: calc(50% + 4px); animation-name: fsHopL; }
+  .fika-swim .fs-spin[data-g="1500"].is-ready::after, .fika-swim .fs-spin[data-g="1500"].is-bag::after { left: calc(50% - 5px); }
+}
+@keyframes fsHopL { 0%, 100% { transform: translate(-100%, 0); } 45% { transform: translate(-100%, -9px); } 60% { transform: translate(-100%, -7px); } }
+@media (prefers-reduced-motion: reduce) { .fika-swim .fs-spin::before, .fika-swim .fs-spin::after { animation: none !important; } }
 /* on its way: unlocks once delivered */
 .fika-swim .fs-cp.is-way rect { fill: #eaf4ff; stroke: #7fb7f2; }
 .fika-swim .fs-cp.is-way path { stroke: #7fb7f2; }

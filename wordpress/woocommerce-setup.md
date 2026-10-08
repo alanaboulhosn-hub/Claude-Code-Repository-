@@ -889,3 +889,15 @@ that email count from then on. Snippet 10 (fika-accounts.php):
   - the lane wheel still opens it;
   - new visit: pops up on arrival; spun and won, then no more pop-ups;
   - the 12.5 kg stop works the same.
+
+## "Tap to spin!" label on a waiting spin (2026-10-08)
+
+- While a spin stop is reached but not spun (for example after the pop-up was closed), its little wheel on the
+  lane carries a bouncing pink "Tap to spin!" bubble with a pointer. Tapping it opens the wheel, and it disappears
+  once they spin.
+- On phones (700 px and below) it says "Spin!" because there's little room between the gift badges. The 1.5 kg
+  label leans left of its wheel, since the 3 kg badge sits right next to it.
+- CSS only (fika-loyalty.php, `.fs-spin.is-ready::before` / `.is-bag::before`, keyframes fsHop / fsHopL). It
+  holds still for people who turn off animations.
+- Checked on desktop, 390 px and 320 px, at both stops. At 320 px it touches the badges, which already touch each
+  other at that width. Test data deleted.
