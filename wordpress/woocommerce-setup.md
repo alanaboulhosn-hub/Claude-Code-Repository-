@@ -810,3 +810,23 @@ launch. Real activity seen: alan.aboulhosn@gmail.com had 3 saved bags today (1 r
 - **"New order" email to the shop:** on, to hello@swedishfikalb.com, from WooCommerce > Settings > Emails. It was
   tested by sending to a test address, then the recipient was set back. Until the SMTP password is entered it is sent
   "via srv1317" and may land in spam.
+
+## Past orders join an account once the email is confirmed (2026-10-08)
+
+Owner's rule: orders from before an account (including those imported from the old Website Builder store) count
+toward rewards only if the customer makes an account, matched by email.
+
+- Before, sign-up linked guest orders with the same email right away. Account emails are not checked, so anyone
+  could have signed up with a customer's email and seen their orders (address, phone) and rewards.
+- Now (snippet 10, fika-accounts.php):
+  - My account shows a "Ordered from Fika before?" box while there are guest orders under the account's email.
+    Its "Email me a link" button sends one email, and only when the customer taps it.
+  - The link (48 hours, one use, at most one email per 5 minutes) confirms the email and moves those orders into
+    the account. Totals and the rewards lane update at once.
+  - A password reset also confirms the email and connects the orders.
+  - Once confirmed, later orders placed while logged out with that email join the account automatically.
+  - Changing the account email resets the confirmation.
+- Tested: sign-up does not link; a wrong token is refused; the link connects 2 orders (3.5 kg, the 3 kg reward
+  lit); a reused link is refused; a later guest order joined; emails match case-insensitively. Test data deleted.
+- For the import: old orders go in as guest orders (no account) with their real email, date and status Completed,
+  and line items mapped to the current products, so the kilos count correctly.
