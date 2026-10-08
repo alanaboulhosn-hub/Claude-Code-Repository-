@@ -1073,3 +1073,25 @@ that email count from then on. Snippet 10 (fika-accounts.php):
   - Every later log-in is the usual email + password, which also goes to the home page.
 - Tested: sign-up → scanner open → customer tap (home, logged in, welcome; gone after reload) → log out → password
   log-in (home, no welcome) → link after the window (log-in page, or home when logged in). Test account deleted.
+
+## Phones: sharp photos (Hostinger CDN shrinks JPEG/PNG) (2026-10-08)
+
+- **Cause of the blurry hero on phones:** Hostinger's CDN ("Smart Image Optimization") shrinks every JPEG/PNG on the
+  way: 800 px wide for phones, 1600 px for computers, plus heavy compression. The 1920 px hero reached an iPhone
+  at 800 px and was stretched about 4x.
+  - Hostinger: this optimization cannot be changed on a temporary domain. After the switch to swedishfikalb.com,
+    hPanel > Websites > Dashboard > Performance > CDN > Manage can turn off "Smart Image Optimization".
+  - Source: https://www.hostinger.com/support/7935917-hostinger-cdn-website-optimization/
+- **The CDN passes WebP through untouched** (tested with an iPhone user agent), so all page photos are now
+  full-size WebP:
+  - hero for computers: media 454, 1920x745;
+  - hero for phones: media 455, 1920x1490, the middle of the photo enlarged 2x with the EDSR super-resolution
+    model. Phones only show that middle part. The googly eyes measure from it.
+  - Mix your own banner: 459. Ready Mix banner: 460. Bowl: 461. Jars: 458. Pour: 456. Gang: 457. All at the
+    originals' full size, which were fetched from the server because the CDN copies were already shrunk.
+  - Sources in wordpress/pages/media/.
+- Phone audit (390 pt wide at 3x, every page): no photo is shown larger than its real resolution, nothing spills
+  sideways, and no text is under 12 px.
+- **BUBS order caps:** all BUBS products are capped at 200 g per order (fika_max_g = 200), except Forest Berry
+  Ovals at 100 g. The page cache now clears itself when a product's "Max per order" changes, because the caps are
+  written into the shop pages.

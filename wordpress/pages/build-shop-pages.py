@@ -40,11 +40,13 @@ head = head.replace(photo_line + '\n', '', 1)
 # so the candies start right under the menu. The eye positions below move up by the same 327 px. One file for all screens: phones zoom into it, so the smaller copy
 # would look soft.
 HERO_CROP = 327
-HERO_BIG = '/wp-content/uploads/2026/10/fika-hero-candies-1920.jpg'
+HERO_BIG = '/wp-content/uploads/2026/10/fika-hero-candies-1920.webp'   # media 454
+# All page photos are WebP: Hostinger's CDN ("Smart Image Optimization", which cannot be switched off on the temporary
+# domain) shrinks JPEG/PNG to 800 px wide for phones and 1600 px for computers, but passes WebP through untouched.
 # Phones show only the middle of the photo, zoomed in, so the 1920 px file looked soft there. Media 450
 # (wordpress/pages/media/fika-hero-candies-phone.jpg) is that middle part (x 480-1440 of the cropped photo), enlarged
 # 2x with the EDSR super-resolution model and lightly sharpened: 1920 x 1490. Computers keep HERO_BIG.
-HERO_SMALL = '/wp-content/uploads/2026/10/fika-hero-candies-phone.jpg'
+HERO_SMALL = '/wp-content/uploads/2026/10/fika-hero-candies-phone.webp'   # media 455
 HERO_PHONE_X, HERO_PHONE_W = 480, 960   # the part of the photo the phone file covers, in photo pixels
 home_hero = ('<style>\n.fika-hero:not(.fika-shop-hero) { background: var(--fika-pink); }\n'
              '.fika-hero:not(.fika-shop-hero) > .fika-photo { background: url(' + HERO_BIG + ') center bottom / cover no-repeat; }\n'
@@ -486,12 +488,12 @@ banner_css = r"""<style>
 }
 </style>"""
 
-IMG_BOWL = '/wp-content/uploads/2026/10/yes28-7vYLz0XjzMVhjx2f.jpg'
-IMG_SCATTER = '/wp-content/uploads/2026/10/fika-background-tpQWboFmUZ8wZ5Om.jpeg'   # media 26: candies spilling from a Fika bag (Ready Mix)
-IMG_POURBOWL = '/wp-content/uploads/2026/10/fika-background-2-U56KoRAjvfi6k05N.jpeg'  # media 27: a Fika bag pouring into a bowl (Mix your own)
-IMG_JARS = '/wp-content/uploads/2026/10/chatgpt-image-jul-7-2026-12_48_32-pm-X3tBK9ZWkKnIvChP.png'
-IMG_POUR = '/wp-content/uploads/2026/10/1-CpGiPMPowHbUltE9.png'
-IMG_GANG = '/wp-content/uploads/2026/10/chatgpt-image-jul-31-2026-03_35_52-pm-H0MVQjmp7aMZAJ4u.png'
+IMG_BOWL = '/wp-content/uploads/2026/10/fika-yes28-7vYLz0XjzMVhjx2f.webp'   # media 461
+IMG_SCATTER = '/wp-content/uploads/2026/10/fika-fika-background-tpQWboFmUZ8wZ5Om.webp'   # media 460   # media 26: candies spilling from a Fika bag (Ready Mix)
+IMG_POURBOWL = '/wp-content/uploads/2026/10/fika-fika-background-2-U56KoRAjvfi6k05N.webp'   # media 459  # media 27: a Fika bag pouring into a bowl (Mix your own)
+IMG_JARS = '/wp-content/uploads/2026/10/fika-chatgpt-image-jul-7-2026-12_48_32-pm-X3t.webp'   # media 458
+IMG_POUR = '/wp-content/uploads/2026/10/fika-1-CpGiPMPowHbUltE9.webp'   # media 456
+IMG_GANG = '/wp-content/uploads/2026/10/fika-chatgpt-image-jul-31-2026-03_35_52-pm-H0.webp'   # media 457
 
 mix_hero = banner_css + '\n' + banner('mix', 'Mix your own',
     'Pick your candy, your rules. <span class="fk-n">28</span> Swedish sweets at $2.50 per 100 g: sweet, sour, or mixed, with gelatin-free and gluten-free faves clearly marked, so everyone mixes and snacks happily.',

@@ -6,7 +6,8 @@
  *   on every page for a new visitor, so nothing was ever cached. That one hook is removed; the theme's add-to-cart
  *   hooks stay. Signed-in visitors, the checkout, My account and the REST API are never cached (LiteSpeed defaults),
  *   and the shop pages load products, prices, stock and the bag in the browser, so a cached page is never stale.
- * - The whole cache is cleared when the header/footer patterns, a snippet or the Meta pixel settings change.
+ * - The whole cache is cleared when the header/footer patterns, a snippet, the Meta pixel settings or a product's
+ *   "Max per order" change.
  *   Anything else: WP Admin top bar > LiteSpeed Cache > Purge All.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-cache.php
  */
@@ -35,3 +36,7 @@ add_action( 'code_snippets/create_snippet', 'fika_cache_purge_all' );
 add_action( 'code_snippets/update_snippet', 'fika_cache_purge_all' );
 add_action( 'code_snippets/activate_snippet', 'fika_cache_purge_all' );
 add_action( 'code_snippets/deactivate_snippet', 'fika_cache_purge_all' );
+// a product's "Max per order" is written into the shop pages (the + button stops there): clear them when it changes
+add_action( 'updated_post_meta', function ( $mid, $post_id, $key ) { if ( 'fika_max_g' === $key ) { fika_cache_purge_all(); } }, 10, 3 );
+add_action( 'added_post_meta', function ( $mid, $post_id, $key ) { if ( 'fika_max_g' === $key ) { fika_cache_purge_all(); } }, 10, 3 );
+add_action( 'deleted_post_meta', function ( $mids, $post_id, $key ) { if ( 'fika_max_g' === $key ) { fika_cache_purge_all(); } }, 10, 3 );
