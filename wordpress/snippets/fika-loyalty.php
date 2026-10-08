@@ -758,6 +758,23 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			if (bagG > 0) parts.push(['l-b', kg(bagG) + ' kg in your bag']);
 			legend.innerHTML = '';
 			parts.forEach(function (p) { var sp = document.createElement('span'); sp.className = p[0]; sp.innerHTML = '<i></i>'; sp.appendChild(document.createTextNode(p[1])); legend.appendChild(sp); });
+			autoSpin();
+		}
+		// a spin stop the customer has just reached opens the wheel by itself, in the middle of the page.
+		// Closed without spinning: it stays on the lane (tap the little wheel) and does not pop up again this visit.
+		var popped = {};
+		function ssKey(g) { return 'fika_spin_pop_' + s.uid + '_' + s.lap + '_' + g; }
+		function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+		function ssSet(k) { try { sessionStorage.setItem(k, '1'); } catch (e) {} }
+		function autoSpin(tries) {
+			var sp = spins.filter(function (x) { return (x.state === 'ready' || x.state === 'bag') ? !(popped[x.g] || ssGet(ssKey(x.g))) : false; })[0];
+			if (!sp || document.querySelector('.fk-wheel-veil')) return;
+			if (!window.fikaTasteWheel) { if ((tries || 0) < 40) setTimeout(function () { autoSpin((tries || 0) + 1); }, 250); return; }
+			popped[sp.g] = true;
+			var w = wheelOf(sp.g);
+			window.fikaTasteWheel({ lap: s.lap, g: sp.g, bag: bagG,
+				done: function (j) { sp.state = 'won'; sp.name = j.name; if (w) w.className = 'fs-spin is-won'; words(); },
+				closed: function (won) { if (!won) ssSet(ssKey(sp.g)); } });
 		}
 		function bubble(back) {
 			var r = fish.getBoundingClientRect(), lr = el.getBoundingClientRect();

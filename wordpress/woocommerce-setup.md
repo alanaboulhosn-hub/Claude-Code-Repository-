@@ -871,3 +871,21 @@ that email count from then on. Snippet 10 (fika-accounts.php):
   <head> on every page. The browser keeps the previous page on screen until the new one has its real content.
 - Checked on a slowed connection (150 KB/s), clicking a menu link and reloading: no white or title-only frame. The
   old page stays up, then the new page appears with its header and banner. The web fonts arrive a moment later.
+
+## Mystery spin pops up by itself (2026-10-08)
+
+- When a customer reaches a spin stop (1.5 kg or 12.5 kg of the lap), counting what's in the bag, the candy wheel
+  now opens by itself in the middle of the page. This happens on any page with the rewards lane: home, Mix your
+  own, Ready Mix, My account. It also opens on arrival when a stop is reached but not yet spun.
+- Everything else is unchanged: the same wheel, text, filters, one spin per stop per lap, and the same server checks.
+- Closed without spinning: it stays on the lane (tap the little wheel) and doesn't pop up again in that browser
+  visit (sessionStorage `fika_spin_pop_<user>_<lap>_<g>`). A new visit shows it again until they spin.
+- Code: `autoSpin()` in the lane script (fika-loyalty.php, snippet 11). The wheel (fika-taste.php, snippet 46)
+  now reports `closed(won)`.
+- Tested on desktop and phone with a test customer (deleted afterwards):
+  - 1.2 kg + 200 g: no pop-up;
+  - + 300 g (1.5 kg): pops up, centred;
+  - closed: no pop-up again on bag change or reload;
+  - the lane wheel still opens it;
+  - new visit: pops up on arrival; spun and won, then no more pop-ups;
+  - the 12.5 kg stop works the same.

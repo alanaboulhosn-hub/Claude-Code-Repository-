@@ -2,7 +2,8 @@
 /**
  * Fika: mystery tastes — two spin stops on the rewards lane (1.5 kg and 12.5 kg of every 15 kg lap).
  * - When the customer's orders (placed or delivered), or the bag they are filling, pass a stop, the little wheel on
- *   the lane lights up and spins. Tapping it opens the candy wheel: every candy in the shop (in stock, shown in the
+ *   the lane lights up and spins, and the candy wheel opens by itself in the middle of the page (once per visit if
+ *   closed without spinning; the little wheel on the lane opens it again). The candy wheel: every candy in the shop (in stock, shown in the
  *   shop, not Ready Mix) with its photo, narrowed first if they like: All sweets, Gelatin-free, Gluten-free, Vegan
  *   (a filter shows once products carry the tag gelatin-free, gluten-free or vegan). They tap the candy button; the
  *   server picks the candy (so the result cannot be chosen) and the wheel lands on it.
@@ -366,7 +367,8 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 		}
 	}
 	// ---- the wheel ----
-	// opened from a lit spin stop on the lane: o = { lap, g, bag (grams in the bag), done(result) }
+	// opened from a lit spin stop on the lane, or by itself when the customer reaches the stop:
+	// o = { lap, g, bag (grams in the bag), done(result), closed(won) }
 	function wheel(o) {
 		o = o || {};
 		var COLS = ['#ff6fa5', '#ffd23f', '#4aa8ff', '#7ad67a', '#c77dff', '#ff9f43'];
@@ -384,7 +386,7 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 			'<div class="fk-wheel-res"><img alt=""><h2></h2><p>50 g of it is yours, free. It joins your order by itself at checkout.</p><button type="button" class="ft-go">Back to my sweets</button></div></div>';
 		document.body.appendChild(veil);
 		var cardEl = veil.querySelector('.fk-wheel-card'), rot = veil.querySelector('.rot'), chips = veil.querySelector('.fk-wheel-chips'), now = veil.querySelector('.fk-wheel-now'), spin = veil.querySelector('.fk-wheel-spin');
-		function close() { if (spinning) return; veil.remove(); }
+		function close() { if (spinning) return; veil.remove(); if (o.closed) o.closed(cardEl.classList.contains('is-done')); }
 		veil.querySelector('.fk-wheel-x').addEventListener('click', close);
 		veil.querySelector('.fk-wheel-res .ft-go').addEventListener('click', close);
 		veil.addEventListener('click', function (e) { if (e.target === veil) close(); });
