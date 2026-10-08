@@ -10,9 +10,11 @@
  * - The fish counts delivered kilos (Completed orders, deep blue water), kilos on their way (Processing / On hold,
  *   light blue) and what is in the bag right now (candy stripes, live). A checkpoint lights up and spins only when
  *   its kilos are DELIVERED; on the way it shows "unlocks on delivery".
- * - Tapping a lit checkpoint claims the reward: a personal one-use code locked to the customer's email, shown on the
- *   tracker and offered at checkout ("Use" button). Rewards never combine with each other or with other codes
- *   (individual use); customers holding one are not offered the 10% before-you-go code.
+ * - Tapping a lit checkpoint claims the reward: a personal one-use code locked to the customer's email, kept on the
+ *   account until the customer chooses to use it. At checkout every saved reward has a "Use" / "Remove" button:
+ *   nothing is applied by itself. Rewards combine with each other (e.g. 200 g + the free kilo) but not with other
+ *   codes (FIKA10, win-back); the 25% reward covers at most 1 kg of the order. Customers holding a reward are not
+ *   offered the 10% before-you-go code.
  * - The part of an order paid by a reward does not count towards the next checkpoint (e.g. $5 = 200 g).
  * - Orders marked "Undelivered" (a new order status), Cancelled, Failed or Refunded do not count; when an order
  *   stops counting, the fish swims back and an unused reward above the new total is withdrawn.
@@ -189,7 +191,7 @@ if ( ! function_exists( 'fika_swim_claims' ) ) {
 		$c->set_code( $code );
 		$c->set_discount_type( 'fixed_cart' );
 		$c->set_amount( $cp['amount'] );
-		$c->set_individual_use( true ); // not combined with other rewards or codes
+		$c->set_individual_use( false ); // rewards combine with each other; other codes are kept out below
 		$c->set_usage_limit( 1 );
 		$c->set_usage_limit_per_user( 1 );
 		$c->set_email_restrictions( array( $user->user_email ) );
@@ -272,7 +274,24 @@ if ( ! function_exists( 'fika_free_kg_value' ) ) {
 		return round( $val, 2 );
 	}
 }
-// the 6 kg reward: 25% of the customer's own first kilo (most expensive sweets first)
+// rewards combine with each other, not with other codes (FIKA10, win-back ...)
+add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon ) {
+	if ( ! $valid || ! function_exists( 'WC' ) || ! WC()->cart ) {
+		return $valid;
+	}
+	$mine   = fika_swim_is_code( $coupon->get_code() );
+	foreach ( WC()->cart->get_applied_coupons() as $other ) {
+		if ( strtolower( $other ) === strtolower( $coupon->get_code() ) ) {
+			continue;
+		}
+		if ( $mine !== fika_swim_is_code( $other ) ) {
+			throw new Exception( $mine ? 'Fika rewards cannot be combined with other discount codes. Remove the other code to use your reward.' : 'This code cannot be combined with your Fika rewards. Remove the rewards to use it.' );
+		}
+	}
+	return $valid;
+}, 20, 2 );
+
+// the 6 kg reward: 25% of the customer's own first kilo (most expensive sweets first), never more than 1 kg
 add_filter( 'woocommerce_coupon_get_amount', function ( $amount, $coupon ) {
 	if ( is_admin() && ! wp_doing_ajax() ) {
 		return $amount;
@@ -406,7 +425,7 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 	<div class="fs-ticks" aria-hidden="true"><?php for ( $i = 0; $i <= FIKA_SWIM_LAP / 1000; $i++ ) : ?><i data-i="<?php echo (int) $i; ?>"<?php echo in_array( $i, array( 0, 3, 6, 10 ), true ) ? ' class="m"' : ''; ?>><?php echo (int) $i; ?></i><?php endfor; ?></div>
 	<div class="fs-rewards">
 		<?php foreach ( $s['open'] as $r ) : ?>
-		<div class="fs-reward"><div class="fs-code"><span><?php echo esc_html( $r[1] ); ?></span><b><?php echo esc_html( $r[0] ); ?></b></div><button type="button" class="fs-copy" data-code="<?php echo esc_attr( $r[0] ); ?>">Copy code</button><p><?php echo esc_html( $r[2] ); ?>. Delivery not included. It comes off automatically at checkout (one reward per order).</p></div>
+		<div class="fs-reward"><div class="fs-code"><span><?php echo esc_html( $r[1] ); ?></span><b><?php echo esc_html( $r[0] ); ?></b></div><button type="button" class="fs-copy" data-code="<?php echo esc_attr( $r[0] ); ?>">Copy code</button><p><?php echo esc_html( $r[2] ); ?>. Use it whenever you like: tap &ldquo;Use&rdquo; at checkout. Rewards can be combined; delivery not included.</p></div>
 		<?php endforeach; ?>
 	</div>
 </section>
@@ -688,7 +707,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			box.querySelector('span').textContent = r.title;
 			box.querySelector('b').textContent = r.code;
 			box.querySelector('.fs-copy').setAttribute('data-code', r.code);
-			box.querySelector('p').textContent = r.text + '. Delivery not included. It comes off automatically at checkout (one reward per order).';
+			box.querySelector('p').textContent = r.text + '. Use it whenever you like: tap “Use” at checkout. Rewards can be combined; delivery not included.';
 			rewards.insertBefore(box, rewards.firstChild);
 		}
 		// tap a lit checkpoint: claim the reward
@@ -708,7 +727,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 						addReward(res.j);
 						words();
 						var sm = document.querySelector('.fika-acct .fa-hi small');
-						if (sm ? !cps.some(function (x) { return x.state === 'ready'; }) : false) sm.textContent = 'Your reward comes off at checkout';
+						if (sm ? !cps.some(function (x) { return x.state === 'ready'; }) : false) sm.textContent = 'Your reward is saved for checkout';
 					})
 					.catch(function () { b.removeAttribute('aria-busy'); alert('Sorry, something went wrong. Please try again.'); });
 			});
@@ -788,7 +807,7 @@ add_action( 'wp_footer', function () {
 	b.textContent = <?php echo wp_json_encode( 1 === count( $names ) ? $names[0] : count( $names ) . ' sweet rewards' ); ?>;
 	p.appendChild(document.createTextNode('Your reward: '));
 	p.appendChild(b);
-	p.appendChild(document.createTextNode(<?php echo wp_json_encode( 1 === count( $names ) ? ' comes off at checkout.' : ' saved: the best one comes off at checkout.' ); ?>));
+	p.appendChild(document.createTextNode(<?php echo wp_json_encode( 1 === count( $names ) ? ' is saved. Use it at checkout whenever you like.' : ' saved. Choose which to use at checkout.' ); ?>));
 	go.parentNode.insertBefore(p, go);
 })();
 </script>
@@ -812,7 +831,7 @@ add_action( 'wp_footer', function () {
 	}
 }, 25 );
 
-// ---------- Checkout: the best claimed reward comes off by itself (switch or save it for later) ----------
+// ---------- Checkout: the customer picks which saved rewards to use on this order (any mix, or none) ----------
 add_action( 'wp_footer', function () {
 	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || ! is_user_logged_in() || is_wc_endpoint_url( 'order-received' ) ) {
 		return;
@@ -831,46 +850,29 @@ add_action( 'wp_footer', function () {
 .fika-freekg .fr-row span { font-size: 15px; }
 .fika-freekg .fr-row span strong { color: #004aad; }
 .fika-freekg .fr-row small { display: block; font-size: 12.5px; color: #6b7894; }
-.fika-freekg .fr-act { display: flex; align-items: center; gap: 12px; }
-.fika-freekg button.fr-use { height: 40px; padding: 0 22px; border: 0; border-radius: 999px; background: #004aad; color: #fff; font: 600 14px/1 'Outfit', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.fika-freekg .fr-row small:empty { display: none; }
+.fika-freekg button.fr-use { min-width: 112px; height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #004aad; color: #fff; font: 600 14px/1 'Outfit', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
 .fika-freekg button.fr-use:hover { background: #003a8a; }
-.fika-freekg button.fr-use[disabled] { background: #2fb36b; cursor: default; }
-.fika-freekg button.fr-save { display: none; padding: 0; border: 0; background: none; color: #004aad; font: 500 13.5px 'Outfit', Arial, sans-serif; text-decoration: underline; cursor: pointer; }
-.fika-freekg .fr-row.is-on button.fr-save { display: inline; }
+.fika-freekg .fr-row.is-on button.fr-use { background: #fff; color: #004aad; box-shadow: inset 0 0 0 2px #004aad; }
+.fika-freekg .fr-row.is-on strong::after { content: ' \2713'; color: #2fb36b; }
+.fika-freekg .fr-err { margin: 6px 0 0; font-size: 13.5px; color: #b42318; }
+.fika-freekg .fr-err:empty { display: none; }
 </style>
 <script>
 (function () {
 	// [code, title, text, checkout label, amount]
-	var CODES = <?php echo wp_json_encode( $open ); ?>, SKIP = 'fika_reward_saved';
+	var CODES = <?php echo wp_json_encode( $open ); ?>, READY = <?php echo wp_json_encode( array_map( 'intval', get_posts( array( 'post_type' => 'product', 'posts_per_page' => -1, 'fields' => 'ids', 'tax_query' => array( array( 'taxonomy' => 'product_cat', 'field' => 'slug', 'terms' => 'ready-mix' ) ) ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery ?>;
 	window.FIKA_FREEKG = CODES[0][0]; // the before-you-go popup (snippet 9) then skips its 10% offer
 	function isSwim(c) { return /^swim(3|6|10)-/i.test(c || ''); }
 	function cart() { try { return wp.data.select('wc/store/cart').getCartData() || {}; } catch (e) { return {}; } }
 	function onCart() { return (cart().coupons || []).map(function (c) { return (c.code || '').toLowerCase(); }); }
-	function subtotal() {
-		var t = cart().totals || {}, m = t.currency_minor_unit == null ? 2 : t.currency_minor_unit;
-		return (parseInt(t.total_items || '0', 10) || 0) / Math.pow(10, m);
+	function grams() {
+		var g = 0;
+		(cart().items || []).forEach(function (it) { g += (it.quantity || 0) * (READY.indexOf(it.id) !== -1 ? 500 : 100); });
+		return g;
 	}
-	// what a reward is worth on this bag (the 25% one: a quarter of the first kilo)
-	function worth(r, sub) { return /^swim6-/i.test(r[0]) ? 0.25 * Math.min(sub, 25) : +r[4]; }
-	// the biggest reward that fits the bag completely (a $25 reward waits for a bag of $25 or more)
-	function best(sub) {
-		var pick = null;
-		CODES.forEach(function (r) { var w = worth(r, sub); if (w <= sub + 0.001) { if (!pick || w > worth(pick, sub)) pick = r; } });
-		return pick;
-	}
-	function saved() { try { return sessionStorage.getItem(SKIP) === '1'; } catch (e) { return false; } }
-	function setSaved(v) { try { if (v) sessionStorage.setItem(SKIP, '1'); else sessionStorage.removeItem(SKIP); } catch (e) {} }
-	var busy = false, tried = false;
+	var busy = false;
 	function d() { return window.wp ? wp.data.dispatch('wc/store/cart') : null; }
-	function use(code) {
-		var x = d();
-		if (!x || !x.applyCoupon || busy) return Promise.resolve();
-		busy = true;
-		var others = onCart().filter(isSwim).filter(function (c) { return c !== code.toLowerCase(); });
-		return others.reduce(function (p, c) { return p.then(function () { return x.removeCoupon(c); }); }, Promise.resolve())
-			.then(function () { return x.applyCoupon(code); })
-			.then(function () { busy = false; }, function () { busy = false; });
-	}
 	function mount() {
 		var anchor = document.querySelector('.fika-shoptitle');
 		if (!anchor || document.querySelector('.fika-freekg')) return;
@@ -881,53 +883,39 @@ add_action( 'wp_footer', function () {
 			var row = document.createElement('div');
 			row.className = 'fr-row';
 			row.setAttribute('data-code', r[0]);
-			row.innerHTML = '<span><strong></strong> &middot; <em></em><small></small></span><span class="fr-act"><button type="button" class="fr-save">Save for later</button><button type="button" class="fr-use">Use</button></span>';
+			row.innerHTML = '<span><strong></strong> &middot; <em style="font-style:normal"></em><small></small></span><button type="button" class="fr-use">Use</button>';
 			row.querySelector('strong').textContent = r[1];
 			row.querySelector('em').textContent = r[3];
-			row.querySelector('em').style.fontStyle = 'normal';
 			box.appendChild(row);
 		});
+		var err = document.createElement('p'); err.className = 'fr-err'; box.appendChild(err);
 		anchor.parentNode.insertBefore(box, anchor.nextSibling);
 		function sync() {
-			var on = onCart(), sub = subtotal(), any = false, title = '';
+			var on = onCart(), n = 0, g = grams();
 			Array.prototype.forEach.call(box.querySelectorAll('.fr-row'), function (row) {
-				var code = row.getAttribute('data-code'), r = CODES.filter(function (x) { return x[0] === code; })[0];
-				var used = on.indexOf(code.toLowerCase()) !== -1, b = row.querySelector('.fr-use');
+				var code = row.getAttribute('data-code'), used = on.indexOf(code.toLowerCase()) !== -1, b = row.querySelector('.fr-use');
 				row.classList.toggle('is-on', used);
-				if (used) { any = true; title = r[1]; }
-				b.textContent = used ? 'Applied ✓' : 'Use'; b.disabled = used;
-				row.querySelector('small').textContent = (!used ? worth(r, sub) > sub + 0.001 : false) ? 'Best on an order of $' + Math.ceil(worth(r, sub)) + ' or more' : '';
+				if (used) n++;
+				if (!b.getAttribute('aria-busy')) b.textContent = used ? 'Remove' : 'Use';
+				row.querySelector('small').textContent = /^swim6-/i.test(code) ? (g > 1000 ? 'Covers 1 kg of this ' + (g / 1000) + ' kg order (the priciest sweets)' : '') : '';
 			});
-			box.classList.toggle('is-on', any);
-			box.querySelector('b').textContent = any ? title + ': taken off this order' : (CODES.length > 1 ? 'Your sweet rewards are ready' : 'Your sweet reward is ready');
-			box.querySelector('.fr-msg').textContent = any ? 'Delivery not included.' + (CODES.length > 1 ? ' One reward per order: the others stay saved.' : '') : (saved() ? 'Saved for a later order. Tap “Use” to take it off this one.' : 'Tap “Use” to take it off this order.');
-		}
-		// once the bag is loaded: take off the best reward by itself (unless the customer saved it, or has another code on)
-		function auto() {
-			if (tried) return;
-			var c = cart();
-			if (!c.items || !c.items.length) return;
-			tried = true;
-			var on = onCart();
-			if (saved() || on.length) return;
-			var r = best(subtotal());
-			if (r) use(r[0]).then(sync);
+			box.classList.toggle('is-on', n > 0);
+			box.querySelector('b').textContent = n ? (n === 1 ? '1 reward on this order' : n + ' rewards on this order') : (CODES.length > 1 ? 'You have ' + CODES.length + ' sweet rewards saved' : 'You have a sweet reward saved');
+			box.querySelector('.fr-msg').textContent = 'Use ' + (CODES.length > 1 ? 'any of them' : 'it') + ' on this order, or keep ' + (CODES.length > 1 ? 'them' : 'it') + ' for later.' + (CODES.length > 1 ? ' Rewards can be combined.' : '') + ' Delivery not included.';
 		}
 		box.addEventListener('click', function (e) {
-			var b = e.target.closest ? e.target.closest('button') : null;
-			if (!b || b.disabled || busy) return;
-			var code = b.closest('.fr-row').getAttribute('data-code');
-			if (b.classList.contains('fr-save')) {
-				var x = d(); if (!x) return;
-				setSaved(true); busy = true; b.textContent = 'Saving…';
-				x.removeCoupon(code).then(function () { busy = false; b.textContent = 'Save for later'; sync(); }, function () { busy = false; b.textContent = 'Save for later'; sync(); });
-				return;
-			}
-			setSaved(false); b.textContent = 'Applying…';
-			use(code).then(sync);
+			var b = e.target.closest ? e.target.closest('.fr-use') : null;
+			var x = d();
+			if (!b || busy || !x || !x.applyCoupon) return;
+			var code = b.closest('.fr-row').getAttribute('data-code'), used = onCart().indexOf(code.toLowerCase()) !== -1;
+			busy = true; err.textContent = '';
+			b.setAttribute('aria-busy', 'true'); b.textContent = used ? 'Removing…' : 'Applying…';
+			(used ? x.removeCoupon(code) : x.applyCoupon(code))
+				.catch(function (ex) { err.textContent = (ex && ex.message ? ex.message : 'Sorry, that did not work. Please try again.').replace(/<[^>]+>/g, ''); })
+				.then(function () { busy = false; b.removeAttribute('aria-busy'); sync(); });
 		});
-		sync(); auto();
-		if (window.wp ? wp.data : null) wp.data.subscribe(function () { if (!busy) sync(); auto(); });
+		sync();
+		if (window.wp ? wp.data : null) wp.data.subscribe(function () { if (!busy) sync(); });
 	}
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
 	setTimeout(mount, 1500);

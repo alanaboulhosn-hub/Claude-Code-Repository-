@@ -660,3 +660,10 @@ bag: $25 waits for a bag of $25 or more), unless the customer has another code o
 (remembered for the visit); "Use" switches rewards (one per order). The bag drawer says the reward comes off at
 checkout. Tested (test data deleted): claim all three, $30 bag -> $25 off, Save for later, switch to $5, $10 bag
 -> $5 off (the $25 one says "Best on an order of $25 or more"), order placed with its reward.
+
+Customer's choice (2026-10-08, owner): nothing is applied by itself. At checkout every saved reward has "Use" /
+"Remove"; rewards combine with each other in any mix (e.g. 200 g + the free kilo) but not with other codes
+(FIKA10, win-back: refused with a message either way; reward coupons are no longer "individual use"). The 25%
+reward covers at most 1 kg of the order (the priciest sweets; checkout says so on bigger orders). Tested (test
+data deleted): 2 kg bag + 25% = $6.25 off; 1.2 kg bag + 200 g + 1 kg = $30 off (delivery still paid); FIKA10
+refused next to rewards; order placed with two rewards.
