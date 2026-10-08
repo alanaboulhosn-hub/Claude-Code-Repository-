@@ -709,8 +709,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 				sub.appendChild(document.createTextNode('Tap the glowing gift to unlock ' + ready[0].unlock + name + '.'));
 			} else if (next) {
 				title.textContent = 'Swim to your sweet rewards';
-				// rewards go on top: the next one needs its checkpoint plus the grams it pays for
-				var b = document.createElement('b'); b.textContent = kg(next.g + next.rg - tot) + ' kg'; sub.appendChild(b);
+				var b = document.createElement('b'); b.textContent = kg(next.g - tot) + ' kg'; sub.appendChild(b);
 				sub.appendChild(document.createTextNode(' to go until '));
 				var t = document.createElement('b'); t.textContent = next.g === 6000 ? '25% off a kilo' : next.title.replace(/^A whole/, 'a whole'); sub.appendChild(t);
 				sub.appendChild(document.createTextNode((s.name ? ', ' + s.name : '') + '!' + (bagG > 0 ? ' Every gram in your bag moves the fish.' : '')));
@@ -909,14 +908,17 @@ add_action( 'wp_footer', function () {
 		var go = document.getElementById('mxGo');
 		if (!go) return;
 		if (!note) { note = document.createElement('p'); note.className = 'fk-rw-note'; go.parentNode.insertBefore(note, go); }
-		// the next reward: its checkpoint plus the grams it pays for (rewards go on top of the order)
-		var g = bagG(), r = REACH + g, nx = NEXT[0], top = nx ? nx[0] + nx[2] - r : 0;
-		note.innerHTML = ''; note.classList.toggle('is-on', nx ? (g > 0 ? top <= 0 : false) : false);
+		// the next reward: first reach its checkpoint, then the reward goes on top (what it pays for is free)
+		var g = bagG(), r = REACH + g, nx = NEXT[0], toCp = nx ? nx[0] - r : 0, top = nx ? nx[0] + nx[2] - r : 0;
+		var cpKg = nx ? ((nx[0] % 10000) / 1000 || 10) : 0;
+		note.innerHTML = ''; note.classList.toggle('is-on', nx ? (g > 0 ? toCp <= 0 : false) : false);
 		function add(t, bold) { var x = bold ? document.createElement('b') : document.createTextNode(t); if (bold) x.textContent = t; note.appendChild(x); }
 		if (nx ? (g > 0 ? top <= 0 : false) : false) {
 			add('This bag unlocks '); add(low(nx[1]), true); add('! Tap “Use” at checkout and it comes off this order.');
-		} else if (nx ? (g > 0 ? top <= 1000 : false) : false) {
-			add('Add '); add(amt(top) + ' more', true); add(' and get '); add(low(nx[1]), true); add(' in this order.');
+		} else if (nx ? (g > 0 ? toCp <= 0 : false) : false) {
+			add('You reached ' + cpKg + ' kg! Add '); add(amt(top) + ' on top', true); add(nx[2] === 250 ? ' and get 25% off a kilo in this order.' : ' and ' + (nx[2] === 1000 ? 'that kilo is' : 'they are') + ' on us.');
+		} else if (nx ? (g > 0 ? toCp <= 1000 : false) : false) {
+			add('Add '); add(amt(toCp) + ' more', true); add(' to reach ' + cpKg + ' kg and get '); add(low(nx[1]), true); add(' in this order.');
 		} else if (SAVED) {
 			add(SAVED === 1 ? 'You have a sweet reward saved. Use it at checkout whenever you like.' : 'You have ' + SAVED + ' sweet rewards saved. Choose which to use at checkout.');
 		}
@@ -1047,19 +1049,19 @@ add_action( 'wp_footer', function () {
 		var open = UNCL.filter(function (u) { return u[2] <= reach; }), ahead = UNCL.filter(function (u) { return u[2] > reach; })[0];
 		open.forEach(function (u) {
 			var fake = u[1] === 6000 ? 'swim6-x' : u[1] === 10000 ? 'swim10-x' : 'swim3-x', short = u[2] - REACH - paid(onSwim.concat([fake]));
-			rows.push({ lap: u[0], g: u[1], title: u[3], co: u[4], fresh: u[2] > REACH, off: short > 0, note: short > 0 ? 'Rewards go on top: add ' + amt(short) + ' more and it is yours in this order' : (u[2] > REACH ? 'Unlocked by this order' : 'Ready to use') });
+			rows.push({ lap: u[0], g: u[1], title: u[3], co: u[4], fresh: u[2] > REACH, off: short > 0, note: short > 0 ? 'You reached ' + (u[1] / 1000) + ' kg! Add ' + amt(short) + ' on top and it is yours in this order' : (u[2] > REACH ? 'Unlocked by this order' : 'Ready to use') });
 		});
-		var aheadTop = ahead ? ahead[2] + ahead[5] - reach : 0;
-		var key = JSON.stringify([rows, aheadTop]);
+		var aheadCp = ahead ? ahead[2] - reach : 0;
+		var key = JSON.stringify([rows, aheadCp]);
 		if (key === lastKey) return;
 		lastKey = key;
 		list.innerHTML = '';
 		rows.forEach(function (o) { list.appendChild(row(o)); });
 		nudge.innerHTML = '';
-		if (ahead ? aheadTop <= 1000 : false) {
+		if (ahead ? aheadCp <= 1000 : false) {
 			nudge.appendChild(document.createTextNode('Add '));
-			var x = document.createElement('b'); x.textContent = amt(aheadTop) + ' more'; nudge.appendChild(x);
-			nudge.appendChild(document.createTextNode(' and get '));
+			var x = document.createElement('b'); x.textContent = amt(aheadCp) + ' more'; nudge.appendChild(x);
+			nudge.appendChild(document.createTextNode(' to reach ' + ((ahead[1] % 10000) / 1000 || 10) + ' kg and get '));
 			var y = document.createElement('b'); y.textContent = low(ahead[3]); nudge.appendChild(y);
 			nudge.appendChild(document.createTextNode(' in this order.'));
 			var a = document.createElement('a'); a.href = BAG; a.textContent = 'Back to your bag →'; nudge.appendChild(a);
@@ -1119,7 +1121,7 @@ add_action( 'wp_footer', function () {
 	if ( ! $text ) {
 		foreach ( $s['cps'] as $cp ) {
 			if ( $cp['g'] > $s['d'] + $s['o'] ) {
-				$text = rtrim( rtrim( number_format( ( $cp['g'] + $cp['rg'] - $s['d'] - $s['o'] ) / 1000, 1, '.', '' ), '0' ), '.' ) . ' kg to ' . ( 6000 === $cp['g'] ? '25% off a kilo' : lcfirst( $cp['title'] ) );
+				$text = rtrim( rtrim( number_format( ( $cp['g'] - $s['d'] - $s['o'] ) / 1000, 1, '.', '' ), '0' ), '.' ) . ' kg to ' . ( 6000 === $cp['g'] ? '25% off a kilo' : lcfirst( $cp['title'] ) );
 				break;
 			}
 		}

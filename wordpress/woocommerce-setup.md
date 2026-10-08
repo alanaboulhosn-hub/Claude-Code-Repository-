@@ -679,3 +679,7 @@ lights up too ("This bag reaches 3 kg!"). Rewards go ON TOP of the order: what a
 total are withdrawn; a reward already used on a later order stays used (accepted risk, $3.20-$16 at most).
 Tested (test data deleted): the 2 kg example at 700 g / 1 kg / 1.2 kg, reward applied and placed, tally lands on
 3.0 kg; 6 kg reached by an order on its way; that order marked Undelivered -> gift locked again.
+
+Hints count to the checkpoint first (2026-10-08, owner): at 2.2 kg "Add 800 g more to reach 3 kg and get 200 g on
+us in this order"; at 3 kg "You reached 3 kg! Add 200 g on top and they are on us"; at 3.2 kg "This bag unlocks
+200 g on us!". Same steps in the bag drawer, checkout, tracker and header menu.
