@@ -975,3 +975,24 @@ that email count from then on. Snippet 10 (fika-accounts.php):
 - build-shop-pages.py (HERO_CROP) moves the googly-eye positions up by the same amount. One file for all screens:
   phones zoom into it, so the old 1000 px copy would look soft.
 - Checked at 1440 x 820, 1920 x 1080, 1280 x 900, 768 x 1024 and 390 x 844. The eyes stay on the skulls.
+
+## Rewards page: only what's ready, with a button each; login wording; reset-password card (2026-10-08)
+
+- **Rewards page:** the "kg delivered / orders delivered" boxes, the line under them and the "Already used" card
+  are gone. One "Ready to use" card lists everything available, each with a button:
+  - Saved code → **Use**: remembers the code (sessionStorage `fika_use_code`) and opens the bag. Once the bag is
+    at checkout, the checkout's rewards box taps "Use" on that code by itself, with the same checks as a tap.
+  - Gift reached but not unlocked → **Unlock**: claims it (POST /fika/v1/swim-claim), shows the code, and reloads
+    so the lane shows it claimed.
+  - Mystery spin reached but not spun → **Spin**: opens the candy wheel. After a win the page reloads.
+  - Mystery taste won → **Use**: opens the bag. It joins the order at checkout by itself.
+  - Tested: Unlock (3 kg → SWIM3 code), Spin (won a taste), Use → bag → checkout with the code applied ($2.50
+    off) and the free 50 g line. Test data deleted.
+- **Wrong email or password:** "The email or password is incorrect. Forgot your password?" (with the link),
+  instead of WordPress's "The password you entered for the email address … is incorrect." The unconfirmed-email
+  message stays as it is.
+- **Wording:** "Lost your password?" is now "Forgot your password?". The reset page says "Enter the email you
+  signed up with, and we'll email you a link to set a new password", with "Email address" and "Email me a link".
+- **Reset-password page** (store-skin-account.html, page 88): a rule for the log-in forms stripped the reset
+  box's padding, corners and centring. It is now a centred white card with the title "Forgot your password?"
+  ("Set a new password" on the new-password step), and a full-width button.

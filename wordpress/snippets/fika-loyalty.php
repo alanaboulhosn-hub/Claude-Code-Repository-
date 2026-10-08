@@ -1092,7 +1092,7 @@ if ( ! function_exists( 'fika_rewards_lists' ) ) {
 			if ( fika_swim_code_used( $cl['code'] ) ) {
 				$used[] = array( 'title' => $cp['title'], 'meta' => 'Lap ' . (int) $cl['lap'] . ', ' . $cp['kg'] . ' kg', 'how' => $o ? 'Used on order #' . $o->get_order_number() . ', ' . wc_format_datetime( $o->get_date_created(), 'j M Y' ) : 'Used', 'at' => $o ? $o->get_date_created()->getTimestamp() : (int) $cl['at'] );
 			} else {
-				$ready[] = array( 'k' => (int) $cl['lap'] . ':' . (int) $cl['g'], 'title' => $cp['title'], 'meta' => $cp['text'], 'code' => strtoupper( $cl['code'] ), 'how' => 'Tap “Use” at checkout. It never runs out.' );
+				$ready[] = array( 'type' => 'code', 'k' => (int) $cl['lap'] . ':' . (int) $cl['g'], 'title' => $cp['title'], 'meta' => $cp['text'], 'code' => strtoupper( $cl['code'] ), 'how' => 'Comes off your next order at checkout. It never runs out.' );
 			}
 		}
 		// gifts reached but not unlocked yet (tap the glowing gift on the lane)
@@ -1100,7 +1100,18 @@ if ( ! function_exists( 'fika_rewards_lists' ) ) {
 		for ( $lap = 1; ( $lap - 1 ) * FIKA_SWIM_LAP < $reach; $lap++ ) {
 			foreach ( $cps as $g => $cp ) {
 				if ( fika_swim_need( $lap, $g ) <= $reach && empty( $have[ $lap . ':' . $g ] ) ) {
-					$ready[] = array( 'k' => $lap . ':' . $g, 'title' => $cp['title'], 'meta' => 'Lap ' . $lap . ', ' . $cp['kg'] . ' kg', 'code' => '', 'how' => 'Reached! Tap the glowing gift on the lane above to unlock it.', 'todo' => 1 );
+					$ready[] = array( 'type' => 'unlock', 'k' => $lap . ':' . $g, 'lap' => $lap, 'g' => $g, 'title' => $cp['title'], 'meta' => 'Reached at ' . $cp['kg'] . ' kg (lap ' . $lap . ')', 'code' => '', 'how' => 'Unlock it to get your code.' );
+				}
+			}
+		}
+		// mystery spins reached but not spun yet
+		if ( function_exists( 'fika_taste_stops' ) ) {
+			$tl = function_exists( 'fika_taste_list' ) ? fika_taste_list( $uid ) : array();
+			for ( $lap = 1; ( $lap - 1 ) * FIKA_SWIM_LAP < $reach; $lap++ ) {
+				foreach ( fika_taste_stops() as $g ) {
+					if ( ( $lap - 1 ) * FIKA_SWIM_LAP + $g <= $reach && empty( $tl[ $lap . ':' . $g ] ) ) {
+						$ready[] = array( 'type' => 'spin', 'k' => 's' . $lap . ':' . $g, 'lap' => $lap, 'g' => $g, 'title' => 'Mystery spin', 'meta' => 'Reached at ' . ( $g / 1000 ) . ' kg (lap ' . $lap . ')', 'code' => '', 'how' => 'Spin the candy wheel for a free 50 g taste.' );
+					}
 				}
 			}
 		}
@@ -1114,7 +1125,7 @@ if ( ! function_exists( 'fika_rewards_lists' ) ) {
 					$o      = ! empty( $t['order'] ) ? wc_get_order( (int) $t['order'] ) : null;
 					$used[] = array( 'title' => 'Mystery taste: ' . $name, 'meta' => 'Lap ' . $lap . ', ' . ( $g / 1000 ) . ' kg spin, 50 g free', 'how' => $o ? 'In order #' . $o->get_order_number() . ', ' . wc_format_datetime( $o->get_date_created(), 'j M Y' ) : 'In one of your orders', 'at' => $o ? $o->get_date_created()->getTimestamp() : (int) ( $t['at'] ?? 0 ) );
 				} else {
-					$ready[] = array( 'k' => 't' . $k, 'title' => 'Mystery taste: ' . $name, 'meta' => '50 g, free', 'code' => '', 'how' => 'Joins your next order by itself at checkout.' );
+					$ready[] = array( 'type' => 'taste', 'k' => 't' . $k, 'title' => 'Mystery taste: ' . $name, 'meta' => '50 g, free', 'code' => '', 'how' => 'Joins your next order by itself at checkout.' );
 				}
 			}
 		}
@@ -1127,60 +1138,95 @@ add_action( 'woocommerce_account_dashboard', function () {
 	if ( ! $uid || ! function_exists( 'fika_swim_claims' ) ) {
 		return;
 	}
-	list( $ready, $used ) = fika_rewards_lists( $uid );
-	$row = function ( $r, $cls ) {
-		$h  = '<li class="fr-item ' . $cls . '"' . ( isset( $r['k'] ) ? ' data-k="' . esc_attr( $r['k'] ) . '"' : '' ) . '><div class="fr-t"><b>' . esc_html( $r['title'] ) . '</b><span>' . esc_html( $r['meta'] ) . '</span></div>';
-		$h .= ! empty( $r['code'] ) ? '<div class="fr-c"><code>' . esc_html( $r['code'] ) . '</code></div>' : '';
-		$h .= '<p class="fr-how">' . esc_html( $r['how'] ) . '</p></li>';
-		return $h;
-	};
+	list( $ready ) = fika_rewards_lists( $uid );
+	$btn = array( 'code' => 'Use', 'unlock' => 'Unlock', 'spin' => 'Spin', 'taste' => 'Use' );
 	echo '<section class="fika-rw-lists" aria-label="Your rewards"><div class="fr-col"><h3>Ready to use</h3><ul class="fr-ready">';
 	foreach ( $ready as $r ) {
-		echo $row( $r, empty( $r['todo'] ) ? 'is-ready' : 'is-todo' ); // phpcs:ignore WordPress.Security.EscapeOutput
+		printf(
+			'<li class="fr-item is-%1$s" data-k="%2$s" data-type="%1$s" data-lap="%3$d" data-g="%4$d" data-code="%5$s"><div class="fr-t"><b>%6$s</b><span>%7$s</span>%8$s<p class="fr-how">%9$s</p></div><button type="button" class="fr-go">%10$s</button></li>',
+			esc_attr( $r['type'] ),
+			esc_attr( $r['k'] ),
+			isset( $r['lap'] ) ? (int) $r['lap'] : 0,
+			isset( $r['g'] ) ? (int) $r['g'] : 0,
+			esc_attr( $r['code'] ),
+			esc_html( $r['title'] ),
+			esc_html( $r['meta'] ),
+			$r['code'] ? '<code>' . esc_html( $r['code'] ) . '</code>' : '',
+			esc_html( $r['how'] ),
+			esc_html( $btn[ $r['type'] ] )
+		);
 	}
-	echo '</ul><p class="fr-none"' . ( $ready ? ' hidden' : '' ) . '>Nothing waiting yet. Swim to 1.5 kg for your first mystery spin, and 3 kg for 100 g on us.</p></div>';
-	echo '<div class="fr-col"><h3>Already used</h3><ul>';
-	foreach ( $used as $r ) {
-		echo $row( $r, 'is-used' ); // phpcs:ignore WordPress.Security.EscapeOutput
-	}
-	echo '</ul>' . ( $used ? '' : '<p class="fr-none">Rewards you use show up here, with the order they went on.</p>' ) . '</div></section>';
-	$GLOBALS['fika_rw_lists'] = true;
+	echo '</ul><p class="fr-none"' . ( $ready ? ' hidden' : '' ) . '>Nothing waiting yet. Swim to 1.5 kg for your first mystery spin, and 3 kg for 100 g on us.</p></div></section>';
+	$GLOBALS['fika_rw_lists'] = array( 'claim' => rest_url( 'fika/v1/swim-claim' ), 'nonce' => wp_create_nonce( 'wp_rest' ), 'bag' => home_url( '/mix-your-own/?bag=open' ) );
 }, 6 );
 add_action( 'wp_footer', function () {
 	if ( empty( $GLOBALS['fika_rw_lists'] ) ) {
 		return;
 	}
+	$cfg = $GLOBALS['fika_rw_lists'];
 	?>
 <style>
 .fika-swim-account .fs-rewards { display: none; }
-.fika-rw-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 18px 0 22px; font-family: 'Outfit', 'Open Sans', Arial, sans-serif; color: #1b2a4a; }
-.fika-rw-lists .fr-col { padding: 20px 22px; border-radius: 22px; background: #fff; box-shadow: 0 10px 34px rgba(0, 74, 173, .08); }
-.fika-rw-lists h3 { margin: 0 0 12px; font: 400 26px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: .02em; color: #004aad; }
+.fika-rw-lists { margin: 18px 0 22px; font-family: 'Outfit', 'Open Sans', Arial, sans-serif; color: #1b2a4a; }
+.fika-rw-lists .fr-col { padding: 22px 24px; border-radius: 22px; background: #fff; box-shadow: 0 10px 34px rgba(0, 74, 173, .08); }
+.fika-rw-lists h3 { margin: 0 0 14px; font: 400 28px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: .02em; color: #004aad; }
 .fika-rw-lists ul { margin: 0; padding: 0; list-style: none; }
-.fika-rw-lists .fr-item { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 14px; margin: 0 0 10px; border-radius: 16px; background: #fdeaf2; }
-.fika-rw-lists .fr-item.is-todo { background: linear-gradient(120deg, #fff6d6, #ffe3ef); }
-.fika-rw-lists .fr-item.is-used { background: #f3f5fa; color: #4c5a78; }
-.fika-rw-lists .fr-t b { display: block; font-weight: 600; font-size: 15.5px; color: #004aad; }
-.fika-rw-lists .is-used .fr-t b { color: #4c5a78; }
+.fika-rw-lists .fr-item { display: flex; align-items: center; gap: 16px; padding: 14px 16px; margin: 0 0 10px; border-radius: 16px; background: #fdeaf2; }
+.fika-rw-lists .fr-item.is-unlock, .fika-rw-lists .fr-item.is-spin { background: linear-gradient(120deg, #fff6d6, #ffe3ef); }
+.fika-rw-lists .fr-t { flex: 1; min-width: 0; }
+.fika-rw-lists .fr-t b { display: block; font-weight: 600; font-size: 16px; color: #004aad; }
 .fika-rw-lists .fr-t span { display: block; font-size: 13px; color: #6b7894; }
-.fika-rw-lists .fr-c { align-self: center; }
-.fika-rw-lists code { padding: 5px 9px; border-radius: 8px; background: #fff; border: 1px dashed #004aad; font: 600 13px/1 ui-monospace, Menlo, Consolas, monospace; color: #004aad; letter-spacing: .03em; }
-.fika-rw-lists .fr-how { grid-column: 1 / -1; margin: 2px 0 0 !important; font-size: 13.5px; }
-.fika-rw-lists .is-used .fr-how::before { content: '\2713  '; color: #2fb36b; font-weight: 700; }
+.fika-rw-lists code { display: inline-block; margin: 6px 0 0; padding: 4px 9px; border-radius: 8px; background: #fff; border: 1px dashed #004aad; font: 600 13px/1 ui-monospace, Menlo, Consolas, monospace; color: #004aad; letter-spacing: .03em; }
+.fika-rw-lists .fr-how { margin: 6px 0 0 !important; font-size: 13.5px; }
+.fika-rw-lists .fr-go { flex: none; min-width: 104px; height: 42px; padding: 0 22px; border: 0; border-radius: 999px; background: #004aad; color: #fff; font: 600 14px/1 'Outfit', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.fika-rw-lists .fr-go:hover { background: #003a8a; }
+.fika-rw-lists .fr-go[disabled] { background: #c9d4ea; cursor: default; }
+.fika-rw-lists .is-spin .fr-go, .fika-rw-lists .is-unlock .fr-go { background: #ff4f91; }
 .fika-rw-lists .fr-none { margin: 0 !important; font-size: 14px; color: #6b7894; }
-@media (max-width: 760px) { .fika-rw-lists { grid-template-columns: 1fr; } .fika-rw-lists .fr-col { padding: 16px; } }
+@media (max-width: 560px) { .fika-rw-lists .fr-col { padding: 16px; } .fika-rw-lists .fr-item { flex-wrap: wrap; } .fika-rw-lists .fr-go { width: 100%; } }
 </style>
 <script>
 (function () {
-  // a gift unlocked on the lane moves into "Ready to use" with its code
-  window.addEventListener('fikareward', function (e) {
-    var r = e.detail || {}, list = document.querySelector('.fika-rw-lists .fr-ready'); if (!list) return;
-    var old = list.querySelector('[data-k="' + r.lap + ':' + r.g + '"]'); if (old) old.remove();
-    var li = document.createElement('li'); li.className = 'fr-item is-ready'; li.setAttribute('data-k', r.lap + ':' + r.g);
-    li.innerHTML = '<div class="fr-t"><b></b><span></span></div><div class="fr-c"><code></code></div><p class="fr-how">Tap \u201cUse\u201d at checkout. It never runs out.</p>';
+  var C = <?php echo wp_json_encode( $cfg ); ?>;
+  var list = document.querySelector('.fika-rw-lists .fr-ready'); if (!list) return;
+  function none() { var n = list.parentNode.querySelector('.fr-none'); if (n) n.hidden = list.children.length > 0; }
+  function codeRow(r) {
+    var li = document.createElement('li'); li.className = 'fr-item is-code'; li.setAttribute('data-type', 'code'); li.setAttribute('data-k', r.lap + ':' + r.g); li.setAttribute('data-code', String(r.code || '').toUpperCase());
+    li.innerHTML = '<div class="fr-t"><b></b><span></span><code></code><p class="fr-how">Comes off your next order at checkout. It never runs out.</p></div><button type="button" class="fr-go">Use</button>';
     li.querySelector('b').textContent = r.title || ''; li.querySelector('span').textContent = r.text || ''; li.querySelector('code').textContent = String(r.code || '').toUpperCase();
-    list.insertBefore(li, list.firstChild);
-    var none = list.parentNode.querySelector('.fr-none'); if (none) none.hidden = true;
+    return li;
+  }
+  // a gift unlocked on the lane: its row gets the code
+  window.addEventListener('fikareward', function (e) {
+    var r = e.detail || {}, old = list.querySelector('[data-k="' + r.lap + ':' + r.g + '"]');
+    var li = codeRow(r); if (old) list.replaceChild(li, old); else list.insertBefore(li, list.firstChild); none();
+  });
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.fr-go') : null; if (!b || b.disabled) return;
+    var li = b.closest('.fr-item'), type = li.getAttribute('data-type');
+    if (type === 'code') {
+      // the code is remembered: the checkout's rewards box puts it on the order
+      try { sessionStorage.setItem('fika_use_code', li.getAttribute('data-code')); } catch (x) {}
+      location.href = C.bag; return;
+    }
+    if (type === 'taste') { location.href = C.bag; return; }
+    if (type === 'spin') {
+      if (!window.fikaTasteWheel) return;
+      window.fikaTasteWheel({ lap: +li.getAttribute('data-lap'), g: +li.getAttribute('data-g'), bag: 0, closed: function (won) { if (won) location.reload(); } });
+      return;
+    }
+    if (type === 'unlock') {
+      b.disabled = true; b.textContent = '…';
+      fetch(C.claim, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': C.nonce }, body: JSON.stringify({ lap: +li.getAttribute('data-lap'), g: +li.getAttribute('data-g') }) })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          if (!res.ok || !res.j.code) { b.disabled = false; b.textContent = 'Unlock'; alert((res.j && res.j.error) || 'Sorry, something went wrong. Please try again.'); return; }
+          // the gift on the lane stops glowing on the next visit; reload so the lane shows it claimed now
+          list.replaceChild(codeRow({ lap: li.getAttribute('data-lap'), g: li.getAttribute('data-g'), code: res.j.code, title: res.j.title, text: res.j.text }), li);
+          setTimeout(function () { location.reload(); }, 900);
+        })
+        .catch(function () { b.disabled = false; b.textContent = 'Unlock'; alert('Sorry, something went wrong. Please try again.'); });
+    }
   });
 })();
 </script>
@@ -1242,6 +1288,17 @@ add_action( 'wp_footer', function () {
 	function low(t) { return t.replace(/^A whole/, 'a whole'); }
 	function d() { return window.wp ? wp.data.dispatch('wc/store/cart') : null; }
 	var busy = false, box = null, list = null, err = null, nudge = null, lastKey = '';
+	// "Use" tapped on My account > Rewards: once the bag is here, tap "Use" on that code (same checks as a tap)
+	function autoUse() {
+		var want = null; try { want = sessionStorage.getItem('fika_use_code'); } catch (e) {}
+		if (!want || !box || busy || !(cart().items || []).length) return;
+		var rows = box.querySelectorAll('.fr-row'), hit = null;
+		for (var i = 0; i < rows.length; i++) if ((rows[i].getAttribute('data-code') || '').toLowerCase() === want.toLowerCase()) hit = rows[i];
+		try { sessionStorage.removeItem('fika_use_code'); } catch (e) {}
+		if (!hit) return;
+		var b = hit.querySelector('.fr-use');
+		if (b ? !b.disabled : false) { if (onCart().indexOf(want.toLowerCase()) === -1) b.click(); }
+	}
 	function mount() {
 		var anchor = document.querySelector('.fika-shoptitle');
 		if (!anchor || box) return;
@@ -1252,7 +1309,7 @@ add_action( 'wp_footer', function () {
 		anchor.parentNode.insertBefore(box, anchor.nextSibling);
 		box.addEventListener('click', onClick);
 		render();
-		if (window.wp ? wp.data : null) wp.data.subscribe(function () { if (!busy) render(); });
+		if (window.wp ? wp.data : null) wp.data.subscribe(function () { if (!busy) { render(); autoUse(); } });
 	}
 	function row(o) {
 		var r = document.createElement('div');

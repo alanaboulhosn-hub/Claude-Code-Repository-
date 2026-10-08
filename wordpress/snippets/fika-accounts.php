@@ -120,16 +120,8 @@ add_action( 'woocommerce_created_customer', function ( $customer_id ) {
 }, 20 );
 
 // ---------- My account dashboard: the customer's totals ----------
-add_action( 'woocommerce_account_dashboard', function () {
-	$t = fika_customer_totals( get_current_user_id() );
-	?>
-	<div class="fika-acct-stats">
-		<div class="fika-acct-stat"><b><?php echo esc_html( fika_kg_text( $t['grams'] ) ); ?></b><span>of sweets delivered</span></div>
-		<div class="fika-acct-stat"><b><?php echo (int) $t['orders']; ?></b><span><?php echo 1 === (int) $t['orders'] ? 'order delivered' : 'orders delivered'; ?></span></div>
-		<p class="fika-acct-note">Every kilo you order is counted here and moves your fish towards the next reward.</p>
-	</div>
-	<?php
-}, 5 );
+// (The "kg delivered / orders delivered" boxes were taken off the Rewards page at the owner's request; the totals
+// stay in use for the Users list and the dashboard.)
 
 // ---------- WordPress Users list: phone, sign-up date, Fika orders + kg delivered ----------
 add_filter( 'manage_users_columns', function ( $cols ) {
@@ -273,6 +265,18 @@ add_filter( 'gettext', function ( $text, $orig, $domain ) {
 	}
 	if ( 'Login' === $orig ) {
 		return 'Log in';
+	}
+	if ( 'Lost your password?' === $orig ) {
+		return 'Forgot your password?';
+	}
+	if ( 'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' === $orig ) {
+		return 'Enter the email you signed up with, and we\'ll email you a link to set a new password.';
+	}
+	if ( 'Username or email' === $orig ) {
+		return 'Email address';
+	}
+	if ( 'Reset password' === $orig ) {
+		return 'Email me a link';
 	}
 	if ( 'Register' === $orig ) {
 		return 'Create an account';
@@ -535,6 +539,15 @@ add_filter( 'woocommerce_add_success', function ( $msg ) {
 	}
 	return $msg;
 } );
+
+// wrong email or wrong password: one plain message, with the way out
+add_filter( 'authenticate', function ( $user ) {
+	if ( is_wp_error( $user ) && array_intersect( $user->get_error_codes(), array( 'incorrect_password', 'invalid_username', 'invalid_email' ) ) ) {
+		$url = function_exists( 'wc_lostpassword_url' ) ? wc_lostpassword_url() : wp_lostpassword_url();
+		return new WP_Error( 'fika_bad_login', sprintf( '<span>The email or password is incorrect. <a href="%s">Forgot your password?</a></span>', esc_url( $url ) ) );
+	}
+	return $user;
+}, 98 );
 
 // no log-in before the email is confirmed
 add_filter( 'authenticate', function ( $user ) {
