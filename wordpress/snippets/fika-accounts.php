@@ -447,9 +447,11 @@ if ( ! function_exists( 'fika_past_orders' ) ) {
 		$mailer = WC()->mailer();
 		$body   = '<p>Hi ' . esc_html( $name ) . ',</p>'
 			. '<p>Thanks for joining Fika! Tap the button to confirm this is your email, and your account is ready.</p>'
-			. '<p style="text-align:center;margin:28px 0;"><a href="' . esc_url( $url ) . '" style="display:inline-block;background:#004aad;color:#ffffff;text-decoration:none;font-weight:600;padding:14px 28px;border-radius:999px;">Confirm my email</a></p>'
+			// class "button": the email look (fika-emails.php) colours every other link blue, which hid the white text
+			. '<p style="text-align:center;margin:28px 0;"><a class="button" href="' . esc_url( $url ) . '" style="display:inline-block;background:#004aad;color:#ffffff;text-decoration:none;font-weight:600;padding:14px 28px;border-radius:999px;">Verify and confirm my email</a></p>'
 			. '<p>If you&rsquo;ve ordered from Fika before with this email, those orders join your account too, and every kilo counts toward your sweet rewards.</p>'
-			. '<p>The link works for 7 days. Didn&rsquo;t sign up? You can safely ignore this email.</p>';
+			. '<p>The link works for 7 days. Didn&rsquo;t sign up? You can safely ignore this email.</p>'
+			. '<p style="font-size:13px;color:#6c7b9c;">Button not working? Copy this link into your browser:<br><a href="' . esc_url( $url ) . '" style="word-break:break-all;">' . esc_html( $url ) . '</a></p>';
 		return $mailer->send( $u->user_email, 'Confirm your email for Fika', $mailer->wrap_message( 'Welcome to Fika!', $body ) );
 	}
 	// a signed "send it again" link for the login error (only shown after the right password)

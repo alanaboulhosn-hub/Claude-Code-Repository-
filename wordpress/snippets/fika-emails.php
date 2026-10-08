@@ -216,3 +216,27 @@ foreach ( fika_mail_copy() as $fika_id => $fika_parts ) {
 		}, 20, 3 );
 	}
 }
+
+// ---------- a plain-text copy alongside every HTML email ----------
+// Spam filters count HTML-only emails against them, and some mail apps show the text version. Built from the HTML:
+// links keep their address ("Confirm my email: https://..."), styles and the logo pictures are dropped.
+add_action( 'phpmailer_init', function ( $m ) {
+	if ( 'text/html' !== $m->ContentType || '' !== trim( (string) $m->AltBody ) ) {
+		return;
+	}
+	$h = (string) $m->Body;
+	$h = preg_replace( '#<(style|script|head)\b[^>]*>.*?</\1>#is', '', $h );
+	$h = preg_replace_callback( '#<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>#is', function ( $x ) {
+		$t = trim( wp_strip_all_tags( $x[2] ) );
+		$u = html_entity_decode( $x[1] );
+		if ( '' === $t || 0 === stripos( $u, 'mailto:' ) && $t === substr( $u, 7 ) ) {
+			return $t ? $t : '';
+		}
+		return $t === $u ? $u : $t . ': ' . $u;
+	}, $h );
+	$h = preg_replace( '#<(br|/p|/h[1-6]|/tr|/li|/div)\b[^>]*>#i', "\n", $h );
+	$t = html_entity_decode( wp_strip_all_tags( $h ), ENT_QUOTES, 'UTF-8' );
+	$t = preg_replace( "/[ \t]+/", ' ', $t );
+	$t = preg_replace( "/\n\s*\n\s*(\n\s*)+/", "\n\n", $t );
+	$m->AltBody = trim( implode( "\n", array_map( 'trim', explode( "\n", $t ) ) ) );
+} );

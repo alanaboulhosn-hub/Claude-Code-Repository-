@@ -917,3 +917,24 @@ that email count from then on. Snippet 10 (fika-accounts.php):
 - A bag that would take the customer past 15 kg says "This bag crosses the finish line!".
 - Tested on desktop and phone with a test customer at 15.5 kg, every lap-1 reward claimed and both spins done
   (deleted afterwards).
+
+## Confirmation email: button text and spam (2026-10-08)
+
+- **Empty button:** the email look's rule `a { color: #004aad !important }` turned the white button text blue on
+  blue. The confirm link now uses the `button` class like the other emails, and reads "Verify and confirm my
+  email". A "Button not working? Copy this link" line underneath holds the full address.
+- **Plain-text copy:** every HTML email now also carries a plain-text version (phpmailer_init in
+  fika-emails.php), with links written as "text: address". Spam filters count HTML-only emails against them.
+- **Why the site's emails land in spam (checked 2026-10-08):**
+  - WP Mail SMTP's mailer is "mail": the web server (fr-int-web1317.main-hosting.eu) sends as
+    hello@swedishfikalb.com.
+  - The domain's SPF only allows Hostinger's mail servers (`include:_spf.mail.hostinger.com
+    include:_spf.builder-mail.hostinger.com ~all`), and the email carries no DKIM signature for
+    swedishfikalb.com. DMARC (`p=none`) therefore fails, and Gmail files it under spam.
+  - The SMTP settings are ready (smtp.hostinger.com, 465, SSL, user hello@swedishfikalb.com), but no password is
+    stored. DKIM keys hostingermail-a/b/c are already in DNS.
+  - **Fix (owner):** WP Admin > WP Mail SMTP > Settings: choose "Other SMTP", enter the hello@ mailbox password,
+    save, then Tools > Email Test. Mail then goes out through Hostinger's mail servers, signed, and SPF, DKIM and
+    DMARC pass. No DNS change is needed.
+- At launch, the links in emails switch from the test address to swedishfikalb.com, matching the sender. That
+  helps as well.
