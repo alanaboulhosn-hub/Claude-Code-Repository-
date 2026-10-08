@@ -644,10 +644,10 @@ Snippet 11 (wordpress/snippets/fika-loyalty.php) replaces the old "1 kg free at 
 - Undelivered / cancelled / refunded orders stop counting; unused rewards above the new total are withdrawn.
 - The tracker shows the first lap with an unclaimed reached reward, else the current lap. User meta
   fika_swim_claims; claim endpoint POST /wp-json/fika/v1/swim-claim (signed-in, REST nonce).
-- Economics at $16/kg landing cost and $25/kg price ($9/kg margin, $90 per 10 kg): the rewards are money off,
-  so their cost depends on the order they are used on. Used on a big order (cash off): $5 + $6.25 + $25 =
-  $36.25 per lap (40% of the profit). Used on an order the size of the reward (200 g / 1 kg, the candy at cost):
-  $3.20 + $6.25 + $16 = $25.45 (28%).
+- Economics at $16/kg landing cost and $25/kg price ($9/kg margin, $90 per 10 kg). $5 off = 200 g free and
+  $25 off = 1 kg free for the customer (all sweets $2.50 / 100 g), so both wordings cost the same. The cost
+  depends on how the reward is used: as extra candy on top of the usual order, $3.20 + $6.25 + $16 = $25.45 per
+  lap (28% of the profit); on an order the customer would have placed anyway, $5 + $6.25 + $25 = $36.25 (40%).
 - Sign-up nudges and the privacy policy draft now say "Fika rewards" instead of "free kilo".
 - Tested with a test customer and test orders (deleted): states locked / on its way / ready / claimed / used,
   claim, both codes at checkout ($5.00 and $6.25 off), grams paid by a reward not counted (1.2 kg -> 1.0 kg),
