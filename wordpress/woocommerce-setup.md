@@ -1020,3 +1020,18 @@ that email count from then on. Snippet 10 (fika-accounts.php):
   settings, pages and snippets.
 - Anyone who used the old accounts must sign up again; their email is free to register.
 - Done with a temporary snippet (dry run first, then delete), which was then removed.
+
+## Confirmation email: one email-safe button that always works (2026-10-08)
+
+- Removed the "Button not working? Copy this link" line. The plain-text copy of the email still carries the link
+  for text-only mail apps.
+- The button is now an email-safe ("bulletproof") table button: a blue table cell with the link filling it
+  (`bgcolor`, `mso-padding-alt`), so it shows and taps in Gmail, Apple Mail and Outlook for Windows.
+- **The link keeps working for its 7 days instead of once.** Mail scanners (Outlook Safe Links, work inboxes)
+  open links before the customer does, which used to use the link up. Now every open confirms and logs the
+  customer in, landing on Rewards with "Your account is confirmed".
+- If someone else is logged in on that browser, the link switches to the right account.
+- A newer link (from "send it again") replaces the older one. An old link opened after confirming says "already
+  confirmed, log in below".
+- Tested: sign-up, a cookie-less "scanner" open, the customer's tap, and a tap in another browser. All were
+  confirmed and logged in. Test account deleted.

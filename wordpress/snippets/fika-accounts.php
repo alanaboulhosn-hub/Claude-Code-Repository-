@@ -476,7 +476,8 @@ if ( ! function_exists( 'fika_past_orders' ) ) {
 			return 0;
 		}
 		update_user_meta( $user_id, 'fika_email_ok', strtolower( $u->user_email ) );
-		delete_user_meta( $user_id, 'fika_link_token' );
+		// the link keeps working for its 7 days: mail scanners (Outlook, work inboxes) open links before the
+		// customer does, and a second tap should simply log them in
 		$n = 0;
 		foreach ( fika_past_orders( $u->user_email ) as $oid ) {
 			$o = wc_get_order( $oid );
@@ -507,11 +508,15 @@ if ( ! function_exists( 'fika_past_orders' ) ) {
 		$mailer = WC()->mailer();
 		$body   = '<p>Hi ' . esc_html( $name ) . ',</p>'
 			. '<p>Thanks for joining Fika! Tap the button to confirm this is your email, and your account is ready.</p>'
-			// class "button": the email look (fika-emails.php) colours every other link blue, which hid the white text
-			. '<p style="text-align:center;margin:28px 0;"><a class="button" href="' . esc_url( $url ) . '" style="display:inline-block;background:#004aad;color:#ffffff;text-decoration:none;font-weight:600;padding:14px 28px;border-radius:999px;">Verify and confirm my email</a></p>'
+			// an email-safe ("bulletproof") button: a table cell painted blue with the link filling it, so it shows and
+			// can be tapped in every mail app, Outlook for Windows included. Class "button": the email look
+			// (fika-emails.php) colours every other link blue, which hid the white text.
+			. '<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin:28px auto;border-collapse:separate;"><tr>'
+			. '<td align="center" bgcolor="#004aad" style="background:#004aad;border-radius:999px;mso-padding-alt:14px 30px;">'
+			. '<a class="button" href="' . esc_url( $url ) . '" target="_blank" style="display:inline-block;padding:14px 30px;background:#004aad;color:#ffffff !important;font-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;line-height:20px;text-decoration:none;border-radius:999px;">Verify and confirm my email</a>'
+			. '</td></tr></table>'
 			. '<p>If you&rsquo;ve ordered from Fika before with this email, those orders join your account too, and every kilo counts toward your sweet rewards.</p>'
-			. '<p>The link works for 7 days. Didn&rsquo;t sign up? You can safely ignore this email.</p>'
-			. '<p style="font-size:13px;color:#6c7b9c;">Button not working? Copy this link into your browser:<br><a href="' . esc_url( $url ) . '" style="word-break:break-all;">' . esc_html( $url ) . '</a></p>';
+			. '<p>The button works for 7 days. Didn&rsquo;t sign up? You can safely ignore this email.</p>';
 		return $mailer->send( $u->user_email, 'Confirm your email for Fika', $mailer->wrap_message( 'Welcome to Fika!', $body ) );
 	}
 	// a signed "send it again" link for the login error (only shown after the right password)
@@ -591,9 +596,14 @@ add_action( 'template_redirect', function () {
 		$u   = $uid ? get_userdata( $uid ) : false;
 		$t   = $u ? get_user_meta( $uid, 'fika_link_token', true ) : null;
 		$ok  = $u && $tok && is_array( $t ) && $t['exp'] > time() && hash_equals( $t['h'], hash_hmac( 'sha256', $tok, wp_salt( 'auth' ) ) )
-			&& strtolower( $t['email'] ) === strtolower( $u->user_email ) && ( ! is_user_logged_in() || get_current_user_id() === $uid );
+			&& strtolower( $t['email'] ) === strtolower( $u->user_email );
+		if ( $ok && is_user_logged_in() && get_current_user_id() !== $uid ) {
+			// someone else is logged in on this browser: the link proves who this is, so switch to them
+			wp_logout();
+			wp_set_current_user( 0 );
+		}
 		if ( ! $ok ) {
-			// an old link opened after the email was already confirmed: nothing went wrong
+			// an older link (a newer one replaced it) after the email was already confirmed: nothing went wrong
 			$done = $u && fika_email_confirmed( $uid ) && ( ! is_user_logged_in() || get_current_user_id() === $uid );
 			wp_safe_redirect( add_query_arg( 'fika-linked', $done ? 'done' : 'expired', $acct ) );
 			exit;
