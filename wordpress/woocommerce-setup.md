@@ -1035,3 +1035,27 @@ that email count from then on. Snippet 10 (fika-accounts.php):
   confirmed, log in below".
 - Tested: sign-up, a cookie-less "scanner" open, the customer's tap, and a tap in another browser. All were
   confirmed and logged in. Test account deleted.
+
+## Home: video reviews carousel "Loved across Lebanon" (2026-10-08)
+
+- Under the Ready Mix block on the home page. It comes from wordpress/pages/home-videos.html, which
+  build-shop-pages.py inserts as `home_videos`. The text-review band below it stays hidden until real reviews exist.
+- **Clips:** the owner's 5 TikTok videos (media 431-435) were cut to 20 / 22 / 20 / 22 / 9 s from the start
+  (bag, unboxing, first bites).
+  - The cuts land on pauses in the speech, or fade out where the sound is continuous.
+  - TikTok's end screen is cut off.
+  - The TikTok logo and the creator handles stay on the video as credits.
+  - Encoding: H.264 576x1024, about 2 MB each, faststart. Files are media 437/439/441/443/445, with posters
+    438/440/442/444/446 (copies in wordpress/pages/media/reviews/).
+- **Behaviour:**
+  - The middle clip plays muted once the carousel is on screen (browsers block autoplay with sound), with a
+    "Sound" button and a pink progress bar. It pauses when scrolled away.
+  - The clips either side sit smaller, faded (50 %) and turned away (rotateY ±38°, translateZ -260px).
+  - Arrows, dots, a tap on a side clip, or a swipe turn the carousel. When a clip ends, the next turns in.
+  - Only the middle clip downloads (preload none).
+  - Side clips show their poster as an `<img>` over the video: browsers paint a resting video inside the tilted,
+    faded cards as a grey box. A clip that moved aside returns to its picture.
+- Written without "&&" and " < " (WordPress rewrites them in page content).
+- **Tested:** desktop and phone; autoplay, Next, dots, tapping a side clip, sound, auto-advance after the end,
+  pause when scrolled away, and the side pictures after scrolling and turning. The test browser cannot play H.264,
+  so WebM copies stood in for the test only. Real browsers (Chrome, Safari, Firefox, Edge, iOS, Android) play the MP4s.

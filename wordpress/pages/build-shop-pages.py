@@ -273,6 +273,30 @@ html:not(.fika-shop-page) #shop .mx-count:empty { display:none; }
 })();
 </script>"""
 
+# ---------- home-only: video reviews (a turning carousel of 5 short TikTok clips) ----------
+# Clips cut from the owner's 5 videos (media 431-435) to 9-22 s, 576 x 1024, about 2 MB each: media 437-446
+# (wordpress/pages/media/reviews/). The middle clip plays by itself, muted (browsers allow no autoplay with sound),
+# with a sound button; the clips either side wait, smaller, faded and turned away. Arrows, dots, a tap on a side clip,
+# a swipe, or the end of the clip turn the carousel. Only the middle clip loads and plays.
+# Written without the logical-and operator and the less-than sign: WordPress rewrites them.
+REVIEW_CLIPS = [
+    ('/wp-content/uploads/2026/10/fika-review-1.mp4', '/wp-content/uploads/2026/10/fika-review-1.jpg'),
+    ('/wp-content/uploads/2026/10/fika-review-2.mp4', '/wp-content/uploads/2026/10/fika-review-2.jpg'),
+    ('/wp-content/uploads/2026/10/fika-review-3.mp4', '/wp-content/uploads/2026/10/fika-review-3.jpg'),
+    ('/wp-content/uploads/2026/10/fika-review-4.mp4', '/wp-content/uploads/2026/10/fika-review-4.jpg'),
+    ('/wp-content/uploads/2026/10/fika-review-5.mp4', '/wp-content/uploads/2026/10/fika-review-5.jpg'),
+]
+# the picture is a real image over the video: browsers paint a resting video inside the tilted, faded side cards as a
+# grey box, so the picture covers it until the clip is actually playing in the middle
+VR_CLIP = ('    <figure class="fk-vr-card"><video muted playsinline preload="none" poster="{poster}" src="{src}"></video>'
+           '<img class="fk-vr-pic" src="{poster}" alt="" loading="lazy" decoding="async">'
+           '<button type="button" class="fk-vr-sound" aria-label="Sound on or off">'
+           '<svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>'
+           '<svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>'
+           'Sound</button><span class="fk-vr-bar"><i></i></span></figure>')
+home_videos = open(os.path.join(HERE, 'home-videos.html')).read().replace('CLIPS', '\n'.join(VR_CLIP.format(src=a, poster=b) for a, b in REVIEW_CLIPS), 1)
+assert '&&' not in home_videos and ' < ' not in home_videos
+
 # ---------- home-only: reviews band (real WooCommerce product reviews, 4 and 5 stars; hidden while there are none) ----------
 # Reviews come from customers who bought (WooCommerce: "Reviews can only be left by verified owners"), approved in
 # WP Admin > Products > Reviews. Written without the logical-and operator and the less-than sign: WordPress rewrites them.
@@ -1024,7 +1048,7 @@ def ref(k):
     return '<!-- wp:block {"ref":%d} /-->' % ids[k]
 
 
-home = '\n\n'.join([ref('head'), block(home_hero), ref('fish'), block(home_favs), ref('mix'), block(home_reviews), block(home_sections), ref('foot')]) + '\n'
+home = '\n\n'.join([ref('head'), block(home_hero), ref('fish'), block(home_favs), ref('mix'), block(home_videos), block(home_reviews), block(home_sections), ref('foot')]) + '\n'
 mixp = '\n\n'.join([ref('head'), block(mix_hero), block(grid_css), block(mix_bar), ref('fish'), ref('mix'), block(mix_cross), ref('foot')]) + '\n'
 ready = '\n\n'.join([ref('head'), block(ready_hero), block(grid_css), block(ready_page), ref('fish'), ref('mix'), block(ready_cross), ref('foot')]) + '\n'
 about = '\n\n'.join([ref('head'), block(about_hero), ref('fish'), block(about_body), ref('mix'), ref('foot')]) + '\n'
