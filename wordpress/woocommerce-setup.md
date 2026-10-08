@@ -830,3 +830,23 @@ toward rewards only if the customer makes an account, matched by email.
   lit); a reused link is refused; a later guest order joined; emails match case-insensitively. Test data deleted.
 - For the import: old orders go in as guest orders (no account) with their real email, date and status Completed,
   and line items mapped to the current products, so the kilos count correctly.
+
+## Accounts confirm their email at sign-up (2026-10-08, replaces the "Email me a link" box above)
+
+Owner's choice: one confirmation email at sign-up. The account works once it's confirmed, and earlier orders with
+that email count from then on. Snippet 10 (fika-accounts.php):
+- **Sign-up on My account** sends "Confirm your email for Fika" (button "Confirm my email", valid 7 days). This
+  replaces WooCommerce's "Welcome" email, which is switched off. The customer is not logged in and sees "Almost
+  there! Check your email".
+- **Logging in before confirming** is refused with "Please confirm your email first … send it again". The resend
+  link is signed and limited to one email per 2 minutes.
+- **The link** confirms the email, logs the customer in, and moves every earlier guest order with that email
+  (old-store imports included) into the account. The kilos and rewards count at once, and My account says
+  "Your account is confirmed – N earlier orders joined". Used or wrong links are refused.
+- **Accounts made at checkout** stay logged in so the order goes through. They get the same email, and My account
+  shows "Please confirm your email" with "Send the link again". They need the link to log in next time.
+- **"Forgot password"** also confirms the email and connects the orders.
+- **Later orders** placed while logged out with a confirmed email join the account.
+- **Staff accounts** (admin, shop manager) are never held back. Changing a customer's email needs a new confirmation.
+- **Tested:** sign-up, blocked log-in, resend, wrong link, real link (2 orders, 3.5 kg, the 3 kg reward lit), reused
+  link, log out and log in again, and an account made at checkout. Test data deleted.

@@ -2,9 +2,9 @@
 /**
  * Fika: customer accounts — the groundwork for loyalty offers (e.g. "the 8th kg is free").
  * - Sign-up form: first name and phone (both required; the phone is the one used for delivery) on top of email + password.
- * - Earlier guest orders placed with the account's email (including orders brought over from the old store) join
- *   the account, and its rewards progress, once the customer confirms the email: a link they ask for from My account,
- *   or a password reset.
+ * - New accounts confirm their email first: signing up sends a "Confirm your email" link (instead of the welcome
+ *   email) and the account can log in once it is tapped. Then earlier guest orders with that email (including orders
+ *   brought over from the old store) join the account and its rewards. A password reset also confirms.
  * - Each customer keeps a running total of delivered orders and grams (orders marked Completed),
  *   stored in user meta "fika_totals" and refreshed whenever one of their orders changes status.
  *   Candies count 100 g per unit, Ready Mix 500 g per bag.
@@ -114,8 +114,8 @@ add_action( 'woocommerce_created_customer', function ( $customer_id ) {
 		// Also the checkout's contact "Phone number" field (fika/phone), so checkout and Account details are pre-filled
 		update_user_meta( $customer_id, '_wc_other/fika/phone', $phone );
 	}
-	// Earlier guest orders with the same email join the account once the customer confirms the email is theirs
-	// (see "past orders" below), so nobody can see someone else's orders by signing up with their email.
+	// Earlier guest orders with the same email join the account once the customer confirms the email
+	// (see "confirmed email" below), so nobody can see someone else's orders by signing up with their email.
 	fika_customer_totals( $customer_id, true );
 }, 20 );
 
@@ -379,7 +379,10 @@ add_action( 'woocommerce_before_account_navigation', function () {
 	}
 }, 1 );
 
-// ---------- past orders: earlier guest orders with the account's email join the account once the email is confirmed ----------
+// ---------- confirmed email: a new account works once the customer taps the link we email them ----------
+// Signing up sends one "Confirm your email" email (instead of WooCommerce's welcome email). Until the link is tapped
+// the account cannot log in. The link logs the customer in, and earlier guest orders with the same email (including
+// orders imported from the old store) join the account and its rewards at once. A password reset also confirms.
 if ( ! function_exists( 'fika_past_orders' ) ) {
 	// guest orders (no account) placed with this email
 	function fika_past_orders( $email ) {
@@ -395,10 +398,16 @@ if ( ! function_exists( 'fika_past_orders' ) ) {
 			'return'        => 'ids',
 		) );
 	}
-	// the account's current email has been confirmed by the customer
+	// customers must confirm their current email; staff accounts are never held back
 	function fika_email_confirmed( $user_id ) {
 		$u = get_userdata( $user_id );
-		return $u && strtolower( (string) get_user_meta( $user_id, 'fika_email_ok', true ) ) === strtolower( $u->user_email );
+		if ( ! $u ) {
+			return false;
+		}
+		if ( ! in_array( 'customer', (array) $u->roles, true ) ) {
+			return true;
+		}
+		return strtolower( (string) get_user_meta( $user_id, 'fika_email_ok', true ) ) === strtolower( $u->user_email );
 	}
 	// mark the email confirmed and move the guest orders into the account; returns how many joined
 	function fika_link_past_orders( $user_id ) {
@@ -413,29 +422,79 @@ if ( ! function_exists( 'fika_past_orders' ) ) {
 			$o = wc_get_order( $oid );
 			if ( $o && ! $o->get_customer_id() ) {
 				$o->set_customer_id( $user_id );
-				$o->add_order_note( 'Joined the customer\'s account after they confirmed their email.' );
+				$o->add_order_note( 'Joined the customer\'s account when they confirmed their email.' );
 				$o->save();
 				$n++;
 			}
 		}
-		if ( $n ) {
-			fika_customer_totals( $user_id, true );
-			if ( function_exists( 'fika_swim_sync' ) ) {
-				fika_swim_sync( $user_id );
-			}
+		fika_customer_totals( $user_id, true );
+		if ( $n && function_exists( 'fika_swim_sync' ) ) {
+			fika_swim_sync( $user_id );
 		}
 		return $n;
 	}
+	// email the confirmation link (a new link replaces the old one)
+	function fika_send_confirm( $user_id ) {
+		$u = get_userdata( $user_id );
+		if ( ! $u || ! function_exists( 'WC' ) ) {
+			return false;
+		}
+		$tok = wp_generate_password( 32, false );
+		update_user_meta( $user_id, 'fika_link_token', array( 'h' => hash_hmac( 'sha256', $tok, wp_salt( 'auth' ) ), 'exp' => time() + 7 * DAY_IN_SECONDS, 'email' => strtolower( $u->user_email ) ) );
+		update_user_meta( $user_id, 'fika_link_sent', time() );
+		$url    = add_query_arg( 'fika-confirm', $user_id . '.' . $tok, wc_get_page_permalink( 'myaccount' ) );
+		$name   = $u->first_name ? $u->first_name : 'there';
+		$mailer = WC()->mailer();
+		$body   = '<p>Hi ' . esc_html( $name ) . ',</p>'
+			. '<p>Thanks for joining Fika! Tap the button to confirm this is your email, and your account is ready.</p>'
+			. '<p style="text-align:center;margin:28px 0;"><a href="' . esc_url( $url ) . '" style="display:inline-block;background:#004aad;color:#ffffff;text-decoration:none;font-weight:600;padding:14px 28px;border-radius:999px;">Confirm my email</a></p>'
+			. '<p>If you&rsquo;ve ordered from Fika before with this email, those orders join your account too, and every kilo counts toward your sweet rewards.</p>'
+			. '<p>The link works for 7 days. Didn&rsquo;t sign up? You can safely ignore this email.</p>';
+		return $mailer->send( $u->user_email, 'Confirm your email for Fika', $mailer->wrap_message( 'Welcome to Fika!', $body ) );
+	}
+	// a signed "send it again" link for the login error (only shown after the right password)
+	function fika_resend_sig( $user_id ) {
+		return substr( hash_hmac( 'sha256', 'resend|' . $user_id . '|' . gmdate( 'Y-m-d' ), wp_salt( 'nonce' ) ), 0, 20 );
+	}
 }
+
+// the confirmation email replaces WooCommerce's welcome email
+add_filter( 'woocommerce_email_enabled_customer_new_account', '__return_false', 99 );
+add_action( 'woocommerce_created_customer', function ( $customer_id ) {
+	if ( ! fika_email_confirmed( $customer_id ) ) {
+		fika_send_confirm( $customer_id );
+	}
+}, 30 );
+
+// signing up on My account: no automatic log-in, back to the page with "check your email"
+add_filter( 'woocommerce_registration_auth_new_customer', function ( $auth ) {
+	return isset( $_POST['register'] ) ? false : $auth; // phpcs:ignore WordPress.Security.NonceVerification
+} );
+// WooCommerce's "account created, details sent" message becomes "check your email"
+add_filter( 'woocommerce_add_success', function ( $msg ) {
+	if ( isset( $_POST['register'] ) && false !== stripos( wp_strip_all_tags( $msg ), 'account was created' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		return '<span><b>Almost there! Check your email.</b> We&rsquo;ve sent you a link: tap it to confirm your email, and your account is ready. It can take a minute, and may land in spam.</span>';
+	}
+	return $msg;
+} );
+
+// no log-in before the email is confirmed
+add_filter( 'authenticate', function ( $user ) {
+	if ( $user instanceof WP_User && ! fika_email_confirmed( $user->ID ) ) {
+		$again = add_query_arg( 'fika-resend', $user->ID . '.' . fika_resend_sig( $user->ID ), wc_get_page_permalink( 'myaccount' ) );
+		return new WP_Error( 'fika_unconfirmed', sprintf( '<span>Please confirm your email first: tap the link we sent to %s. Can&rsquo;t find it? Check spam, or <a href="%s">send it again</a>.</span>', esc_html( $user->user_email ), esc_url( $again ) ) );
+	}
+	return $user;
+}, 99 );
 
 // a password reset also proves the email
 add_action( 'after_password_reset', function ( $user ) {
-	if ( $user && in_array( 'customer', (array) $user->roles, true ) ) {
+	if ( $user && ! fika_email_confirmed( $user->ID ) ) {
 		fika_link_past_orders( $user->ID );
 	}
 } );
 
-// a later order placed as a guest with a confirmed account's email joins that account too
+// a later order placed while logged out with a confirmed account's email joins that account
 add_action( 'woocommerce_store_api_checkout_order_processed', function ( $order ) {
 	if ( $order->get_customer_id() ) {
 		return;
@@ -444,90 +503,96 @@ add_action( 'woocommerce_store_api_checkout_order_processed', function ( $order 
 	if ( $u && in_array( 'customer', (array) $u->roles, true ) && fika_email_confirmed( $u->ID ) ) {
 		$order->set_customer_id( $u->ID );
 		$order->save();
+		fika_customer_totals( $u->ID, true );
 	}
 } );
 
-// "Send me the link" (a plain form, no script: the account page content is texturized) and the link itself
+// the link from the email, "send it again", and the button for accounts made at checkout
 add_action( 'template_redirect', function () {
 	if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
 		return;
 	}
 	$acct = wc_get_page_permalink( 'myaccount' );
-	// the link from the email
 	if ( isset( $_GET['fika-confirm'] ) ) {
 		$raw = sanitize_text_field( wp_unslash( $_GET['fika-confirm'] ) );
 		list( $uid, $tok ) = array_pad( explode( '.', $raw, 2 ), 2, '' );
 		$uid = absint( $uid );
-		$t   = get_user_meta( $uid, 'fika_link_token', true );
-		$ok  = $uid && $tok && is_array( $t ) && $t['exp'] > time() && hash_equals( $t['h'], hash_hmac( 'sha256', $tok, wp_salt( 'auth' ) ) )
-			&& strtolower( $t['email'] ) === strtolower( get_userdata( $uid )->user_email )
-			&& ( ! is_user_logged_in() || get_current_user_id() === $uid );
+		$u   = $uid ? get_userdata( $uid ) : false;
+		$t   = $u ? get_user_meta( $uid, 'fika_link_token', true ) : null;
+		$ok  = $u && $tok && is_array( $t ) && $t['exp'] > time() && hash_equals( $t['h'], hash_hmac( 'sha256', $tok, wp_salt( 'auth' ) ) )
+			&& strtolower( $t['email'] ) === strtolower( $u->user_email ) && ( ! is_user_logged_in() || get_current_user_id() === $uid );
 		if ( ! $ok ) {
 			// an old link opened after the email was already confirmed: nothing went wrong
-			$done = is_user_logged_in() && get_current_user_id() === $uid && fika_email_confirmed( $uid );
-			wp_safe_redirect( add_query_arg( 'fika-linked', $done ? '0' : 'expired', $acct ) );
+			$done = $u && fika_email_confirmed( $uid ) && ( ! is_user_logged_in() || get_current_user_id() === $uid );
+			wp_safe_redirect( add_query_arg( 'fika-linked', $done ? 'done' : 'expired', $acct ) );
 			exit;
 		}
 		$n = fika_link_past_orders( $uid );
+		if ( ! is_user_logged_in() ) {
+			wp_set_current_user( $uid );
+			wp_set_auth_cookie( $uid, true );
+			do_action( 'wp_login', $u->user_login, $u );
+		}
 		wp_safe_redirect( add_query_arg( 'fika-linked', $n, $acct ) );
 		exit;
 	}
-	// the button
-	if ( 'POST' === ( $_SERVER['REQUEST_METHOD'] ?? '' ) && isset( $_POST['fika_send_link'] ) && is_user_logged_in() ) {
+	$uid = 0;
+	if ( isset( $_GET['fika-resend'] ) ) {
+		list( $id, $sig ) = array_pad( explode( '.', sanitize_text_field( wp_unslash( $_GET['fika-resend'] ) ), 2 ), 2, '' );
+		if ( absint( $id ) && hash_equals( fika_resend_sig( absint( $id ) ), $sig ) ) {
+			$uid = absint( $id );
+		}
+	} elseif ( 'POST' === ( $_SERVER['REQUEST_METHOD'] ?? '' ) && isset( $_POST['fika_send_link'] ) && is_user_logged_in()
+		&& wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_fika_link'] ?? '' ) ), 'fika_link_' . get_current_user_id() ) ) {
 		$uid = get_current_user_id();
-		$u   = wp_get_current_user();
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_fika_link'] ?? '' ) ), 'fika_link_' . $uid ) ) {
-			wp_safe_redirect( $acct );
-			exit;
+	}
+	if ( isset( $_GET['fika-resend'] ) || isset( $_POST['fika_send_link'] ) ) {
+		if ( $uid && ! fika_email_confirmed( $uid ) && time() - (int) get_user_meta( $uid, 'fika_link_sent', true ) >= 2 * MINUTE_IN_SECONDS ) {
+			fika_send_confirm( $uid );
 		}
-		$last = (int) get_user_meta( $uid, 'fika_link_sent', true );
-		if ( time() - $last < 5 * MINUTE_IN_SECONDS ) {
-			wp_safe_redirect( add_query_arg( 'fika-linked', 'sent', $acct ) );
-			exit;
-		}
-		$tok = wp_generate_password( 32, false );
-		update_user_meta( $uid, 'fika_link_token', array( 'h' => hash_hmac( 'sha256', $tok, wp_salt( 'auth' ) ), 'exp' => time() + 2 * DAY_IN_SECONDS, 'email' => strtolower( $u->user_email ) ) );
-		update_user_meta( $uid, 'fika_link_sent', time() );
-		$url    = add_query_arg( 'fika-confirm', $uid . '.' . $tok, $acct );
-		$name   = $u->first_name ? $u->first_name : 'there';
-		$mailer = WC()->mailer();
-		$body   = '<p>Hi ' . esc_html( $name ) . ',</p>'
-			. '<p>Tap the button to confirm this is your email. Your earlier Fika orders will join your account, and every kilo counts toward your rewards.</p>'
-			. '<p style="text-align:center;margin:28px 0;"><a href="' . esc_url( $url ) . '" style="display:inline-block;background:#004aad;color:#ffffff;text-decoration:none;font-weight:600;padding:14px 28px;border-radius:999px;">Connect my past orders</a></p>'
-			. '<p>The link works for 48 hours. If you didn\'t ask for this, you can ignore this email.</p>';
-		$mailer->send( $u->user_email, 'Connect your past Fika orders', $mailer->wrap_message( 'Connect your past orders', $body ) );
-		wp_safe_redirect( add_query_arg( 'fika-linked', 'sent', $acct ) );
+		wp_safe_redirect( add_query_arg( 'fika-check', $uid ? '1' : '0', $acct ) );
 		exit;
 	}
 }, 5 );
 
-// My account dashboard: the box (only while there are guest orders under the account's email)
+// messages on the log-in page
+add_action( 'woocommerce_before_customer_login_form', function () {
+	$msg = '';
+	if ( isset( $_GET['fika-check'] ) && '1' === $_GET['fika-check'] ) {
+		$msg = '<b>Almost there! Check your email</b><p>We&rsquo;ve sent you a link. Tap it to confirm your email, and your account is ready. It can take a minute, and may land in spam.</p>';
+	} elseif ( isset( $_GET['fika-linked'] ) && 'expired' === $_GET['fika-linked'] ) {
+		$msg = '<b>That link has expired</b><p>Log in below and we&rsquo;ll send you a fresh one.</p>';
+	} elseif ( isset( $_GET['fika-linked'] ) && 'done' === $_GET['fika-linked'] ) {
+		$msg = '<b>Your email is already confirmed</b><p>Log in below.</p>';
+	}
+	if ( $msg ) {
+		echo '<div class="fika-past">' . $msg . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		$GLOBALS['fika_past_css'] = true;
+	}
+} );
+
+// My account: "confirmed" message, or the reminder for an account made at checkout that is not confirmed yet
 add_action( 'woocommerce_account_dashboard', function () {
 	$uid = get_current_user_id();
 	$u   = wp_get_current_user();
 	$st  = isset( $_GET['fika-linked'] ) ? sanitize_key( wp_unslash( $_GET['fika-linked'] ) ) : '';
-	if ( '' !== $st && ctype_digit( $st ) ) {
+	if ( ctype_digit( $st ) ) {
 		$n = (int) $st;
-		echo '<div class="fika-past is-done"><b>' . ( $n ? 'Your past orders are connected' : 'Your email is confirmed' ) . '</b><p>'
-			. ( $n ? esc_html( sprintf( '%d earlier %s joined your account and count toward your rewards.', $n, 1 === $n ? 'order' : 'orders' ) ) : 'There were no other orders to connect.' )
+		echo '<div class="fika-past is-done"><b>Your account is confirmed</b><p>'
+			. ( $n ? esc_html( sprintf( 'Welcome! %d earlier %s joined your account and count toward your rewards.', $n, 1 === $n ? 'order' : 'orders' ) ) : 'Welcome to Fika! Every kilo you order counts toward your sweet rewards.' )
 			. '</p></div>';
 		$GLOBALS['fika_past_css'] = true;
 		return;
 	}
-	if ( ! in_array( 'customer', (array) $u->roles, true ) || fika_email_confirmed( $uid ) || ! fika_past_orders( $u->user_email ) ) {
-		if ( 'expired' === $st ) {
-			echo '<div class="fika-past"><b>That link has expired</b><p>Links work for 48 hours, and only the newest one works.</p></div>';
-			$GLOBALS['fika_past_css'] = true;
-		}
+	if ( fika_email_confirmed( $uid ) ) {
 		return;
 	}
-	$sent = 'sent' === $st;
-	echo '<div class="fika-past"><b>' . ( 'expired' === $st ? 'That link has expired' : 'Ordered from Fika before?' ) . '</b>';
-	if ( $sent ) {
-		echo '<p>We\'ve emailed a link to <strong>' . esc_html( $u->user_email ) . '</strong>. Tap it to connect your earlier orders. It can take a minute, and may land in spam.</p>';
+	echo '<div class="fika-past"><b>Please confirm your email</b>';
+	if ( isset( $_GET['fika-check'] ) ) {
+		echo '<p>We&rsquo;ve sent a new link to <strong>' . esc_html( $u->user_email ) . '</strong>. It can take a minute, and may land in spam.</p>';
 	} else {
-		echo '<p>We found earlier orders placed with <strong>' . esc_html( $u->user_email ) . '</strong>. Confirm it\'s your email and they\'ll join your account, with every kilo counting toward your rewards.</p>';
-		echo '<form method="post" action="' . esc_url( wc_get_page_permalink( 'myaccount' ) ) . '"><input type="hidden" name="_fika_link" value="' . esc_attr( wp_create_nonce( 'fika_link_' . $uid ) ) . '"><button type="submit" name="fika_send_link" value="1" class="fika-past-btn">Email me a link</button></form>';
+		echo '<p>We sent a link to <strong>' . esc_html( $u->user_email ) . '</strong>. Tap it to confirm your account' . ( fika_past_orders( $u->user_email ) ? ' and bring in your earlier orders, so every kilo counts toward your rewards' : '' ) . '. You&rsquo;ll need it to log in next time.</p>';
+		echo '<form method="post" action="' . esc_url( wc_get_page_permalink( 'myaccount' ) ) . '"><input type="hidden" name="_fika_link" value="' . esc_attr( wp_create_nonce( 'fika_link_' . $uid ) ) . '"><button type="submit" name="fika_send_link" value="1" class="fika-past-btn">Send the link again</button></form>';
 	}
 	echo '</div>';
 	$GLOBALS['fika_past_css'] = true;
