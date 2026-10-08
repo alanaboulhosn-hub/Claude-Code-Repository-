@@ -850,3 +850,15 @@ that email count from then on. Snippet 10 (fika-accounts.php):
 - **Staff accounts** (admin, shop manager) are never held back. Changing a customer's email needs a new confirmation.
 - **Tested:** sign-up, blocked log-in, resend, wrong link, real link (2 orders, 3.5 kg, the 3 kg reward lit), reused
   link, log out and log in again, and an account made at checkout. Test data deleted.
+
+## Fish cursor from the first paint, on every page (2026-10-08)
+
+- Problem: the cursor style was in the "fish cursor and header behaviour" pattern (240), about 90 KB into each page,
+  so the normal arrow showed while each new page loaded. My account and checkout had no fish at all.
+- Now snippet 58 (fika-cursor.php) prints the cursor style at the very top of <head> on every front-end page. The
+  pictures are inlined, so no download is needed.
+- build-shop-pages.py leaves the style out of pattern 240, which now holds only the bite animation and header
+  behaviour. Page sizes are unchanged: the style moved, it wasn't duplicated.
+- The cursor pictures are kept in wordpress/cursor/ for reference.
+- Checked: the fish (and tilted fish on links) on home, Mix your own, Ready Mix, About us, My account and the 404
+  page, a text cursor in fields, and the bite on click.

@@ -54,8 +54,15 @@ for a, b in [
     assert home_hero.count(a) == 1, a
     home_hero = home_hero.replace(a, b, 1)
 
-# ---------- shared part B: fish cursor + bite + header/banner behaviour ----------
+# ---------- shared part B: fish bite + header/banner behaviour ----------
+# The fish cursor itself (the first <style>) is not in the pattern: snippet fika-cursor.php prints it at the top of
+# <head> on every page, so the fish shows from the first paint (also on My account and checkout), not only once the
+# browser reaches this part of the page.
 fish = L(457, 726)
+_c0 = fish.index('<!-- FIKA fish cursor:')
+_c1 = fish.index('</style>', fish.index('<style>')) + len('</style>')
+assert fish.index('<style>') > _c0 and 'cursor: url(data:image/png' in fish[_c0:_c1] and 'fika-biting' not in fish[_c0:_c1]
+fish = fish[:_c0].rstrip() + '\n' + fish[_c1:].lstrip('\n')
 
 # ---------- shared part C: Mix your own (cards + bag drawer + checkout hand-off) + Ready Mix ----------
 mix = L(728, 1336)
