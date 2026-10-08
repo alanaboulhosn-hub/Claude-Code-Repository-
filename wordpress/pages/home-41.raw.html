@@ -4,7 +4,7 @@
 <style>
 .fika-hero:not(.fika-shop-hero) { background: var(--fika-pink); }
 .fika-hero:not(.fika-shop-hero) > .fika-photo { background: url(/wp-content/uploads/2026/10/fika-hero-candies-1920.jpg) center bottom / cover no-repeat; }
-@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) > .fika-photo { background-image: url(/wp-content/uploads/2026/10/fika-hero-candies-1920.jpg); } }
+@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) > .fika-photo { background-image: url(/wp-content/uploads/2026/10/fika-hero-candies-phone.jpg); } }
 </style>
 <div class="fika-hero">
   <div class="fika-photo" aria-hidden="true"></div>
@@ -79,8 +79,11 @@
     var fixed = getComputedStyle(hero).backgroundAttachment === 'fixed';
     var vw = document.documentElement.clientWidth, vh = window.innerHeight;
     var bw = fixed ? vw : W, bh = fixed ? vh : H;
-    var s = Math.max(bw / IMG_W, bh / IMG_H);
-    var ox = (bw - IMG_W * s) / 2, oy = bh - IMG_H * s;
+    // phones get the middle part of the photo (a sharper, enlarged file): measure from that part
+    var ph = window.matchMedia ? window.matchMedia('(max-width: 760px)').matches : false;
+    var PW = ph ? 960 : IMG_W, PX = ph ? 480 : 0;
+    var s = Math.max(bw / PW, bh / IMG_H);
+    var ox = (bw - PW * s) / 2 - PX * s, oy = bh - IMG_H * s;
     if (fixed) {
       var rc = hero.getBoundingClientRect();
       ox -= rc.left; oy -= rc.top;

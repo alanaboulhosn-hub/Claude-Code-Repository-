@@ -41,7 +41,11 @@ head = head.replace(photo_line + '\n', '', 1)
 # would look soft.
 HERO_CROP = 327
 HERO_BIG = '/wp-content/uploads/2026/10/fika-hero-candies-1920.jpg'
-HERO_SMALL = HERO_BIG
+# Phones show only the middle of the photo, zoomed in, so the 1920 px file looked soft there. Media 450
+# (wordpress/pages/media/fika-hero-candies-phone.jpg) is that middle part (x 480-1440 of the cropped photo), enlarged
+# 2x with the EDSR super-resolution model and lightly sharpened: 1920 x 1490. Computers keep HERO_BIG.
+HERO_SMALL = '/wp-content/uploads/2026/10/fika-hero-candies-phone.jpg'
+HERO_PHONE_X, HERO_PHONE_W = 480, 960   # the part of the photo the phone file covers, in photo pixels
 home_hero = ('<style>\n.fika-hero:not(.fika-shop-hero) { background: var(--fika-pink); }\n'
              '.fika-hero:not(.fika-shop-hero) > .fika-photo { background: url(' + HERO_BIG + ') center bottom / cover no-repeat; }\n'
              '@media (max-width: 760px) { .fika-hero:not(.fika-shop-hero) > .fika-photo { background-image: url(' + HERO_SMALL + '); } }\n</style>\n' + L(290, 455))
@@ -49,6 +53,16 @@ home_hero = ('<style>\n.fika-hero:not(.fika-shop-hero) { background: var(--fika-
 # the googly eyes: the photo is shorter by HERO_CROP, and every eye sits HERO_CROP higher
 assert home_hero.count('var IMG_W = 1920, IMG_H = 1072;') == 1
 home_hero = home_hero.replace('var IMG_W = 1920, IMG_H = 1072;', 'var IMG_W = 1920, IMG_H = %d;' % (1072 - HERO_CROP), 1)
+for _a, _b in [
+    ('    var s = Math.max(bw / IMG_W, bh / IMG_H);\n    var ox = (bw - IMG_W * s) / 2, oy = bh - IMG_H * s;',
+     '    // phones get the middle part of the photo (a sharper, enlarged file): measure from that part\n'
+     '    var ph = window.matchMedia ? window.matchMedia(\'(max-width: 760px)\').matches : false;\n'
+     '    var PW = ph ? %d : IMG_W, PX = ph ? %d : 0;\n'
+     '    var s = Math.max(bw / PW, bh / IMG_H);\n'
+     '    var ox = (bw - PW * s) / 2 - PX * s, oy = bh - IMG_H * s;' % (HERO_PHONE_W, HERO_PHONE_X)),
+]:
+    assert home_hero.count(_a) == 1, _a
+    home_hero = home_hero.replace(_a, _b, 1)
 _sk0 = home_hero.index('var SKULLS = [')
 _sk1 = home_hero.index('];', _sk0)
 home_hero = home_hero[:_sk0] + re.sub(r'\[(\d+),(\d+)\]', lambda m: '[%s,%d]' % (m.group(1), int(m.group(2)) - HERO_CROP), home_hero[_sk0:_sk1]) + home_hero[_sk1:]
