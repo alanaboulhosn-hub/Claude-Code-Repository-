@@ -738,3 +738,7 @@ itself when the bag reaches the stop again. If an order with the taste is refuse
 candy is saved again (order note), no new spin. Deleting an account removes its spin locks. Tested (test data
 deleted): 3 spins at once -> 1 accepted; reload, second browser, emptied bag -> refused; candy back at 600 g;
 order placed; marked Undelivered -> taste saved again, spin still refused, back in the next checkout.
+
+Banner photos swapped (2026-10-08, owner): Mix your own now uses the bag pouring into a bowl (media 27,
+fika-background-2-...jpeg), Ready Mix the candies spilling from a bag (media 26, fika-background-...jpeg); each photo
+keeps its own position and wide-screen fade colours. Built by build-shop-pages.py, pages 40 and 38 republished.
