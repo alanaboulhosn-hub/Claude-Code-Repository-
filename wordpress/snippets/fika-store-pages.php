@@ -53,6 +53,31 @@ add_filter( 'wp_sitemaps_taxonomies', function ( $tax ) {
 	return $tax;
 } );
 
+// ---------- old Website Builder addresses go to our pages ----------
+// Only on a missing page, so a real page with the same address always wins. 302 so it is easy to change later.
+add_action( 'template_redirect', function () {
+	if ( ! is_404() ) {
+		return;
+	}
+	$path = strtolower( trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' ) );
+	$map  = array(
+		'about'        => '/about-us/',
+		'contact'      => '/about-us/',
+		'contact-us'   => '/about-us/',
+		'reviews'      => '/about-us/',
+		'testimonials' => '/about-us/',
+		'faq'          => '/',
+		'store'        => '/mix-your-own/',
+		'products'     => '/mix-your-own/',
+		'all-products' => '/mix-your-own/',
+		'home'         => '/',
+	);
+	if ( isset( $map[ $path ] ) ) {
+		wp_safe_redirect( home_url( $map[ $path ] ), 302 );
+		exit;
+	}
+}, 1 );
+
 // ---------- category, tag, search and cart pages go to our pages ----------
 add_action( 'template_redirect', function () {
 	$to   = '';

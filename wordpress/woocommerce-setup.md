@@ -775,3 +775,14 @@ launch. Real activity seen: alan.aboulhosn@gmail.com had 3 saved bags today (1 r
 - The striped "in your bag" part of the rewards lane was a rectangle sitting on the rounded bar.
 - The water, on-the-way and in-bag fills now sit inside a rounded `.fs-clip` layer, so they take the bar's curved shape.
   The stripes also fill the bar's full height.
+
+## Old Website Builder addresses (for the domain switch)
+
+- The only link sent to customers is the swedishfikalb.com homepage. It opens the new home page as-is after the switch.
+- Common old addresses redirect (302, and only if no real page has that address):
+  - /about, /contact, /contact-us, /reviews, /testimonials go to About us;
+  - /store, /products, /all-products go to Mix your own;
+  - /faq and /home go to the home page.
+- /shop, product addresses, categories, search and /cart were already redirected. Anything else shows the Fika "page not found".
+- /privacy-policy still returns "page not found" on purpose (draft).
+- To add more, edit the `$map` in fika-store-pages.php (snippet 38).
