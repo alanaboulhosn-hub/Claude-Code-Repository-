@@ -1174,3 +1174,20 @@ Snippet 43 (fika-meta.php) now sends 8 events, each from the browser and from th
   deleted; the store is back to 0 orders and 0 customers.
 - At launch: WooCommerce > Meta pixel: pixel ID, token, tick "Send events to Meta", then "Save and send a test
   event". In Events Manager, choose Purchase as the optimisation event for sales campaigns.
+
+## Orders imported from the old store (2026-10-09)
+
+- Source: the owner's Website Builder export (455 orders, #1001 to #1455, 13 Aug to 9 Oct 2026, 389 email
+  addresses, $11,812). Every order's lines, discount and delivery add up; every product maps to a current product at
+  the same price ("Ready … (500g)" = 1 Ready Mix bag, "(1KG)" = 2 bags).
+- Imported as guest orders: real email, name, phone, address, area (BA / OB), date (Beirut time), products,
+  delivery fee, discount code, total. Fulfilled = Completed (434), Unfulfilled = Processing (4), Canceled = Cancelled
+  (17). Order note "Imported from the old Fika store (Website Builder), order #…". No emails were sent.
+- Snippet 71 (fika-imported-orders.php) shows the old number (#1455) instead of the new ID everywhere.
+- Checked: the site's 455 orders match the file (totals, statuses, emails, quantities); a second run changes
+  nothing; a test @example.com order joined a test account when it confirmed its email and its 2.1 kg counted
+  (test data deleted).
+- Delivered so far: 364.6 kg. 62 customers are past 1.5 kg, so their rewards light up once they make an account
+  and confirm the email.
+- Tool for the launch top-up: wordpress/tools/import-old-store/ (the CSV is not committed).
+- Note: new orders get WooCommerce numbers (the next is about #946), lower than the old #1455.
