@@ -489,6 +489,7 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 				<div class="fs-seg fs-inbag"></div>
 			</div>
 			<?php foreach ( $s['cps'] as $cp ) : ?><i class="fs-flag" data-g="<?php echo (int) $cp['g']; ?>"></i><?php endforeach; ?>
+			<i class="fs-finish" aria-hidden="true"></i>
 			<?php foreach ( $s['spins'] as $sp ) : ?><button type="button" class="fs-spin is-<?php echo esc_attr( $sp['state'] ); ?>" data-g="<?php echo (int) $sp['g']; ?>" aria-label="<?php echo esc_attr( $sp['kg'] . ' kg: mystery spin, a free 50 g taste' ); ?>"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#fff"/><g class="w"><path d="M20 20L20 4A16 16 0 0 1 33.9 12z" fill="#ff6fa5"/><path d="M20 20L33.9 12A16 16 0 0 1 33.9 28z" fill="#ffd23f"/><path d="M20 20L33.9 28A16 16 0 0 1 20 36z" fill="#4aa8ff"/><path d="M20 20L20 36A16 16 0 0 1 6.1 28z" fill="#7ad67a"/><path d="M20 20L6.1 28A16 16 0 0 1 6.1 12z" fill="#c77dff"/><path d="M20 20L6.1 12A16 16 0 0 1 20 4z" fill="#ff9f43"/></g><circle cx="20" cy="20" r="18" fill="none" stroke="#004aad" stroke-width="2.6"/><circle cx="20" cy="20" r="5.5" fill="#fff" stroke="#004aad" stroke-width="2"/><text x="20" y="23" text-anchor="middle" font-family="Bebas Neue, Impact, sans-serif" font-size="9" fill="#004aad">?</text></svg></button><?php endforeach; ?>
 			<div class="fs-fish" aria-hidden="true"><div class="fs-turn">
 				<svg viewBox="0 0 100 100"><defs><linearGradient id="fsFishG<?php echo $wid; ?>" x1="0" x2="1"><stop offset="0" stop-color="#ff6a3d"/><stop offset="1" stop-color="#e3241f"/></linearGradient></defs>
@@ -603,6 +604,13 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 .fika-swim .fs-badge { display: inline-block; min-width: 38px; padding: 3px 8px; border-radius: 999px; background: #e6ebf5; color: #8b97b3; font: 400 15px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: .04em; text-align: center; }
 .fika-swim .fs-flag { position: absolute; top: 6px; bottom: 6px; left: 0; width: 0; border-left: 2px dashed rgba(0, 74, 173, .28); z-index: 1; pointer-events: none; }
 .fika-swim .fs-ticks i.m { color: #004aad; font-weight: 700; }
+/* the finish line at the end of each 15 kg lap (the next lap starts again at 0 kg) */
+.fika-swim .fs-finish { position: absolute; top: 7px; bottom: 7px; left: 0; z-index: 1; width: 12px; margin-left: -6px; border-radius: 3px; background: repeating-conic-gradient(#1b2a4a 0 25%, #fff 0 50%) 0 0 / 12px 12px; box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(27, 42, 74, .25); pointer-events: none; }
+.fika-swim .fs-flag[data-g="15000"] { display: none; }
+.fika-swim .fs-ticks i[data-i="15"]::after { content: ''; position: absolute; left: 100%; top: 3px; width: 11px; height: 8px; margin-left: 4px; border-radius: 1px; background: repeating-conic-gradient(#1b2a4a 0 25%, #fff 0 50%) 0 0 / 5.5px 4px; box-shadow: 0 0 0 1px #1b2a4a; }
+.fika-swim.is-lapdone .fs-finish { animation: fsFinish .7s ease-out 2; }
+@keyframes fsFinish { 50% { transform: scaleY(1.25); box-shadow: 0 0 0 3px #ffd23f, 0 0 16px rgba(255, 210, 63, .9); } }
+@media (max-width: 700px) { .fika-swim .fs-finish { width: 10px; margin-left: -5px; background-size: 10px 10px; } }
 /* mystery spin stops: little wheels in the lane */
 .fika-swim .fs-spin { position: absolute; top: 50%; left: 0; z-index: 3; width: 32px; height: 32px; margin: -16px 0 0 -16px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: default; }
 .fika-swim .fs-spin svg { display: block; width: 100%; height: 100%; overflow: visible; }
@@ -689,26 +697,30 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 		var water = el.querySelector('.fs-water'), way = el.querySelector('.fs-way'), inbag = el.querySelector('.fs-inbag');
 		var big = el.querySelector('.fs-big b'), sub = el.querySelector('.fs-sub'), legend = el.querySelector('.fs-legend'), title = el.querySelector('.fs-title');
 		var ticks = el.querySelectorAll('.fs-ticks i'), flags = el.querySelectorAll('.fs-flag'), btns = el.querySelectorAll('.fs-cp'), wheels = el.querySelectorAll('.fs-spin'), spins = s.spins || [];
-		var rewards = el.querySelector('.fs-rewards');
+		var rewards = el.querySelector('.fs-rewards'), fin = el.querySelector('.fs-finish');
 		var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
 		var seenKey = 'fika_swim_seen_' + s.uid, partyKey = 'fika_swim_party_' + s.uid;
 		var bagG = 0, cur = 0, target = 0, started = false, raf = 0, lastBub = 0, lastTs = 0;
+		// a new lap since this customer last looked: the fish first swims over the finish line of the lap before
+		var lapKey = 'fika_swim_lap_' + s.uid, lapCross = false, lapNew = s.lap > 1 ? (+lsGet(lapKey) || 1) < s.lap : false;
 
 		function cp(g) { for (var i = 0; i < cps.length; i++) if (cps[i].g === g) return cps[i]; return null; }
 		function btn(g) { for (var i = 0; i < btns.length; i++) if (+btns[i].getAttribute('data-g') === g) return btns[i]; return null; }
 		// where the fish ends up: delivered + on the way + in the bag (one lap at most)
-		function goalPos() { return Math.min(G, s.d + s.o + bagG); }
+		function goalPos() { return lapCross ? G : Math.min(G, s.d + s.o + bagG); }
 		function x(g, W, fw) { return (W - fw) * Math.min(1, Math.max(0, g / G)) + fw * 0.86; }
 		function paint() {
 			var W = lane.clientWidth, fw = fish.offsetWidth;
-			var dEnd = Math.min(cur, s.d), oEnd = Math.min(cur, s.d + s.o);
+			// crossing the finish line of the lap before: the whole lane is that lap's
+			var dEnd = lapCross ? cur : Math.min(cur, s.d), oEnd = lapCross ? cur : Math.min(cur, s.d + s.o);
 			water.style.width = (dEnd > 0 ? x(dEnd, W, fw) : 0) + 'px';
 			var oStart = s.d > 0 ? x(s.d, W, fw) - 30 : 0;
 			way.style.left = oStart + 'px';
 			way.style.width = (oEnd > s.d ? Math.max(0, x(oEnd, W, fw) - oStart) : 0) + 'px';
 			var bStart = (s.d + s.o) > 0 ? x(s.d + s.o, W, fw) - 30 : 0;
 			inbag.style.left = bStart + 'px';
-			inbag.style.width = (cur > s.d + s.o ? Math.max(0, x(cur, W, fw) - bStart) : 0) + 'px';
+			inbag.style.width = (lapCross ? false : cur > s.d + s.o) ? Math.max(0, x(cur, W, fw) - bStart) + 'px' : '0px';
+			if (fin) fin.style.left = x(G, W, fw) + 'px';
 			fish.style.transform = 'translateX(' + ((W - fw) * Math.min(1, cur / G)) + 'px)';
 			for (var i = 0; i < ticks.length; i++) ticks[i].style.left = x(+ticks[i].getAttribute('data-i') * 1000, W, fw) + 'px';
 			for (var j = 0; j < flags.length; j++) flags[j].style.left = x(+flags[j].getAttribute('data-g'), W, fw) + 'px';
@@ -757,6 +769,9 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			} else if (ready.length) {
 				title.textContent = 'You made it to ' + ready[0].kg + ' kg!';
 				sub.appendChild(document.createTextNode('Tap the glowing gift to unlock ' + ready[0].unlock + name + '.'));
+			} else if (lapNew) {
+				title.textContent = 'Lap ' + (s.lap - 1) + ' finished!';
+				sub.appendChild(document.createTextNode('You crossed the finish line' + name + '. Lap ' + s.lap + ' starts at 0 kg, with every reward and mystery spin back on the lane.'));
 			} else if (next) {
 				title.textContent = 'Swim to your sweet rewards';
 				var b = document.createElement('b'); b.textContent = kg(next.g - tot) + ' kg'; sub.appendChild(b);
@@ -764,8 +779,8 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 				var t = document.createElement('b'); t.textContent = next.title.replace(/^A whole/, 'a whole'); sub.appendChild(t);
 				sub.appendChild(document.createTextNode((s.name ? ', ' + s.name : '') + '!' + (bagG > 0 ? ' Every gram in your bag moves the fish.' : '')));
 			} else {
-				title.textContent = 'Lap complete!';
-				sub.appendChild(document.createTextNode('All your rewards are saved' + name + '. Your next order starts a new lap.'));
+				title.textContent = tot >= G ? 'This bag crosses the finish line!' : 'Lap ' + s.lap + ' finished!';
+				sub.appendChild(document.createTextNode('All your rewards are saved' + name + '. Lap ' + (s.lap + 1) + ' starts at 0 kg.'));
 			}
 			var parts = [];
 			if (s.d > 0) parts.push(['l-d', kg(s.d) + ' kg delivered']);
@@ -838,6 +853,14 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			paint();
 			if (moving) { raf = requestAnimationFrame(frame); return; }
 			lastTs = 0;
+			if (lapCross) {
+				lapCross = false;
+				el.classList.add('is-lapdone');
+				confetti(fin);
+				words();
+				setTimeout(function () { cur = 0; paint(); go(); }, 1100);
+				return;
+			}
 			el.classList.add('is-swum');
 			setTimeout(function () { if (!el.classList.contains('is-swimming')) el.classList.remove('is-back'); }, 500);
 			// a checkpoint just unlocked (first time this customer sees it): confetti
@@ -849,6 +872,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			lsSet(partyKey, JSON.stringify(party));
 			// remember where the customer last saw the fish (without the bag), to swim from there next time
 			lsSet(seenKey, JSON.stringify({ lap: s.lap, g: Math.min(G, s.d + s.o) }));
+			lsSet(lapKey, String(s.lap));
 		}
 		function go() { target = goalPos(); if (!raf) raf = requestAnimationFrame(frame); }
 		function onBag() {
@@ -912,6 +936,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 		var seen = null;
 		try { seen = JSON.parse(lsGet(seenKey) || 'null'); } catch (e) {}
 		cur = seen ? (seen.lap === s.lap ? Math.min(G, +seen.g || 0) : 0) : 0;
+		if (lapNew) { lapCross = true; cur = seen ? (seen.lap === s.lap - 1 ? Math.min(G, +seen.g || 0) : 0) : 0; if (reduce) { lapCross = false; cur = 0; } }
 		cps.forEach(function (c) { var b = btn(c.g); if (b) setState(b, c, c.state); });
 		bagG = readBag();
 		words();

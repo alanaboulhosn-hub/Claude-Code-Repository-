@@ -901,3 +901,19 @@ that email count from then on. Snippet 10 (fika-accounts.php):
   holds still for people who turn off animations.
 - Checked on desktop, 390 px and 320 px, at both stops. At 320 px it touches the badges, which already touch each
   other at that width. Test data deleted.
+
+## Finish line at 15 kg; lap 2 starts at 0 (2026-10-08)
+
+- The lane has a checkered finish line at 15 kg, and a small checkered flag next to "15". It replaces the dashed
+  line there; the 1 kg gift still sits above it.
+- Laps already restarted at 0 (FIKA_SWIM_LAP 15000). The lane moves to the next lap once every reward and spin of
+  the lap is taken. What's new is the moment it happens:
+  - The first time a customer sees a new lap, the fish swims from where they last saw it to the finish line.
+  - The finish line glows, confetti pops, and the title says "Lap 1 finished! You crossed the finish line. Lap 2
+    starts at 0 kg, with every reward and mystery spin back on the lane."
+  - Then the fish restarts from 0 and swims to their lap-2 total.
+  - It's remembered per browser (localStorage `fika_swim_lap_<user>`), so later visits show the normal lap-2
+    messages.
+- A bag that would take the customer past 15 kg says "This bag crosses the finish line!".
+- Tested on desktop and phone with a test customer at 15.5 kg, every lap-1 reward claimed and both spins done
+  (deleted afterwards).
