@@ -12,9 +12,14 @@
  *     Purchase          the order: sent from the server in the background when the order is placed (email, phone,
  *                       name, area hashed as Meta requires), and from the browser on the "Order confirmed" popup,
  *                       both with event ID "purchase.<order number>".
+ *     ViewContent       opening the Mix your own or Ready Mix page (content_category)
+ *     CompleteRegistration  a new account confirmed its email (lands on the home page), event ID "reg.<user id>"
+ *     Contact           a tap on a WhatsApp, email or phone link (content_name: WhatsApp / Email / Phone)
+ *     Search            a word typed in the sweets search box (search_string), once per word
  *   Browser events go through window.fikaTrack(event, data), which adds the event ID and asks the server
  *   (POST /wp-json/fika/v1/meta) to send the same event with the visitor's IP, browser, _fbp/_fbc cookies and,
- *   for signed-in customers, their hashed email and phone.
+ *   for signed-in customers, their hashed email and phone (their pages carry a REST nonce for that; signed-out
+ *   pages carry none, so a cached page never holds a stale one).
  * - "Send a test event" on the settings screen checks the token (shows Meta's answer); with a test event code the
  *   server events appear under Events Manager > Test events only.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-meta.php
@@ -125,6 +130,16 @@ add_action( 'wp_head', function () {
 		$me = wp_get_current_user();
 		$am = array_filter( array( 'em' => strtolower( $me->user_email ), 'ph' => fika_meta_phone( get_user_meta( $me->ID, 'billing_phone', true ) ), 'external_id' => 'wp' . $me->ID ) );
 	}
+	$beacon = rest_url( 'fika/v1/meta' );
+	if ( is_user_logged_in() ) {
+		$beacon = add_query_arg( '_wpnonce', wp_create_nonce( 'wp_rest' ), $beacon );
+	}
+	$view = array(
+		'mix-your-own' => array( 'content_name' => 'Mix your own', 'content_category' => 'Pick and mix' ),
+		'ready-mix'    => array( 'content_name' => 'Ready Mix', 'content_category' => 'Ready Mix' ),
+	);
+	$slug = is_page() ? get_post_field( 'post_name', get_queried_object_id() ) : '';
+	$reg  = is_front_page() && is_user_logged_in() && isset( $_GET['fika-welcome'] ) ? get_current_user_id() : 0; // phpcs:ignore WordPress.Security.NonceVerification
 	?>
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
@@ -137,11 +152,36 @@ window.fikaTrack = function (ev, data, id) {
   if (ev === 'Purchase') return; // the server already sent it when the order was placed
   try {
     var body = JSON.stringify({ ev: ev, id: id, data: data, url: location.href });
-    if (navigator.sendBeacon) navigator.sendBeacon(<?php echo wp_json_encode( rest_url( 'fika/v1/meta' ) ); ?>, new Blob([body], { type: 'text/plain' }));
+    if (navigator.sendBeacon) navigator.sendBeacon(<?php echo wp_json_encode( $beacon ); ?>, new Blob([body], { type: 'text/plain' }));
   } catch (e) {}
 };
 // PageView: the event ID is made here, not in the page, so it stays unique when the page is served from the cache
 fikaTrack('PageView');
+<?php if ( isset( $view[ $slug ] ) ) : ?>
+fikaTrack('ViewContent', <?php echo wp_json_encode( $view[ $slug ] ); ?>);
+<?php endif; ?>
+<?php if ( $reg ) : ?>
+fikaTrack('CompleteRegistration', { content_name: 'Fika account', status: 'confirmed' }, 'reg.<?php echo (int) $reg; ?>');
+<?php endif; ?>
+// Contact: WhatsApp, email and phone links
+document.addEventListener('click', function (e) {
+  var a = e.target.closest ? e.target.closest('a[href]') : null, h = a ? a.getAttribute('href') : '';
+  var kind = /^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(h) ? 'WhatsApp' : /^mailto:/.test(h) ? 'Email' : /^tel:/.test(h) ? 'Phone' : '';
+  if (kind) fikaTrack('Contact', { content_name: kind });
+}, true);
+// Search: the sweets search box, once per word, after a pause in typing
+(function () {
+  var timer = null, done = {};
+  document.addEventListener('input', function (e) {
+    var el = e.target;
+    if (!el || el.type !== 'search') return;
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      var q = el.value.trim().toLowerCase();
+      if (q.length > 1 ? !done[q] : false) { done[q] = 1; fikaTrack('Search', { search_string: q.slice(0, 60) }); }
+    }, 1500);
+  }, true);
+})();
 </script>
 <noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=<?php echo esc_attr( $s['pixel'] ); ?>&amp;ev=PageView&amp;noscript=1"></noscript>
 	<?php
@@ -157,7 +197,7 @@ add_action( 'rest_api_init', function () {
 				return new WP_REST_Response( null, 204 );
 			}
 			$in = json_decode( $req->get_body(), true );
-			if ( ! is_array( $in ) || empty( $in['ev'] ) || ! in_array( $in['ev'], array( 'PageView', 'AddToCart', 'InitiateCheckout', 'ViewContent' ), true ) ) {
+			if ( ! is_array( $in ) || empty( $in['ev'] ) || ! in_array( $in['ev'], array( 'PageView', 'AddToCart', 'InitiateCheckout', 'ViewContent', 'CompleteRegistration', 'Contact', 'Search' ), true ) ) {
 				return new WP_REST_Response( null, 204 );
 			}
 			// a little limit per visitor (60 events a minute)
@@ -175,10 +215,21 @@ add_action( 'rest_api_init', function () {
 				'content_ids'  => isset( $d['content_ids'] ) && is_array( $d['content_ids'] ) ? array_slice( array_map( 'strval', array_map( 'absint', $d['content_ids'] ) ), 0, 50 ) : null,
 				'content_type' => isset( $d['content_ids'] ) ? 'product' : null,
 				'num_items'    => isset( $d['num_items'] ) ? absint( $d['num_items'] ) : null,
+				'content_category' => isset( $d['content_category'] ) ? substr( sanitize_text_field( $d['content_category'] ), 0, 60 ) : null,
+				'search_string'    => isset( $d['search_string'] ) ? substr( sanitize_text_field( $d['search_string'] ), 0, 60 ) : null,
+				'status'           => isset( $d['status'] ) ? substr( sanitize_key( $d['status'] ), 0, 20 ) : null,
 			), function ( $v ) { return null !== $v; } );
 			$url = isset( $in['url'] ) ? esc_url_raw( $in['url'] ) : home_url( '/' );
 			if ( 0 !== strpos( $url, home_url() ) ) {
 				$url = home_url( '/' );
+			}
+			if ( 'CompleteRegistration' === $in['ev'] ) {
+				// only for the account that is signed in, and only with its own event ID
+				if ( ! is_user_logged_in() ) {
+					return new WP_REST_Response( null, 204 );
+				}
+				$in['id'] = 'reg.' . get_current_user_id();
+				unset( $data['value'] );
 			}
 			$id = substr( preg_replace( '/[^a-z0-9._-]/i', '', (string) ( $in['id'] ?? '' ) ), 0, 80 );
 			fika_meta_send( array( fika_meta_event( $in['ev'], $id, $data, fika_meta_request_user(), $url ) ) );

@@ -1149,3 +1149,28 @@ count. The store has 0 orders and 0 customers; only the admin account (cesar.abo
 - Meta pixel ID and token.
 - Hostinger CDN: turn off "Smart Image Optimization" once the domain points here.
 - Privacy policy: still a draft.
+
+## Meta pixel: more events (2026-10-08)
+
+Snippet 43 (fika-meta.php) now sends 8 events, each from the browser and from the server with the same event ID
+(Meta counts each once):
+
+| Event | When | Why it matters |
+| --- | --- | --- |
+| Purchase | an order is placed (value, products, hashed email/phone/name) | the main goal for sales ads |
+| InitiateCheckout | the bag's Checkout button | shoppers close to buying |
+| AddToCart | + on a candy or Ready Mix bag | interest, retargeting |
+| ViewContent | opening Mix your own or Ready Mix (new) | retargeting people who browsed |
+| CompleteRegistration | a new account confirms its email (new), ID "reg.<user id>" | sign-ups |
+| Contact | a tap on WhatsApp, email or phone links (new) | many Lebanese customers order by WhatsApp |
+| Search | a word typed in the sweets search (new) | what people look for |
+| PageView | every page | audience size |
+
+- Fix: the server copy of browser events did not know a signed-in customer (the request had no REST nonce, so
+  WordPress treated it as signed out). Signed-in pages now add one, so those events carry the hashed email and
+  phone, which improves Meta's match rate. Signed-out pages, which can be cached, carry none.
+- Tested with a cookie-gated fake pixel (nothing sent to Meta): all 8 events fire with matching IDs, the signed-in
+  events include the hashed email, no script errors. The test account, its data and the temp snippet were
+  deleted; the store is back to 0 orders and 0 customers.
+- At launch: WooCommerce > Meta pixel: pixel ID, token, tick "Send events to Meta", then "Save and send a test
+  event". In Events Manager, choose Purchase as the optimisation event for sales campaigns.
