@@ -1208,3 +1208,12 @@ Snippet 43 (fika-meta.php) now sends 8 events, each from the browser and from th
   sign-up, confirm link, login, wrong password, tabs, spin; signed-in checkout handoff.
 - Meta pixel was already on during these tests, so test order #946 ($26) reached Meta as a Purchase. Test orders,
   account and saved bags were deleted; 455 imported orders and the admin account remain.
+
+## New orders continue from #1456 (2026-10-09)
+
+- Snippet 71 (fika-imported-orders.php) now also numbers new orders: the first placed order is #1456, then #1457 …
+  The counter is option fika_next_order_number, raised in one database step. Numbers are given when an order is
+  placed (before the emails), never to unfinished checkouts, so abandoned bags leave no gaps. Imported orders keep
+  #1001–#1455. WP Admin order search finds orders by these numbers.
+- Tested with throwaway orders (no emails): a draft had no number, placing it gave #1456, the next #1457, a status
+  change kept it, search found it. Test orders deleted and the counter set back to 1456.
