@@ -687,3 +687,18 @@ us in this order"; at 3 kg "You reached 3 kg! Add 200 g on top and they are on u
 Saved rewards (2026-10-08, owner): no "on top" rule once a reward is saved: it can be used on any later order,
 even an order of just the free candy (tested: 200 g + "200 g on us" = $0 + $5 delivery; 1 kg + "a whole kilo on
 us" = $0 + $5 delivery). The "on top" rule only applies to a reward used in the order that reaches it.
+
+## Loyalty ladder v3 (2026-10-08, owner): 100 g @3 · 200 g @6 · 400 g @10 · 1 kg @15
+
+- 15 kg laps (then 18, 21, 25, 30 kg ...). Rewards are free sweets: 100 g ($2.50 off, SWIM3-), 200 g ($5, SWIM6-),
+  400 g ($10, SWIM10-), a whole kilo ($25, SWIM15-). The 25% reward is gone.
+- Simple checkout: when the bag reaches a checkpoint, "Use" takes the sweets off that same order (a 3 kg bag at 2.2 kg
+  is reached; no "add on top" step). Saved rewards can be used on any later order, also on their own.
+- Free sweets do not count towards the next checkpoint (the tracker says so under the lane).
+- Hints count to the next checkpoint ahead ("Add 500 g more to reach 10 kg and get 400 g on us in this order");
+  reached rewards are listed as waiting. A reward worth more than the bag says "best on a bag of 1 kg or more".
+- Economics (landing $16/kg, price $25/kg, about 800 g per order): free sweets 1.7 kg per lap ($27.20 at cost) over
+  about 13.3 kg paid ($119.70 profit) = about $2.05 per paid kilo (~23% of profit), only on customers who finish a
+  lap. Rewards on about the 4th, 8th, 13th and 19th order.
+- Tested (test data deleted): customer at 9.2 kg: 3 and 6 kg ready, 800 g bag unlocks 400 g; checkout with all
+  three: $20 bag - $17.50 + $5 delivery = $7.50; desktop and phone.

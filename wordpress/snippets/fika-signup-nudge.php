@@ -96,10 +96,10 @@ add_action( 'wp_footer', function () {
 		cloud.querySelector('h3').textContent = bag ? 'Make every gram count' : 'Join the Fika crew';
 		var p = cloud.querySelector('p');
 		if (bag) {
-			p.innerHTML = 'Sign up and the <b class="fkc-g"></b> in your bag starts your swim to <b>sweet rewards</b>: 200 g free at 3 kg, a whole kilo at 10 kg.';
+			p.innerHTML = 'Sign up and the <b class="fkc-g"></b> in your bag starts your swim to <b>sweet rewards</b>: 100 g free at 3 kg, up to a whole kilo at 15 kg.';
 			p.querySelector('.fkc-g').textContent = gtext(g);
 		} else {
-			p.innerHTML = 'Create a free account and every order fills your fish&rsquo;s lane: <b>200 g free at 3 kg, 25% off at 6 kg, a whole kilo free at 10 kg</b>.';
+			p.innerHTML = 'Create a free account and every order fills your fish&rsquo;s lane: <b>100 g free at 3 kg, 200 g at 6 kg, 400 g at 10 kg and a whole kilo at 15 kg</b>.';
 		}
 	}
 	function hide(closedByUser) {
@@ -228,11 +228,11 @@ add_action( 'wp_footer', function () {
 		if (on) {
 			card.classList.add('is-on');
 			card.querySelector('.fsc-title').textContent = 'Your account comes with this order';
-			card.querySelector('.fsc-sub').innerHTML = 'Choose a password below and this <b class="fsc-g"></b> becomes your first stretch towards <b>sweet rewards</b>: 200 g free at 3 kg, a whole kilo at 10 kg.';
+			card.querySelector('.fsc-sub').innerHTML = 'Choose a password below and this <b class="fsc-g"></b> becomes your first stretch towards <b>sweet rewards</b>: 100 g free at 3 kg, up to a whole kilo at 15 kg.';
 		} else {
 			card.classList.remove('is-on');
 			card.querySelector('.fsc-title').textContent = 'Make this order count';
-			card.querySelector('.fsc-sub').innerHTML = 'Create a free account and this <b class="fsc-g"></b> starts your swim to <b>sweet rewards</b> (200 g free at 3 kg, a whole kilo at 10 kg). Track your orders, and get member-only offers and bundles.';
+			card.querySelector('.fsc-sub').innerHTML = 'Create a free account and this <b class="fsc-g"></b> starts your swim to <b>sweet rewards</b> (100 g free at 3 kg, up to a whole kilo at 15 kg). Track your orders, and get member-only offers and bundles.';
 		}
 		gEl = card.querySelector('.fsc-g');
 		if (gEl) gEl.textContent = g ? gtext(g) : 'order';

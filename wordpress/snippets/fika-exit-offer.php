@@ -198,7 +198,7 @@ add_action( 'wp_footer', function () {
   // No 10% offer for customers holding a Fika reward (snippet 11): the codes don't combine
   function freeKilo() {
     if (window.FIKA_FREEKG) return true;
-    try { return (wp.data.select('wc/store/cart').getCartData().coupons || []).some(function (x) { return /^swim(3|6|10)-/.test((x.code || '').toLowerCase()); }); } catch (e) { return false; }
+    try { return (wp.data.select('wc/store/cart').getCartData().coupons || []).some(function (x) { return /^swim(3|6|10|15)-/.test((x.code || '').toLowerCase()); }); } catch (e) { return false; }
   }
   function offerAvailable() { return !ls(OFFER_KEY) && !hasCoupon() && !freeKilo(); }
   function track(reason) {

@@ -1,12 +1,12 @@
 <?php
 /**
  * Fika: "Swim to your rewards" — the loyalty tracker for signed-in customers.
- * - A cartoon Swedish fish swims along a 10 kg water lane with three checkpoints:
- *     3 kg  -> $5 off the next order                       (code SWIM3-XXXXXX)
- *     6 kg  -> 25% off up to 1 kg of the next order         (code SWIM6-XXXXXX; 25% of the customer's own first kilo,
- *              most expensive sweets first)
- *     10 kg -> $25 off the next order                      (code SWIM10-XXXXXX)
- *   then the next 10 kg lap starts (13, 16, 20 kg ...).
+ * - A cartoon Swedish fish swims along a 15 kg water lane with four checkpoints, each a gift of free sweets:
+ *     3 kg  -> 100 g on us ($2.50 off, code SWIM3-XXXXXX)
+ *     6 kg  -> 200 g on us ($5 off, SWIM6-)
+ *     10 kg -> 400 g on us ($10 off, SWIM10-)
+ *     15 kg -> a whole kilo on us ($25 off, SWIM15-)
+ *   then the next 15 kg lap starts (18, 21, 25, 30 kg ...).
  * - The fish counts delivered kilos (Completed orders, deep blue water), kilos on their way (Processing / On hold,
  *   light blue) and what is in the bag right now (candy stripes, live). Rewards are available as soon as the orders
  *   pass a checkpoint: a gift reached by placed orders lights up and spins (tap to claim); a gift the bag reaches
@@ -15,7 +15,7 @@
  * - Tapping a lit checkpoint claims the reward: a personal one-use code locked to the customer's email, kept on the
  *   account until the customer chooses to use it. At checkout every saved reward has a "Use" / "Remove" button:
  *   nothing is applied by itself. Rewards combine with each other (e.g. 200 g + the free kilo) but not with other
- *   codes (FIKA10, win-back); the 25% reward covers at most 1 kg of the order. Customers holding a reward are not
+ *   codes (FIKA10, win-back). Free sweets do not count towards the next checkpoint. Customers holding a reward are not
  *   offered the 10% before-you-go code.
  * - The part of an order paid by a reward does not count towards the next checkpoint (e.g. $5 = 200 g).
  * - Orders marked "Undelivered" (a new order status), Cancelled, Failed or Refunded do not count; when an order
@@ -27,22 +27,23 @@
  */
 
 if ( ! defined( 'FIKA_SWIM_LAP' ) ) {
-	define( 'FIKA_SWIM_LAP', 10000 ); // grams per lap
+	define( 'FIKA_SWIM_LAP', 15000 ); // grams per lap
 }
 if ( ! defined( 'FIKA_FREE_KG_VALUE' ) ) {
-	define( 'FIKA_FREE_KG_VALUE', 25 ); // fallback value of 1 kg (the 6 kg reward is 25% of the customer's real kilo)
+	define( 'FIKA_FREE_KG_VALUE', 25 ); // fallback value of 1 kg
 }
 if ( ! function_exists( 'fika_swim_checkpoints' ) ) {
 	// the checkpoints of a lap: grams => reward
 	function fika_swim_checkpoints() {
 		return array(
-			3000  => array( 'kg' => 3, 'prefix' => 'SWIM3', 'badge' => '200 g', 'title' => '200 g on us', 'unlock' => '200 g on us (worth $5)', 'text' => 'Worth $5 on any sweets you choose', 'co' => '$5 off this order', 'amount' => 5, 'rg' => 200 ),
-			6000  => array( 'kg' => 6, 'prefix' => 'SWIM6', 'badge' => '25%', 'title' => '25% off a kilo', 'unlock' => '25% off your next kilo (up to $6.25)', 'text' => '25% off up to 1 kg of the sweets you choose (up to $6.25)', 'co' => '25% off up to 1 kg', 'amount' => 6.25, 'rg' => 250 ),
-			10000 => array( 'kg' => 10, 'prefix' => 'SWIM10', 'badge' => '1 kg', 'title' => 'A whole kilo on us', 'unlock' => 'your next kilo on us (worth $25)', 'text' => 'Worth $25 on any sweets you choose', 'co' => '$25 off this order', 'amount' => 25, 'rg' => 1000 ),
+			3000  => array( 'kg' => 3, 'prefix' => 'SWIM3', 'badge' => '100 g', 'title' => '100 g on us', 'unlock' => '100 g on us (worth $2.50)', 'text' => 'Worth $2.50 on any sweets you choose', 'co' => '$2.50 off this order', 'amount' => 2.5, 'rg' => 100 ),
+			6000  => array( 'kg' => 6, 'prefix' => 'SWIM6', 'badge' => '200 g', 'title' => '200 g on us', 'unlock' => '200 g on us (worth $5)', 'text' => 'Worth $5 on any sweets you choose', 'co' => '$5 off this order', 'amount' => 5, 'rg' => 200 ),
+			10000 => array( 'kg' => 10, 'prefix' => 'SWIM10', 'badge' => '400 g', 'title' => '400 g on us', 'unlock' => '400 g on us (worth $10)', 'text' => 'Worth $10 on any sweets you choose', 'co' => '$10 off this order', 'amount' => 10, 'rg' => 400 ),
+			15000 => array( 'kg' => 15, 'prefix' => 'SWIM15', 'badge' => '1 kg', 'title' => 'A whole kilo on us', 'unlock' => 'a whole kilo on us (worth $25)', 'text' => 'Worth $25 on any sweets you choose', 'co' => '$25 off this order', 'amount' => 25, 'rg' => 1000 ),
 		);
 	}
 	function fika_swim_is_code( $code ) {
-		return (bool) preg_match( '/^swim(3|6|10)-/i', (string) $code );
+		return (bool) preg_match( '/^swim(3|6|10|15)-/i', (string) $code );
 	}
 }
 
@@ -335,18 +336,10 @@ add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon ) {
 	if ( $mine && is_user_logged_in() ) {
 		$cl = fika_swim_claim_of( get_current_user_id(), $coupon->get_code() );
 		if ( $cl ) {
-			// rewards go on top: what they pay for does not count, so the paid part of the bag must reach the checkpoint
-			$g     = fika_swim_cart_grams();
-			$sub   = (float) WC()->cart->get_subtotal();
-			$codes = array_unique( array_merge( array_filter( WC()->cart->get_applied_coupons(), 'fika_swim_is_code' ), array( strtolower( $coupon->get_code() ) ) ) );
-			$off   = 0;
-			foreach ( $codes as $code ) {
-				$off += 0 === stripos( $code, 'swim6-' ) ? 0.25 * fika_free_kg_value() : (float) ( new WC_Coupon( $code ) )->get_amount();
-			}
-			$paid  = ( $g > 0 && $sub > 0 ) ? $g - (int) round( min( $sub, $off ) / ( $sub / $g ) ) : 0;
-			$short = fika_swim_need( $cl['lap'], $cl['g'] ) - fika_swim_reach( get_current_user_id() ) - $paid;
+			// the bag as it is (the free sweets included) has to reach the checkpoint
+			$short = fika_swim_need( $cl['lap'], $cl['g'] ) - fika_swim_reach( get_current_user_id() ) - fika_swim_cart_grams();
 			if ( $short > 0 ) {
-				throw new Exception( sprintf( 'Rewards go on top of your order: add %s more to your bag to use this one.', $short >= 1000 ? rtrim( rtrim( number_format( $short / 1000, 1, '.', '' ), '0' ), '.' ) . ' kg' : $short . ' g' ) );
+				throw new Exception( sprintf( 'Add %s more to your bag to use this reward.', $short >= 1000 ? rtrim( rtrim( number_format( $short / 1000, 1, '.', '' ), '0' ), '.' ) . ' kg' : $short . ' g' ) );
 			}
 		}
 	}
@@ -361,16 +354,6 @@ add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon ) {
 	return $valid;
 }, 20, 2 );
 
-// the 6 kg reward: 25% of the customer's own first kilo (most expensive sweets first), never more than 1 kg
-add_filter( 'woocommerce_coupon_get_amount', function ( $amount, $coupon ) {
-	if ( is_admin() && ! wp_doing_ajax() ) {
-		return $amount;
-	}
-	if ( 0 === stripos( $coupon->get_code(), 'swim6-' ) && function_exists( 'WC' ) && WC()->cart && ! WC()->cart->is_empty() ) {
-		return round( 0.25 * fika_free_kg_value(), 2 );
-	}
-	return $amount;
-}, 10, 2 );
 
 // ---------- What the tracker shows for the signed-in customer ----------
 if ( ! function_exists( 'fika_swim_state' ) ) {
@@ -490,7 +473,8 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 			</div></div>
 		</div>
 	</div>
-	<div class="fs-ticks" aria-hidden="true"><?php for ( $i = 0; $i <= FIKA_SWIM_LAP / 1000; $i++ ) : ?><i data-i="<?php echo (int) $i; ?>"<?php echo in_array( $i, array( 0, 3, 6, 10 ), true ) ? ' class="m"' : ''; ?>><?php echo (int) $i; ?></i><?php endfor; ?></div>
+	<div class="fs-ticks" aria-hidden="true"><?php for ( $i = 0; $i <= FIKA_SWIM_LAP / 1000; $i++ ) : ?><i data-i="<?php echo (int) $i; ?>"<?php echo in_array( $i, array_merge( array( 0 ), wp_list_pluck( fika_swim_checkpoints(), 'kg' ) ), true ) ? ' class="m"' : ''; ?>><?php echo (int) $i; ?></i><?php endfor; ?></div>
+	<p class="fs-note">Every gram you pay for moves the fish. Free sweets don&rsquo;t count towards your next reward.</p>
 	<div class="fs-rewards">
 		<?php foreach ( $s['open'] as $r ) : ?>
 		<div class="fs-reward"><div class="fs-code"><span><?php echo esc_html( $r[1] ); ?></span><b><?php echo esc_html( $r[0] ); ?></b></div><button type="button" class="fs-copy" data-code="<?php echo esc_attr( $r[0] ); ?>">Copy code</button><p><?php echo esc_html( $r[2] ); ?>. Use it whenever you like: tap &ldquo;Use&rdquo; at checkout. Rewards can be combined; delivery not included.</p></div>
@@ -577,7 +561,9 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
   .fika-swim .fs-ticks { font-size: 11px; }
   .fika-swim .fs-code b { font-size: 25px; }
 }
-/* checkpoints: a gift above the lane at 3, 6 and 10 kg */
+.fika-swim .fs-note { margin: 4px 0 0; font-size: 12.5px; color: #8b97b3; text-align: right; }
+@media (max-width: 700px) { .fika-swim .fs-ticks i:not(.m) { color: transparent; } .fika-swim .fs-note { text-align: left; } }
+/* checkpoints: a gift above the lane at each checkpoint */
 .fika-swim .fs-cps { position: relative; height: 70px; }
 .fika-swim .fs-cp { position: absolute; bottom: 6px; left: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 60px; margin-left: -30px; padding: 0; border: 0; background: none; cursor: default; font: inherit; z-index: 2; }
 .fika-swim .fs-gift { display: block; width: 40px; height: 40px; perspective: 200px; }
@@ -641,7 +627,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 
 	function Swim(el) {
 		var s = JSON.parse(el.getAttribute('data-swim') || '{}');
-		var G = s.goal || 10000, cps = s.cps || [];
+		var G = s.goal || 15000, cps = s.cps || [];
 		var lane = el.querySelector('.fs-lane'), fish = el.querySelector('.fs-fish');
 		var water = el.querySelector('.fs-water'), way = el.querySelector('.fs-way'), inbag = el.querySelector('.fs-inbag');
 		var big = el.querySelector('.fs-big b'), sub = el.querySelector('.fs-sub'), legend = el.querySelector('.fs-legend'), title = el.querySelector('.fs-title');
@@ -695,15 +681,9 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			for (var i = 0; i < cps.length; i++) if (cps[i].state === 'locked' ? cps[i].g > tot : false) { next = cps[i]; break; }
 			sub.innerHTML = '';
 			if (lit.length ? !ready.length : false) {
-				var L = lit[lit.length - 1], top = L.g + L.rg - (s.d + s.o + bagG), lt = L.title.replace(/^A whole/, 'a whole');
-				if (top > 0) {
-					title.textContent = 'This bag reaches ' + L.kg + ' kg!';
-					sub.appendChild(document.createTextNode('Add ')); var q = document.createElement('b'); q.textContent = kg(top) + ' kg more'; sub.appendChild(q);
-					sub.appendChild(document.createTextNode(' on top and get ' + lt + ' in this very order' + name + '.'));
-				} else {
-					title.textContent = 'This bag unlocks ' + lt + '!';
-					sub.appendChild(document.createTextNode('Go to checkout and tap “Use”: it comes off this very order' + name + '.'));
-				}
+				var L = lit[lit.length - 1], lt = L.title.replace(/^A whole/, 'a whole');
+				title.textContent = 'This bag unlocks ' + lt + '!';
+				sub.appendChild(document.createTextNode('Go to checkout and tap \u201cUse\u201d: the sweets come off this very order' + name + '.'));
 			} else if (ready.length) {
 				title.textContent = 'You made it to ' + ready[0].kg + ' kg!';
 				sub.appendChild(document.createTextNode('Tap the glowing gift to unlock ' + ready[0].unlock + name + '.'));
@@ -711,7 +691,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 				title.textContent = 'Swim to your sweet rewards';
 				var b = document.createElement('b'); b.textContent = kg(next.g - tot) + ' kg'; sub.appendChild(b);
 				sub.appendChild(document.createTextNode(' to go until '));
-				var t = document.createElement('b'); t.textContent = next.g === 6000 ? '25% off a kilo' : next.title.replace(/^A whole/, 'a whole'); sub.appendChild(t);
+				var t = document.createElement('b'); t.textContent = next.title.replace(/^A whole/, 'a whole'); sub.appendChild(t);
 				sub.appendChild(document.createTextNode((s.name ? ', ' + s.name : '') + '!' + (bagG > 0 ? ' Every gram in your bag moves the fish.' : '')));
 			} else {
 				title.textContent = 'Lap complete!';
@@ -908,19 +888,19 @@ add_action( 'wp_footer', function () {
 		var go = document.getElementById('mxGo');
 		if (!go) return;
 		if (!note) { note = document.createElement('p'); note.className = 'fk-rw-note'; go.parentNode.insertBefore(note, go); }
-		// the next reward: first reach its checkpoint, then the reward goes on top (what it pays for is free)
-		var g = bagG(), r = REACH + g, nx = NEXT[0], toCp = nx ? nx[0] - r : 0, top = nx ? nx[0] + nx[2] - r : 0;
-		var cpKg = nx ? ((nx[0] % 10000) / 1000 || 10) : 0;
+		// the next reward: reaching its checkpoint with this bag unlocks it for this order
+		// rewards already reached wait on the tracker; this bag is about the next checkpoint ahead
+		var g = bagG(), r = REACH + g, nx = NEXT.filter(function (n) { return n[0] > REACH; })[0], toCp = nx ? nx[0] - r : 0;
+		var waiting = SAVED + NEXT.filter(function (n) { return n[0] <= REACH; }).length;
+		var cpKg = nx ? ((nx[0] - 1) % <?php echo (int) FIKA_SWIM_LAP; ?> + 1) / 1000 : 0;
 		note.innerHTML = ''; note.classList.toggle('is-on', nx ? (g > 0 ? toCp <= 0 : false) : false);
 		function add(t, bold) { var x = bold ? document.createElement('b') : document.createTextNode(t); if (bold) x.textContent = t; note.appendChild(x); }
-		if (nx ? (g > 0 ? top <= 0 : false) : false) {
-			add('This bag unlocks '); add(low(nx[1]), true); add('! Tap “Use” at checkout and it comes off this order.');
-		} else if (nx ? (g > 0 ? toCp <= 0 : false) : false) {
-			add('You reached ' + cpKg + ' kg! Add '); add(amt(top) + ' on top', true); add(nx[2] === 250 ? ' and get 25% off a kilo in this order.' : ' and ' + (nx[2] === 1000 ? 'that kilo is' : 'they are') + ' on us.');
+		if (nx ? (g > 0 ? toCp <= 0 : false) : false) {
+			add('This bag reaches ' + cpKg + ' kg and unlocks '); add(low(nx[1]), true); add('! Tap \u201cUse\u201d at checkout and they come off this order.');
 		} else if (nx ? (g > 0 ? toCp <= 1000 : false) : false) {
 			add('Add '); add(amt(toCp) + ' more', true); add(' to reach ' + cpKg + ' kg and get '); add(low(nx[1]), true); add(' in this order.');
-		} else if (SAVED) {
-			add(SAVED === 1 ? 'You have a sweet reward saved. Use it at checkout whenever you like.' : 'You have ' + SAVED + ' sweet rewards saved. Choose which to use at checkout.');
+		} else if (waiting) {
+			add(waiting === 1 ? 'You have a sweet reward waiting. Use it at checkout whenever you like.' : 'You have ' + waiting + ' sweet rewards waiting. Choose which to use at checkout.');
 		}
 	}
 	show();
@@ -1027,29 +1007,25 @@ add_action( 'wp_footer', function () {
 		return r;
 	}
 	function sub() { var t = cart().totals || {}, m = t.currency_minor_unit == null ? 2 : t.currency_minor_unit; return (parseInt(t.total_items || '0', 10) || 0) / Math.pow(10, m); }
-	function worth(code, s) { return /^swim6-/i.test(code) ? 0.25 * Math.min(s, 25) : /^swim10-/i.test(code) ? 25 : 5; }
-	// grams of the bag that are paid for, with these rewards on (rewards go on top: what they pay for does not count)
-	function paid(codes) {
-		var g = grams(), s = sub(), off = 0;
-		codes.forEach(function (c) { off += worth(c, s); });
-		return g > 0 ? (s > 0 ? g - Math.round(Math.min(s, off) / (s / g)) : 0) : 0;
-	}
+	// the bag as it is (free sweets included) counts towards a checkpoint
+	function paid() { return grams(); }
+	function worth(code) { return /^swim15-/i.test(code) ? 25 : /^swim10-/i.test(code) ? 10 : /^swim6-/i.test(code) ? 5 : 2.5; }
 	function render() {
 		if (!box) return;
 		var on = onCart(), g = grams(), reach = REACH + g, rows = [], n = 0;
-		var onSwim = on.filter(function (c) { return /^swim(3|6|10)-/.test(c); });
+		var onSwim = on.filter(function (c) { return /^swim(3|6|10|15)-/.test(c); });
 		function withMe(code) { return onSwim.indexOf(code.toLowerCase()) !== -1 ? onSwim : onSwim.concat([code.toLowerCase()]); }
 		CODES.forEach(function (c) {
-			var used = on.indexOf(c[0].toLowerCase()) !== -1, short = c[5] - REACH - paid(withMe(c[0]));
+			var used = on.indexOf(c[0].toLowerCase()) !== -1, short = c[5] - REACH - paid();
 			if (used) n++;
-			var note = short > 0 ? 'Rewards go on top: add ' + amt(short) + ' more to use this one' : (/^swim6-/i.test(c[0]) ? (g > 1000 ? 'Covers 1 kg of this ' + (g / 1000) + ' kg order (the priciest sweets)' : '') : '');
+			// a reward worth more than the bag: say so (the rest would be lost)
+			var note = short > 0 ? 'Add ' + amt(short) + ' more to use this one' : (!used ? (worth(c[0]) > sub() + 0.001 ? 'Worth $' + worth(c[0]) + ': best on a bag of ' + amt(worth(c[0]) * 40) + ' or more' : '') : '');
 			rows.push({ code: c[0], title: c[1], co: c[3], on: used, off: !used ? short > 0 : false, note: note, fresh: c[5] > REACH });
 		});
-		// rewards not claimed yet: shown once this bag reaches them; usable once the paid part reaches them
+		// rewards not claimed yet: shown (and usable) once this bag reaches them
 		var open = UNCL.filter(function (u) { return u[2] <= reach; }), ahead = UNCL.filter(function (u) { return u[2] > reach; })[0];
 		open.forEach(function (u) {
-			var fake = u[1] === 6000 ? 'swim6-x' : u[1] === 10000 ? 'swim10-x' : 'swim3-x', short = u[2] - REACH - paid(onSwim.concat([fake]));
-			rows.push({ lap: u[0], g: u[1], title: u[3], co: u[4], fresh: u[2] > REACH, off: short > 0, note: short > 0 ? 'You reached ' + (u[1] / 1000) + ' kg! Add ' + amt(short) + ' on top and it is yours in this order' : (u[2] > REACH ? 'Unlocked by this order' : 'Ready to use') });
+			rows.push({ lap: u[0], g: u[1], title: u[3], co: u[4], fresh: u[2] > REACH, note: u[2] > REACH ? 'Unlocked by this order' : 'Ready to use' });
 		});
 		var aheadCp = ahead ? ahead[2] - reach : 0;
 		var key = JSON.stringify([rows, aheadCp]);
@@ -1061,7 +1037,7 @@ add_action( 'wp_footer', function () {
 		if (ahead ? aheadCp <= 1000 : false) {
 			nudge.appendChild(document.createTextNode('Add '));
 			var x = document.createElement('b'); x.textContent = amt(aheadCp) + ' more'; nudge.appendChild(x);
-			nudge.appendChild(document.createTextNode(' to reach ' + ((ahead[1] % 10000) / 1000 || 10) + ' kg and get '));
+			nudge.appendChild(document.createTextNode(' to reach ' + (ahead[1] / 1000) + ' kg and get '));
 			var y = document.createElement('b'); y.textContent = low(ahead[3]); nudge.appendChild(y);
 			nudge.appendChild(document.createTextNode(' in this order.'));
 			var a = document.createElement('a'); a.href = BAG; a.textContent = 'Back to your bag →'; nudge.appendChild(a);
@@ -1121,7 +1097,7 @@ add_action( 'wp_footer', function () {
 	if ( ! $text ) {
 		foreach ( $s['cps'] as $cp ) {
 			if ( $cp['g'] > $s['d'] + $s['o'] ) {
-				$text = rtrim( rtrim( number_format( ( $cp['g'] - $s['d'] - $s['o'] ) / 1000, 1, '.', '' ), '0' ), '.' ) . ' kg to ' . ( 6000 === $cp['g'] ? '25% off a kilo' : lcfirst( $cp['title'] ) );
+				$text = rtrim( rtrim( number_format( ( $cp['g'] - $s['d'] - $s['o'] ) / 1000, 1, '.', '' ), '0' ), '.' ) . ' kg to ' . lcfirst( $cp['title'] );
 				break;
 			}
 		}
