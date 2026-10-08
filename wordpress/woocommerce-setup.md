@@ -652,3 +652,11 @@ Snippet 11 (wordpress/snippets/fika-loyalty.php) replaces the old "1 kg free at 
 - Tested with a test customer and test orders (deleted): states locked / on its way / ready / claimed / used,
   claim, both codes at checkout ($5.00 and $6.25 off), grams paid by a reward not counted (1.2 kg -> 1.0 kg),
   withdrawal after "Undelivered", 10 kg and the start of lap 2, desktop and phone, My account.
+
+Wording and checkout (2026-10-08): rewards are worded as candy with the value alongside: 3 kg "200 g on us"
+(worth $5), 6 kg "25% off a kilo" (up to $6.25), 10 kg "A whole kilo on us" (worth $25); labels 200 g / 25% /
+1 kg; delivery not included. Checkout takes off the best claimed reward by itself (the biggest one that fits the
+bag: $25 waits for a bag of $25 or more), unless the customer has another code on or tapped "Save for later"
+(remembered for the visit); "Use" switches rewards (one per order). The bag drawer says the reward comes off at
+checkout. Tested (test data deleted): claim all three, $30 bag -> $25 off, Save for later, switch to $5, $10 bag
+-> $5 off (the $25 one says "Best on an order of $25 or more"), order placed with its reward.
