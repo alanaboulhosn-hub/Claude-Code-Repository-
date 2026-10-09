@@ -1235,3 +1235,10 @@ Owner's rule: once per person, existing customers included. Snippet 9 (fika-exit
   and 10% applied; used email gets no offer; the place-order check blocks a used phone and a used email and lets a
   new person through; an order with FIKA10 records the person. Test entries removed.
 - Deploy note: Hostinger's firewall answered 403 to the PUT update of this snippet; POST to the same address worked.
+
+## Review videos: 4 instead of 5 (2026-10-09)
+
+- At the owner's request, review clip 1 (fika-review-1, the @rayakhouri car video) was removed from the home page
+  carousel: REVIEW_CLIPS in build-shop-pages.py, then page 41 rebuilt and published (live copy matched git first).
+  The carousel, dots and arrows work with 4 clips on phone and desktop.
+- The clip and its poster are still in the Media Library (and wordpress/pages/media/reviews/); nothing links to them.

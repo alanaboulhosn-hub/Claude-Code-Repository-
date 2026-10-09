@@ -296,7 +296,6 @@ html:not(.fika-shop-page) #shop .mx-count:empty { display:none; }
 # a swipe, or the end of the clip turn the carousel. Only the middle clip loads and plays.
 # Written without the logical-and operator and the less-than sign: WordPress rewrites them.
 REVIEW_CLIPS = [
-    ('/wp-content/uploads/2026/10/fika-review-1.mp4', '/wp-content/uploads/2026/10/fika-review-1.jpg'),
     ('/wp-content/uploads/2026/10/fika-review-2.mp4', '/wp-content/uploads/2026/10/fika-review-2.jpg'),
     ('/wp-content/uploads/2026/10/fika-review-3.mp4', '/wp-content/uploads/2026/10/fika-review-3.jpg'),
     ('/wp-content/uploads/2026/10/fika-review-4.mp4', '/wp-content/uploads/2026/10/fika-review-4.jpg'),
