@@ -55,8 +55,14 @@ add_action( 'wp_footer', function () {
 .fki-card:focus { outline: none; }
 .fki-x { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #f3f5fa; color: #4a587a; font-size: 20px; line-height: 1; cursor: pointer; }
 .fki-x:hover { background: #e6eaf3; }
-.fki-fish { display: block; width: 46px; height: 46px; margin: 0 auto 6px; }
-.fki-fish svg { width: 100%; height: 100%; display: block; }
+.fki-toons { display: flex; justify-content: center; align-items: flex-end; gap: 8px; height: 52px; margin: 0 0 8px; }
+.fki-toons i { display: block; width: 34px; height: 34px; animation: fkiBob 1.6s ease-in-out infinite alternate; }
+.fki-toons i:nth-child(2) { width: 52px; height: 52px; animation-name: fkiSwim; animation-duration: .9s; }
+.fki-toons i:nth-child(3) { animation-delay: .5s; }
+.fki-toons svg { width: 100%; height: 100%; display: block; overflow: visible; filter: drop-shadow(0 2px 2px rgba(80, 20, 50, .18)); }
+@keyframes fkiBob { from { transform: translateY(0) rotate(-8deg); } to { transform: translateY(-5px) rotate(8deg); } }
+@keyframes fkiSwim { from { transform: rotate(-5deg) translateX(-2px); } to { transform: rotate(5deg) translateX(2px); } }
+@media (prefers-reduced-motion: reduce) { .fki-toons i { animation: none; } }
 .fki-h { font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-weight: 400; font-size: 32px; line-height: 1.1; color: #004aad; margin: 0 0 8px; }
 .fki-p { font-size: 16px; line-height: 1.5; color: #4a587a; margin: 0 0 20px; }
 .fki-go { display: block; width: 100%; padding: 14px 18px; border-radius: 999px; background: #004aad; color: #fff; text-decoration: none;
@@ -88,16 +94,17 @@ add_action( 'wp_footer', function () {
   ss('fika_invite_shown', '1'); // the sign-up cloud stays away this visit
 
   var FISH = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M62 38 L90 22 C85 40 85 62 90 79 L62 64 Z" fill="#e3241f" stroke="#a3160f" stroke-width="2.6" stroke-linejoin="round"/><path d="M8 52 C16 32 44 25 66 38 C70 46 70 58 66 64 C44 78 16 72 8 52 Z" fill="#ff5a2f" stroke="#a3160f" stroke-width="2.6" stroke-linejoin="round"/><ellipse cx="34" cy="36" rx="9" ry="4" transform="rotate(-30 34 36)" fill="#fff" opacity=".55"/><circle cx="24" cy="46" r="5.2" fill="#fff"/><circle cx="22.5" cy="46.5" r="2.8" fill="#1b2a4a"/></svg>';
+  function toon(s) { return window.FIKA_CARTOON ? window.FIKA_CARTOON(s) : ''; }
   var veil, card;
 
   function build() {
     veil = document.createElement('div'); veil.className = 'fki-veil';
     veil.innerHTML = '<div class="fki-card" role="dialog" aria-modal="true" aria-labelledby="fkiH" tabindex="-1">' +
       '<button type="button" class="fki-x" aria-label="Close">×</button>' +
-      '<span class="fki-fish" aria-hidden="true">' + FISH + '</span>' +
-      '<h2 class="fki-h" id="fkiH">Join Fika Club</h2>' +
-      '<p class="fki-p">For amazing deals, free sweets as you order, and your orders in one place. It’s free.</p>' +
-      '<a class="fki-go" href="' + C.join + '">Join Fika Club</a>' +
+      '<div class="fki-toons" aria-hidden="true"><i>' + toon('bubs-bubblegum-skull') + '</i><i>' + FISH + '</i><i>' + toon('sour-strawberries') + '</i></div>' +
+      '<h2 class="fki-h" id="fkiH">Join the Fika Club</h2>' +
+      '<p class="fki-p">Amazing deals and free sweets as you order. Joining is free, the sweets are sweeter!</p>' +
+      '<a class="fki-go" href="' + C.join + '">Join the Fika Club</a>' +
       '<a class="fki-member" href="' + C.login + '">Already a member? <u>Log in</u></a>' +
       '</div>';
     document.body.appendChild(veil);
