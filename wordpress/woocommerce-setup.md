@@ -1318,3 +1318,6 @@ choice). Snippet 91, fika-club.php (new):
   at checkout (no order placed).
 - Categories (2026-10-09, owner): BUBS Forest Berry Ovals (121) moved Sour -> Sweet; BUBS Bubblegum Skull (120) was
   already Sour. Filters now Sweet 14 / Sour 14 (checked on the live Mix your own page).
+- Changed again the same day (owner): **$2.80 per 100 g**, **$14.00 per 500 g** Ready Mix bag. Rewards follow the grams:
+  100 g = $2.80, 200 g = $5.60, 400 g = $11.20, 1 kg = $28 (FIKA_FREE_KG_VALUE fallback 28). Page texts and the mix
+  pattern fallbacks say 2.80 / 14.

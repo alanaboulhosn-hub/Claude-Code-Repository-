@@ -2,11 +2,11 @@
 /**
  * Fika: "Swim to your rewards" — the loyalty tracker for signed-in customers.
  * - A cartoon Swedish fish swims along a 15 kg water lane with four checkpoints, each a gift of free sweets:
- *     3 kg  -> 100 g on us ($2.75 off, code SWIM3-XXXXXX)
- *     6 kg  -> 200 g on us ($5.50 off, SWIM6-)
- *     10 kg -> 400 g on us ($11 off, SWIM10-)
- *     15 kg -> a whole kilo on us ($27.50 off, SWIM15-)
- *   (values at $2.75 per 100 g since 2026-10-09; codes claimed before keep their old value: $2.50 / $5 / $10 / $25)
+ *     3 kg  -> 100 g on us ($2.80 off, code SWIM3-XXXXXX)
+ *     6 kg  -> 200 g on us ($5.60 off, SWIM6-)
+ *     10 kg -> 400 g on us ($11.20 off, SWIM10-)
+ *     15 kg -> a whole kilo on us ($28 off, SWIM15-)
+ *   (values at $2.80 per 100 g since 2026-10-09; codes claimed before keep their old value: $2.50 / $5 / $10 / $25)
  *   then the next 15 kg lap starts (18, 21, 25, 30 kg ...).
  * - The fish counts delivered kilos (Completed orders, deep blue water), kilos on their way (Processing / On hold,
  *   light blue) and what is in the bag right now (candy stripes, live). Rewards are available as soon as the orders
@@ -18,7 +18,7 @@
  *   nothing is applied by itself. Rewards combine with each other (e.g. 200 g + the free kilo) but not with other
  *   codes (FIKA10, win-back). Free sweets do not count towards the next checkpoint. Customers holding a reward are not
  *   offered the 10% before-you-go code.
- * - The part of an order paid by a reward does not count towards the next checkpoint (e.g. $5.50 = 200 g).
+ * - The part of an order paid by a reward does not count towards the next checkpoint (e.g. $5.60 = 200 g).
  * - Orders marked "Undelivered" (a new order status), Cancelled, Failed or Refunded do not count; when an order
  *   stops counting, the fish swims back and an unused reward above the new total is withdrawn.
  * - Shown on the home page, Mix your own, Ready Mix (above the shop) and the My account dashboard; never to
@@ -31,16 +31,16 @@ if ( ! defined( 'FIKA_SWIM_LAP' ) ) {
 	define( 'FIKA_SWIM_LAP', 15000 ); // grams per lap
 }
 if ( ! defined( 'FIKA_FREE_KG_VALUE' ) ) {
-	define( 'FIKA_FREE_KG_VALUE', 27.5 ); // fallback value of 1 kg
+	define( 'FIKA_FREE_KG_VALUE', 28 ); // fallback value of 1 kg
 }
 if ( ! function_exists( 'fika_swim_checkpoints' ) ) {
 	// the checkpoints of a lap: grams => reward
 	function fika_swim_checkpoints() {
 		return array(
-			3000  => array( 'kg' => 3, 'prefix' => 'SWIM3', 'badge' => '100 g', 'title' => '100 g on us', 'unlock' => '100 g on us (worth $2.75)', 'text' => 'Worth $2.75 on any sweets you choose', 'co' => '$2.75 off this order', 'amount' => 2.75, 'rg' => 100 ),
-			6000  => array( 'kg' => 6, 'prefix' => 'SWIM6', 'badge' => '200 g', 'title' => '200 g on us', 'unlock' => '200 g on us (worth $5.50)', 'text' => 'Worth $5.50 on any sweets you choose', 'co' => '$5.50 off this order', 'amount' => 5.5, 'rg' => 200 ),
-			10000 => array( 'kg' => 10, 'prefix' => 'SWIM10', 'badge' => '400 g', 'title' => '400 g on us', 'unlock' => '400 g on us (worth $11)', 'text' => 'Worth $11 on any sweets you choose', 'co' => '$11 off this order', 'amount' => 11, 'rg' => 400 ),
-			15000 => array( 'kg' => 15, 'prefix' => 'SWIM15', 'badge' => '1 kg', 'title' => 'A whole kilo on us', 'unlock' => 'a whole kilo on us (worth $27.50)', 'text' => 'Worth $27.50 on any sweets you choose', 'co' => '$27.50 off this order', 'amount' => 27.5, 'rg' => 1000 ),
+			3000  => array( 'kg' => 3, 'prefix' => 'SWIM3', 'badge' => '100 g', 'title' => '100 g on us', 'unlock' => '100 g on us (worth $2.80)', 'text' => 'Worth $2.80 on any sweets you choose', 'co' => '$2.80 off this order', 'amount' => 2.8, 'rg' => 100 ),
+			6000  => array( 'kg' => 6, 'prefix' => 'SWIM6', 'badge' => '200 g', 'title' => '200 g on us', 'unlock' => '200 g on us (worth $5.60)', 'text' => 'Worth $5.60 on any sweets you choose', 'co' => '$5.60 off this order', 'amount' => 5.6, 'rg' => 200 ),
+			10000 => array( 'kg' => 10, 'prefix' => 'SWIM10', 'badge' => '400 g', 'title' => '400 g on us', 'unlock' => '400 g on us (worth $11.20)', 'text' => 'Worth $11.20 on any sweets you choose', 'co' => '$11.20 off this order', 'amount' => 11.2, 'rg' => 400 ),
+			15000 => array( 'kg' => 15, 'prefix' => 'SWIM15', 'badge' => '1 kg', 'title' => 'A whole kilo on us', 'unlock' => 'a whole kilo on us (worth $28)', 'text' => 'Worth $28 on any sweets you choose', 'co' => '$28 off this order', 'amount' => 28, 'rg' => 1000 ),
 		);
 	}
 	function fika_swim_is_code( $code ) {
@@ -1327,7 +1327,7 @@ add_action( 'wp_footer', function () {
 	function sub() { var t = cart().totals || {}, m = t.currency_minor_unit == null ? 2 : t.currency_minor_unit; return (parseInt(t.total_items || '0', 10) || 0) / Math.pow(10, m); }
 	// the bag as it is (free sweets included) counts towards a checkpoint
 	function paid() { return grams(); }
-	function worth(code) { return /^swim15-/i.test(code) ? 27.5 : /^swim10-/i.test(code) ? 11 : /^swim6-/i.test(code) ? 5.5 : 2.75; }
+	function worth(code) { return /^swim15-/i.test(code) ? 28 : /^swim10-/i.test(code) ? 11.2 : /^swim6-/i.test(code) ? 5.6 : 2.8; }
 	function render() {
 		if (!box) return;
 		var on = onCart(), g = grams(), reach = REACH + g, rows = [], n = 0;
@@ -1337,7 +1337,7 @@ add_action( 'wp_footer', function () {
 			var used = on.indexOf(c[0].toLowerCase()) !== -1, short = c[5] - REACH - paid();
 			if (used) n++;
 			// a reward worth more than the bag: say so (the rest would be lost)
-			var note = short > 0 ? 'Add ' + amt(short) + ' more to use this one' : (!used ? (worth(c[0]) > sub() + 0.001 ? 'Worth $' + worth(c[0]).toFixed(2).replace(/\.00$/, '') + ': best on a bag of ' + amt(Math.round(worth(c[0]) / 0.275) * 10) + ' or more' : '') : '');
+			var note = short > 0 ? 'Add ' + amt(short) + ' more to use this one' : (!used ? (worth(c[0]) > sub() + 0.001 ? 'Worth $' + worth(c[0]).toFixed(2).replace(/\.00$/, '') + ': best on a bag of ' + amt(Math.round(worth(c[0]) / 0.28) * 10) + ' or more' : '') : '');
 			rows.push({ code: c[0], title: c[1], co: c[3], on: used, off: !used ? short > 0 : false, note: note, fresh: c[5] > REACH });
 		});
 		// rewards not claimed yet: shown (and usable) once this bag reaches them

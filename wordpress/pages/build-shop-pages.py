@@ -495,7 +495,7 @@ IMG_POUR = '/wp-content/uploads/2026/10/fika-1-CpGiPMPowHbUltE9.webp'   # media 
 IMG_GANG = '/wp-content/uploads/2026/10/fika-chatgpt-image-jul-31-2026-03_35_52-pm-H0.webp'   # media 457
 
 mix_hero = banner_css + '\n' + banner('mix', 'Mix your own',
-    'Pick your candy, your rules. <span class="fk-n">28</span> Swedish sweets at $2.75 per 100 g: sweet, sour, or mixed, with gelatin-free and gluten-free faves clearly marked, so everyone mixes and snacks happily.',
+    'Pick your candy, your rules. <span class="fk-n">28</span> Swedish sweets at $2.80 per 100 g: sweet, sour, or mixed, with gelatin-free and gluten-free faves clearly marked, so everyone mixes and snacks happily.',
     IMG_POURBOWL, '50% 62%', split=('0.808', '#d7879d', '#e88eac', '#fad0de'))
 ready_hero = banner_css + '\n' + banner('ready', 'Ready Mix',
     'Having a hard time deciding? We got you. Ready Mix bags packed with the best of Scandinavian candy. Choose your vibe (sweet, sour, or mixed) and enjoy the perfect balance in every bite.',
@@ -780,7 +780,7 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
     <div class="fika-inner">
       <h2 class="fika-h2">How it works</h2>
       <div class="fa-steps">
-        <div class="fa-step"><h3>Pick your sweets</h3><p><a href="/mix-your-own/">Mix your own</a> from <span class="fk-n">28</span> candies at $2.75 per 100 g, or choose a 500 g <a href="/ready-mix/">Ready Mix</a> bag for $13.75.</p></div>
+        <div class="fa-step"><h3>Pick your sweets</h3><p><a href="/mix-your-own/">Mix your own</a> from <span class="fk-n">28</span> candies at $2.80 per 100 g, or choose a 500 g <a href="/ready-mix/">Ready Mix</a> bag for $14.</p></div>
         <div class="fa-step"><h3>Check out</h3><p>Pick your delivery area and pay in cash when your sweets arrive. Join Fika Club and every kilo swims you closer to a free one.</p></div>
         <div class="fa-step"><h3>Enjoy your fika</h3><p>We deliver all over Lebanon (except Nabatieh and bordering cities), Monday to Saturday.</p></div>
       </div>
