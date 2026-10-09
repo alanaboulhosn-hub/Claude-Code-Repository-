@@ -1272,3 +1272,15 @@ choice). Snippet 91, fika-club.php (new):
 - Fixed during testing: a stale "type your email" hint; "Use now" failed while FIKA10 was on the bag (now swapped);
   focus outline on the popup.
 - Not tested: real Safari (only Chrome's engine is available here); the owner's iPhone check covers it.
+
+## Emails in junk after launch: SPF and DMARC were missing (2026-10-09)
+
+- Symptom: emails from hello@swedishfikalb.com landing in junk after the domain switch.
+- Cause: hPanel > Emails > Domain settings showed the SPF and DMARC records missing (MX and DKIM fine). They were
+  most likely removed when the domain was connected to the WordPress site. Without them strict providers (iCloud,
+  Outlook) cannot verify the sender.
+- Fix (owner, "Connect automatically", no other records touched): TXT @ `v=spf1 include:_spf.mail.hostinger.com ~all`
+  and TXT _dmarc `v=DMARC1; p=none`. All four rows green.
+- Verified on a WP Mail SMTP test to Gmail: SPF pass, DKIM pass (hostingermail-a), DMARC pass, Inbox; multipart
+  (text + HTML); Message-ID on swedishfikalb.com.
+- Later (a few weeks, once nothing else sends as @swedishfikalb.com): consider DMARC p=quarantine.
