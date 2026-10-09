@@ -1348,8 +1348,8 @@ choice). Snippet 91, fika-club.php (new):
   ?fika_bag, ?bag=open).
 - Any signed-in page view marks the browser (localStorage fika_member) for good; "Already a member? Log in" marks it
   too and opens /my-account/#login. "Join Fika Club, it's free" opens /my-account/#register.
-- Content: "Fika Club · free to join", "Swim your way to free sweets!", animated fish lane with the 3 / 6 / 10 / 15 kg
-  stops, reward tiles (100 g / 200 g / 400 g / a whole kilo), mystery-taste spins + past orders count.
+- Content (simplified on the owner's request): small fish, "Join Fika Club", "For amazing deals, free sweets as you
+  order, and your orders in one place. It's free.", button "Join Fika Club", "Already a member? Log in".
 - The sign-up cloud (fika-signup-nudge.php) stays away on a visit where the popup showed (sessionStorage flag).
 - Not live: FIKA_INVITE_LIVE false. ?fika_invite=preview always shows it; ?fika_invite=test runs the real rules.
   Rules tested on the live site (iPhone 14): all pass. Going live = set FIKA_INVITE_LIVE to true (snippet update
