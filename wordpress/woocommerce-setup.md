@@ -1301,3 +1301,5 @@ choice). Snippet 91, fika-club.php (new):
   1226 1273 1279 1320 1343 1398 1410 1413 1450), 3 -> Processing (#1423 1446 1449), each with a private note; tracking
   ID + RT status saved on all 370. #1318 (Suzy) kept Completed, linked to the re-sent delivered parcel (owner's call).
   After: 9 processing, 413 completed, 18 failed, 17 cancelled. 49 RT parcels had no website order (mostly $0 cash).
+- Orders list (same snippet): the status links are big coloured filter buttons, ordered All, Processing, Failed,
+  Completed, then the rest (filter `views_woocommerce_page_wc-orders` + CSS on that screen).

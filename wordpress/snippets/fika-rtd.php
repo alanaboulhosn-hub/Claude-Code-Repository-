@@ -498,3 +498,36 @@ add_filter( 'woocommerce_shop_order_search_fields', function ( $fields ) {
 	$fields[] = '_fika_rtd_tracking';
 	return $fields;
 } );
+
+// ---------- Orders list: the status links as big filter buttons (Processing, Failed, Completed first) ----------
+foreach ( array( 'views_woocommerce_page_wc-orders', 'views_edit-shop_order' ) as $fika_hook ) {
+	add_filter( $fika_hook, function ( $views ) {
+		$first = array();
+		foreach ( array( 'all', 'wc-processing', 'wc-failed', 'wc-completed' ) as $k ) {
+			if ( isset( $views[ $k ] ) ) {
+				$first[ $k ] = $views[ $k ];
+				unset( $views[ $k ] );
+			}
+		}
+		return $first + $views;
+	}, 30 );
+}
+add_action( 'admin_head', function () {
+	$s = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( ! $s || ! in_array( $s->id, array( 'woocommerce_page_wc-orders', 'edit-shop_order' ), true ) ) {
+		return;
+	}
+	?>
+	<style>
+		.wrap ul.subsubsub { float: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 14px; font-size: 0; }
+		.wrap ul.subsubsub li { font-size: 0; margin: 0; }
+		.wrap ul.subsubsub li a { display: inline-block; font-size: 14px; font-weight: 600; line-height: 1; padding: 10px 14px; border-radius: 999px; border: 1px solid #dcdcde; background: #fff; color: #1d2327; text-decoration: none; }
+		.wrap ul.subsubsub li a .count { color: inherit; opacity: .75; font-weight: 500; }
+		.wrap ul.subsubsub li.wc-processing a { background: #e7f3e2; border-color: #c6e1c6; color: #2f5d12; }
+		.wrap ul.subsubsub li.wc-failed a { background: #fbe7e7; border-color: #eba3a3; color: #761919; }
+		.wrap ul.subsubsub li.wc-completed a { background: #e5edf3; border-color: #c8d7e1; color: #2e4453; }
+		.wrap ul.subsubsub li a.current { outline: 3px solid #2271b1; outline-offset: 1px; }
+		.wrap ul.subsubsub li a:hover { filter: brightness(.96); }
+	</style>
+	<?php
+} );
