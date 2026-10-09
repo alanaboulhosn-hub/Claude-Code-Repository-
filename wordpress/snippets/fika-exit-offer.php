@@ -7,6 +7,13 @@
  * Any other reason leads to a one-time offer: 10% off the candies with coupon FIKA10
  * (WooCommerce coupon: percent, individual use, usage limit 1 per customer, checked by email).
  * The offer is shown once per browser; reasons are counted in the option "fika_exit_reasons".
+ * Abuse guard (owner's rule: once per person, existing customers included):
+ * - FIKA10 only works in a browser the popup actually offered it to: offering it sets a signed cookie (fika_x10,
+ *   2 days). Typed or shared codes are refused ("This code isn't valid").
+ * - Once per person: every order placed with FIKA10 records its email and phone (hashed, option fika_x10_used).
+ *   A later use with either is refused, before the offer is shown, when the code is applied, and again when the
+ *   order is placed. Phones are compared as Lebanese numbers (03 123 456 = +961 3 123 456).
+ * - Staff can still add FIKA10 to an order by hand in WP Admin.
  * WP Admin > WooCommerce > Checkout leavers shows the counts and can reset them.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-exit-offer.php
  */
@@ -41,6 +48,133 @@ add_action( 'rest_api_init', function () {
 		'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
 		'callback'            => function () { fika_exit_reset(); return array( 'reset' => true ); },
 	) );
+} );
+
+
+// ---------- abuse guard: FIKA10 only after an offer, once per person (email or phone) ----------
+if ( ! function_exists( 'fika_x10_keys' ) ) {
+	// hashes for an email and a phone; phones become the national number (no 00 / 961 / leading 0)
+	function fika_x10_keys( $email, $phone ) {
+		$keys  = array();
+		$email = strtolower( trim( (string) $email ) );
+		if ( is_email( $email ) ) {
+			$keys[] = 'e' . md5( $email );
+		}
+		$d = preg_replace( '/\D+/', '', (string) $phone );
+		$d = preg_replace( '/^(00)?961/', '', $d );
+		$d = ltrim( $d, '0' );
+		if ( strlen( $d ) >= 6 ) {
+			$keys[] = 'p' . md5( $d );
+		}
+		return $keys;
+	}
+	function fika_x10_used( $email, $phone ) {
+		$used = get_option( 'fika_x10_used', array() );
+		$used = is_array( $used ) ? $used : array();
+		return (bool) array_intersect( fika_x10_keys( $email, $phone ), $used );
+	}
+	function fika_x10_remember( $order ) {
+		$has = false;
+		foreach ( $order->get_coupon_codes() as $c ) {
+			$has = $has ? true : 'fika10' === strtolower( $c );
+		}
+		if ( ! $has ) {
+			return;
+		}
+		$used = get_option( 'fika_x10_used', array() );
+		$used = is_array( $used ) ? $used : array();
+		$used = array_values( array_unique( array_merge( $used, fika_x10_keys( $order->get_billing_email(), $order->get_billing_phone() ? $order->get_billing_phone() : $order->get_shipping_phone() ) ) ) );
+		update_option( 'fika_x10_used', $used, false );
+	}
+	// the signed "this browser was offered the 10%" cookie
+	function fika_x10_pass_ok() {
+		$v = isset( $_COOKIE['fika_x10'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['fika_x10'] ) ) : '';
+		$p = explode( '.', $v );
+		if ( 2 !== count( $p ) || ! ctype_digit( $p[0] ) || (int) $p[0] < time() - 2 * DAY_IN_SECONDS ) {
+			return false;
+		}
+		return hash_equals( wp_hash( 'fika_x10|' . $p[0] ), $p[1] );
+	}
+	// email and phone the shopper has given so far (cart) or on the order
+	function fika_x10_who( $obj ) {
+		if ( $obj instanceof WC_Order ) {
+			return array( $obj->get_billing_email(), $obj->get_billing_phone() ? $obj->get_billing_phone() : $obj->get_shipping_phone() );
+		}
+		$c = function_exists( 'WC' ) ? WC()->customer : null;
+		if ( ! $c ) {
+			return array( '', '' );
+		}
+		$email = $c->get_billing_email();
+		if ( ! $email ? is_user_logged_in() : false ) {
+			$email = wp_get_current_user()->user_email;
+		}
+		return array( $email, $c->get_billing_phone() ? $c->get_billing_phone() : $c->get_shipping_phone() );
+	}
+}
+
+// the popup asks before showing the offer: POST /wp-json/fika/v1/exit-offer { email, phone }
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'fika/v1', '/exit-offer', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true',
+		'callback'            => function ( $req ) {
+			$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+			$k  = 'fika_x10_rl_' . md5( $ip );
+			$n  = (int) get_transient( $k );
+			if ( $n > 20 ) {
+				return array( 'ok' => false );
+			}
+			set_transient( $k, $n + 1, HOUR_IN_SECONDS );
+			$email = (string) $req->get_param( 'email' );
+			$phone = (string) $req->get_param( 'phone' );
+			if ( ! $email ? is_user_logged_in() : false ) {
+				$email = wp_get_current_user()->user_email;
+			}
+			if ( fika_x10_used( $email, $phone ) ) {
+				return array( 'ok' => false );
+			}
+			$t = (string) time();
+			setcookie( 'fika_x10', $t . '.' . wp_hash( 'fika_x10|' . $t ), array( 'expires' => time() + 2 * DAY_IN_SECONDS, 'path' => '/', 'secure' => is_ssl(), 'httponly' => true, 'samesite' => 'Lax' ) );
+			return array( 'ok' => true );
+		},
+	) );
+} );
+
+// the code itself: refused without the offer cookie, and for an email or phone that already used it
+add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon, $discounts = null ) {
+	if ( ! $valid || 'fika10' !== strtolower( $coupon->get_code() ) ) {
+		return $valid;
+	}
+	$obj = $discounts ? $discounts->get_object() : null;
+	if ( current_user_can( 'edit_shop_orders' ) ? ( is_admin() ? true : $obj instanceof WC_Order ) : false ) {
+		return $valid; // staff adding it to an order by hand
+	}
+	if ( ! fika_x10_pass_ok() ) {
+		throw new Exception( 'This code isn’t valid.', 100 );
+	}
+	list( $email, $phone ) = fika_x10_who( $obj );
+	if ( fika_x10_used( $email, $phone ) ) {
+		throw new Exception( 'This offer has already been used with this email or phone number.', 100 );
+	}
+	return $valid;
+}, 20, 3 );
+
+// placing the order: check the email and phone typed at the checkout, then remember them
+add_action( 'woocommerce_store_api_checkout_update_order_from_request', function ( $order ) {
+	if ( ! in_array( 'fika10', array_map( 'strtolower', $order->get_coupon_codes() ), true ) ) {
+		return;
+	}
+	list( $email, $phone ) = fika_x10_who( $order );
+	if ( fika_x10_used( $email, $phone ) ? true : ! fika_x10_pass_ok() ) {
+		throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException( 'fika_offer_used', 'The 10% offer has already been used with this email or phone number. Please remove the code to place your order.', 400 );
+	}
+}, 20 );
+add_action( 'woocommerce_store_api_checkout_order_processed', 'fika_x10_remember' );
+add_action( 'woocommerce_checkout_order_processed', function ( $order_id ) {
+	$o = wc_get_order( $order_id );
+	if ( $o ) {
+		fika_x10_remember( $o );
+	}
 } );
 
 if ( ! function_exists( 'fika_exit_reset' ) ) {
@@ -308,7 +442,14 @@ add_action( 'wp_footer', function () {
       var r = b.getAttribute('data-r');
       track(r);
       if (r === 'change-order') { hide(); busy = true; location.href = '/mix-your-own/'; return; }
-      if (offerAvailable()) stepOffer(r); else stepThanks();
+      if (!offerAvailable()) { stepThanks(); return; }
+      // the server checks the email / phone given so far (once per person) and unlocks the code for this browser
+      var who = {};
+      try { var cd = wp.data.select('wc/store/cart').getCustomerData(); var ba = cd.billingAddress || {}, sa = cd.shippingAddress || {}; who = { email: ba.email || '', phone: ba.phone || sa.phone || '' }; } catch (e3) {}
+      fetch('/wp-json/fika/v1/exit-offer', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(who) })
+        .then(function (res) { return res.json(); })
+        .then(function (j) { if (j ? j.ok : false) stepOffer(r); else { ls(OFFER_KEY, 'used'); stepThanks(); } })
+        .catch(function () { stepThanks(); });
       return;
     }
     if (act === 'apply') {

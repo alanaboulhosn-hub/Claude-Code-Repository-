@@ -1,14 +1,18 @@
 # Ground rules for this project
 
-- **All work happens on the test site only:** the WordPress install at
-  https://lightgoldenrodyellow-skunk-967361.hostingersite.com (credentials: WP_USER / WP_APP_PASSWORD).
-- **Never touch the live store**: the site on swedishfikalb.com, built with Hostinger Website Builder, which
-  customers are buying from. Do not change anything that could affect it, including:
+- **The shop is live** since 2026-10-09: the WordPress install at https://swedishfikalb.com (credentials:
+  WP_USER / WP_APP_PASSWORD). Real customers order from it. The old temporary address
+  (lightgoldenrodyellow-skunk-967361.hostingersite.com) is retired.
+- **Changes on the live shop:** small changes are made directly and checked right after on phone and desktop;
+  bigger changes are tested first (Hostinger's WordPress staging copy if needed). Check the live copy of a snippet
+  or page matches git before replacing it. The site firewall refuses some PUT updates: update snippets with POST.
+- **No test orders on the live shop unless needed**, and only after telling the owner: they reach the owner's
+  "New order" emails and Meta (the pixel is live). Prefer tests that place no order. Meta beacons from test
+  browsers are blocked (route /fika/v1/meta and facebook).
+- **Never touch, without the owner:**
   - the swedishfikalb.com domain, its DNS records (SPF, DKIM, DMARC, MX, A, CNAME) or domain settings;
-  - the Website Builder site, its pages, forms, store or settings;
-  - the hello@swedishfikalb.com mailbox: no password changes, forwarding, filters, webhooks, sending or deleting
-    (reading the mailbox address was the only access so far);
-  - anything in the Hostinger account outside the test WordPress install.
-- Pointing swedishfikalb.com at the new site is a separate launch step, planned with the owner first.
+  - the old Website Builder site, its pages, forms, store or settings;
+  - the hello@swedishfikalb.com mailbox: no password changes, forwarding, filters, webhooks, sending or deleting;
+  - anything in the Hostinger account outside the WordPress install.
 - Test data (customers, orders, coupons) uses @example.com addresses and the note
   "TEST ORDER (Claude ... test) - safe to delete", and is deleted after each test.

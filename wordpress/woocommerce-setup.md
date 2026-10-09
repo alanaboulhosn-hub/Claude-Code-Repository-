@@ -1217,3 +1217,21 @@ Snippet 43 (fika-meta.php) now sends 8 events, each from the browser and from th
   #1001–#1455. WP Admin order search finds orders by these numbers.
 - Tested with throwaway orders (no emails): a draft had no number, placing it gave #1456, the next #1457, a status
   change kept it, search found it. Test orders deleted and the counter set back to 1456.
+
+## The 10% "before you go" offer can't be gamed (2026-10-09)
+
+Owner's rule: once per person, existing customers included. Snippet 9 (fika-exit-offer.php):
+- **Only after an offer:** when the popup reaches the 10% step it asks POST /fika/v1/exit-offer, which sets a
+  signed cookie (fika_x10, HttpOnly, 2 days). FIKA10 is refused without it ("This code isn't valid"), so a typed
+  or shared code does nothing. Staff can still add it to an order in WP Admin.
+- **Once per person:** every order placed with FIKA10 stores hashes of its email and phone (option fika_x10_used).
+  Phones are compared as Lebanese national numbers (03 123 456 = +961 3 123 456 = 009613123456). An email or
+  phone in the list gets no offer in the popup ("Thanks for telling us" instead), the code is refused when
+  applied, and placing the order is blocked with "The 10% offer has already been used with this email or phone
+  number. Please remove the code to place your order."
+- The existing per-email usage limit of the coupon stays as a second lock. The list starts empty (FIKA10 had not
+  been used on the new site).
+- Tested on the live site without placing orders (Meta beacons blocked): typed code refused; new shopper offered
+  and 10% applied; used email gets no offer; the place-order check blocks a used phone and a used email and lets a
+  new person through; an order with FIKA10 records the person. Test entries removed.
+- Deploy note: Hostinger's firewall answered 403 to the PUT update of this snippet; POST to the same address worked.
