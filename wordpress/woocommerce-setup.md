@@ -1368,3 +1368,10 @@ choice). Snippet 91, fika-club.php (new):
   purchase sent to the Conversions API" (HTTP 200).
 - Speed on a 4G iPhone: home LCP 1.5 s first view / 1.1 s cached; Mix your own and Ready Mix 0.8 s; checkout 1.4 s.
 - Clean-up: 14 saved test bags removed; no test orders.
+- Meta diagnostics (owner's Events Manager, 9 Oct): all new-site events "Multiple" (browser + server); EMQ Purchase /
+  CompleteRegistration 9.3, InitiateCheckout 6.7, PageView / ViewContent / AddToCart 6.5, Contact / Search 4.4.
+  Pixel-only events (ViewCart, AddShippingInfo, SelectItem, RemoveFromCart, AddPaymentInfo) are the old Builder
+  store's, stopped ~20 h before (domain switch). Warning "server sending 366 fewer AddToCart than pixel (7 days)":
+  mostly the Builder's pixel-only AddToCart; fix on our side: fika-meta.php (43) now sends the server copy after the
+  visitor's answer has gone out (litespeed_finish_request) and waits for Meta (10 s) instead of a 1 s fire-and-forget,
+  and counts accepted / refused per day (settings screen, GET /fika/v1/meta-stats).

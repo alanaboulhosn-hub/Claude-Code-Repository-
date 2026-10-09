@@ -20,6 +20,8 @@
  *   (POST /wp-json/fika/v1/meta) to send the same event with the visitor's IP, browser, _fbp/_fbc cookies and,
  *   for signed-in customers, their hashed email and phone (their pages carry a REST nonce for that; signed-out
  *   pages carry none, so a cached page never holds a stale one).
+ * - Server copies of browser events are sent after the visitor's answer has gone out, waiting for Meta's reply, and
+ *   counted per day (accepted / refused) on the settings screen and at GET /wp-json/fika/v1/meta-stats (managers).
  * - "Send a test event" on the settings screen checks the token (shows Meta's answer); with a test event code the
  *   server events appear under Events Manager > Test events only.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-meta.php
@@ -103,8 +105,50 @@ if ( ! function_exists( 'fika_meta_set' ) ) {
 		if ( '' !== $s['test'] ) {
 			$body['test_event_code'] = $s['test'];
 		}
-		$url = 'https://graph.facebook.com/' . rawurlencode( $s['api'] ) . '/' . $s['pixel'] . '/events?access_token=' . rawurlencode( $s['token'] );
-		return wp_remote_post( $url, array( 'timeout' => $wait ? 10 : 1, 'blocking' => (bool) $wait, 'headers' => array( 'Content-Type' => 'application/json' ), 'body' => wp_json_encode( $body ) ) );
+		$url  = 'https://graph.facebook.com/' . rawurlencode( $s['api'] ) . '/' . $s['pixel'] . '/events?access_token=' . rawurlencode( $s['token'] );
+		$args = array( 'timeout' => 10, 'headers' => array( 'Content-Type' => 'application/json' ), 'body' => wp_json_encode( $body ) );
+		if ( $wait ) {
+			$r = wp_remote_post( $url, $args );
+			fika_meta_count( $r, count( $body['data'] ) );
+			return $r;
+		}
+		// not waiting: the visitor gets their answer first, then the server sends and waits for Meta's answer
+		// (a quick "fire and forget" send could be lost on a slow connection, and Meta counted those as missing)
+		static $later = null;
+		if ( null === $later ) {
+			$later = array();
+			register_shutdown_function( function () use ( &$later, $url, $args ) {
+				if ( function_exists( 'litespeed_finish_request' ) ) {
+					litespeed_finish_request();
+				} elseif ( function_exists( 'fastcgi_finish_request' ) ) {
+					fastcgi_finish_request();
+				}
+				$b         = json_decode( $args['body'], true );
+				$b['data'] = $later;
+				$args['body'] = wp_json_encode( $b );
+				fika_meta_count( wp_remote_post( $url, $args ), count( $later ) );
+			} );
+		}
+		foreach ( $body['data'] as $e ) {
+			$later[] = $e;
+		}
+		return true;
+	}
+	// daily count of events Meta accepted / refused (WooCommerce > Meta pixel; GET /wp-json/fika/v1/meta-stats)
+	function fika_meta_count( $r, $n ) {
+		$ok    = ! is_wp_error( $r ) && 200 === (int) wp_remote_retrieve_response_code( $r );
+		$stats = get_option( 'fika_meta_stats', array() );
+		$stats = is_array( $stats ) ? $stats : array();
+		$day   = wp_date( 'Y-m-d' );
+		if ( ! isset( $stats[ $day ] ) ) {
+			$stats[ $day ] = array( 'ok' => 0, 'fail' => 0, 'error' => '' );
+		}
+		$stats[ $day ][ $ok ? 'ok' : 'fail' ] += $n;
+		if ( ! $ok ) {
+			$stats[ $day ]['error'] = substr( is_wp_error( $r ) ? $r->get_error_message() : wp_remote_retrieve_response_code( $r ) . ' ' . wp_remote_retrieve_body( $r ), 0, 300 );
+		}
+		krsort( $stats );
+		update_option( 'fika_meta_stats', array_slice( $stats, 0, 14, true ), false );
 	}
 	function fika_meta_event( $name, $id, $data, $user, $url ) {
 		return array_filter( array(
@@ -238,6 +282,14 @@ add_action( 'rest_api_init', function () {
 	) );
 } );
 
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'fika/v1', '/meta-stats', array(
+		'methods'             => 'GET',
+		'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
+		'callback'            => function () { return get_option( 'fika_meta_stats', array() ); },
+	) );
+} );
+
 // ---------- Purchase from the server ----------
 // When the order is placed (the shopper's own request): keep their browser details on the order, then send in the
 // background so the checkout is not slowed down.
@@ -333,6 +385,11 @@ function fika_meta_screen() {
 		</table>
 		<p><button class="button button-primary">Save</button> <button class="button" name="send_test" value="1">Save and send a test event</button></p>
 	</form>
+	<h2>Server events sent to Meta (Conversions API)</h2>
+	<table class="widefat striped" style="max-width:640px"><thead><tr><th>Day</th><th>Accepted by Meta</th><th>Refused</th><th>Last problem</th></tr></thead><tbody>
+	<?php $fika_st = get_option( 'fika_meta_stats', array() ); if ( ! $fika_st ) : ?><tr><td colspan="4">Nothing counted yet.</td></tr><?php endif; ?>
+	<?php foreach ( (array) $fika_st as $d => $v ) : ?><tr><td><?php echo esc_html( $d ); ?></td><td><?php echo (int) $v['ok']; ?></td><td><?php echo (int) $v['fail']; ?></td><td><?php echo esc_html( $v['error'] ); ?></td></tr><?php endforeach; ?>
+	</tbody></table>
 </div>
 	<?php
 }
