@@ -6,7 +6,8 @@
  * follows it (statuses in fika_rtd_statuses()):
  * - Delivered                                       -> order Completed (counts as delivered on Fika customers + rewards)
  * - Delivered_failed, Return_assign_to_merchant      -> order Failed
- * - everything else (pending, pickup, warehouse, delivery man assigned, return to warehouse, ...) -> order Processing
+ * - everything else, including statuses not in the list (pending, pickup, warehouse, delivery man assigned,
+ *   return to warehouse, checking with merchant, ...) -> order Processing
  * Cancelled and refunded orders are left alone. The RT column in Orders shows RT's exact step and tracking ID.
  * Each update adds a private order note. No order emails (customer or shop) are sent for RT's status changes.
  * A parcel is linked to its order by (1) its tracking ID saved on the order (box on the order page), or (2) the Fika
@@ -131,7 +132,8 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 		$order->update_meta_data( '_fika_rtd_status', $slug );
 		$order->update_meta_data( '_fika_rtd_time', $when );
 		$map = fika_rtd_statuses();
-		$to  = isset( $map[ $slug ] ) ? $map[ $slug ][1] : '';
+		// a status not in the list (e.g. "checking with merchant") counts as still in progress
+		$to  = isset( $map[ $slug ] ) ? $map[ $slug ][1] : 'processing';
 		$cur = $order->get_status();
 		// RT decides the status, except on orders that were cancelled or refunded here
 		if ( $to && $to !== $cur && in_array( $cur, array( 'pending', 'processing', 'on-hold', 'completed', 'failed', 'undelivered' ), true ) ) {
