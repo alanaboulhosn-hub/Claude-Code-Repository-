@@ -3,11 +3,12 @@
  * Fika: RT Deliveries parcel tracking (WooCommerce > RT Deliveries).
  * Parcels are still created by hand in the RT dashboard. RT sends every status change to our webhook
  * (POST /wp-json/fika/v1/rtd-webhook, header RTD-Signature = the secret shown on the settings page), and the order
- * follows it:
- * - Delivered                                  -> order Completed (counts as delivered on Fika customers + rewards)
- * - Return_to_warehouse / Return_assign_to_merchant -> order Undelivered
- * - anything else (picked up, out for delivery, attempt failed, ...) -> order unchanged; the RT status is shown
- * Each update adds a private order note. No customer emails are sent by this snippet.
+ * follows it (statuses in fika_rtd_statuses()):
+ * - Delivered                                       -> order Completed (counts as delivered on Fika customers + rewards)
+ * - Delivered_failed, Return_assign_to_merchant      -> order Failed
+ * - everything else (pending, pickup, warehouse, delivery man assigned, return to warehouse, ...) -> order Processing
+ * Cancelled and refunded orders are left alone. The RT column in Orders shows RT's exact step and tracking ID.
+ * Each update adds a private order note. No order emails (customer or shop) are sent for RT's status changes.
  * A parcel is linked to its order by (1) its tracking ID saved on the order (box on the order page), or (2) the Fika
  * order number typed in RT's "Invoice no" field. Parcels that match nothing wait under "Parcels to link" on the
  * settings page, with suggested orders of the same amount; one click links them and applies their status.
@@ -18,20 +19,20 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 	// RT status slug => array( label, order status to set or '' )
 	function fika_rtd_statuses() {
 		return array(
-			'Pending'                   => array( 'Parcel created', '' ),
-			'Pickup_Assign'             => array( 'Pickup assigned', '' ),
-			'Pickup_Failed'             => array( 'Pickup failed', '' ),
-			'Collected_By_Driver'       => array( 'Picked up by driver', '' ),
-			'Collected_By_Pickup'       => array( 'Picked up', '' ),
-			'Received_Warehouse'        => array( 'At RT warehouse', '' ),
-			'Transfer_to_hub'           => array( 'On the way to hub', '' ),
-			'Received_by_hub'           => array( 'At RT hub', '' ),
-			'Delivery_Man_Assign'       => array( 'Out for delivery', '' ),
-			'Delivery_Re_Schedule'      => array( 'Delivery rescheduled', '' ),
-			'Delivered_failed'          => array( 'Delivery attempt failed', '' ),
+			'Pending'                   => array( 'Parcel created', 'processing' ),
+			'Pickup_Assign'             => array( 'Pickup assigned', 'processing' ),
+			'Pickup_Failed'             => array( 'Pickup failed', 'processing' ),
+			'Collected_By_Driver'       => array( 'Picked up by driver', 'processing' ),
+			'Collected_By_Pickup'       => array( 'Collected by pickup', 'processing' ),
+			'Received_Warehouse'        => array( 'At RT warehouse', 'processing' ),
+			'Transfer_to_hub'           => array( 'On the way to hub', 'processing' ),
+			'Received_by_hub'           => array( 'At RT hub', 'processing' ),
+			'Delivery_Man_Assign'       => array( 'Delivery man assigned', 'processing' ),
+			'Delivery_Re_Schedule'      => array( 'Delivery rescheduled', 'processing' ),
+			'Return_to_warehouse'       => array( 'Return to warehouse', 'processing' ),
 			'Delivered'                 => array( 'Delivered', 'completed' ),
-			'Return_to_warehouse'       => array( 'Returning to RT', 'undelivered' ),
-			'Return_assign_to_merchant' => array( 'Returned to us', 'undelivered' ),
+			'Delivered_failed'          => array( 'Delivery failed', 'failed' ),
+			'Return_assign_to_merchant' => array( 'Return received by merchant', 'failed' ),
 		);
 	}
 	function fika_rtd_label( $slug ) {
@@ -132,13 +133,12 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 		$map = fika_rtd_statuses();
 		$to  = isset( $map[ $slug ] ) ? $map[ $slug ][1] : '';
 		$cur = $order->get_status();
-		$ok  = array(
-			'completed'   => array( 'pending', 'processing', 'on-hold', 'undelivered' ),
-			'undelivered' => array( 'pending', 'processing', 'on-hold' ),
-		);
-		if ( $to && $to !== $cur && in_array( $cur, $ok[ $to ], true ) ) {
+		// RT decides the status, except on orders that were cancelled or refunded here
+		if ( $to && $to !== $cur && in_array( $cur, array( 'pending', 'processing', 'on-hold', 'completed', 'failed', 'undelivered' ), true ) ) {
 			$order->save();
+			$GLOBALS['fika_rtd_changing'] = true;
 			$order->update_status( $to, $note );
+			$GLOBALS['fika_rtd_changing'] = false;
 			return 'status:' . $to;
 		}
 		$order->save();
@@ -204,6 +204,14 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 		}
 		fika_rtd_log( $tracking . ': linked to order #' . $order->get_order_number() );
 	}
+}
+
+// no order emails when the status change comes from RT (e.g. Failed -> Processing would re-send "Thanks for your order"
+// and "New order"); the change is in the order note and the RT column
+foreach ( array( 'new_order', 'failed_order', 'cancelled_order', 'customer_processing_order', 'customer_completed_order', 'customer_on_hold_order', 'customer_failed_order' ) as $fika_rtd_mail ) {
+	add_filter( 'woocommerce_email_enabled_' . $fika_rtd_mail, function ( $on ) {
+		return empty( $GLOBALS['fika_rtd_changing'] ) ? $on : false;
+	}, 99 );
 }
 
 // ---------- the webhook ----------
@@ -329,7 +337,7 @@ add_action( 'admin_menu', function () {
 				<h2>What each RT status does</h2>
 				<table>
 					<?php foreach ( fika_rtd_statuses() as $slug => $s ) : ?>
-						<tr><td><?php echo esc_html( $s[0] ); ?></td><td class="muted"><?php echo 'completed' === $s[1] ? 'Order → <b>Completed</b> (counts as delivered)' : ( 'undelivered' === $s[1] ? 'Order → <b>Undelivered</b>' : 'Shown on the order, status unchanged' ); ?></td></tr>
+						<tr><td><?php echo esc_html( $s[0] ); ?></td><td class="muted">Order → <b><?php echo esc_html( wc_get_order_status_name( $s[1] ) ); ?></b><?php echo 'completed' === $s[1] ? ' (counts as delivered)' : ''; ?></td></tr>
 					<?php endforeach; ?>
 				</table>
 			</div>
