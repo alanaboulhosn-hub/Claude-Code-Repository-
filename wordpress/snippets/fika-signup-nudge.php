@@ -2,10 +2,9 @@
 /**
  * Fika: nudges to create an account (visitors who are not signed in only).
  * - Home page: a speech-bubble "cloud" next to the account icon (the person waves while it shows).
- *     5 seconds after the page opens: "Join Fika Club" (the reward ladder) when the bag is empty, or "Make every gram
- *     count — the 300 g in your bag starts your swim to sweet rewards" when it already has sweets (follows the bag
- *     live). Adding the first sweet does not bring it up: that is when the Fika Club popup (fika-club-invite.php)
- *     opens, and the popup closes the cloud if it is still showing.
+ *     * the first time something goes into the bag: "Make every gram count — sign up and the 300 g in your bag
+ *       starts your swim to Fika rewards" (the grams follow the bag live);
+ *     * otherwise after 20 seconds of browsing: "Join the Fika crew".
  *   Perks: track orders, member-only offers, bundles. Blue "Sign up, it's free" button + "Log in" link.
  *   At most once per visit; closing it (×) hides it for 7 days; it fades by itself after 14 s (10 s on phones).
  * - Checkout: a reminder card above the form. "Create my account" ticks WooCommerce's own
@@ -147,12 +146,17 @@ add_action( 'wp_footer', function () {
 	window.addEventListener('resize', place);
 	document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && cloud) hide(true); });
 
-	// while it shows, the words follow the bag (the first sweet does not bring the cloud up: the popup opens then)
-	function onBag() { if (cloud) words(); }
+	// the first time something goes into the bag
+	function onBag() {
+		var g = grams();
+		if (cloud) { words(); return; }
+		if (g > startG) setTimeout(function () { show('bag'); }, 900);
+		startG = Math.min(startG, g);
+	}
 	window.addEventListener('fikabag', function () { setTimeout(onBag, 0); });
 	setInterval(onBag, 700);
-	// 5 seconds after the page opens: the bag version if there are sweets in it, otherwise the browsing version
-	setTimeout(function () { show(grams() > 0 ? 'bag' : 'browse'); }, 5000);
+	// or after 20 seconds of browsing
+	setTimeout(function () { show(grams() > 0 ? 'bag' : 'browse'); }, 20000);
 })();
 </script>
 	<?php

@@ -1418,3 +1418,6 @@ choice). Snippet 91, fika-club.php (new):
 - Fika Club invite popup switched OFF entirely (owner, 9 Oct: too many Fika Club asks in one visit). FIKA_INVITE_LIVE
   false in fika-club-invite.php (96); the snippet stays active only to mark signed-in browsers (fika_member). What a
   guest sees now: the speech-bubble cloud 5 s after landing (A / B) and the "Make this order count" card at checkout.
+- Sign-up cloud timing put back as it was before 9 Oct (owner): first sweet in the bag -> version B ~0.9 s later, or
+  after 20 s of browsing -> version A (B if the bag has sweets). fika-signup-nudge.php restored from 351b77f^.
+  Checked live on iPhone + desktop: no cloud at 6 s or 15 s, B after the first sweet, A at 22 s, no popup.
