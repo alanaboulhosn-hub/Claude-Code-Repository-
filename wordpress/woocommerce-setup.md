@@ -1321,3 +1321,6 @@ choice). Snippet 91, fika-club.php (new):
 - Changed again the same day (owner): **$2.80 per 100 g**, **$14.00 per 500 g** Ready Mix bag. Rewards follow the grams:
   100 g = $2.80, 200 g = $5.60, 400 g = $11.20, 1 kg = $28 (FIKA_FREE_KG_VALUE fallback 28). Page texts and the mix
   pattern fallbacks say 2.80 / 14.
+- Fix (full test, 2026-10-09): old Builder product links (/product-page/peaches, /product-page/sour-mix) were read by
+  WordPress as the photo's page and redirected to the .jpg. fika-store-pages.php (38) now sends /product-page/* and
+  /category/* to Mix your own (names ending in "mix": Ready Mix), also when WordPress reads them as a photo's page.

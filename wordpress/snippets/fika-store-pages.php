@@ -54,12 +54,15 @@ add_filter( 'wp_sitemaps_taxonomies', function ( $tax ) {
 } );
 
 // ---------- old Website Builder addresses go to our pages ----------
-// Only on a missing page, so a real page with the same address always wins. 302 so it is easy to change later.
+// Only on a missing page (or an old product link read as a photo's page), so a real page with the same address
+// always wins. 302 so it is easy to change later.
 add_action( 'template_redirect', function () {
-	if ( ! is_404() ) {
+	$path = strtolower( trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' ) );
+	// an old product link can also be read as a photo's page (/product-page/peaches = the "peaches" photo)
+	$old  = (bool) preg_match( '#^(product-page|category)/#', $path );
+	if ( ! is_404() && ! ( $old && is_attachment() ) ) {
 		return;
 	}
-	$path = strtolower( trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' ) );
 	$map  = array(
 		'about'        => '/about-us/',
 		'contact'      => '/about-us/',
@@ -72,6 +75,11 @@ add_action( 'template_redirect', function () {
 		'all-products' => '/mix-your-own/',
 		'home'         => '/',
 	);
+	// old product and category links (/product-page/peaches, /category/...): WordPress would otherwise guess a
+	// match and send the visitor to the candy's photo file
+	if ( ! isset( $map[ $path ] ) && preg_match( '#^(product-page|category)/([a-z0-9-]+)#', $path, $m ) ) {
+		$map[ $path ] = ( preg_match( '/(^|-)mix$/', $m[2] ) && 'mix-your-own' !== $m[2] ) ? '/ready-mix/' : '/mix-your-own/';
+	}
 	if ( isset( $map[ $path ] ) ) {
 		wp_safe_redirect( home_url( $map[ $path ] ), 302 );
 		exit;
