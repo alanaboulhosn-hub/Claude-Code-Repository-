@@ -1316,3 +1316,5 @@ choice). Snippet 91, fika-club.php (new):
   FIKA_FREE_KG_VALUE fallback 27.5). Codes claimed before keep their old value ($2.50 / $5 / $10 / $25).
 - Checked live on desktop and iPhone 14: every page shows only $2.75 / $13.75; a bag of 100 g + one Ready Mix = $16.50
   at checkout (no order placed).
+- Categories (2026-10-09, owner): BUBS Forest Berry Ovals (121) moved Sour -> Sweet; BUBS Bubblegum Skull (120) was
+  already Sour. Filters now Sweet 14 / Sour 14 (checked on the live Mix your own page).
