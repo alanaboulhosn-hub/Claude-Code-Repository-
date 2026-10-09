@@ -61,6 +61,7 @@ add_action( 'wp_footer', function () {
 	function ss(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
 	function allowed() {
 		if (ss(SEEN)) return false;
+		if (ss('fika_invite_shown')) return false; // the Fika Club invite popup showed on this visit (fika-club-invite.php)
 		var c = +ls(CLOSED) || 0;
 		return !c || Date.now() - c > WEEK;
 	}

@@ -1340,3 +1340,17 @@ choice). Snippet 91, fika-club.php (new):
 - Back end: REST lists 0.6-2.5 s; WP 7.1.3, WC 11.1.2, PHP 8.3, all plugins current; HPOS on; loopback, HTTPS,
   page cache good. Site Health "background updates disabled" = Hostinger manages updates (not changed).
 - Clean-up: 12 saved test bags (@example.com) removed with their reminders; no test orders, customers or temp snippets.
+
+## Fika Club invite popup (snippet 96, `snippets/fika-club-invite.php`) — 2026-10-09, PREVIEW ONLY
+- Guests on a browser never signed in: visit 1, then every 3rd visit (1, 4, 7, ...; new visit after 30 min away;
+  per browser, localStorage fika_visits). First page of the visit only (home, Mix your own, Ready Mix, About);
+  never checkout / My account; counted but not shown when the page opens another popup (?fika_order, ?fika_club,
+  ?fika_bag, ?bag=open).
+- Any signed-in page view marks the browser (localStorage fika_member) for good; "Already a member? Log in" marks it
+  too and opens /my-account/#login. "Join Fika Club, it's free" opens /my-account/#register.
+- Content: "Fika Club · free to join", "Swim your way to free sweets!", animated fish lane with the 3 / 6 / 10 / 15 kg
+  stops, reward tiles (100 g / 200 g / 400 g / a whole kilo), mystery-taste spins + past orders count.
+- The sign-up cloud (fika-signup-nudge.php) stays away on a visit where the popup showed (sessionStorage flag).
+- Not live: FIKA_INVITE_LIVE false. ?fika_invite=preview always shows it; ?fika_invite=test runs the real rules.
+  Rules tested on the live site (iPhone 14): all pass. Going live = set FIKA_INVITE_LIVE to true (snippet update
+  also clears the page cache).
