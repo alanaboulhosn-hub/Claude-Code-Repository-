@@ -774,6 +774,10 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
 .mx-fab b { background:#fff; color:var(--fika-blue); padding:2px 9px; font-weight:600; }
 .mx-fab.bump { animation:mxBump .45s ease; }
 .mx-fab { display:none !important; } /* the old floating "Bag 0 kg" button: hidden from the first paint (the header bag icon opens the bag) */
+.mx-loading .mx-card * { visibility:hidden; } /* real products are on their way: same-size pink boxes, no placeholder names */
+.mx-loading .mx-card .mx-img { visibility:visible; background:linear-gradient(100deg,#fbe3ee 30%,#fff4f9 50%,#fbe3ee 70%); background-size:200% 100%; animation:mxShim 1.2s linear infinite; }
+.mx-loading .mx-card .mx-img * { visibility:hidden; }
+@keyframes mxShim { to { background-position:-200% 0; } }
 @keyframes mxBump { 0%{transform:scale(1)} 40%{transform:scale(1.1)} 100%{transform:scale(1)} }
 .mx-veil { position:fixed; inset:0; background:rgba(10,25,60,.45); z-index:1003; opacity:0; pointer-events:none; transition:opacity .3s; }
 .mx-veil.on { opacity:1; pointer-events:auto; }
@@ -1084,13 +1088,14 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
   function fitAll() { try { Array.prototype.forEach.call(document.querySelectorAll('.mx-page'), fitX); place(); } catch (e) {} }
   window.addEventListener('resize', fitAll); window.addEventListener('load', fitAll);
   setTimeout(fitAll, 400); setTimeout(fitAll, 1500);
+  grid.classList.add('mx-loading'); var ready = function () { grid.classList.remove('mx-loading'); }; setTimeout(ready, 10000);
   render(); fitAll(); place(); setTimeout(place, 500);
 
   if (AUTO_FROM_WOOCOMMERCE && window.fetch) {
     fetch('/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc', { credentials: 'same-origin' })
       .then(function (r) { if (!r.ok) throw new Error('no store api'); return r.json(); })
       .then(function (list) {
-        if (!list || !list.length) return;
+        if (!list || !list.length) { ready(); return; }
         var ta = document.createElement('textarea');
         var dec = function (t) { ta.innerHTML = t || ''; return ta.value; };
         var items = list.filter(function (w) { return !(w.categories || []).some(function (c) { return /ready/i.test(c.slug + ' ' + c.name); }); }).map(function (w) {
@@ -1101,13 +1106,13 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
           return { id: 'w' + w.id, name: dec(w.name), gelatin: labels.indexOf(GELATIN_WORD) !== -1 && !neg,
                    img: w.images && w.images[0] ? w.images[0].src : '', srcset: w.images ? (w.images[0] ? (w.images[0].srcset || '') : '') : '', price: price || PRICE_100G, hue: (w.id * 47) % 360 };
         });
-        if (!items.length) return;
-        PRODUCTS = items;
+        if (!items.length) { ready(); return; }
+        PRODUCTS = items; ready();
         Object.keys(bag).forEach(function (k) { if (/^[pw]/.test(k) && !byId(k).name) delete bag[k]; });
         save(); render(); place();
         try { console.log('[FIKA mix] loaded ' + items.length + ' products from WooCommerce'); } catch (e) {}
       })
-      .catch(function () { try { console.log('[FIKA mix] WooCommerce not found, showing the list in the script'); } catch (e) {} });
+      .catch(function () { ready(); try { console.log('[FIKA mix] WooCommerce not found, showing the list in the script'); } catch (e) {} });
   }
   try { console.log('[FIKA mix page] ready'); } catch (e) {}
   } catch (err) { try { console.log('[FIKA mix page] error', err); } catch (e) {} }
@@ -1156,6 +1161,10 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
 .mx-fab b { background:#fff; color:var(--fika-blue); padding:2px 9px; font-weight:600; }
 .mx-fab.bump { animation:mxBump .45s ease; }
 .mx-fab { display:none !important; } /* the old floating "Bag 0 kg" button: hidden from the first paint (the header bag icon opens the bag) */
+.mx-loading .mx-card * { visibility:hidden; } /* real products are on their way: same-size pink boxes, no placeholder names */
+.mx-loading .mx-card .mx-img { visibility:visible; background:linear-gradient(100deg,#fbe3ee 30%,#fff4f9 50%,#fbe3ee 70%); background-size:200% 100%; animation:mxShim 1.2s linear infinite; }
+.mx-loading .mx-card .mx-img * { visibility:hidden; }
+@keyframes mxShim { to { background-position:-200% 0; } }
 @keyframes mxBump { 0%{transform:scale(1)} 40%{transform:scale(1.1)} 100%{transform:scale(1)} }
 .mx-veil { position:fixed; inset:0; background:rgba(10,25,60,.45); z-index:1003; opacity:0; pointer-events:none; transition:opacity .3s; }
 .mx-veil.on { opacity:1; pointer-events:auto; }
@@ -1312,6 +1321,7 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
   function fitAll() { try { fitX($('rmPage')); place(); } catch (e) {} }
   window.addEventListener('resize', fitAll); window.addEventListener('load', fitAll);
   setTimeout(fitAll, 400); setTimeout(fitAll, 1500);
+  grid.classList.add('mx-loading'); var ready = function () { grid.classList.remove('mx-loading'); }; setTimeout(ready, 10000);
   render(); fitAll();
 
   if (AUTO_FROM_WOOCOMMERCE && window.fetch) {
@@ -1326,11 +1336,11 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
           return { id: 'rw' + w.id, name: dec(w.name), gelatin: labels.indexOf('gelatin') !== -1 && !neg,
                    img: w.images && w.images[0] ? w.images[0].src : '', srcset: w.images ? (w.images[0] ? (w.images[0].srcset || '') : '') : '', price: (w.prices ? parseInt(w.prices.price, 10) / Math.pow(10, minor) : 14) || 14, hue: (w.id * 61) % 360 };
         });
-        if (!items.length) return;
-        PRODUCTS = items; render(); place();
+        if (!items.length) { ready(); return; }
+        PRODUCTS = items; ready(); render(); place();
         try { console.log('[FIKA ready-mix] loaded ' + items.length + ' products from WooCommerce'); } catch (e) {}
       })
-      .catch(function () { try { console.log('[FIKA ready-mix] WooCommerce not found, showing the list in the script'); } catch (e) {} });
+      .catch(function () { ready(); try { console.log('[FIKA ready-mix] WooCommerce not found, showing the list in the script'); } catch (e) {} });
   }
   try { console.log('[FIKA ready-mix] ready'); } catch (e) {}
   } catch (err) { try { console.log('[FIKA ready-mix] error', err); } catch (e) {} }

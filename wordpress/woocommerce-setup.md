@@ -1387,3 +1387,12 @@ choice). Snippet 91, fika-club.php (new):
   button (#mxFab, in the mix pattern 241) was only hidden by a rule near the end of the page (fika-home-cartoons.php),
   so it showed for a split second while the page loaded. The mix pattern itself now hides it from the first paint.
   Checked on phone + desktop with a slow connection: the button is display:none from the moment it exists.
+- Load-time hunt (9 Oct, all pages, phone + desktop, slow connection):
+  - Fixed: the shop grids first drew the script's placeholder list ("Sample candy 5-8", "Ready Sweet & Sour Mix" with no
+    photos) for ~0.5 s before the real products. The mix pattern (241) now keeps the grids as same-size shimmer boxes
+    (class mx-loading, names / prices / buttons hidden) until the products arrive; the placeholder list shows only if
+    the Store API fails (or after 10 s).
+  - Improved: fika-speed.php (23) requests the Bebas Neue / Fanwood Text / Outfit Google Fonts CSS from the <head>
+    (non-blocking, same URLs as the @imports in the patterns), so the plain-font moment is shorter.
+  - Checked, fine: no layout shift on phone pages; small shifts on desktop Mix your own (0.03, the filter chips) and
+    the 404 page (0.05), both well under Google's 0.1 "good" limit. No script errors. Journey regression: all pass.
