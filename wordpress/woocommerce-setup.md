@@ -1324,3 +1324,19 @@ choice). Snippet 91, fika-club.php (new):
 - Fix (full test, 2026-10-09): old Builder product links (/product-page/peaches, /product-page/sour-mix) were read by
   WordPress as the photo's page and redirected to the .jpg. fika-store-pages.php (38) now sends /product-page/* and
   /category/* to Mix your own (names ending in "mix": Ready Mix), also when WordPress reads them as a photo's page.
+
+## Full test — 2026-10-09 (after the $2.80 / $14 prices)
+- Crawl, desktop + phone: 8 pages, every link answers, no failed requests, no script errors. 34 product addresses
+  open the shop (product pages closed for now, by design); /shop, /store, /about, /contact, /category/*,
+  /product-page/* redirect to our pages (product-page fix above); missing pages show the Fika 404; sitemap + robots OK.
+- Customer journey (qa2/journey.js, scratchpad) on desktop 1920, laptop 1366, iPad, iPhone 14, 360 px phone: all checks
+  pass (34-35 each): menu, filters (Sweet 14 / Sour 14 / Gelatin-free 24 / All 28), search, + / - / remove, Ready Mix,
+  bag drawer totals, checkout lines, Fika Club box, delivery $5 inside / $6 outside Beirut (about 3.6 s for
+  WooCommerce to update the fee; server answers in 0.3 s), form valid up to Place order (request stopped, no order),
+  before-you-go popup, My account (log in, Join Fika Club, wrong password message, lost password), contact links.
+- Meta: browser events PageView, ViewContent, Search, AddToCart, InitiateCheckout, Contact all fire with their server
+  copy (held back in the test). Conversions API Purchase accepted by Meta (HTTP 200) for #1456 and #1457; browser and
+  server Purchase share the event ID purchase.<order id>.
+- Back end: REST lists 0.6-2.5 s; WP 7.1.3, WC 11.1.2, PHP 8.3, all plugins current; HPOS on; loopback, HTTPS,
+  page cache good. Site Health "background updates disabled" = Hostinger manages updates (not changed).
+- Clean-up: 12 saved test bags (@example.com) removed with their reminders; no test orders, customers or temp snippets.
