@@ -357,7 +357,7 @@ add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon ) {
 			continue;
 		}
 		if ( $mine !== fika_swim_is_code( $other ) ) {
-			throw new Exception( $mine ? 'Fika rewards cannot be combined with other discount codes. Remove the other code to use your reward.' : 'This code cannot be combined with your Fika rewards. Remove the rewards to use it.' );
+			throw new Exception( $mine ? 'Fika Club rewards cannot be combined with other discount codes. Remove the other code to use your reward.' : 'This code cannot be combined with your Fika Club rewards. Remove the rewards to use it.' );
 		}
 	}
 	return $valid;
@@ -463,10 +463,10 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 		$wid   = esc_attr( $where );
 		ob_start();
 		?>
-<section class="fika-swim fika-swim-<?php echo $wid; ?>" data-swim="<?php echo esc_attr( wp_json_encode( $data ) ); ?>" aria-label="Your Fika sweet rewards">
+<section class="fika-swim fika-swim-<?php echo $wid; ?>" data-swim="<?php echo esc_attr( wp_json_encode( $data ) ); ?>" aria-label="Your Fika Club rewards">
 	<div class="fs-head">
 		<div class="fs-intro">
-			<p class="fs-kicker"><?php echo $s['lap'] > 1 ? 'Lap ' . (int) $s['lap'] . ' &middot; ' : ''; ?>Fika rewards</p>
+			<p class="fs-kicker"><?php echo $s['lap'] > 1 ? 'Lap ' . (int) $s['lap'] . ' &middot; ' : ''; ?>Fika Club</p>
 			<h2 class="fs-title">Swim to your sweet rewards</h2>
 			<p class="fs-sub"></p>
 			<p class="fs-legend"></p>
@@ -1032,13 +1032,13 @@ add_action( 'wp_footer', function () {
 		note.innerHTML = ''; note.classList.toggle('is-on', nx ? (g > 0 ? toCp <= 0 : false) : false);
 		function add(t, bold) { var x = bold ? document.createElement('b') : document.createTextNode(t); if (bold) x.textContent = t; note.appendChild(x); }
 		if (nx ? (g > 0 ? (toCp <= 0 ? nx[2] === 0 : false) : false) : false) {
-			add('This bag reaches ' + cpKg + ' kg: '); add('a mystery spin', true); add(' is waiting on your rewards lane. Spin it and 50 g of a surprise candy join this order, free.');
+			add('This bag reaches ' + cpKg + ' kg: '); add('a mystery spin', true); add(' is waiting on your Fika Club lane. Spin it and 50 g of a surprise candy join this order, free.');
 		} else if (nx ? (g > 0 ? toCp <= 0 : false) : false) {
 			add('This bag reaches ' + cpKg + ' kg and unlocks '); add(low(nx[1]), true); add('! Tap “Use” at checkout and they come off this order.');
 		} else if (nx ? (g > 0 ? toCp <= 1000 : false) : false) {
 			add('Add '); add(amt(toCp) + ' more', true); add(' to reach ' + cpKg + ' kg and get '); add(low(nx[1]), true); add(' in this order.');
 		} else if (waiting) {
-			add(waiting === 1 ? 'You have a sweet reward waiting. Use it at checkout whenever you like.' : 'You have ' + waiting + ' sweet rewards waiting. Choose which to use at checkout.');
+			add(waiting === 1 ? 'You have a Fika Club reward waiting. Use it at checkout whenever you like.' : 'You have ' + waiting + ' Fika Club rewards waiting. Choose which to use at checkout.');
 		}
 	}
 	show();

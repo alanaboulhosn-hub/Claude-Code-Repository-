@@ -93,13 +93,13 @@ add_action( 'wp_footer', function () {
 	function words() {
 		if (!cloud) return;
 		var g = grams(), bag = kind === 'bag' || g > 0;
-		cloud.querySelector('h3').textContent = bag ? 'Make every gram count' : 'Join the Fika crew';
+		cloud.querySelector('h3').textContent = bag ? 'Make every gram count' : 'Join Fika Club';
 		var p = cloud.querySelector('p');
 		if (bag) {
-			p.innerHTML = 'Sign up and the <b class="fkc-g"></b> in your bag starts your swim to <b>sweet rewards</b>: 100 g free at 3 kg, up to a whole kilo at 15 kg.';
+			p.innerHTML = 'Join Fika Club and the <b class="fkc-g"></b> in your bag starts your swim to <b>sweet rewards</b>: 100 g free at 3 kg, up to a whole kilo at 15 kg.';
 			p.querySelector('.fkc-g').textContent = gtext(g);
 		} else {
-			p.innerHTML = 'Create a free account and every order fills your fish&rsquo;s lane: <b>100 g free at 3 kg, 200 g at 6 kg, 400 g at 10 kg and a whole kilo at 15 kg</b>.';
+			p.innerHTML = 'Join Fika Club, it&rsquo;s free: every order fills your fish&rsquo;s lane: <b>100 g free at 3 kg, 200 g at 6 kg, 400 g at 10 kg and a whole kilo at 15 kg</b>.';
 		}
 	}
 	function hide(closedByUser) {
@@ -127,7 +127,7 @@ add_action( 'wp_footer', function () {
 		cloud.innerHTML = '<button type="button" class="fkc-x" aria-label="Close">&times;</button>' +
 			'<div class="fkc-top"><span class="fkc-fish">' + FISH + '</span><h3></h3></div><p></p>' +
 			'<ul><li><i>' + IC.box + '</i>Track your orders</li><li><i>' + IC.gift + '</i>Member-only offers</li><li><i>' + IC.candy + '</i>Bundles before anyone else</li></ul>' +
-			'<a class="fkc-go" href="' + SIGNUP + '">Sign up, it&rsquo;s free</a>' +
+			'<a class="fkc-go" href="' + SIGNUP + '">Join Fika Club, it&rsquo;s free</a>' +
 			'<span class="fkc-in">Already have an account? <a href="' + LOGIN + '">Log in</a></span>';
 		header.appendChild(cloud);
 		words();
@@ -212,7 +212,7 @@ add_action( 'wp_footer', function () {
 	}
 	function gtext(g) { return g >= 1000 ? (Math.round(g / 100) / 10) + ' kg' : g + ' g'; }
 	function box() {
-		var lab = [].slice.call(document.querySelectorAll('.wc-block-checkout label, .wc-block-components-checkbox label')).filter(function (l) { return /create an account/i.test(l.textContent); })[0];
+		var lab = [].slice.call(document.querySelectorAll('.wc-block-checkout label, .wc-block-components-checkbox label')).filter(function (l) { return /create (an|a fika club) account/i.test(l.textContent); })[0];
 		return lab ? (lab.querySelector('input[type=checkbox]') || document.getElementById(lab.getAttribute('for'))) : null;
 	}
 	function loginLink() {
@@ -227,12 +227,12 @@ add_action( 'wp_footer', function () {
 		var gEl;
 		if (on) {
 			card.classList.add('is-on');
-			card.querySelector('.fsc-title').textContent = 'Your account comes with this order';
+			card.querySelector('.fsc-title').textContent = 'Your Fika Club account comes with this order';
 			card.querySelector('.fsc-sub').innerHTML = 'Choose a password below and this <b class="fsc-g"></b> becomes your first stretch towards <b>sweet rewards</b>: 100 g free at 3 kg, up to a whole kilo at 15 kg.';
 		} else {
 			card.classList.remove('is-on');
 			card.querySelector('.fsc-title').textContent = 'Make this order count';
-			card.querySelector('.fsc-sub').innerHTML = 'Create a free account and this <b class="fsc-g"></b> starts your swim to <b>sweet rewards</b> (100 g free at 3 kg, up to a whole kilo at 15 kg). Track your orders, and get member-only offers and bundles.';
+			card.querySelector('.fsc-sub').innerHTML = 'Join Fika Club for free, and this <b class="fsc-g"></b> starts your swim to <b>sweet rewards</b> (100 g free at 3 kg, up to a whole kilo at 15 kg). Track your orders, and get member-only offers and bundles.';
 		}
 		gEl = card.querySelector('.fsc-g');
 		if (gEl) gEl.textContent = g ? gtext(g) : 'order';
@@ -243,7 +243,7 @@ add_action( 'wp_footer', function () {
 		card = document.createElement('div');
 		card.className = 'fika-signcard';
 		card.innerHTML = '<span class="fsc-fish">' + FISH + '</span><div class="fsc-text"><b class="fsc-title"></b><div class="fsc-sub"></div></div>' +
-			'<div class="fsc-acts"><button type="button" class="fsc-go">Create my account</button><span class="fsc-in">Already a member? <a class="fsc-login">Log in</a></span></div>';
+			'<div class="fsc-acts"><button type="button" class="fsc-go">Join Fika Club</button><span class="fsc-in">Already a member? <a class="fsc-login">Log in</a></span></div>';
 		anchor.parentNode.insertBefore(card, anchor.nextSibling);
 		card.querySelector('.fsc-go').addEventListener('click', function () {
 			var cb = box();

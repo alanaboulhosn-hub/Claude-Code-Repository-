@@ -781,7 +781,7 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
       <h2 class="fika-h2">How it works</h2>
       <div class="fa-steps">
         <div class="fa-step"><h3>Pick your sweets</h3><p><a href="/mix-your-own/">Mix your own</a> from <span class="fk-n">28</span> candies at $2.50 per 100 g, or choose a 500 g <a href="/ready-mix/">Ready Mix</a> bag for $12.50.</p></div>
-        <div class="fa-step"><h3>Check out</h3><p>Pick your delivery area and pay in cash when your sweets arrive. Create an account and every kilo swims you closer to a free one.</p></div>
+        <div class="fa-step"><h3>Check out</h3><p>Pick your delivery area and pay in cash when your sweets arrive. Join Fika Club and every kilo swims you closer to a free one.</p></div>
         <div class="fa-step"><h3>Enjoy your fika</h3><p>We deliver all over Lebanon (except Nabatieh and bordering cities), Monday to Saturday.</p></div>
       </div>
     </div>
@@ -1103,7 +1103,7 @@ body .fika-legal.fika-legal { width: 100vw !important; max-width: 100vw !importa
 <h2>What we collect, and why</h2>
 <ul>
 <li><strong>When you order:</strong> your name, phone number, email, delivery address and what you ordered. We use them to prepare and deliver your order, to call you about the delivery, and to email you your order confirmation.</li>
-<li><strong>If you create an account</strong> (optional): your first name, phone number, email and password (stored scrambled, we cannot read it). Your account keeps your past orders and the kilos delivered for the &ldquo;Swim to your rewards&rdquo; programme.</li>
+<li><strong>If you create an account</strong> (optional): your first name, phone number, email and password (stored scrambled, we cannot read it). Your account keeps your past orders and the kilos delivered for the Fika Club programme.</li>
 <li><strong>If you leave the checkout without ordering:</strong> once you have typed your email at the checkout, we keep that email and what was in your bag for up to 30 days, and may send you one reminder about an hour later. Never more than one every 7 days, never after you order, and each reminder has a link to stop them.</li>
 <li><strong>News from Fika:</strong> if you have not ordered in a while, we may email you what is new and, later, a discount code. Every one of these emails has an unsubscribe link, and unsubscribing does not affect your order emails.</li>
 <li><strong>The &ldquo;before you go&rdquo; question</strong> at the checkout: we count the answers, not who gave them.</li>

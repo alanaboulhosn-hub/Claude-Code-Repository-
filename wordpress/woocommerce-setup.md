@@ -1242,3 +1242,33 @@ Owner's rule: once per person, existing customers included. Snippet 9 (fika-exit
   carousel: REVIEW_CLIPS in build-shop-pages.py, then page 41 rebuilt and published (live copy matched git first).
   The carousel, dots and arrows work with 4 clips on phone and desktop.
 - The clip and its poster are still in the Media Library (and wordpress/pages/media/reviews/); nothing links to them.
+
+## Fika Club: email code at checkout + welcome popup (2026-10-09)
+
+The membership is called **Fika Club** everywhere a customer sees it; the My account tab stays "Rewards" (owner's
+choice). Snippet 91, fika-club.php (new):
+- **Checkout:** ticking "Create a Fika Club account" shows a box: "Email me my code" sends a 6-digit code
+  (subject "Your Fika Club code: 123456"). Typing it creates the account already confirmed (password and details
+  typed so far kept), joins every earlier order with that email, signs the customer in and reloads the checkout.
+  "Resend code" waits 60 s. "Skip, confirm later by email" keeps the old way (account made with the order, link by
+  email). Place order with the box ticked and neither done is held, and the box shakes with a hint.
+- **Welcome popup:** lane with delivered + on the way + this bag; "Spin now" for each mystery spin reached (the free
+  50 g joins the bag); "Use now" for each kilo reward reached (applied to the bag; it replaces the 10% FIKA10 code,
+  and the note shows both amounts); the next stop and how far it is.
+- **Limits:** codes last 15 min, 5 tries; 1 email a minute and 5 an hour per address, 15 an hour per visitor; codes
+  stored hashed. An email that already has an account is told to log in.
+- **Switch:** option fika_club_on (now 1). GET/POST /wp-json/fika/v1/club-status (admins) shows the preview link
+  and switches it; with it off only browsers with the preview cookie see it.
+- **Wording (snippets 10, 11, 16, pages about-us and privacy draft):** "Fika rewards" card -> "Fika Club";
+  sign-up nudges "Join Fika Club"; checkout box "Create a Fika Club account"; My account button "Join Fika Club";
+  welcome messages "Welcome to Fika Club"; reward clash messages. The confirmation email is now "Confirm your email
+  to join Fika Club" and shows "N earlier orders (x kg) are waiting to join your lane" when there are any.
+- **Tested** on the live site, Chrome engine, with no orders placed (checkout submissions blocked in the test
+  browser, Meta beacons blocked): desktop 1920x1080, laptop 1366x768, iPad, iPhone 14, Pixel 7 and a 360 px
+  Android. Cases: 1.6 kg returning customer (spin, free taste in the bag), 3.4 kg regular (spin + 100 g, with and
+  without FIKA10 on the bag), new customer, Place order held, wrong code, resend wait, skip, existing account,
+  My account sign-up email; then again as a normal visitor after switching on, plus a crawl of every page.
+  Test accounts, orders, reward codes, spins and the temp helper were deleted.
+- Fixed during testing: a stale "type your email" hint; "Use now" failed while FIKA10 was on the bag (now swapped);
+  focus outline on the popup.
+- Not tested: real Safari (only Chrome's engine is available here); the owner's iPhone check covers it.
