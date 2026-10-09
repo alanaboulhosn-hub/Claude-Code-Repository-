@@ -869,7 +869,7 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
 <script>
 (function () {
   try {
-  var PRICE_100G = 2.5, DELIVERY = 5, STEP = 100, CHECKOUT_URL = '/checkout/';
+  var PRICE_100G = 2.75, DELIVERY = 5, STEP = 100, CHECKOUT_URL = '/checkout/';
   // Pull candies automatically from WooCommerce (add a product in WordPress and it appears here).
   // Price of each product = price per 100g. A product tagged or categorised "pork gelatin" gets the blue tab.
   var AUTO_FROM_WOOCOMMERCE = true;
@@ -1230,9 +1230,9 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
   var AUTO_FROM_WOOCOMMERCE = true;   // reads products from the WooCommerce category with "ready" in its name or slug
   // ======== READY-MIX LIST (used until WooCommerce products exist). price = price of one 500g bag ========
   var PRODUCTS = [
-    { name:'Ready Sweet & Sour Mix', gelatin:false, price:12.5, img:'' },
-    { name:'Ready Sour Mix',         gelatin:false, price:12.5, img:'' },
-    { name:'Ready Sweet Mix',        gelatin:false, price:12.5, img:'' }
+    { name:'Ready Sweet & Sour Mix', gelatin:false, price:13.75, img:'' },
+    { name:'Ready Sour Mix',         gelatin:false, price:13.75, img:'' },
+    { name:'Ready Sweet Mix',        gelatin:false, price:13.75, img:'' }
   ];
 
   var KEY = 'fika_bag_v1';
@@ -1322,7 +1322,7 @@ html.fika-biting, html.fika-biting * { cursor: none !important; }
           var labels = (w.tags || []).concat(w.categories || []).map(function (t) { return (t.name + ' ' + t.slug).toLowerCase(); }).join(' ');
           var neg = /(no|free|without|non)[ -]*(pork)?[ -]*gelatin|gelatin[ -]*(free|less)/.test(labels);
           return { id: 'rw' + w.id, name: dec(w.name), gelatin: labels.indexOf('gelatin') !== -1 && !neg,
-                   img: w.images && w.images[0] ? w.images[0].src : '', srcset: w.images ? (w.images[0] ? (w.images[0].srcset || '') : '') : '', price: (w.prices ? parseInt(w.prices.price, 10) / Math.pow(10, minor) : 12.5) || 12.5, hue: (w.id * 61) % 360 };
+                   img: w.images && w.images[0] ? w.images[0].src : '', srcset: w.images ? (w.images[0] ? (w.images[0].srcset || '') : '') : '', price: (w.prices ? parseInt(w.prices.price, 10) / Math.pow(10, minor) : 13.75) || 13.75, hue: (w.id * 61) % 360 };
         });
         if (!items.length) return;
         PRODUCTS = items; render(); place();

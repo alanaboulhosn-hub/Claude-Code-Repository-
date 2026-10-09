@@ -1306,3 +1306,13 @@ choice). Snippet 91, fika-club.php (new):
 - Owner's test orders deleted (permanently, owner's request, 2026-10-09): #1001, #1435 (Sarah Aboul Hosn), #1004, #1338,
   #1443 (Alan Aboulhosn), all cancelled imports. build-orders.py skips these numbers so a re-import won't bring them
   back. Other Aboulhosn orders (Zeina, Cezar, kingbakraboulhosn@) are real and were kept. 452 orders remain.
+
+## Price raise — 2026-10-09
+- All 31 pick-and-mix candies $2.50 -> **$2.75 per 100 g**; the 3 Ready Mix bags $12.50 -> **$13.75 per 500 g**
+  (WooCommerce regular price, products batch). Past orders keep the prices they were placed at (line items store them).
+- Page texts: Mix your own (page 40) and About (page 257) say $2.75 / $13.75; the mix pattern (block 241) fallbacks
+  2.75 / 13.75 (prices otherwise come from the Store API). build-shop-pages.py and the backup source updated to match.
+- Fika Club rewards follow the grams: 100 g = $2.75, 200 g = $5.50, 400 g = $11, 1 kg = $27.50 (fika-loyalty.php,
+  FIKA_FREE_KG_VALUE fallback 27.5). Codes claimed before keep their old value ($2.50 / $5 / $10 / $25).
+- Checked live on desktop and iPhone 14: every page shows only $2.75 / $13.75; a bag of 100 g + one Ready Mix = $16.50
+  at checkout (no order placed).
