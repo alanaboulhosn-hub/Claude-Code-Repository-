@@ -17,8 +17,11 @@ for r in rows:
     if r['Email']: o['h']=r
     o['items'].append(r)
 ST={'Fulfilled':'completed','Unfulfilled':'processing','Canceled':'cancelled'}
+# owner's test orders, deleted from the shop on 2026-10-09: never import them again
+SKIP={'1001','1004','1338','1435','1443'}
 res=[]; kg=collections.Counter()
 for num,o in orders.items():
+    if num.lstrip('#') in SKIP: continue
     h=o['h']
     ts=int(datetime.strptime(h['Created'],'%b %d, %Y, %I:%M %p').replace(tzinfo=ZoneInfo('Asia/Beirut')).timestamp())
     items=[]

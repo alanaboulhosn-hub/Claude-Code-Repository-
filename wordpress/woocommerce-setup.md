@@ -1303,3 +1303,6 @@ choice). Snippet 91, fika-club.php (new):
   After: 9 processing, 413 completed, 18 failed, 17 cancelled. 49 RT parcels had no website order (mostly $0 cash).
 - Orders list (same snippet): the status links are big coloured filter buttons, ordered All, Processing, Failed,
   Completed, then the rest (filter `views_woocommerce_page_wc-orders` + CSS on that screen).
+- Owner's test orders deleted (permanently, owner's request, 2026-10-09): #1001, #1435 (Sarah Aboul Hosn), #1004, #1338,
+  #1443 (Alan Aboulhosn), all cancelled imports. build-orders.py skips these numbers so a re-import won't bring them
+  back. Other Aboulhosn orders (Zeina, Cezar, kingbakraboulhosn@) are real and were kept. 452 orders remain.
