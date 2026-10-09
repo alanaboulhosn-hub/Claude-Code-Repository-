@@ -1284,3 +1284,12 @@ choice). Snippet 91, fika-club.php (new):
 - Verified on a WP Mail SMTP test to Gmail: SPF pass, DKIM pass (hostingermail-a), DMARC pass, Inbox; multipart
   (text + HTML); Message-ID on swedishfikalb.com.
 - Later (a few weeks, once nothing else sends as @swedishfikalb.com): consider DMARC p=quarantine.
+
+## RT Deliveries parcel tracking (snippet 94, `snippets/fika-rtd.php`) — 2026-10-09
+- Parcels are still created by hand in RT's dashboard. RT's webhook posts each status change to
+  `/wp-json/fika/v1/rtd-webhook` with header `RTD-Signature: <secret>` (secret on WooCommerce > RT Deliveries).
+- Delivered -> Completed; Return_to_warehouse / Return_assign_to_merchant -> Undelivered; other statuses only noted
+  (private order note, RT history box on the order, "RT" column in Orders). No customer emails.
+- Linking: tracking ID saved on the order (box on the order page), or the Fika order number in RT's "Invoice no".
+  Unmatched parcels wait under "Parcels to link" with same-amount suggestions; "Not a website order" dismisses one.
+- Status: installed and active; end-to-end test with test orders pending the owner's OK. Webhook not yet given to RT.
