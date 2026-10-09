@@ -1396,3 +1396,10 @@ choice). Snippet 91, fika-club.php (new):
     (non-blocking, same URLs as the @imports in the patterns), so the plain-font moment is shorter.
   - Checked, fine: no layout shift on phone pages; small shifts on desktop Mix your own (0.03, the filter chips) and
     the 404 page (0.05), both well under Google's 0.1 "good" limit. No script errors. Journey regression: all pass.
+- Guest checkout tested end to end (owner's OK, 9 Oct): temp snippet 97 (for @example.com orders only: number label
+  TEST, no Conversions API Purchase, no emails); iPhone, Meta browser requests blocked. Order placed as a guest:
+  BUBS Bubblegum Skull $2.80 + Sweet Mix $14.00 + Beirut delivery $5.00 = $21.80, COD; address, phone, note saved;
+  "Order confirmed" popup showed #TEST; bag emptied. Then the order, 9 saved test bags and snippet 97 were deleted.
+  A real guest order #1458 ($24.60) came in meanwhile: numbered normally, Purchase sent to Meta, not affected.
+- Meta Diagnostics "server sending 24 fewer Purchase events than pixel (7 days)": the old Builder store's browser-only
+  purchases (about 2-8 Oct). Not backfilled (their event IDs are unknown, Meta would count them twice); clears by ~16 Oct.
