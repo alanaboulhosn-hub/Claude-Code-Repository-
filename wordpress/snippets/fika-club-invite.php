@@ -10,14 +10,15 @@
  *   visit (so it never covers the shop before they have looked). Our shop pages only (home, Mix your own, Ready Mix,
  *   About), never the checkout or My account; it waits while the bag drawer or another popup is open.
  * - Counts per day (shown, join, login, close): GET /wp-json/fika/v1/invite-stats (shop managers).
- * - Live since 2026-10-09 (FIKA_INVITE_LIVE true; set it to false to switch it off). Preview any time (also when signed in): add ?fika_invite=preview to a page;
+ * - Switched off on 2026-10-09 by the owner (too many Fika Club asks in one visit): FIKA_INVITE_LIVE false. Set it to
+ *   true to switch it back on. Preview any time (also when signed in): add ?fika_invite=preview to a page;
  *   ?fika_invite=test runs the real rules (visit count, member mark) before it is live.
  * - When it opens, the small sign-up cloud (fika-signup-nudge.php) closes and stays away for the rest of the visit.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-club-invite.php
  */
 
 if ( ! defined( 'FIKA_INVITE_LIVE' ) ) {
-	define( 'FIKA_INVITE_LIVE', true );
+	define( 'FIKA_INVITE_LIVE', false );
 }
 
 // daily counts: POST { e: shown | join | login | close } from the popup; GET for shop managers

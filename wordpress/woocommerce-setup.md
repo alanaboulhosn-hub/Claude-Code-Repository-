@@ -1415,3 +1415,6 @@ choice). Snippet 91, fika-club.php (new):
   stops the account icon waving. Unchanged: once per visit (per tab), × hides it 7 days, fades after 10 s / 14 s.
   Tested on iPhone + desktop (A at 5 s, B with sweets, popup on first sweet closes the cloud, no cloud after the popup,
   × keeps it away); journey on 4 devices all pass.
+- Fika Club invite popup switched OFF entirely (owner, 9 Oct: too many Fika Club asks in one visit). FIKA_INVITE_LIVE
+  false in fika-club-invite.php (96); the snippet stays active only to mark signed-in browsers (fika_member). What a
+  guest sees now: the speech-bubble cloud 5 s after landing (A / B) and the "Make this order count" card at checkout.
