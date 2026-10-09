@@ -1383,3 +1383,7 @@ choice). Snippet 91, fika-club.php (new):
   the background way; Meta refuses it (400, subcode 2804003 "Event timestamp too old"), so nothing reaches the reports,
   and GET shows Meta's answer. 9 Oct: answer as expected = route, token and background sending all work. A beacon
   request answers in ~1.0 s (0.76 s for an ignored event).
+- Fix (owner saw a flash of the old bag in a bottom corner on opening the home page): the old floating "Bag 0 kg"
+  button (#mxFab, in the mix pattern 241) was only hidden by a rule near the end of the page (fika-home-cartoons.php),
+  so it showed for a split second while the page loaded. The mix pattern itself now hides it from the first paint.
+  Checked on phone + desktop with a slow connection: the button is display:none from the moment it exists.

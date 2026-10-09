@@ -41,6 +41,7 @@
 .mx-fab svg { width:22px; height:22px; }
 .mx-fab b { background:#fff; color:var(--fika-blue); padding:2px 9px; font-weight:600; }
 .mx-fab.bump { animation:mxBump .45s ease; }
+.mx-fab { display:none !important; } /* the old floating "Bag 0 kg" button: hidden from the first paint (the header bag icon opens the bag) */
 @keyframes mxBump { 0%{transform:scale(1)} 40%{transform:scale(1.1)} 100%{transform:scale(1)} }
 .mx-veil { position:fixed; inset:0; background:rgba(10,25,60,.45); z-index:1003; opacity:0; pointer-events:none; transition:opacity .3s; }
 .mx-veil.on { opacity:1; pointer-events:auto; }
@@ -482,6 +483,7 @@
 .mx-fab svg { width:22px; height:22px; }
 .mx-fab b { background:#fff; color:var(--fika-blue); padding:2px 9px; font-weight:600; }
 .mx-fab.bump { animation:mxBump .45s ease; }
+.mx-fab { display:none !important; } /* the old floating "Bag 0 kg" button: hidden from the first paint (the header bag icon opens the bag) */
 @keyframes mxBump { 0%{transform:scale(1)} 40%{transform:scale(1.1)} 100%{transform:scale(1)} }
 .mx-veil { position:fixed; inset:0; background:rgba(10,25,60,.45); z-index:1003; opacity:0; pointer-events:none; transition:opacity .3s; }
 .mx-veil.on { opacity:1; pointer-events:auto; }
