@@ -1288,7 +1288,7 @@ choice). Snippet 91, fika-club.php (new):
 ## RT Deliveries parcel tracking (snippet 94, `snippets/fika-rtd.php`) — 2026-10-09
 - Parcels are still created by hand in RT's dashboard. RT's webhook posts each status change to
   `/wp-json/fika/v1/rtd-webhook` with header `RTD-Signature: <secret>` (secret on WooCommerce > RT Deliveries).
-- Owner's mapping: Delivered -> Completed; Delivered_failed / Return_assign_to_merchant -> Failed; every other RT
+- Owner's mapping: Delivered -> Completed; Delivered_failed / Return_assign_to_merchant / Cancel -> Failed; every other RT
   status, and any status not in the list (e.g. "checking with merchant"), -> Processing. Cancelled /
   refunded orders are left alone. Private order note, RT history box on the order, "RT" column in Orders (RT's exact
   step + tracking ID). No order emails (customer or shop) on RT's changes, e.g. Failed -> Processing re-sends nothing.

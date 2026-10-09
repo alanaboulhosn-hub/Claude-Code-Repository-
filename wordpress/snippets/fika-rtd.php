@@ -5,7 +5,7 @@
  * (POST /wp-json/fika/v1/rtd-webhook, header RTD-Signature = the secret shown on the settings page), and the order
  * follows it (statuses in fika_rtd_statuses()):
  * - Delivered                                       -> order Completed (counts as delivered on Fika customers + rewards)
- * - Delivered_failed, Return_assign_to_merchant      -> order Failed
+ * - Delivered_failed, Return_assign_to_merchant, Cancel -> order Failed
  * - everything else, including statuses not in the list (pending, pickup, warehouse, delivery man assigned,
  *   return to warehouse, checking with merchant, ...) -> order Processing
  * Cancelled and refunded orders are left alone. The RT column in Orders shows RT's exact step and tracking ID.
@@ -34,7 +34,23 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 			'Delivered'                 => array( 'Delivered', 'completed' ),
 			'Delivered_failed'          => array( 'Delivery failed', 'failed' ),
 			'Return_assign_to_merchant' => array( 'Return received by merchant', 'failed' ),
+			'Return_Assign_To_Driver'   => array( 'Return assigned to driver', 'processing' ),
+			'Cancel'                    => array( 'Cancelled by RT', 'failed' ),
 		);
+	}
+	// RT's slug or display name ("Collected By Pickup", "Return received by merchant") -> our slug
+	function fika_rtd_slug( $text ) {
+		$flat = function ( $t ) { return preg_replace( '/[^a-z]/', '', strtolower( (string) $t ) ); };
+		$want = $flat( $text );
+		if ( in_array( $want, array( 'cancelled', 'canceled', 'parcelcancel', 'cancelparcel' ), true ) ) {
+			return 'Cancel';
+		}
+		foreach ( fika_rtd_statuses() as $slug => $s ) {
+			if ( $flat( $slug ) === $want || $flat( $s[0] ) === $want ) {
+				return $slug;
+			}
+		}
+		return (string) $text;
 	}
 	function fika_rtd_label( $slug ) {
 		$s = fika_rtd_statuses();
@@ -155,10 +171,7 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 		$g = function ( $k ) use ( $body ) {
 			return isset( $body[ $k ] ) && is_scalar( $body[ $k ] ) ? trim( sanitize_text_field( (string) $body[ $k ] ) ) : '';
 		};
-		$slug = $g( 'parcel_status_slug' );
-		if ( '' === $slug ) {
-			$slug = str_replace( ' ', '_', $g( 'parcel_status' ) );
-		}
+		$slug = fika_rtd_slug( '' !== $g( 'parcel_status_slug' ) ? $g( 'parcel_status_slug' ) : $g( 'parcel_status' ) );
 		$t = $g( 'updated_at' ) ? strtotime( $g( 'updated_at' ) ) : 0;
 		return array(
 			'tracking' => $g( 'tracking_id' ),
