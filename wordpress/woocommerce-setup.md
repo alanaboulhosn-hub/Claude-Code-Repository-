@@ -1295,3 +1295,9 @@ choice). Snippet 91, fika-club.php (new):
 - Linking: tracking ID saved on the order (box on the order page), or the Fika order number in RT's "Invoice no".
   Unmatched parcels wait under "Parcels to link" with same-amount suggestions; "Not a website order" dismisses one.
 - Status: installed and active; end-to-end test with test orders pending the owner's OK. Webhook not yet given to RT.
+- Past orders from RT's export (Parcels_Export 9 Oct 2026, 419 parcels; not committed, has customer data): matched
+  370 to orders by phone + amount + date (order date vs RT parcel sequence). Applied with the WooCommerce REST API
+  (no emails: completed -> failed / processing sends none): 18 -> Failed (#1082 1095 1154 1163 1175 1189 1208 1209 1215
+  1226 1273 1279 1320 1343 1398 1410 1413 1450), 3 -> Processing (#1423 1446 1449), each with a private note; tracking
+  ID + RT status saved on all 370. #1318 (Suzy) kept Completed, linked to the re-sent delivered parcel (owner's call).
+  After: 9 processing, 413 completed, 18 failed, 17 cancelled. 49 RT parcels had no website order (mostly $0 cash).
