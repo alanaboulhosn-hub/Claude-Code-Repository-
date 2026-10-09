@@ -131,7 +131,12 @@ if ( ! function_exists( 'fika_meta_set' ) ) {
 				$b         = json_decode( $args['body'], true );
 				$b['data'] = $later;
 				$args['body'] = wp_json_encode( $b );
-				fika_meta_count( wp_remote_post( $url, $args ), count( $later ) );
+				$res = wp_remote_post( $url, $args );
+				if ( ! empty( $GLOBALS['fika_meta_selftest'] ) ) {
+					update_option( 'fika_meta_selftest', array( 'at' => time(), 'code' => is_wp_error( $res ) ? 0 : (int) wp_remote_retrieve_response_code( $res ), 'answer' => substr( is_wp_error( $res ) ? $res->get_error_message() : wp_remote_retrieve_body( $res ), 0, 400 ) ), false );
+					return;
+				}
+				fika_meta_count( $res, count( $later ) );
 			} );
 		}
 		foreach ( $body['data'] as $e ) {
@@ -303,6 +308,22 @@ add_action( 'rest_api_init', function () {
 	) );
 } );
 
+// Self-test (managers): one event dated 10 days ago goes out the same background way as visitors' events. Meta always
+// refuses an event that old, so nothing reaches the reports, but its answer shows the route, the token and the
+// sending all work. POST /wp-json/fika/v1/meta-selftest, then GET it a few seconds later for Meta's answer.
+add_action( 'rest_api_init', function () {
+	$can = function () { return current_user_can( 'manage_woocommerce' ); };
+	register_rest_route( 'fika/v1', '/meta-selftest', array(
+		array( 'methods' => 'POST', 'permission_callback' => $can, 'callback' => function () {
+			delete_option( 'fika_meta_selftest' );
+			$GLOBALS['fika_meta_selftest'] = true;
+			$e = fika_meta_event( 'PageView', 'selftest.' . time(), null, array( 'client_ip_address' => '127.0.0.1', 'client_user_agent' => 'Fika self-test' ), home_url( '/' ) );
+			$e['event_time'] = time() - 10 * DAY_IN_SECONDS;
+			return array( 'queued' => true === fika_meta_send( array( $e ) ) );
+		} ),
+		array( 'methods' => 'GET', 'permission_callback' => $can, 'callback' => function () { return get_option( 'fika_meta_selftest', null ); } ),
+	) );
+} );
 add_action( 'rest_api_init', function () {
 	register_rest_route( 'fika/v1', '/meta-stats', array(
 		'methods'             => 'GET',

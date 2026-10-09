@@ -1379,3 +1379,7 @@ choice). Snippet 91, fika-club.php (new):
   ?fbclid=, _fbc (fb.1.<ms>.<fbclid>) itself, plus fika_vid (random 64-hex per browser, 90 days) sent as external_id
   by the pixel (fbq init) and by the server (request user, so also the guest Purchase). Checked: the landing PageView
   beacon already carries _fbp, _fbc and fika_vid; journey on desktop, iPhone, Instagram, Facebook still all pass.
+- Meta self-test (fika-meta.php): POST /wp-json/fika/v1/meta-selftest (managers) sends one PageView dated 10 days ago
+  the background way; Meta refuses it (400, subcode 2804003 "Event timestamp too old"), so nothing reaches the reports,
+  and GET shows Meta's answer. 9 Oct: answer as expected = route, token and background sending all work. A beacon
+  request answers in ~1.0 s (0.76 s for an ignored event).
