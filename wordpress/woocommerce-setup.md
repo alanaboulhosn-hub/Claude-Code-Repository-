@@ -1356,3 +1356,15 @@ choice). Snippet 91, fika-club.php (new):
   always shows it; ?fika_invite=test runs the real rules.
   Rules tested on the live site (iPhone 14): all pass. Going live = set FIKA_INVITE_LIVE to true (snippet update
   also clears the page cache).
+
+## Final test before the ad boost — 2026-10-09
+- Journey on 7 devices incl. Instagram (iOS) and Facebook (Android) in-app browsers, arriving from an ad link
+  (?fbclid=...&utm_...): all checks pass (36-37 each), welcome popup shows for a first-time guest and closes.
+  Crawl + 34 product addresses clean; no failed requests, no script errors.
+- Meta: pixel 2660128037781548 initialises on every page; every browser event (PageView, ViewContent, AddToCart,
+  Search, InitiateCheckout, Contact) has its server copy with the same event ID (one fikaTrack call does both), values
+  and content_ids correct ($2.80 candy, $14 bag). This sandbox cannot reach connect.facebook.net, so the pixel script's
+  own hits to Meta are checked in Events Manager by the owner. Conversions API: last real order's note "Meta:
+  purchase sent to the Conversions API" (HTTP 200).
+- Speed on a 4G iPhone: home LCP 1.5 s first view / 1.1 s cached; Mix your own and Ready Mix 0.8 s; checkout 1.4 s.
+- Clean-up: 14 saved test bags removed; no test orders.
