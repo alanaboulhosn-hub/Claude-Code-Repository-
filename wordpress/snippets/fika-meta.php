@@ -81,6 +81,11 @@ if ( ! function_exists( 'fika_meta_set' ) ) {
 				$u[ $k ] = sanitize_text_field( wp_unslash( $_COOKIE[ $c ] ) );
 			}
 		}
+		// this browser's random ID (fika_vid, made by the pixel code), the same external_id the pixel sends
+		$vid = isset( $_COOKIE['fika_vid'] ) ? strtolower( sanitize_text_field( wp_unslash( $_COOKIE['fika_vid'] ) ) ) : '';
+		if ( preg_match( '/^[a-f0-9]{64}$/', $vid ) ) {
+			$u['external_id'] = array( $vid );
+		}
 		if ( is_user_logged_in() ) {
 			$me = wp_get_current_user();
 			$u['em']          = array( fika_meta_hash( $me->user_email ) );
@@ -186,8 +191,24 @@ add_action( 'wp_head', function () {
 	$reg  = is_front_page() && is_user_logged_in() && isset( $_GET['fika-welcome'] ) ? get_current_user_id() : 0; // phpcs:ignore WordPress.Security.NonceVerification
 	?>
 <script>
+// Meta's own cookies right away (its script sets them only once it has loaded, so the first events of a visit,
+// e.g. the landing from an ad, reached the server without them): _fbp (browser), _fbc (the ad click, from ?fbclid=),
+// in Meta's format, plus fika_vid, a random ID for this browser sent as external_id by the pixel and the server.
+(function () {
+  function gc(n) { var m = document.cookie.match('(?:^|; )' + n + '=([^;]*)'); return m ? decodeURIComponent(m[1]) : ''; }
+  function sc(n, v) { document.cookie = n + '=' + v + '; path=/; max-age=7776000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); }
+  var now = Date.now(), fc = (location.search.match(/[?&]fbclid=([^&#]+)/) || [])[1];
+  if (!gc('_fbp')) sc('_fbp', 'fb.1.' + now + '.' + Math.floor(1e9 + Math.random() * 9e9));
+  if (fc && gc('_fbc').split('.').slice(3).join('.') !== fc) sc('_fbc', 'fb.1.' + now + '.' + fc);
+  if (!/^[a-f0-9]{64}$/.test(gc('fika_vid'))) {
+    var h = '', r = new Uint8Array(32); try { crypto.getRandomValues(r); } catch (e) { for (var i = 0; i < 32; i++) r[i] = Math.random() * 256; }
+    for (var j = 0; j < 32; j++) h += ('0' + r[j].toString(16)).slice(-2);
+    sc('fika_vid', h);
+  }
+  window.FIKA_VID = gc('fika_vid');
+})();
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', <?php echo wp_json_encode( $s['pixel'] ); ?>, <?php echo wp_json_encode( (object) $am ); ?>);
+(function () { var am = <?php echo wp_json_encode( (object) $am ); ?>; if (!am.external_id && window.FIKA_VID) am.external_id = window.FIKA_VID; fbq('init', <?php echo wp_json_encode( $s['pixel'] ); ?>, am); })();
 // browser event + the same event from the server (same event ID, so Meta counts it once)
 window.fikaTrack = function (ev, data, id) {
   data = data || {};

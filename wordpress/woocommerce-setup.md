@@ -1375,3 +1375,7 @@ choice). Snippet 91, fika-club.php (new):
   mostly the Builder's pixel-only AddToCart; fix on our side: fika-meta.php (43) now sends the server copy after the
   visitor's answer has gone out (litespeed_finish_request) and waits for Meta (10 s) instead of a 1 s fire-and-forget,
   and counts accepted / refused per day (settings screen, GET /fika/v1/meta-stats).
+- Dedup keys from the first event (9 Oct, before the ad boost): the pixel code sets _fbp (fb.1.<ms>.<random>) and, on
+  ?fbclid=, _fbc (fb.1.<ms>.<fbclid>) itself, plus fika_vid (random 64-hex per browser, 90 days) sent as external_id
+  by the pixel (fbq init) and by the server (request user, so also the guest Purchase). Checked: the landing PageView
+  beacon already carries _fbp, _fbc and fika_vid; journey on desktop, iPhone, Instagram, Facebook still all pass.
