@@ -1341,7 +1341,7 @@ choice). Snippet 91, fika-club.php (new):
   page cache good. Site Health "background updates disabled" = Hostinger manages updates (not changed).
 - Clean-up: 12 saved test bags (@example.com) removed with their reminders; no test orders, customers or temp snippets.
 
-## Fika Club invite popup (snippet 96, `snippets/fika-club-invite.php`) — 2026-10-09, PREVIEW ONLY
+## Fika Club invite popup (snippet 96, `snippets/fika-club-invite.php`) — 2026-10-09, LIVE
 - Guests on a browser never signed in: visit 1, then every 3rd visit (1, 4, 7, ...; new visit after 30 min away;
   per browser, localStorage fika_visits). First page of the visit only (home, Mix your own, Ready Mix, About);
   never checkout / My account; counted but not shown when the page opens another popup (?fika_order, ?fika_club,
@@ -1352,6 +1352,7 @@ choice). Snippet 91, fika-club.php (new):
   "Amazing deals and free sweets as you order. Joining is free, the sweets are sweeter!"; button "Join the Fika Club";
   "Already a member? Log in".
 - The sign-up cloud (fika-signup-nudge.php) stays away on a visit where the popup showed (sessionStorage flag).
-- Not live: FIKA_INVITE_LIVE false. ?fika_invite=preview always shows it; ?fika_invite=test runs the real rules.
+- LIVE since 2026-10-09 (FIKA_INVITE_LIVE true; checked as a new guest on desktop + iPhone). ?fika_invite=preview
+  always shows it; ?fika_invite=test runs the real rules.
   Rules tested on the live site (iPhone 14): all pass. Going live = set FIKA_INVITE_LIVE to true (snippet update
   also clears the page cache).

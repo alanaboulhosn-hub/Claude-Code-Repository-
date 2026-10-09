@@ -9,14 +9,14 @@
  *   visit starts after 30 minutes away. Shown on the first page of the visit (home, Mix your own, Ready Mix, About),
  *   never on the checkout or My account, and not when another popup opens the page (order confirmed, Fika Club welcome,
  *   a bag link).
- * - Not live until FIKA_INVITE_LIVE is true. Preview any time (also when signed in): add ?fika_invite=preview to a page;
+ * - Live since 2026-10-09 (FIKA_INVITE_LIVE true; set it to false to switch it off). Preview any time (also when signed in): add ?fika_invite=preview to a page;
  *   ?fika_invite=test runs the real rules (visit count, member mark) before it is live.
  * - On the visit it shows, the small sign-up cloud (fika-signup-nudge.php) stays away.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-club-invite.php
  */
 
 if ( ! defined( 'FIKA_INVITE_LIVE' ) ) {
-	define( 'FIKA_INVITE_LIVE', false );
+	define( 'FIKA_INVITE_LIVE', true );
 }
 
 add_action( 'wp_footer', function () {
