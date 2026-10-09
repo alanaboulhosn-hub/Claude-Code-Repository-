@@ -5,19 +5,39 @@
  *   signed in (log in, sign up, joining Fika Club at checkout) marks the browser for good (localStorage fika_member),
  *   so the popup never shows there again, also after signing out. "Already a member? Log in" marks it too and opens
  *   the log-in form.
- * - When: the 1st visit, then every 3rd visit (1, 4, 7, ...), counted per browser (localStorage fika_visits). A new
- *   visit starts after 30 minutes away. Shown on the first page of the visit (home, Mix your own, Ready Mix, About),
- *   never on the checkout or My account, and not when another popup opens the page (order confirmed, Fika Club welcome,
- *   a bag link).
+ * - When: on the 1st visit, then every 3rd visit (1, 4, 7, ...), counted per browser (localStorage fika_visits; a new
+ *   visit starts after 30 minutes away), about a second after the visitor first adds something to the bag during that
+ *   visit (so it never covers the shop before they have looked). Our shop pages only (home, Mix your own, Ready Mix,
+ *   About), never the checkout or My account; it waits while the bag drawer or another popup is open.
+ * - Counts per day (shown, join, login, close): GET /wp-json/fika/v1/invite-stats (shop managers).
  * - Live since 2026-10-09 (FIKA_INVITE_LIVE true; set it to false to switch it off). Preview any time (also when signed in): add ?fika_invite=preview to a page;
  *   ?fika_invite=test runs the real rules (visit count, member mark) before it is live.
- * - On the visit it shows, the small sign-up cloud (fika-signup-nudge.php) stays away.
+ * - On a visit it is due, the small sign-up cloud (fika-signup-nudge.php) stays away.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-club-invite.php
  */
 
 if ( ! defined( 'FIKA_INVITE_LIVE' ) ) {
 	define( 'FIKA_INVITE_LIVE', true );
 }
+
+// daily counts: POST { e: shown | join | login | close } from the popup; GET for shop managers
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'fika/v1', '/invite-stats', array(
+		array( 'methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => function ( $req ) {
+			$e = sanitize_key( (string) $req->get_param( 'e' ) );
+			if ( in_array( $e, array( 'shown', 'join', 'login', 'close' ), true ) ) {
+				$st  = get_option( 'fika_invite_stats', array() );
+				$st  = is_array( $st ) ? $st : array();
+				$day = wp_date( 'Y-m-d' );
+				$st[ $day ][ $e ] = ( isset( $st[ $day ][ $e ] ) ? (int) $st[ $day ][ $e ] : 0 ) + 1;
+				krsort( $st );
+				update_option( 'fika_invite_stats', array_slice( $st, 0, 60, true ), false );
+			}
+			return new WP_REST_Response( null, 204 );
+		} ),
+		array( 'methods' => 'GET', 'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); }, 'callback' => function () { return get_option( 'fika_invite_stats', array() ); } ),
+	) );
+} );
 
 add_action( 'wp_footer', function () {
 	$ours = is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) || ( function_exists( 'is_product' ) && is_product() ) || is_404();
@@ -40,6 +60,7 @@ add_action( 'wp_footer', function () {
 		'preview' => $preview,
 		'join'    => $acct . '#register',
 		'login'   => $acct . '#login',
+		'stat'    => ( $preview || $test ) ? '' : rest_url( 'fika/v1/invite-stats' ),
 	);
 	echo '<script>window.FIKA_INVITE = ' . wp_json_encode( $cfg ) . ';</script>';
 	echo <<<'FIKA_INVITE'
@@ -77,21 +98,19 @@ add_action( 'wp_footer', function () {
   var C = window.FIKA_INVITE || {};
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
   function ss(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
-  var q = location.search;
   if (!C.preview) {
     if (ls('fika_member')) return;
-    // count visits: a new visit after 30 minutes away; invite on visits 1, 4, 7, ...
+    // count visits: a new visit after 30 minutes away; the invite is due on visits 1, 4, 7, ...
     var now = Date.now(), v = null;
     try { v = JSON.parse(ls('fika_visits') || 'null'); } catch (e) {}
     v = v && typeof v.n === 'number' ? v : { n: 0, t: 0 };
     var fresh = now - v.t > 30 * 60 * 1000;
-    if (fresh) v.n += 1;
+    if (fresh) { v.n += 1; ss('fika_invite_due', (v.n - 1) % 3 === 0 ? '1' : '0'); }
     v.t = now; ls('fika_visits', JSON.stringify(v));
-    if (!fresh || (v.n - 1) % 3 !== 0) return;
-    // another popup opens this page (the visit still counts)
-    if (/[?&](fika_order|fika_club|fika_bag|bag=open)/.test(q)) return;
+    if (ss('fika_invite_due') !== '1') return;
   }
   ss('fika_invite_shown', '1'); // the sign-up cloud stays away this visit
+  function stat(e) { if (!C.stat) return; try { navigator.sendBeacon(C.stat, new Blob([JSON.stringify({ e: e })], { type: 'application/json' })); } catch (x) {} }
 
   var FISH = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M62 38 L90 22 C85 40 85 62 90 79 L62 64 Z" fill="#e3241f" stroke="#a3160f" stroke-width="2.6" stroke-linejoin="round"/><path d="M8 52 C16 32 44 25 66 38 C70 46 70 58 66 64 C44 78 16 72 8 52 Z" fill="#ff5a2f" stroke="#a3160f" stroke-width="2.6" stroke-linejoin="round"/><ellipse cx="34" cy="36" rx="9" ry="4" transform="rotate(-30 34 36)" fill="#fff" opacity=".55"/><circle cx="24" cy="46" r="5.2" fill="#fff"/><circle cx="22.5" cy="46.5" r="2.8" fill="#1b2a4a"/></svg>';
   function toon(s) { return window.FIKA_CARTOON ? window.FIKA_CARTOON(s) : ''; }
@@ -109,19 +128,32 @@ add_action( 'wp_footer', function () {
       '</div>';
     document.body.appendChild(veil);
     card = veil.querySelector('.fki-card');
-    veil.addEventListener('click', function (e) { if (e.target === veil || e.target.closest('.fki-x')) close(); });
-    veil.querySelector('.fki-member').addEventListener('click', function () { ls('fika_member', '1'); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && veil) close(); });
+    veil.addEventListener('click', function (e) { if (e.target === veil || e.target.closest('.fki-x')) { stat('close'); close(); } });
+    veil.querySelector('.fki-member').addEventListener('click', function () { ls('fika_member', '1'); stat('login'); });
+    veil.querySelector('.fki-go').addEventListener('click', function () { stat('join'); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && veil) { stat('close'); close(); } });
   }
-  function open() {
-    if (document.querySelector('.fkoc-veil, .fkx-veil.on, .fkc-veil, .mx-drawer.open, body.mx-open')) return;
-    build();
+  // wait while the bag drawer or another popup is open (up to a minute), then show
+  function open(tries) {
+    tries = tries || 0;
+    if (document.querySelector('.fkoc-veil, .fkx-veil.on, .fkc-veil, .fki-veil, .mx-drawer.on, .mx-drawer.open, body.mx-open')) { if (tries < 60) setTimeout(function () { open(tries + 1); }, 1000); return; }
+    build(); ss('fika_invite_due', '0'); stat('shown');
     requestAnimationFrame(function () { veil.classList.add('on'); card.focus({ preventScroll: true }); });
   }
   function close() {
     veil.classList.remove('on'); var v = veil; veil = null; setTimeout(function () { v.remove(); }, 320);
   }
-  if (document.readyState === 'complete') setTimeout(open, 1200); else window.addEventListener('load', function () { setTimeout(open, 1200); });
+  if (C.preview) { if (document.readyState === 'complete') setTimeout(open, 1200); else window.addEventListener('load', function () { setTimeout(open, 1200); }); return; }
+  // the first time something goes into the bag on this visit (after the candy has flown into the bag icon)
+  function grams() { try { var b = JSON.parse(ls('fika_bag_v1') || '{}').bag || {}; return Object.keys(b).reduce(function (a, k) { return a + (+b[k] || 0); }, 0); } catch (e) { return 0; } }
+  var start = grams(), fired = false;
+  function onBag() {
+    if (fired) return;
+    var g = grams();
+    if (g > start) { fired = true; setTimeout(open, 1100); } else start = Math.min(start, g);
+  }
+  window.addEventListener('fikabag', function () { setTimeout(onBag, 0); });
+  setInterval(onBag, 800);
 })();
 </script>
 FIKA_INVITE;

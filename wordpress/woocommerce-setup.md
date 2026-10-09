@@ -1403,3 +1403,8 @@ choice). Snippet 91, fika-club.php (new):
   A real guest order #1458 ($24.60) came in meanwhile: numbered normally, Purchase sent to Meta, not affected.
 - Meta Diagnostics "server sending 24 fewer Purchase events than pixel (7 days)": the old Builder store's browser-only
   purchases (about 2-8 Oct). Not backfilled (their event IDs are unknown, Meta would count them twice); clears by ~16 Oct.
+- Invite popup timing changed (owner, option 2, 9 Oct): no longer on landing; on a due visit (1, 4, 7, ...) it opens
+  ~1.1 s after the first thing goes into the bag (after the candy flies to the bag icon), once per visit; waits while
+  the bag drawer (.mx-drawer.on) or another popup is open. Wording unchanged. Counts per day (shown / join / login /
+  close) at GET /wp-json/fika/v1/invite-stats (managers; POSTed by the popup with sendBeacon, not in preview/test).
+  Tested: rules on iPhone + desktop all pass; journey on 7 devices (incl. Instagram / Facebook in-app) all pass.
