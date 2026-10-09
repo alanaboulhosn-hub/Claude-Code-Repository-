@@ -12,7 +12,7 @@
  * - Counts per day (shown, join, login, close): GET /wp-json/fika/v1/invite-stats (shop managers).
  * - Live since 2026-10-09 (FIKA_INVITE_LIVE true; set it to false to switch it off). Preview any time (also when signed in): add ?fika_invite=preview to a page;
  *   ?fika_invite=test runs the real rules (visit count, member mark) before it is live.
- * - On a visit it is due, the small sign-up cloud (fika-signup-nudge.php) stays away.
+ * - When it opens, the small sign-up cloud (fika-signup-nudge.php) closes and stays away for the rest of the visit.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-club-invite.php
  */
 
@@ -109,7 +109,6 @@ add_action( 'wp_footer', function () {
     v.t = now; ls('fika_visits', JSON.stringify(v));
     if (ss('fika_invite_due') !== '1') return;
   }
-  ss('fika_invite_shown', '1'); // the sign-up cloud stays away this visit
   function stat(e) { if (!C.stat) return; try { navigator.sendBeacon(C.stat, new Blob([JSON.stringify({ e: e })], { type: 'application/json' })); } catch (x) {} }
 
   var FISH = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M62 38 L90 22 C85 40 85 62 90 79 L62 64 Z" fill="#e3241f" stroke="#a3160f" stroke-width="2.6" stroke-linejoin="round"/><path d="M8 52 C16 32 44 25 66 38 C70 46 70 58 66 64 C44 78 16 72 8 52 Z" fill="#ff5a2f" stroke="#a3160f" stroke-width="2.6" stroke-linejoin="round"/><ellipse cx="34" cy="36" rx="9" ry="4" transform="rotate(-30 34 36)" fill="#fff" opacity=".55"/><circle cx="24" cy="46" r="5.2" fill="#fff"/><circle cx="22.5" cy="46.5" r="2.8" fill="#1b2a4a"/></svg>';
@@ -137,6 +136,10 @@ add_action( 'wp_footer', function () {
   function open(tries) {
     tries = tries || 0;
     if (document.querySelector('.fkoc-veil, .fkx-veil.on, .fkc-veil, .fki-veil, .mx-drawer.on, .mx-drawer.open, body.mx-open')) { if (tries < 60) setTimeout(function () { open(tries + 1); }, 1000); return; }
+    // the sign-up cloud (fika-signup-nudge.php) steps aside and stays away for the rest of this visit
+    ss('fika_invite_shown', '1');
+    var cl = document.querySelector('.fk-cloud'); if (cl) { cl.classList.remove('on'); setTimeout(function () { cl.remove(); }, 400); }
+    var ac = document.querySelector('.fika-acct.fa-wave'); if (ac) ac.classList.remove('fa-wave');
     build(); ss('fika_invite_due', '0'); stat('shown');
     requestAnimationFrame(function () { veil.classList.add('on'); card.focus({ preventScroll: true }); });
   }

@@ -1408,3 +1408,10 @@ choice). Snippet 91, fika-club.php (new):
   the bag drawer (.mx-drawer.on) or another popup is open. Wording unchanged. Counts per day (shown / join / login /
   close) at GET /wp-json/fika/v1/invite-stats (managers; POSTed by the popup with sendBeacon, not in preview/test).
   Tested: rules on iPhone + desktop all pass; journey on 7 devices (incl. Instagram / Facebook in-app) all pass.
+- Sign-up cloud timing (owner, 9 Oct): the cloud (fika-signup-nudge.php, 16) now shows 5 s after the page opens:
+  "Join Fika Club" (version A) when the bag is empty, "Make every gram count" (version B) when it has sweets. Adding
+  the first sweet no longer brings it up (that is when the Fika Club popup opens). The popup now sets
+  fika_invite_shown only when it opens (was: at page start on due visits), closes a cloud that is still showing and
+  stops the account icon waving. Unchanged: once per visit (per tab), × hides it 7 days, fades after 10 s / 14 s.
+  Tested on iPhone + desktop (A at 5 s, B with sweets, popup on first sweet closes the cloud, no cloud after the popup,
+  × keeps it away); journey on 4 devices all pass.
