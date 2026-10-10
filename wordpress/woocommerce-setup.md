@@ -1421,3 +1421,21 @@ choice). Snippet 91, fika-club.php (new):
 - Sign-up cloud timing put back as it was before 9 Oct (owner): first sweet in the bag -> version B ~0.9 s later, or
   after 20 s of browsing -> version A (B if the bag has sweets). fika-signup-nudge.php restored from 351b77f^.
   Checked live on iPhone + desktop: no cloud at 6 s or 15 s, B after the first sweet, A at 22 s, no popup.
+
+## Fika Club rewards in the bag (snippet 98, `snippets/fika-bag-rewards.php`) — 2026-10-10
+- Signed-in customers. In "Your bag" (top of the list): the won mystery taste ("Mystery taste: <candy>, 50 g, Free")
+  while orders + bag reach its spin stop (1.5 / 12.5 kg) and the bag has sweets; checkpoint rewards chosen with
+  "Use now" ("100 g on us  -$2.80", a "Fika Club rewards" row, total lowered) while orders + bag reach the checkpoint;
+  below it the reward leaves the bag (back when the bag goes back up); rewards not chosen show "Use now" (reminder).
+- Popup when orders + bag reach a checkpoint (3 / 6 / 10 / 15 kg, each lap) for the first time: "You reached 3 kg!
+  100 g on us", "Use now" / "Use later" (once per reward per browser; waits for the mystery wheel and other popups).
+- Checkout: chosen rewards are applied by themselves through fika-loyalty.php's rewards box (claimed there if needed,
+  only while the order reaches them); applied rows greyed with "Unapply"; unapplying takes it out of the bag choice.
+  The free taste line at checkout is fika-taste.php's (same rule). Choice kept in localStorage fika_rw_use_<user>.
+- GET /wp-json/fika/v1/bag-rewards (signed in) refreshes the bag data when the bag opens. Read only (no withdrawing).
+- Fixes found while testing (fika-loyalty.php, 11): checkout "Remove" sent the code in capitals (cart keeps small
+  letters); fika_swim_sync no longer withdraws a reward that is applied on the customer's own cart right now (going
+  from checkout back to the shop deleted the reward just claimed there, and the order could not be placed with it).
+- Tested on the live site with a temporary @example.com account (no orders; a 3 kg bag): iPhone 19/19 (wheel at
+  1.5 kg, taste line, popup at 3 kg, Use now, discount, below / above both stops, checkout auto-apply greyed +
+  Unapply, shop and back, bag after Unapply), desktop Use later path 4/4. Test account, its codes and bags deleted.

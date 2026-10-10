@@ -210,7 +210,13 @@ if ( ! function_exists( 'fika_swim_claims' ) ) {
 		}
 		$claims = fika_swim_claims( $user_id );
 		$keep   = array();
+		// a reward on the customer's own checkout right now (claimed for the bag being checked out) stays
+		$on_cart = ( function_exists( 'WC' ) && WC()->cart && get_current_user_id() === (int) $user_id ) ? array_map( 'wc_strtolower', WC()->cart->get_applied_coupons() ) : array();
 		foreach ( $claims as $cl ) {
+			if ( in_array( wc_strtolower( $cl['code'] ), $on_cart, true ) ) {
+				$keep[] = $cl;
+				continue;
+			}
 			if ( fika_swim_need( $cl['lap'], $cl['g'] ) > $reach && ! fika_swim_code_used( $cl['code'] ) ) {
 				$c = new WC_Coupon( $cl['code'] );
 				if ( $c->get_id() ) {
@@ -1373,7 +1379,7 @@ add_action( 'wp_footer', function () {
 		busy = true; err.textContent = ''; b.textContent = 'One moment…';
 		var job;
 		if (code) {
-			job = onCart().indexOf(code.toLowerCase()) !== -1 ? x.removeCoupon(code) : x.applyCoupon(code);
+			job = onCart().indexOf(code.toLowerCase()) !== -1 ? x.removeCoupon(code.toLowerCase()) : x.applyCoupon(code); // the cart keeps codes in small letters
 		} else {
 			// not claimed yet: claim it now (the server checks this bag reaches it), then put it on the order
 			var lap = +r.getAttribute('data-lap'), g = +r.getAttribute('data-g');
