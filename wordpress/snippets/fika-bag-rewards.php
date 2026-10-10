@@ -128,7 +128,7 @@ add_action( 'wp_footer', function () {
   function using() { return arr(UK); }
 
   // ---- the bag drawer ----
-  var busy = false, obs = null;
+  var busy = false, obs = null, lastHtml = '', lastNodes = [];
   function drawLines() {
     var items = document.getElementById('mxItems'), df = document.querySelector('.mx-df');
     if (!items || !df || busy) return;
@@ -153,10 +153,11 @@ add_action( 'wp_footer', function () {
       });
     }
     if (html) {
-      var tmp = document.createElement('div'); tmp.innerHTML = html;
+      // the same lines as last time: put the same elements back (no new photo load), else build them
+      if (html !== lastHtml) { var tmp = document.createElement('div'); tmp.innerHTML = html; lastNodes = [].slice.call(tmp.children); lastHtml = html; }
       // at the top of the bag, so they are seen without scrolling
       var first = items.firstChild;
-      [].slice.call(tmp.children).forEach(function (n) { items.insertBefore(n, first); });
+      lastNodes.forEach(function (n) { items.insertBefore(n, first); });
     }
     var subEl = document.getElementById('mxSub'), totEl = document.getElementById('mxTot');
     if (disc > 0 && subEl && totEl) {
@@ -174,7 +175,9 @@ add_action( 'wp_footer', function () {
   function watch() {
     var items = document.getElementById('mxItems');
     if (!items || !window.MutationObserver) return;
-    if (!obs) obs = new MutationObserver(function () { if (!busy) setTimeout(drawLines, 0); });
+    // the bag list was just redrawn by the shop: put our lines back in the same moment, before the browser paints
+    // (a tick later the list showed for an instant without them and jumped: the flicker)
+    if (!obs) obs = new MutationObserver(function () { if (!busy) drawLines(); });
     obs.observe(items, { childList: true });
   }
   document.addEventListener('click', function (e) {

@@ -1439,3 +1439,8 @@ choice). Snippet 91, fika-club.php (new):
 - Tested on the live site with a temporary @example.com account (no orders; a 3 kg bag): iPhone 19/19 (wheel at
   1.5 kg, taste line, popup at 3 kg, Use now, discount, below / above both stops, checkout auto-apply greyed +
   Unapply, shop and back, bag after Unapply), desktop Use later path 4/4. Test account, its codes and bags deleted.
+- Fix (owner, 10 Oct): the bag flickered on every + / - when the mystery-taste line was in it. The shop redraws the
+  bag list on each change; our lines were put back a tick later (setTimeout), after the browser had painted the list
+  without them, so it jumped. Now they go back in the MutationObserver callback (before the paint) and the same
+  elements are reused (the candy photo is not reloaded). Measured over ~300 frames per device while pressing + / -:
+  0 frames without the line, the candy lines never moved. Rewards test still 19/19. Test account deleted.
