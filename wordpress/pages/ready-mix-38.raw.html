@@ -77,6 +77,11 @@ html.fika-ready-page #shop { display: none !important; }
 html.fika-ready-page #rmPage { padding-top: 60px; }
 html.fika-ready-page #rmPage .mx-head, html.fika-ready-page #rmPage .mx-count { display: none !important; }
 html.fika-ready-page #rmGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 1180px; margin: 0 auto; box-sizing: border-box; }
+/* wide screens: the side spacing grows with the screen (to line up with the menu); keep the 3 bags in the same
+   892 px row they have on a 1440 px screen, centred, instead of squeezing them inside the 1180 px cap */
+@media (min-width: 761px) {
+  html.fika-ready-page #rmGrid { max-width: none; padding-left: max(var(--fk-side, 10vw), calc((100% - 892px) / 2)); padding-right: max(var(--fk-side, 10vw), calc((100% - 892px) / 2)); }
+}
 @media (max-width: 700px) {
   html.fika-ready-page #rmPage { padding-top: 34px; }
   html.fika-ready-page #rmGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

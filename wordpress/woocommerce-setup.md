@@ -1496,3 +1496,8 @@ choice). Snippet 91, fika-club.php (new):
   - Every page crawled on phone and desktop (home, mix, ready mix, about, account, lost password, cart/checkout
     redirects, old /product-page/ and /category/ links, 404): no JS errors, no broken images, no sideways scroll;
     pages checked by eye screen by screen.
+- Ready Mix page on wide screens (11 Oct 2026, reported from a customer's desktop): the 3 bags got narrower as the
+  screen got wider (272 px at 1440, 167 px at 1920, 7 px at 2560) because the grid's side spacing grows with the
+  screen while the grid was capped at 1180 px. From 761 px up the bags now keep the 892 px row they have at 1440 px,
+  centred (271 px each at any width). Page 38 + build-shop-pages.py. Home, Mix your own, About and My account checked
+  at 1920 and 2560: fine.
