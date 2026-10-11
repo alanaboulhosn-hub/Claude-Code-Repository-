@@ -1444,3 +1444,12 @@ choice). Snippet 91, fika-club.php (new):
   without them, so it jumped. Now they go back in the MutationObserver callback (before the paint) and the same
   elements are reused (the candy photo is not reloaded). Measured over ~300 frames per device while pressing + / -:
   0 frames without the line, the candy lines never moved. Rewards test still 19/19. Test account deleted.
+
+### Tapping the gifts on the progress lane (11 Oct 2026)
+- fika-bag-rewards.php (snippet 98): a bouncing gift (reached with this bag) or a green gift (claimed) on the progress
+  lane opens the reward popup: "Use now" / "Use later". If the reward is already in the bag, the popup says
+  "✓ In your bag" with "Keep it" / "Take it out". Glowing gifts (reached by the orders) keep their confetti claim;
+  the spin wheels are unchanged. Works on the home page and on the account page (Rewards tab); on the account page
+  the popup never opens by itself, only on a tap.
+- Tested live on phone and desktop with a hidden test customer and a REST test order (emails muted, no Meta, no
+  order number) under a temporary safety snippet; all deleted after the test.
