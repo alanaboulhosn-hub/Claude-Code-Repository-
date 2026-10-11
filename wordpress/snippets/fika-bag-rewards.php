@@ -208,45 +208,75 @@ add_action( 'wp_footer', function () {
     var w = D.rewards.filter(function (x) { return x.need <= r && seen.indexOf(x.key) === -1 && use.indexOf(x.key) === -1; })[0];
     if (w) pop(w);
   }
-  function pop(w) {
+  // the popup. w: a reward of the bag data, or { title, kg } for one in an order. mode: 'offer' (Use now / Use later),
+  // 'inbag' (chosen with Use now, not ordered yet), 'way' (in an order on its way), 'used' (in a delivered order).
+  // Use now and Take it out swap the words in place, at once.
+  function pop(w, mode) {
     open = true;
-    // tapped again once it is in the bag: say so, with a way to take it out
-    var inBag = using().indexOf(w.key) !== -1;
+    if (!mode) mode = using().indexOf(w.key) !== -1 ? 'inbag' : 'offer';
     var veil = document.createElement('div'); veil.className = 'fk-rwp-veil';
-    veil.innerHTML = '<div class="fk-rwp" role="dialog" aria-modal="true" aria-labelledby="fkRwpH" tabindex="-1">' +
-      '<button type="button" class="fk-rwp-x" aria-label="Close">&times;</button><div class="fk-rwp-gift" aria-hidden="true">🎁</div>' +
-      (inBag ? '<h2 id="fkRwpH">&#10003; In your bag</h2>' : '<h2 id="fkRwpH">You reached ' + esc(String(w.kg)) + ' kg!</h2>') +
-      '<div class="fk-rwp-what">' + esc(w.title) + '</div>' +
-      (inBag ? '<p>Your Fika Club reward (' + esc(w.co) + ') comes off this bag at checkout.</p>' +
-          '<button type="button" class="fk-rwp-now fk-rwp-keep">Keep it</button><button type="button" class="fk-rwp-out">Take it out</button>' +
-          '<small>Taken out, it stays in your account for another order.</small></div>'
-        : '<p>Your Fika Club reward is ready: ' + esc(w.co) + '. Use it on this bag, or keep it for later.</p>' +
+    veil.innerHTML = '<div class="fk-rwp" role="dialog" aria-modal="true" aria-labelledby="fkRwpH" tabindex="-1"></div>';
+    var box = veil.firstChild;
+    function draw(m) {
+      mode = m;
+      var head = { offer: 'You reached ' + esc(String(w.kg)) + ' kg!', inbag: '&#10003; In your bag', way: 'On its way!', used: 'Enjoyed!' }[m];
+      var icon = { offer: '🎁', inbag: '🎁', way: '🚚', used: '💛' }[m];
+      var body = {
+        offer: '<p>Your Fika Club reward is ready: ' + esc(w.co || '') + '. Use it on this bag, or keep it for later.</p>' +
           '<button type="button" class="fk-rwp-now">Use now</button><button type="button" class="fk-rwp-later">Use later</button>' +
-          '<small>It stays in your account until you use it. Delivery not included.</small></div>');
+          '<small>It stays in your account until you use it. Delivery not included.</small>',
+        inbag: '<p>Your Fika Club reward (' + esc(w.co || '') + ') comes off this bag at checkout.</p>' +
+          '<button type="button" class="fk-rwp-now fk-rwp-keep">Keep it</button><button type="button" class="fk-rwp-out">Take it out</button>' +
+          '<small>Taken out, it stays in your account for another order.</small>',
+        way: '<p>Your ' + esc(w.title) + ' is riding along with your order, packed and on its way to you. Sweet things are coming!</p>' +
+          '<button type="button" class="fk-rwp-now fk-rwp-keep">Yay!</button>',
+        used: '<p>You used this reward on an order that has been delivered. We hope every gram was delicious!</p>' +
+          '<button type="button" class="fk-rwp-now fk-rwp-keep">Got it</button><small>Keep swimming: the next gift is waiting further down the lane.</small>'
+      }[m];
+      box.innerHTML = '<button type="button" class="fk-rwp-x" aria-label="Close">&times;</button><div class="fk-rwp-gift" aria-hidden="true">' + icon + '</div>' +
+        '<h2 id="fkRwpH">' + head + '</h2><div class="fk-rwp-what">' + esc(w.title) + '</div>' + body;
+    }
+    draw(mode);
     document.body.appendChild(veil);
-    var seen = arr(SK); seen.push(w.key); setArr(SK, seen);
+    if (w.key) { var seen = arr(SK); seen.push(w.key); setArr(SK, seen); }
     function close() { veil.classList.remove('on'); setTimeout(function () { veil.remove(); open = false; check(); }, 260); }
     veil.addEventListener('click', function (e) {
-      if (e.target.closest('.fk-rwp-now:not(.fk-rwp-keep)')) { var u = using(); u.push(w.key); setArr(UK, u); drawLines(); close(); return; }
-      if (e.target.closest('.fk-rwp-out')) { setArr(UK, using().filter(function (k) { return k !== w.key; })); drawLines(); close(); return; }
+      if (e.target.closest('.fk-rwp-now:not(.fk-rwp-keep)')) { var u = using(); u.push(w.key); setArr(UK, u); drawLines(); draw('inbag'); box.focus({ preventScroll: true }); return; }
+      if (e.target.closest('.fk-rwp-out')) { setArr(UK, using().filter(function (k) { return k !== w.key; })); drawLines(); draw('offer'); box.focus({ preventScroll: true }); return; }
       if (e.target === veil || e.target.closest('.fk-rwp-later, .fk-rwp-keep, .fk-rwp-x')) close();
     });
     document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { document.removeEventListener('keydown', esc); close(); } });
-    requestAnimationFrame(function () { veil.classList.add('on'); veil.querySelector('.fk-rwp').focus({ preventScroll: true }); });
+    requestAnimationFrame(function () { veil.classList.add('on'); box.focus({ preventScroll: true }); });
   }
 
-  // the gifts on the progress lane: a bouncing one (reached with this bag) or a green one (claimed) opens the same
-  // popup; a glowing one (reached by the orders) keeps its confetti claim, the wheels stay as they are
+  // the gifts on the progress lane. Pink (unlocked, not in a placed order yet): Use now / Use later, or "In your bag";
+  // green (in an order on its way) and faded (delivered): a message. A new gift's first tap claims it with confetti
+  // (fika-loyalty.php), then this popup opens. The wheels stay as they are.
+  function laneOf(b) { try { return JSON.parse(b.closest('.fika-swim').getAttribute('data-swim') || '{}'); } catch (er) { return {}; } }
+  function rewardOf(key) { var r = reach(); return D.rewards.filter(function (x) { return x.key === key && x.need <= r; })[0]; }
   document.addEventListener('click', function (e) {
-    var b = e.target.closest ? e.target.closest('.fika-swim .fs-cp.is-bag, .fika-swim .fs-cp.is-claimed') : null;
+    var b = e.target.closest ? e.target.closest('.fika-swim .fs-cp.is-bag, .fika-swim .fs-cp.is-open, .fika-swim .fs-cp.is-claimed, .fika-swim .fs-cp.is-used') : null;
     if (!b || open) return;
-    var lap = 1; try { lap = JSON.parse(b.closest('.fika-swim').getAttribute('data-swim') || '{}').lap || 1; } catch (er) {}
-    var key = lap + ':' + (+b.getAttribute('data-g')), r = reach();
-    var w = D.rewards.filter(function (x) { return x.key === key && x.need <= r; })[0];
+    var s = laneOf(b), g = +b.getAttribute('data-g'), key = (s.lap || 1) + ':' + g;
+    if (b.classList.contains('is-claimed') || b.classList.contains('is-used')) {
+      var c = (s.cps || []).filter(function (x) { return x.g === g; })[0];
+      if (!c) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      pop({ key: '', title: c.title, kg: c.kg }, b.classList.contains('is-used') ? 'used' : 'way');
+      return;
+    }
+    var w = rewardOf(key);
     if (!w) return; // not known here (yet): the tracker's own words
     e.preventDefault(); e.stopImmediatePropagation();
     pop(w);
   }, true);
+  // just claimed on the lane (confetti): the popup follows
+  window.addEventListener('fikareward', function (e) {
+    var d = e.detail || {}, w = rewardOf((d.lap || 1) + ':' + d.g);
+    if (!w) return;
+    if (d.code) w.code = d.code;
+    setTimeout(function () { if (!open) pop(w); }, 1100);
+  });
 
   function start() { drawLines(); if (C.tapOnly) return; setTimeout(check, 1500); setInterval(function () { check(); }, 1500); }
   if (document.readyState === 'complete') start(); else window.addEventListener('load', start);

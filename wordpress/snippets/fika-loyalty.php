@@ -177,6 +177,28 @@ if ( ! function_exists( 'fika_swim_claims' ) ) {
 		return $g;
 	}
 	// claim lookup by code
+	// this customer's orders that carry a reward code: 'delivered' (completed) or 'placed' (on its way)
+	function fika_swim_code_orders( $user_id ) {
+		static $memo = array();
+		$user_id = (int) $user_id;
+		if ( isset( $memo[ $user_id ] ) ) {
+			return $memo[ $user_id ];
+		}
+		$out    = array();
+		$orders = $user_id ? wc_get_orders( array( 'customer_id' => $user_id, 'status' => array( 'wc-completed', 'wc-processing', 'wc-on-hold' ), 'limit' => -1, 'type' => 'shop_order' ) ) : array();
+		foreach ( $orders as $o ) {
+			foreach ( $o->get_coupon_codes() as $c ) {
+				if ( fika_swim_is_code( $c ) ) {
+					$k = wc_strtolower( $c );
+					if ( empty( $out[ $k ] ) || 'completed' === $o->get_status() ) {
+						$out[ $k ] = 'completed' === $o->get_status() ? 'delivered' : 'placed';
+					}
+				}
+			}
+		}
+		$memo[ $user_id ] = $out;
+		return $out;
+	}
 	function fika_swim_claim_of( $user_id, $code ) {
 		foreach ( fika_swim_claims( $user_id ) as $cl ) {
 			if ( strtolower( $cl['code'] ) === strtolower( $code ) ) {
@@ -292,6 +314,32 @@ if ( ! function_exists( 'fika_swim_claims' ) ) {
 		return $out;
 	}
 }
+
+// An order that failed, was not delivered or was refunded gives its reward codes back, the same as a cancelled one
+// (WooCommerce frees codes by itself only on cancel). Before the withdraw below, so the freed codes are checked too.
+add_action( 'woocommerce_order_status_changed', function ( $order_id, $from, $to, $order ) {
+	if ( ! $order || ! in_array( $to, array( 'failed', 'undelivered', 'refunded' ), true ) ) {
+		return;
+	}
+	$codes = $order->get_coupon_codes();
+	$ds    = $order->get_data_store();
+	if ( ! $codes || ! method_exists( $ds, 'get_recorded_coupon_usage_counts' ) || ! $ds->get_recorded_coupon_usage_counts( $order ) ) {
+		return;
+	}
+	foreach ( $codes as $c ) {
+		if ( ! fika_swim_is_code( $c ) ) {
+			return; // rewards never share an order with other codes; leave anything else to WooCommerce
+		}
+	}
+	$by = $order->get_user_id() ? $order->get_user_id() : $order->get_billing_email();
+	foreach ( $codes as $c ) {
+		$cp = new WC_Coupon( $c );
+		if ( $cp->get_id() ) {
+			$cp->decrease_usage_count( $by );
+		}
+	}
+	$ds->set_recorded_coupon_usage_counts( $order, false ); // placed again later: WooCommerce counts them again
+}, 10, 4 );
 
 // Withdraw rewards that no longer apply whenever an order changes status
 add_action( 'woocommerce_order_status_changed', function ( $order_id, $from, $to, $order ) {
@@ -423,14 +471,19 @@ if ( ! function_exists( 'fika_swim_state' ) ) {
 		$list = array();
 		foreach ( $cps as $g => $cp ) {
 			$code = isset( $claimed[ $lap . ':' . $g ] ) ? $claimed[ $lap . ':' . $g ] : '';
-			if ( $code ) {
-				$state = fika_swim_code_used( $code ) ? 'used' : 'claimed';
+			// open: claimed, not in a placed order yet (pink); claimed: in an order on its way (green);
+			// used: in a delivered order (faded)
+			$co = $code ? fika_swim_code_orders( $uid ) : array();
+			if ( $code && isset( $co[ wc_strtolower( $code ) ] ) ) {
+				$state = 'delivered' === $co[ wc_strtolower( $code ) ] ? 'used' : 'claimed';
+			} elseif ( $code ) {
+				$state = fika_swim_code_used( $code ) ? 'claimed' : 'open';
 			} elseif ( $d + $o >= $g ) {
 				$state = 'ready';
 			} else {
 				$state = 'locked';
 			}
-			$list[] = array( 'g' => $g, 'kg' => $cp['kg'], 'badge' => $cp['badge'], 'title' => $cp['title'], 'unlock' => $cp['unlock'], 'text' => $cp['text'], 'rg' => $cp['rg'], 'state' => $state, 'code' => 'claimed' === $state ? $code : '' );
+			$list[] = array( 'g' => $g, 'kg' => $cp['kg'], 'badge' => $cp['badge'], 'title' => $cp['title'], 'unlock' => $cp['unlock'], 'text' => $cp['text'], 'rg' => $cp['rg'], 'state' => $state, 'code' => 'open' === $state ? $code : '' );
 		}
 		$spins = array();
 		foreach ( $stops as $g ) {
@@ -652,24 +705,21 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 .fika-swim .fs-cp.is-way rect { fill: #eaf4ff; stroke: #7fb7f2; }
 .fika-swim .fs-cp.is-way path { stroke: #7fb7f2; }
 .fika-swim .fs-cp.is-way .fs-badge { background: #d4e9ff; color: #2f6fc0; }
-/* reached and delivered: lit, spinning, tap to claim */
-.fika-swim .fs-cp.is-ready { cursor: pointer; }
-.fika-swim .fs-cp.is-ready .fs-gift { filter: drop-shadow(0 0 6px rgba(255, 210, 63, .95)) drop-shadow(0 0 14px rgba(255, 111, 165, .7)); animation: fsGlow 1.6s ease-in-out infinite; }
-.fika-swim .fs-cp.is-ready .fs-gift svg { animation: fsSpin 2.6s linear infinite; }
-.fika-swim .fs-cp.is-ready rect, .fika-swim .fs-cp.is-claimed rect { fill: #ff6fa5; stroke: #004aad; }
-.fika-swim .fs-cp.is-ready path, .fika-swim .fs-cp.is-claimed path { stroke: #ffd23f; stroke-width: 3; }
-.fika-swim .fs-cp.is-ready .fs-badge { background: #004aad; color: #fff; animation: fsTap 1.6s ease-in-out infinite; }
-.fika-swim .fs-cp.is-ready:hover .fs-gift { transform: scale(1.1); }
-.fika-swim .fs-cp.is-ready:focus-visible { outline: 3px solid #ffd23f; outline-offset: 4px; border-radius: 12px; }
-.fika-swim .fs-cp[aria-busy] .fs-gift svg { animation-duration: .6s; }
-/* reached with what is in the bag: lit (used at checkout in this order) */
-.fika-swim .fs-cp.is-bag { cursor: pointer; }
-.fika-swim .fs-cp.is-bag .fs-gift { filter: drop-shadow(0 0 6px rgba(255, 210, 63, .9)); animation: fsBagBob 1.4s ease-in-out infinite; }
-.fika-swim .fs-cp.is-bag rect { fill: #ffd0e2; stroke: #004aad; }
-.fika-swim .fs-cp.is-bag path { stroke: #ffd23f; stroke-width: 3; }
-.fika-swim .fs-cp.is-bag .fs-badge { background: repeating-linear-gradient(135deg, #ff6fa5 0 6px, #ff8ab8 6px 12px); color: #fff; }
+/* unlocked, not in a placed order yet (reached by the orders or the bag; claimed or not): pink striped, bobbing,
+   tap for the popup (the first tap of a new one: confetti) */
+.fika-swim .fs-cp.is-ready, .fika-swim .fs-cp.is-open, .fika-swim .fs-cp.is-bag { cursor: pointer; }
+.fika-swim .fs-cp.is-ready .fs-gift, .fika-swim .fs-cp.is-open .fs-gift, .fika-swim .fs-cp.is-bag .fs-gift { filter: drop-shadow(0 0 6px rgba(255, 210, 63, .9)); animation: fsBagBob 1.4s ease-in-out infinite; }
+.fika-swim .fs-cp.is-ready rect, .fika-swim .fs-cp.is-open rect, .fika-swim .fs-cp.is-bag rect { fill: #ffd0e2; stroke: #004aad; }
+.fika-swim .fs-cp.is-ready path, .fika-swim .fs-cp.is-open path, .fika-swim .fs-cp.is-bag path { stroke: #ffd23f; stroke-width: 3; }
+.fika-swim .fs-cp.is-ready .fs-badge, .fika-swim .fs-cp.is-open .fs-badge, .fika-swim .fs-cp.is-bag .fs-badge { background: repeating-linear-gradient(135deg, #ff6fa5 0 6px, #ff8ab8 6px 12px); color: #fff; }
+.fika-swim .fs-cp.is-ready:hover .fs-gift, .fika-swim .fs-cp.is-open:hover .fs-gift, .fika-swim .fs-cp.is-bag:hover .fs-gift { transform: scale(1.1); }
+.fika-swim .fs-cp:focus-visible { outline: 3px solid #ffd23f; outline-offset: 4px; border-radius: 12px; }
+.fika-swim .fs-cp[aria-busy] .fs-gift svg { animation: fsSpin .6s linear infinite; }
 @keyframes fsBagBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-/* claimed (code below), used */
+/* in an order on its way: green; delivered with it: faded, label crossed out (both: tap for a message) */
+.fika-swim .fs-cp.is-claimed, .fika-swim .fs-cp.is-used { cursor: pointer; }
+.fika-swim .fs-cp.is-claimed rect { fill: #ff6fa5; stroke: #004aad; }
+.fika-swim .fs-cp.is-claimed path { stroke: #ffd23f; stroke-width: 3; }
 .fika-swim .fs-cp.is-claimed .fs-badge { background: #2fb36b; color: #fff; }
 .fika-swim .fs-cp.is-used { opacity: .6; }
 .fika-swim .fs-cp.is-used .fs-badge { background: #e6ebf5; color: #6b7894; text-decoration: line-through; }
@@ -741,8 +791,8 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 		function setState(b, c, st) {
 			c.state = st;
 			b.className = 'fs-cp is-' + st;
-			b.setAttribute('aria-label', c.kg + ' kg: ' + c.text + (st === 'ready' ? ' (tap to claim)' : st === 'claimed' ? ' (claimed)' : st === 'used' ? ' (used)' : st === 'bag' ? ' (unlocked by this bag: use it at checkout)' : ''));
-			b.title = st === 'ready' ? 'Tap to claim ' + c.title : st === 'claimed' ? c.title + ' claimed' : st === 'used' ? c.title + ' used' : st === 'bag' ? c.title + ': unlocked by this bag, use it at checkout' : c.title + ' at ' + c.kg + ' kg';
+			b.setAttribute('aria-label', c.kg + ' kg: ' + c.text + (st === 'ready' || st === 'open' || st === 'bag' ? ' (unlocked: tap to use it)' : st === 'claimed' ? ' (on its way to you)' : st === 'used' ? ' (used)' : ''));
+			b.title = st === 'ready' || st === 'open' || st === 'bag' ? c.title + ': unlocked, tap to use it' : st === 'claimed' ? c.title + ': on its way to you' : st === 'used' ? c.title + ' used' : c.title + ' at ' + c.kg + ' kg';
 		}
 		// gifts the bag reaches light up (they are used at checkout, in the order that reaches them)
 		function wheelOf(g) { for (var i = 0; i < wheels.length; i++) if (+wheels[i].getAttribute('data-g') === g) return wheels[i]; return null; }
@@ -754,8 +804,8 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			});
 			cps.forEach(function (c) {
 				// claimed for a bag at checkout (the orders alone do not reach it): only while the bag still reaches it
-				if (c.bagClaim === undefined) c.bagClaim = c.state === 'claimed' && s.d + s.o < c.g;
-				if (c.bagClaim) { var cs = s.d + s.o + bagG >= c.g ? 'claimed' : 'locked', cb = btn(c.g); if (cb ? cs !== c.state : false) setState(cb, c, cs); return; }
+				if (c.bagClaim === undefined) c.bagClaim = c.state === 'open' && s.d + s.o < c.g;
+				if (c.bagClaim) { var cs = s.d + s.o + bagG >= c.g ? 'open' : 'locked', cb = btn(c.g); if (cb ? cs !== c.state : false) setState(cb, c, cs); return; }
 				if (c.state !== 'locked' ? c.state !== 'bag' : false) return;
 				var st = s.d + s.o + bagG >= c.g ? 'bag' : 'locked', b = btn(c.g);
 				if (b ? st !== c.state : false) setState(b, c, st);
@@ -775,13 +825,13 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			if (lit.length ? !ready.length : false) {
 				var L = lit[lit.length - 1], lt = L.title.replace(/^A whole/, 'a whole');
 				title.textContent = 'This bag unlocks ' + lt + '!';
-				sub.appendChild(document.createTextNode('Go to checkout and tap \u201cUse\u201d: the sweets come off this very order' + name + '.'));
+				sub.appendChild(document.createTextNode('Tap the gift to use it on this very order' + name + '.'));
 			} else if (spinNow.length ? !ready.length : false) {
 				title.textContent = 'Mystery spin unlocked!';
 				sub.appendChild(document.createTextNode('Tap the little wheel on the lane and spin for a free 50 g mystery taste' + name + '.'));
 			} else if (ready.length) {
 				title.textContent = 'You made it to ' + ready[0].kg + ' kg!';
-				sub.appendChild(document.createTextNode('Tap the glowing gift to unlock ' + ready[0].unlock + name + '.'));
+				sub.appendChild(document.createTextNode('Tap the gift to unlock ' + ready[0].unlock + name + '.'));
 			} else if (lapNew) {
 				title.textContent = 'Lap ' + (s.lap - 1) + ' finished!';
 				sub.appendChild(document.createTextNode('You crossed the finish line' + name + '. Lap ' + s.lap + ' starts at 0 kg, with every reward and mystery spin back on the lane.'));
@@ -901,7 +951,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 				var c = cp(+b.getAttribute('data-g'));
 				if (c ? c.state === 'bag' : false) { title.textContent = c.title + ' is waiting at checkout'; sub.textContent = 'Place this bag and tap “Use” at checkout: it comes off this very order.'; return; }
 				if (!c || c.state !== 'ready' || b.getAttribute('aria-busy')) return;
-				if (!s.claim) { setState(b, c, 'claimed'); words(); return; }
+				if (!s.claim) { confetti(b); setState(b, c, 'open'); try { window.dispatchEvent(new CustomEvent('fikareward', { detail: { lap: s.lap, g: c.g, code: '' } })); } catch (e) {} words(); return; }
 				b.setAttribute('aria-busy', 'true');
 				fetch(s.claim, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': s.nonce }, body: JSON.stringify({ lap: s.lap, g: c.g }) })
 					.then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
@@ -909,7 +959,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 						b.removeAttribute('aria-busy');
 						if (!res.ok || !res.j.code) { alert((res.j && res.j.error) || 'Sorry, something went wrong. Please try again.'); return; }
 						confetti(b);
-						setState(b, c, 'claimed');
+						setState(b, c, 'open'); // claimed: still pink until an order carries it
 						try { window.dispatchEvent(new CustomEvent('fikareward', { detail: { lap: s.lap, g: c.g, code: res.j.code, title: res.j.title, text: res.j.text } })); } catch (e) {}
 						words();
 						var sm = document.querySelector('.fika-acct .fa-hi small');
