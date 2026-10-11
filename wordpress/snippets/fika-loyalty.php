@@ -210,14 +210,22 @@ if ( ! function_exists( 'fika_swim_claims' ) ) {
 		}
 		$claims = fika_swim_claims( $user_id );
 		$keep   = array();
-		// a reward on the customer's own checkout right now (claimed for the bag being checked out) stays
-		$on_cart = ( function_exists( 'WC' ) && WC()->cart && get_current_user_id() === (int) $user_id ) ? array_map( 'wc_strtolower', WC()->cart->get_applied_coupons() ) : array();
+		// a reward on the customer's own checkout right now (claimed for the bag being checked out) stays, but only
+		// while the orders + that bag still reach it: when the fish is back behind a gift, the gift is withdrawn
+		$mine    = function_exists( 'WC' ) && WC()->cart && get_current_user_id() === (int) $user_id;
+		$on_cart = $mine ? array_map( 'wc_strtolower', WC()->cart->get_applied_coupons() ) : array();
+		$c_reach = $on_cart ? fika_swim_reach( $user_id ) + fika_swim_cart_grams() : 0;
 		foreach ( $claims as $cl ) {
-			if ( in_array( wc_strtolower( $cl['code'] ), $on_cart, true ) ) {
+			$need = fika_swim_need( $cl['lap'], $cl['g'] );
+			$lc   = wc_strtolower( $cl['code'] );
+			if ( in_array( $lc, $on_cart, true ) && $need <= $c_reach ) {
 				$keep[] = $cl;
 				continue;
 			}
-			if ( fika_swim_need( $cl['lap'], $cl['g'] ) > $reach && ! fika_swim_code_used( $cl['code'] ) ) {
+			if ( $need > $reach && ! fika_swim_code_used( $cl['code'] ) ) {
+				if ( in_array( $lc, $on_cart, true ) ) {
+					WC()->cart->remove_coupon( $lc );
+				}
 				$c = new WC_Coupon( $cl['code'] );
 				if ( $c->get_id() ) {
 					$c->delete( true );
@@ -745,6 +753,9 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 				if (w ? st !== sp.state : false) { sp.state = st; w.className = 'fs-spin is-' + st; }
 			});
 			cps.forEach(function (c) {
+				// claimed for a bag at checkout (the orders alone do not reach it): only while the bag still reaches it
+				if (c.bagClaim === undefined) c.bagClaim = c.state === 'claimed' && s.d + s.o < c.g;
+				if (c.bagClaim) { var cs = s.d + s.o + bagG >= c.g ? 'claimed' : 'locked', cb = btn(c.g); if (cb ? cs !== c.state : false) setState(cb, c, cs); return; }
 				if (c.state !== 'locked' ? c.state !== 'bag' : false) return;
 				var st = s.d + s.o + bagG >= c.g ? 'bag' : 'locked', b = btn(c.g);
 				if (b ? st !== c.state : false) setState(b, c, st);

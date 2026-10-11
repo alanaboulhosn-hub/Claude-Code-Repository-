@@ -1456,3 +1456,9 @@ choice). Snippet 91, fika-club.php (new):
 - Removed the reward code box under the progress lane (code + "Copy code"), on the home page and on claim
   (fika-loyalty.php, snippet 11). The tap popup and the milestone popup are unchanged; rewards are used through the
   bag and the checkout rewards box.
+- Rule: when the fish swims back behind a gift, the gift is withdrawn (fika-loyalty.php, 11 Oct 2026). A reward claimed
+  at checkout for a bag stayed green after the bag got smaller, because the code was still applied in the customer's
+  saved cart. Now: a code on the cart is kept only while orders + that cart still reach it (else it is taken off the
+  cart and deleted), and on the lane a bag-claimed gift turns grey as soon as the bag no longer reaches it (green
+  again if the bag goes back up). Spin wheels keep their colour; the mystery taste still joins an order only when it
+  reaches the stop. Tested live with a test account (no order placed), deleted after.
