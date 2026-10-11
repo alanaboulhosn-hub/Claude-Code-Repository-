@@ -135,6 +135,8 @@ add_action( 'woocommerce_before_calculate_totals', function ( $cart ) {
 			if ( $full && '' !== (string) $full->get_regular_price() ) {
 				$item['data']->set_regular_price( round( (float) $full->get_regular_price() / 2, 2 ) );
 			}
+			// the candy's "Price per 100 g." line does not fit a free 50 g (this line's copy of the product only)
+			$item['data']->set_short_description( '' );
 			if ( 1 !== (int) $item['quantity'] ) {
 				$cart->cart_contents[ $key ]['quantity'] = 1;
 			}

@@ -1464,3 +1464,4 @@ choice). Snippet 91, fika-club.php (new):
   reaches the stop. Tested live with a test account (no order placed), deleted after.
 - Mystery taste line at checkout (fika-taste.php, snippet 46): the crossed-out price and "Save" showed $2.80 (a full
   100 g unit). The line's "was" price is now half the candy's 100 g price (50 g: $1.40); it still costs $0.
+- The free taste line no longer shows the candy's "Price per 100 g." label (that line only).
