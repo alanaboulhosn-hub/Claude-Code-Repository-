@@ -1486,3 +1486,13 @@ choice). Snippet 91, fika-club.php (new):
 - Deleted the owner's test account alan.aboul@gmail.com (user 71): account, its cancelled order #1388, reward codes
   SWIM3-Y9XIJL and SWIM6-U8KW34; checked the shop's own records (saved bags, reminder stop list, 10% list, win-back
   log, spin locks): nothing else held it.
+- Full customer sweep, 11 Oct 2026 (no orders placed, nothing sent to Meta):
+  - Guest journey on 7 screens (desktop, laptop, iPad, iPhone, Instagram and Facebook in-app, small phone): browse,
+    filters, search, bag, ready mix, checkout form and delivery fees, exit popup, account pages, contact links, pixel
+    events. All pass (iPad needed a second run after one slow page load; one stray font request on iPhone did not
+    repeat).
+  - Member journey on phone and desktop (27 checks each): spin, taste line, 3 kg popup with Use now <-> In your bag,
+    bag discount up/down the checkpoint, checkout auto-apply / Unapply, Rewards / Orders / My details tabs, lane taps.
+  - Every page crawled on phone and desktop (home, mix, ready mix, about, account, lost password, cart/checkout
+    redirects, old /product-page/ and /category/ links, 404): no JS errors, no broken images, no sideways scroll;
+    pages checked by eye screen by screen.
