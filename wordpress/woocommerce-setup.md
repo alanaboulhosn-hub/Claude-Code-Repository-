@@ -1477,3 +1477,12 @@ choice). Snippet 91, fika-club.php (new):
   ("Enjoyed!" popup).
 - Failed / undelivered / refunded orders give their reward codes back (WooCommerce does it itself for cancelled);
   then the usual withdraw runs if the fish is back behind the gift.
+- Reward code <-> order, verified 11 Oct 2026 on every status (test order walked through processing, on hold, completed,
+  failed, cancelled, refunded, undelivered and back; each time: use count, "used by", the gift, and whether checkout
+  accepts the code). WooCommerce's own count drifted (cancelled -> placed -> refunded kept the code taken; a stale
+  "used by" line kept checkout refusing a freed code). Now, after every status change, fika-loyalty.php sets both
+  from the orders themselves with WooCommerce's own add/remove: taken (1) while an order on its way or delivered
+  carries the code, free (0) otherwise.
+- Deleted the owner's test account alan.aboul@gmail.com (user 71): account, its cancelled order #1388, reward codes
+  SWIM3-Y9XIJL and SWIM6-U8KW34; checked the shop's own records (saved bags, reminder stop list, 10% list, win-back
+  log, spin locks): nothing else held it.

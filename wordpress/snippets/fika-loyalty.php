@@ -315,31 +315,50 @@ if ( ! function_exists( 'fika_swim_claims' ) ) {
 	}
 }
 
-// An order that failed, was not delivered or was refunded gives its reward codes back, the same as a cancelled one
-// (WooCommerce frees codes by itself only on cancel). Before the withdraw below, so the freed codes are checked too.
+// A reward code belongs to the order that carries it: taken while that order is placed (processing, on hold) or
+// delivered (completed), free again when it fails, is cancelled, refunded or not delivered. After every status change
+// the code's use count is set from the orders themselves (WooCommerce's own count can drift, e.g. cancelled, placed
+// again, then refunded). Before the withdraw below, so a freed code is checked there too.
 add_action( 'woocommerce_order_status_changed', function ( $order_id, $from, $to, $order ) {
-	if ( ! $order || ! in_array( $to, array( 'failed', 'undelivered', 'refunded' ), true ) ) {
+	if ( ! $order || ! $order->get_customer_id() ) {
 		return;
 	}
-	$codes = $order->get_coupon_codes();
-	$ds    = $order->get_data_store();
-	if ( ! $codes || ! method_exists( $ds, 'get_recorded_coupon_usage_counts' ) || ! $ds->get_recorded_coupon_usage_counts( $order ) ) {
+	$codes = array_filter( $order->get_coupon_codes(), 'fika_swim_is_code' );
+	if ( ! $codes ) {
 		return;
 	}
-	foreach ( $codes as $c ) {
-		if ( ! fika_swim_is_code( $c ) ) {
-			return; // rewards never share an order with other codes; leave anything else to WooCommerce
+	$taken  = array();
+	$orders = wc_get_orders( array( 'customer_id' => $order->get_customer_id(), 'status' => array( 'wc-completed', 'wc-processing', 'wc-on-hold' ), 'limit' => -1, 'type' => 'shop_order' ) );
+	foreach ( $orders as $o ) {
+		foreach ( $o->get_coupon_codes() as $c ) {
+			$taken[ wc_strtolower( $c ) ] = true;
 		}
 	}
-	$by = $order->get_user_id() ? $order->get_user_id() : $order->get_billing_email();
+	$uid   = (int) $order->get_customer_id();
+	$email = $order->get_billing_email();
+	$ds    = WC_Data_Store::load( 'coupon' );
 	foreach ( $codes as $c ) {
 		$cp = new WC_Coupon( $c );
-		if ( $cp->get_id() ) {
-			$cp->decrease_usage_count( $by );
+		if ( ! $cp->get_id() ) {
+			continue;
+		}
+		$n = empty( $taken[ wc_strtolower( $c ) ] ) ? 0 : 1;
+		// WooCommerce counts a code twice over: its use count and a "used by" line per use (checked per customer).
+		// Both are brought to $n with WooCommerce's own add / remove, so checkout agrees with the lane.
+		$rows = (int) $ds->get_usage_by_user_id( $cp, $uid ) + ( $email ? (int) $ds->get_usage_by_email( $cp, $email ) : 0 );
+		for ( $i = $rows; $i > $n; $i-- ) {
+			$ds->decrease_usage_count( $cp, $ds->get_usage_by_user_id( $cp, $uid ) ? $uid : $email );
+		}
+		if ( $rows < $n ) {
+			$ds->increase_usage_count( $cp, $uid );
+		}
+		$cp = new WC_Coupon( $c );
+		if ( (int) $cp->get_usage_count() !== $n ) {
+			$cp->set_usage_count( $n );
+			$cp->save();
 		}
 	}
-	$ds->set_recorded_coupon_usage_counts( $order, false ); // placed again later: WooCommerce counts them again
-}, 10, 4 );
+}, 20, 4 );
 
 // Withdraw rewards that no longer apply whenever an order changes status
 add_action( 'woocommerce_order_status_changed', function ( $order_id, $from, $to, $order ) {
