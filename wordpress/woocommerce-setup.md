@@ -1466,9 +1466,11 @@ choice). Snippet 91, fika-club.php (new):
   100 g unit). The line's "was" price is now half the candy's 100 g price (50 g: $1.40); it still costs $0.
 - The free taste line no longer shows the candy's "Price per 100 g." label (that line only).
 
-### Gift states on the progress lane (11 Oct 2026) — PREVIEW, NOT DEPLOYED YET
-- Committed for review; snippets 11 and 46/98 on the live site are still the previous commit (f801112..02759f3 state).
-  Waiting for the owner's "go live".
+### Gift states on the progress lane (11 Oct 2026) — live
+- Deployed to snippets 11 and 98 after the owner's "go live". Tested live with hidden REST test orders (safety snippet:
+  no emails, no Meta, label TEST): pink -> claim (confetti, popup) -> order with the code: green "On its way" ->
+  failed: pink again, code freed -> processing again: green -> completed: faded "Enjoyed" -> failed + the other
+  order cancelled: fish behind the gift, gift grey, code deleted -> crossed again: pink. All test data deleted.
 - Pink striped: unlocked, not in a placed order (popup state 1 "Use now / Use later", state 2 "In your bag" with
   Keep it / Take it out, swapping in place). First tap on a new gift: confetti, then the popup.
 - Green: the code is in an order on its way ("On its way!" popup). Faded, label crossed out: in a delivered order
