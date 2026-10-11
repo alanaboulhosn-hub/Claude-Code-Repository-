@@ -512,11 +512,6 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 	</div>
 	<div class="fs-ticks" aria-hidden="true"><?php for ( $i = 0; $i <= FIKA_SWIM_LAP / 1000; $i++ ) : ?><i data-i="<?php echo (int) $i; ?>"<?php echo in_array( $i, array_merge( array( 0 ), wp_list_pluck( fika_swim_checkpoints(), 'kg' ) ), true ) ? ' class="m"' : ''; ?>><?php echo (int) $i; ?></i><?php endfor; ?></div>
 	<p class="fs-note">Every gram you pay for moves the fish. Free sweets don&rsquo;t count towards your next reward.</p>
-	<div class="fs-rewards">
-		<?php foreach ( $s['open'] as $r ) : ?>
-		<div class="fs-reward"><div class="fs-code"><span><?php echo esc_html( $r[1] ); ?></span><b><?php echo esc_html( $r[0] ); ?></b></div><button type="button" class="fs-copy" data-code="<?php echo esc_attr( $r[0] ); ?>">Copy code</button><p><?php echo esc_html( $r[2] ); ?>. Use it whenever you like: tap &ldquo;Use&rdquo; at checkout. Rewards can be combined; delivery not included.</p></div>
-		<?php endforeach; ?>
-	</div>
 </section>
 		<?php
 		return ob_get_clean();
@@ -704,7 +699,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 		var water = el.querySelector('.fs-water'), way = el.querySelector('.fs-way'), inbag = el.querySelector('.fs-inbag');
 		var big = el.querySelector('.fs-big b'), sub = el.querySelector('.fs-sub'), legend = el.querySelector('.fs-legend'), title = el.querySelector('.fs-title');
 		var ticks = el.querySelectorAll('.fs-ticks i'), flags = el.querySelectorAll('.fs-flag'), btns = el.querySelectorAll('.fs-cp'), wheels = el.querySelectorAll('.fs-spin'), spins = s.spins || [];
-		var rewards = el.querySelector('.fs-rewards'), fin = el.querySelector('.fs-finish');
+		var fin = el.querySelector('.fs-finish');
 		var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
 		var seenKey = 'fika_swim_seen_' + s.uid, partyKey = 'fika_swim_party_' + s.uid;
 		var bagG = 0, cur = 0, target = 0, started = false, raf = 0, lastBub = 0, lastTs = 0;
@@ -889,23 +884,13 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			words();
 			if (started) go();
 		}
-		function addReward(r) {
-			var box = document.createElement('div');
-			box.className = 'fs-reward is-new';
-			box.innerHTML = '<div class="fs-code"><span></span><b></b></div><button type="button" class="fs-copy">Copy code</button><p></p>';
-			box.querySelector('span').textContent = r.title;
-			box.querySelector('b').textContent = r.code;
-			box.querySelector('.fs-copy').setAttribute('data-code', r.code);
-			box.querySelector('p').textContent = r.text + '. Use it whenever you like: tap “Use” at checkout. Rewards can be combined; delivery not included.';
-			rewards.insertBefore(box, rewards.firstChild);
-		}
 		// tap a lit checkpoint: claim the reward
 		Array.prototype.forEach.call(btns, function (b) {
 			b.addEventListener('click', function () {
 				var c = cp(+b.getAttribute('data-g'));
 				if (c ? c.state === 'bag' : false) { title.textContent = c.title + ' is waiting at checkout'; sub.textContent = 'Place this bag and tap “Use” at checkout: it comes off this very order.'; return; }
 				if (!c || c.state !== 'ready' || b.getAttribute('aria-busy')) return;
-				if (!s.claim) { addReward({ code: 'PREVIEW', title: c.title, text: c.text }); setState(b, c, 'claimed'); words(); return; }
+				if (!s.claim) { setState(b, c, 'claimed'); words(); return; }
 				b.setAttribute('aria-busy', 'true');
 				fetch(s.claim, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': s.nonce }, body: JSON.stringify({ lap: s.lap, g: c.g }) })
 					.then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
@@ -914,7 +899,6 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 						if (!res.ok || !res.j.code) { alert((res.j && res.j.error) || 'Sorry, something went wrong. Please try again.'); return; }
 						confetti(b);
 						setState(b, c, 'claimed');
-						addReward(res.j);
 						try { window.dispatchEvent(new CustomEvent('fikareward', { detail: { lap: s.lap, g: c.g, code: res.j.code, title: res.j.title, text: res.j.text } })); } catch (e) {}
 						words();
 						var sm = document.querySelector('.fika-acct .fa-hi small');

@@ -1453,3 +1453,6 @@ choice). Snippet 91, fika-club.php (new):
   the popup never opens by itself, only on a tap.
 - Tested live on phone and desktop with a hidden test customer and a REST test order (emails muted, no Meta, no
   order number) under a temporary safety snippet; all deleted after the test.
+- Removed the reward code box under the progress lane (code + "Copy code"), on the home page and on claim
+  (fika-loyalty.php, snippet 11). The tap popup and the milestone popup are unchanged; rewards are used through the
+  bag and the checkout rewards box.
