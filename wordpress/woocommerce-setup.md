@@ -1501,3 +1501,10 @@ choice). Snippet 91, fika-club.php (new):
   screen while the grid was capped at 1180 px. From 761 px up the bags now keep the 892 px row they have at 1440 px,
   centred (271 px each at any width). Page 38 + build-shop-pages.py. Home, Mix your own, About and My account checked
   at 1920 and 2560: fine.
+- Tablet and laptop sweep, 11 Oct 2026: 30 screen sizes (iPad Mini, iPad 7, iPad Air, iPad Pro 11 and 13, Galaxy Tab
+  S4 and S9, Surface Pro, each portrait and landscape; Nexus 7, Kindle Fire; laptops/desktops 1024x768 to 2560x1440),
+  each with 15 pages/states signed out and in (home, mix, ready mix, about, account, lost password, 404, phone menu,
+  Rewards / Orders / My details, bag drawer, checkout with a bag). Automatic checks (sideways scroll, squeezed or
+  overlapping cards, header items touching, cut-off text, broken images, JS errors), verified first against planted
+  faults, plus screen-by-screen review: no problems found. Only a stray failed font request now and then: Chrome's
+  preloader misreading an inline @import url('...') while the page streams in; the fonts themselves load normally.
