@@ -130,6 +130,11 @@ add_action( 'woocommerce_before_calculate_totals', function ( $cart ) {
 	foreach ( $cart->get_cart() as $key => $item ) {
 		if ( fika_taste_is_item( $item ) ) {
 			$item['data']->set_price( 0 );
+			// it is 50 g, half a 100 g unit: the checkout's crossed-out price and "Save" show half the 100 g price
+			$full = wc_get_product( $item['data']->get_id() );
+			if ( $full && '' !== (string) $full->get_regular_price() ) {
+				$item['data']->set_regular_price( round( (float) $full->get_regular_price() / 2, 2 ) );
+			}
 			if ( 1 !== (int) $item['quantity'] ) {
 				$cart->cart_contents[ $key ]['quantity'] = 1;
 			}

@@ -1462,3 +1462,5 @@ choice). Snippet 91, fika-club.php (new):
   cart and deleted), and on the lane a bag-claimed gift turns grey as soon as the bag no longer reaches it (green
   again if the bag goes back up). Spin wheels keep their colour; the mystery taste still joins an order only when it
   reaches the stop. Tested live with a test account (no order placed), deleted after.
+- Mystery taste line at checkout (fika-taste.php, snippet 46): the crossed-out price and "Save" showed $2.80 (a full
+  100 g unit). The line's "was" price is now half the candy's 100 g price (50 g: $1.40); it still costs $0.
