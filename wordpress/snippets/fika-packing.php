@@ -6,6 +6,12 @@
  *   no emails, no order note, not the rewards, not RT.
  * - Orders never marked: Fulfilled once Completed (a delivered bag was packed), otherwise Unfulfilled.
  * Saved with POST /wp-json/fika/v1/packed { id, packed } (shop managers only).
+ * "Delivery" column: On time or Late, from the moment the order was marked Fulfilled (Beirut time, saved as
+ * _fika_packed_at) to the moment it turned Completed (delivered):
+ * - Inside Beirut: packed before 5 pm -> due by the end of the next day; at 5 pm or later -> by the end of the day after.
+ * - Outside Beirut: one more day in both cases.
+ * Not completed yet: "On time, due ..." until the end of the due day, then "Late". Orders packed before this column
+ * existed have no packing time (shown as a dash), and so do failed, cancelled, refunded and undelivered orders.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-packing.php
  */
 
@@ -16,6 +22,33 @@ if ( ! function_exists( 'fika_packed' ) ) {
 			return $order->has_status( 'completed' );
 		}
 		return 'yes' === $v;
+	}
+	// end of the due day (timestamp) for an order packed at $at
+	function fika_delivery_due( $order, $at ) {
+		$area = $order->get_shipping_state() ? $order->get_shipping_state() : $order->get_billing_state();
+		$p    = ( new DateTime( '@' . (int) $at ) )->setTimezone( wp_timezone() );
+		$days = ( (int) $p->format( 'G' ) < 17 ? 1 : 2 ) + ( 'BA' === $area ? 0 : 1 );
+		$p->setTime( 23, 59, 59 )->modify( '+' . $days . ' day' );
+		return $p->getTimestamp();
+	}
+	function fika_delivery_cell( $order ) {
+		$at = (int) $order->get_meta( '_fika_packed_at' );
+		if ( ! $at || ! fika_packed( $order ) || $order->has_status( array( 'failed', 'cancelled', 'refunded', 'undelivered' ) ) ) {
+			$why = ! fika_packed( $order ) ? 'Not packed yet' : ( ! $at ? 'Packed before packing times were saved' : 'Not delivered (order ' . wc_get_order_status_name( $order->get_status() ) . ')' );
+			return '<span class="fika-dl fika-dl-none" title="' . esc_attr( $why ) . '">&ndash;</span>';
+		}
+		$due  = fika_delivery_due( $order, $at );
+		$area = 'BA' === ( $order->get_shipping_state() ? $order->get_shipping_state() : $order->get_billing_state() ) ? 'Inside Beirut' : 'Outside Beirut';
+		$tip  = 'Packed ' . wp_date( 'D j M, H:i', $at ) . ' (' . $area . '), due by end of ' . wp_date( 'D j M', $due );
+		if ( $order->has_status( 'completed' ) ) {
+			$done = $order->get_date_completed() ? $order->get_date_completed()->getTimestamp() : time();
+			$late = $done > $due;
+			return '<span class="fika-dl ' . ( $late ? 'fika-dl-late' : 'fika-dl-ok' ) . '" title="' . esc_attr( $tip . ', delivered ' . wp_date( 'D j M, H:i', $done ) ) . '">' . ( $late ? 'Late' : '&#10003; On time' ) . '</span><br><small>delivered ' . esc_html( wp_date( 'D j M', $done ) ) . '</small>';
+		}
+		if ( time() > $due ) {
+			return '<span class="fika-dl fika-dl-late" title="' . esc_attr( $tip ) . '">Late</span><br><small>was due ' . esc_html( wp_date( 'D j M', $due ) ) . '</small>';
+		}
+		return '<span class="fika-dl fika-dl-due" title="' . esc_attr( $tip ) . '">On time</span><br><small>due ' . esc_html( wp_date( 'D j M', $due ) ) . '</small>';
 	}
 	function fika_packed_cell( $order ) {
 		$on = fika_packed( $order );
@@ -40,8 +73,13 @@ add_action( 'rest_api_init', function () {
 			}
 			$on = rest_sanitize_boolean( $req->get_param( 'packed' ) );
 			$o->update_meta_data( '_fika_packed', $on ? 'yes' : 'no' );
+			if ( $on && ! (int) $o->get_meta( '_fika_packed_at' ) ) {
+				$o->update_meta_data( '_fika_packed_at', time() ); // when it was packed: starts the delivery clock
+			} elseif ( ! $on ) {
+				$o->delete_meta_data( '_fika_packed_at' );
+			}
 			$o->save_meta_data(); // only this value: no status change, no emails, no order hooks
-			return array( 'id' => $o->get_id(), 'packed' => $on );
+			return array( 'id' => $o->get_id(), 'packed' => $on, 'delivery' => fika_delivery_cell( $o ) );
 		},
 	) );
 } );
@@ -54,11 +92,13 @@ foreach ( array( 'manage_woocommerce_page_wc-orders_columns', 'manage_edit-shop_
 		foreach ( $cols as $k => $v ) {
 			$out[ $k ] = $v;
 			if ( $after === $k ) {
-				$out['fika_packed'] = 'Packaging';
+				$out['fika_packed']   = 'Packaging';
+				$out['fika_delivery'] = 'Delivery';
 			}
 		}
 		if ( ! isset( $out['fika_packed'] ) ) {
-			$out['fika_packed'] = 'Packaging';
+			$out['fika_packed']   = 'Packaging';
+			$out['fika_delivery'] = 'Delivery';
 		}
 		return $out;
 	}, 40 );
@@ -67,10 +107,16 @@ add_action( 'manage_woocommerce_page_wc-orders_custom_column', function ( $col, 
 	if ( 'fika_packed' === $col && $order instanceof WC_Order ) {
 		fika_packed_cell( $order );
 	}
+	if ( 'fika_delivery' === $col && $order instanceof WC_Order ) {
+		echo fika_delivery_cell( $order ); // phpcs:ignore -- escaped inside
+	}
 }, 10, 2 );
 add_action( 'manage_shop_order_posts_custom_column', function ( $col, $post_id ) {
 	if ( 'fika_packed' === $col && ( $o = wc_get_order( $post_id ) ) ) {
 		fika_packed_cell( $o );
+	}
+	if ( 'fika_delivery' === $col && ( $o = wc_get_order( $post_id ) ) ) {
+		echo fika_delivery_cell( $o ); // phpcs:ignore -- escaped inside
 	}
 }, 10, 2 );
 
@@ -87,6 +133,13 @@ add_action( 'admin_footer', function () {
 		.fika-pack.is-on { border-color: #b8e0c2; background: #e7f6ea; color: #1e6b35; }
 		.fika-pack:hover { filter: brightness(.96); }
 		.fika-pack[aria-busy="true"] { opacity: .55; cursor: progress; }
+		.column-fika_delivery { width: 110px; }
+		.fika-dl { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; line-height: 1.3; white-space: nowrap; }
+		.fika-dl-ok { background: #e7f6ea; color: #1e6b35; }
+		.fika-dl-due { background: #e5f0fb; color: #1d5a99; }
+		.fika-dl-late { background: #fbe7e7; color: #a11c1c; }
+		.fika-dl-none { padding: 0; color: #a7aaad; font-weight: 400; }
+		td.column-fika_delivery small { color: #646970; }
 	</style>
 	<script>
 	(function () {
@@ -106,6 +159,8 @@ add_action( 'admin_footer', function () {
 					b.classList.toggle('is-on', res.j.packed);
 					b.setAttribute('aria-pressed', res.j.packed ? 'true' : 'false');
 					b.innerHTML = res.j.packed ? '&#10003; Fulfilled' : 'Unfulfilled';
+					var tr = b.closest('tr'), dl = tr ? tr.querySelector('td.column-fika_delivery') : null;
+					if (dl && res.j.delivery) dl.innerHTML = res.j.delivery; // the delivery clock starts (or stops) at once
 				})
 				.catch(function () { b.removeAttribute('aria-busy'); alert('Could not save. Please try again.'); });
 		}, true);

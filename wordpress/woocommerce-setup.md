@@ -1525,3 +1525,9 @@ choice). Snippet 91, fika-club.php (new):
   ...), gifts reached but not claimed, codes on an order on its way, codes used on a delivered order (with the order
   number), and the mystery taste. Guests: kg and codes, marked "guest, not in Fika Club". Sortable by kg. CSV export
   keeps Kg delivered and adds kg in Fika Club, next gift, codes available, codes used.
+- 12 Oct 2026: "Delivery" column (same snippet 103), after Packaging: clicking Fulfilled saves the time
+  (_fika_packed_at, Beirut time; switching back to Unfulfilled clears it). Due by the end of: the next day if packed
+  before 17:00, the day after that from 17:00 (Inside Beirut, state BA); one more day Outside Beirut. Completed by the
+  due day = "On time", after = "Late" (from the order's completed time); not delivered yet = "On time, due ..." until
+  the due day ends, then "Late". Dash for: not packed, packed before times were saved (the 478 marked up to #1484),
+  failed / cancelled / refunded / undelivered. Calendar days (Sundays count). Tested on 10 hidden test orders (deleted).
