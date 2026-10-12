@@ -1531,3 +1531,4 @@ choice). Snippet 91, fika-club.php (new):
   due day = "On time", after = "Late" (from the order's completed time); not delivered yet = "On time, due ..." until
   the due day ends, then "Late". Dash for: not packed, packed before times were saved (the 478 marked up to #1484),
   failed / cancelled / refunded / undelivered. Calendar days (Sundays count). Tested on 10 hidden test orders (deleted).
+- 12 Oct 2026: #1485-#1494 were marked Fulfilled (15:54-17:03) before the Delivery column went live; their packing time was filled in from the order's last-changed time (the click). #1484 was switched back to Unfulfilled at 15:30 (left as is).
