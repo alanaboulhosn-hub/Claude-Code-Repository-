@@ -1508,3 +1508,10 @@ choice). Snippet 91, fika-club.php (new):
   overlapping cards, header items touching, cut-off text, broken images, JS errors), verified first against planted
   faults, plus screen-by-screen review: no problems found. Only a stray failed font request now and then: Chrome's
   preloader misreading an inline @import url('...') while the page streams in; the fonts themselves load normally.
+
+### Packaging column in Orders (12 Oct 2026)
+- fika-packing.php (snippet 103): WooCommerce > Orders gets a "Packaging" column after Status and RT. Each order shows
+  Unfulfilled or Fulfilled; one click switches it (saved at once, the row does not open). Order meta _fika_packed
+  (yes / no), saved on its own: no status change, no emails, no order note, rewards and RT untouched. Orders never
+  marked show Fulfilled once Completed, otherwise Unfulfilled. Saved via POST /fika/v1/packed (shop managers only).
+- Tested with a hidden REST test order (deleted): switching changed only that value; refused without login.
