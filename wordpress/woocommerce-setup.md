@@ -1515,3 +1515,13 @@ choice). Snippet 91, fika-club.php (new):
   (yes / no), saved on its own: no status change, no emails, no order note, rewards and RT untouched. Orders never
   marked show Fulfilled once Completed, otherwise Unfulfilled. Saved via POST /fika/v1/packed (shop managers only).
 - Tested with a hidden REST test order (deleted): switching changed only that value; refused without login.
+- 12 Oct 2026: marked all 478 orders numbered up to #1484 as packaged (Fulfilled) at the owner's request, through
+  /fika/v1/packed; no order status changed. #1485 onwards left as they were.
+
+### Fika customers: Rewards column (12 Oct 2026)
+- fika-customers-admin.php (snippet 17): "Kg delivered" replaced by "Rewards": the kg that count in Fika Club
+  (delivered + on the way, rewards-paid grams excluded, same as the lane), the lap and the next gift not yet claimed;
+  chips for codes still available (personal, email-restricted codes not used up or expired: claimed rewards, win-back
+  ...), gifts reached but not claimed, codes on an order on its way, codes used on a delivered order (with the order
+  number), and the mystery taste. Guests: kg and codes, marked "guest, not in Fika Club". Sortable by kg. CSV export
+  keeps Kg delivered and adds kg in Fika Club, next gift, codes available, codes used.
