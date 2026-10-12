@@ -10,6 +10,7 @@
  * _fika_packed_at) to the moment it turned Completed (delivered):
  * - Inside Beirut: packed before 5 pm -> due by the end of the next day; at 5 pm or later -> by the end of the day after.
  * - Outside Beirut: one more day in both cases.
+ * - Only delivery days count: Sundays are skipped (RT delivers Monday to Saturday).
  * Not completed yet: "On time, due ..." until the end of the due day, then "Late". Orders packed before this column
  * existed have no packing time (shown as a dash), and so do failed, cancelled, refunded and undelivered orders.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-packing.php
@@ -28,7 +29,14 @@ if ( ! function_exists( 'fika_packed' ) ) {
 		$area = $order->get_shipping_state() ? $order->get_shipping_state() : $order->get_billing_state();
 		$p    = ( new DateTime( '@' . (int) $at ) )->setTimezone( wp_timezone() );
 		$days = ( (int) $p->format( 'G' ) < 17 ? 1 : 2 ) + ( 'BA' === $area ? 0 : 1 );
-		$p->setTime( 23, 59, 59 )->modify( '+' . $days . ' day' );
+		$p->setTime( 23, 59, 59 );
+		// delivery days only: Sundays are skipped (RT delivers Monday to Saturday)
+		while ( $days > 0 ) {
+			$p->modify( '+1 day' );
+			if ( '7' !== $p->format( 'N' ) ) {
+				$days--;
+			}
+		}
 		return $p->getTimestamp();
 	}
 	function fika_delivery_cell( $order ) {
