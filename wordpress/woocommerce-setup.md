@@ -1533,3 +1533,10 @@ choice). Snippet 91, fika-club.php (new):
   failed / cancelled / refunded / undelivered. Calendar days (Sundays count). Tested on 10 hidden test orders (deleted).
 - 12 Oct 2026: #1485-#1494 were marked Fulfilled (15:54-17:03) before the Delivery column went live; their packing time was filled in from the order's last-changed time (the click). #1484 was switched back to Unfulfilled at 15:30 (left as is).
 - 12 Oct 2026: Sundays no longer count as delivery days (due date skips them). #1493 and #1494 (clicked 17:01 / 17:03) counted as packed at 16:59 at the owner's request, like the rest of #1485-#1494.
+- 13 Oct 2026: RT export of 13 Oct (470 parcels) applied through fika_rtd_apply (the webhook's code: RT column, order
+  note, no emails), via a temporary admin-only endpoint (deleted). Matching: tracking already on the order (370), then
+  phone + cash (45), then by name for 6 where RT's amount or phone differed (#1487; #1482 + #1483 sent as one parcel
+  RTL86028171; #1497, #1503, #1505 with RT cash $1.80-$2.80 below the order). 38 status changes (37 processing ->
+  completed, #1450 failed -> completed after a later delivery), 22 parcels linked / RT step updated. Delivered orders
+  got the export time (13 Oct 23:51) as completed time, for the Delivery column. Cancelled #1148, #1151, #1284 left
+  alone; old pre-WordPress parcels ignored. No parcel yet: #1484, #1509, #1510.
