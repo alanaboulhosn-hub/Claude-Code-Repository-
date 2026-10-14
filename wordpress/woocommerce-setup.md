@@ -1540,3 +1540,10 @@ choice). Snippet 91, fika-club.php (new):
   completed, #1450 failed -> completed after a later delivery), 22 parcels linked / RT step updated. Delivered orders
   got the export time (13 Oct 23:51) as completed time, for the Delivery column. Cancelled #1148, #1151, #1284 left
   alone; old pre-WordPress parcels ignored. No parcel yet: #1484, #1509, #1510.
+
+### Fizzy Pop hidden (14 Oct 2026, out of stock)
+- Product 92 kept as published in WP Admin, set to catalog visibility "Hidden" and "Out of stock": gone from the
+  shop grids, search, home carousel, bag suggestions and the mystery-taste wheel; its old product URL already redirects
+  to Mix your own. To bring it back: Stock status "In stock" and Catalog visibility "Shop and search results".
+- mix.html (pattern 241): a sweet no longer in the shop list now leaves a saved bag when the page loads (before, the
+  bag's remembered name kept it, and checkout would have refused it).

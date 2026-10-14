@@ -436,7 +436,8 @@
         });
         if (!items.length) { ready(); return; }
         PRODUCTS = items; ready();
-        Object.keys(bag).forEach(function (k) { if (/^[pw]/.test(k) && !byId(k).name) delete bag[k]; });
+        // a sweet no longer on sale (hidden or out of stock) leaves the bag, even if the bag remembers its name
+        Object.keys(bag).forEach(function (k) { if (/^[pw]/.test(k) && !PRODUCTS.some(function (p) { return p.id === k; })) delete bag[k]; });
         save(); render(); place();
         try { console.log('[FIKA mix] loaded ' + items.length + ' products from WooCommerce'); } catch (e) {}
       })
