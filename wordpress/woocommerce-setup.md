@@ -1547,3 +1547,8 @@ choice). Snippet 91, fika-club.php (new):
   to Mix your own. To bring it back: Stock status "In stock" and Catalog visibility "Shop and search results".
 - mix.html (pattern 241): a sweet no longer in the shop list now leaves a saved bag when the page loads (before, the
   bag's remembered name kept it, and checkout would have refused it).
+- 14 Oct 2026: BUBS Forest Berry Ovals (product 121) got a new photo (media 1100, BUBS-Forest-Berry-Ovals-mini.webp,
+  copy in wordpress/images/): 16 ovals cut from the old photo, laid out like the Fruity Lemon Mix Skulls photo (same
+  1024 px picture, same pile size and coverage), so they read as minis. The old photo (media 484) stays in the Media
+  Library. Both renamed with "(Mini)": "BUBS Forest Berry Ovals (Mini)", "BUBS Fruity Lemon Mix Skulls (Mini)"; slugs
+  unchanged (the cartoons find products by slug). Checked: shop on phone and desktop, search "mini", bag, checkout.
