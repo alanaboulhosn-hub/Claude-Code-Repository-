@@ -187,13 +187,15 @@ add_action( 'wp_footer', function () {
 .fika-signcard .fsc-sub { margin-top: 4px; font-size: 15.5px; line-height: 1.45; }
 .fika-signcard .fsc-sub b { color: #004aad; }
 /* the lane */
-.fika-signcard .fsc-lane { position: relative; height: 14px; margin: 30px 8px 22px 4px; border-radius: 999px; background: #fdeaf2; }
+.fika-signcard .fsc-lane { position: relative; height: 14px; margin: 30px 10px 28px 6px; border-radius: 999px; background: #fdeaf2; }
 .fika-signcard .fsc-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: repeating-linear-gradient(135deg, #ff6fa5 0 6px, #ff8ab8 6px 12px); min-width: 14px; transition: width .5s; }
 .fika-signcard .fsc-me { position: absolute; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; transition: left .5s; }
 .fika-signcard .fsc-me svg { width: 100%; height: 100%; }
 .fika-signcard .fsc-cp { position: absolute; top: -27px; transform: translateX(-50%); text-align: center; font-size: 17px; line-height: 1; }
-.fika-signcard .fsc-cp small { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; font: 700 11px/1 'Outfit', Arial, sans-serif; color: #6b7894; }
-.fika-signcard .fsc-cp.is-spin small { color: #c2185b; }
+.fika-signcard .fsc-cp i { position: absolute; top: 50%; left: 100%; margin: -6px 0 0 3px; font: normal 700 12px/1 'Outfit', Arial, sans-serif; color: #004aad; white-space: nowrap; }
+.fika-signcard .fsc-cp.is-left i { left: auto; right: 100%; margin: -6px 3px 0 0; }
+.fika-signcard .fsc-cp.is-spin i { color: #c2185b; }
+.fika-signcard .fsc-cp small { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); white-space: nowrap; font: 700 11px/1 'Outfit', Arial, sans-serif; color: #6b7894; }
 .fika-signcard .fsc-chips { display: flex; flex-wrap: wrap; gap: 6px 8px; }
 .fika-signcard .fsc-chips span { padding: 4px 10px; border-radius: 999px; background: #eef4ff; color: #004aad; font-size: 13px; font-weight: 600; }
 .fika-signcard .fsc-acts { flex: none; display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 250px; text-align: center; }
@@ -211,7 +213,7 @@ add_action( 'wp_footer', function () {
   .fika-signcard { flex-wrap: wrap; padding: 20px 16px 16px; border-radius: 18px; }
   .fika-signcard .fsc-fish { width: 46px; height: 46px; }
   .fika-signcard .fsc-text { flex: 1 1 100%; }
-  .fika-signcard .fsc-lane { margin: 30px 12px 22px 12px; }
+  .fika-signcard .fsc-lane { margin: 30px 12px 28px 12px; }
   .fika-signcard b.fsc-title { font-size: 27px; padding-right: 34px; }
   .fika-signcard .fsc-acts { flex: 1 1 100%; max-width: none; }
   .fika-signcard .fsc-go { width: 100%; }
@@ -279,7 +281,8 @@ add_action( 'wp_footer', function () {
 		card = document.createElement('div');
 		card.className = 'fika-signcard';
 		var lane = '<div class="fsc-lane" aria-hidden="true"><div class="fsc-fill"></div>' + STOPS.map(function (s) {
-			return '<span class="fsc-cp' + (s[3] ? ' is-spin' : '') + '" style="left:' + (s[0] / LAP * 100) + '%">' + s[1] + '<small>' + s[2] + '</small></span>';
+			// the reward next to its icon above the lane, the weight it takes below (Spin's and the last label sit on the left)
+			return '<span class="fsc-cp' + (s[3] ? ' is-spin is-left' : s[0] === LAP ? ' is-left' : '') + '" style="left:' + (s[0] / LAP * 100) + '%">' + s[1] + '<i>' + s[2] + '</i><small>' + gtext(s[0]) + '</small></span>';
 		}).join('') + '<span class="fsc-me">' + FISH + '</span></div>';
 		card.innerHTML = '<span class="fsc-tag">Free to join</span><span class="fsc-fish">' + FISH + '</span><div class="fsc-text"><b class="fsc-title"></b><div class="fsc-sub"></div>' + lane +
 			'<div class="fsc-chips"><span>🎁 100 g free at 3 kg</span><span>🎡 Free mystery taste at 1.5 kg</span><span>🏆 Up to a whole kilo free</span><span>📦 Track your orders</span></div></div>' +
