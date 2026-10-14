@@ -1565,3 +1565,9 @@ choice). Snippet 91, fika-club.php (new):
   person. Guest orders #1067, #1191, #1270, #1407 (all completed) set to customer 133 the way fika_link_past_orders
   does (order note added, totals and lane refreshed). Billing emails on those orders unchanged. Rewards reach
   0.5 kg -> 2.8 kg. Done with a one-off REST endpoint (snippet 112), deleted afterwards.
+- Later the same day Rosa placed #1521 (processing) with the 3 kg gift (SWIM3, $2.80), reached only because #1519
+  was still processing; #1519 was then cancelled (she is at 2.8 kg). Owner chose to honour the gift: #1521 left as is.
+- The "no stacking pending orders" rule (rewards unlock from delivered + bag only, waiting sign on gifts reached
+  only via orders on their way) is in git (fika-loyalty, fika-bag-rewards, fika-club, fika-taste) but NOT live:
+  owner said not to deploy it for now. Before deploying: check which customers hold unused gifts reached only via
+  pending orders, then deploy snippets 11, 98, the club and taste snippets, and test with a test account (no order).
