@@ -61,7 +61,8 @@ if ( ! function_exists( 'fika_club_on' ) ) {
 	function fika_club_state( $uid ) {
 		$t      = fika_swim_totals( $uid );
 		$bag    = fika_swim_cart_grams();
-		$reach  = $t['delivered'] + $t['placed'] + $bag;
+		$reach  = $t['delivered'] + $t['placed'] + $bag; // where the fish is
+		$unl    = $t['delivered'] + $bag; // what unlocks spins and rewards: orders on their way do not
 		$cps    = fika_swim_checkpoints();
 		$tastes = function_exists( 'fika_taste_list' ) ? fika_taste_list( $uid ) : array();
 		$spins  = array();
@@ -70,13 +71,13 @@ if ( ! function_exists( 'fika_club_on' ) ) {
 		for ( $lap = 1; fika_swim_need( $lap, 0 ) <= $reach; $lap++ ) {
 			foreach ( $stops as $g ) {
 				$need = fika_swim_need( $lap, $g );
-				if ( $need <= $reach ? ! isset( $tastes[ $lap . ':' . $g ] ) : false ) {
+				if ( $need <= $unl ? ! isset( $tastes[ $lap . ':' . $g ] ) : false ) {
 					$spins[] = array( 'lap' => $lap, 'g' => $g, 'need' => $need );
 				}
 			}
 		}
 		$rewards = array();
-		foreach ( fika_swim_unclaimed( $uid, $reach ) as $u ) {
+		foreach ( fika_swim_unclaimed( $uid, $unl ) as $u ) {
 			$cp        = $cps[ $u[1] ];
 			$rewards[] = array( 'lap' => $u[0], 'g' => $u[1], 'need' => $u[2], 'title' => $cp['title'], 'co' => $cp['co'], 'amount' => $cp['amount'] );
 		}

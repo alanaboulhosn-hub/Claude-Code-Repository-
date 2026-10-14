@@ -3,11 +3,11 @@
  * Fika Club rewards in the bag (signed-in customers): the mystery taste and the checkpoint rewards show in
  * "Your bag", and a popup tells the customer when a checkpoint is reached.
  * - Mystery taste (fika-taste.php): a won taste shows as a line in the bag ("Mystery taste: <candy>, 50 g, free")
- *   while the orders + this bag reach its spin stop (1.5 kg / 12.5 kg of a lap) and the bag has sweets in it; below
+ *   while the delivered orders + this bag reach its spin stop (1.5 kg / 12.5 kg of a lap) and the bag has sweets in it; below
  *   the stop the line goes. At checkout fika-taste.php adds / removes the free line by the same rule.
- * - Checkpoint rewards (fika-loyalty.php: 3, 6, 10, 15 kg of each lap): when the orders + this bag reach one the
+ * - Checkpoint rewards (fika-loyalty.php: 3, 6, 10, 15 kg of each lap): when the delivered orders + this bag reach one the
  *   customer has not been told about yet, a popup says so, with "Use now" and "Use later" (once per reward).
- *   "Use now" puts the reward in the bag ("100 g on us  -$2.80", total lowered) for as long as the orders + bag still
+ *   "Use now" puts the reward in the bag ("100 g on us  -$2.80", total lowered) for as long as the delivered orders + bag still
  *   reach the checkpoint; below it the reward leaves the bag (it comes back if the bag goes back up). "Use later" keeps
  *   it for later: the bag shows it with a "Use now" button as a reminder.
  * - Checkout: a reward chosen with "Use now" is applied by itself (fika-loyalty.php's checkout box: claimed there if
@@ -26,7 +26,7 @@ if ( ! function_exists( 'fika_brw_data' ) ) {
 		if ( ! $uid || ! function_exists( 'fika_swim_reach' ) ) {
 			return null;
 		}
-		$reach  = fika_swim_reach( $uid );
+		$reach  = fika_swim_unlock( $uid ); // delivered orders: this bag is added in the page (orders on their way do not unlock)
 		$cps    = fika_swim_checkpoints();
 		// read only: never withdraw rewards here (one claimed at checkout for the bag is not in an order yet)
 		$claims = fika_swim_claims( $uid );
