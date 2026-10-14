@@ -1,7 +1,7 @@
 <?php
 /**
  * Fika: mystery tastes — two spin stops on the rewards lane (1.5 kg and 12.5 kg of every 15 kg lap).
- * - When the customer's delivered orders + one order not delivered yet (on its way, or the bag being filled) pass a stop, the little wheel on
+ * - When the customer's delivered orders (plus the bag being filled, while no order is on its way) pass a stop, the little wheel on
  *   the lane lights up and spins, and the candy wheel opens by itself in the middle of the page (once per visit if
  *   closed without spinning; the little wheel on the lane opens it again). The candy wheel: every candy in the shop (in stock, shown in the
  *   shop, not Ready Mix) with its photo, narrowed first if they like: All sweets, Gelatin-free, Gluten-free, Vegan
@@ -77,7 +77,7 @@ if ( ! function_exists( 'fika_taste_list' ) ) {
 		if ( ! $won && ! $have ) {
 			return;
 		}
-		$reach = function_exists( 'fika_swim_unlock' ) ? fika_swim_unlock( $uid, fika_swim_cart_grams() ) : fika_swim_reach( $uid ) + fika_swim_cart_grams(); // delivered + one undelivered order
+		$reach = function_exists( 'fika_swim_unlock' ) ? fika_swim_unlock( $uid, fika_swim_cart_grams() ) : fika_swim_reach( $uid ) + fika_swim_cart_grams(); // delivered, + this bag while no order is on its way
 		$later = WC()->session ? (array) WC()->session->get( 'fika_taste_later' ) : array();
 		$busy  = true;
 		$GLOBALS['fika_taste_auto'] = true; // our own removals are not "keep it for later"
@@ -236,8 +236,7 @@ add_action( 'rest_api_init', function () {
 			if ( ! add_option( $lock, time(), '', 'no' ) ) {
 				return new WP_REST_Response( array( 'error' => 'You already spun this wheel.' ), 400 );
 			}
-			// the stop has to be reached by the delivered orders + one undelivered order (one on its way, or the bag);
-			// two undelivered orders are never added up
+			// the stop has to be reached by the delivered orders, + the bag only while no order is on its way
 			$bag = min( 20000, max( 0, (int) $req->get_param( 'bag' ) ) );
 			if ( fika_taste_need( $key ) > ( function_exists( 'fika_swim_unlock' ) ? fika_swim_unlock( $uid, max( $bag, fika_swim_cart_grams() ) ) : fika_swim_reach( $uid ) + max( $bag, fika_swim_cart_grams() ) ) ) {
 				delete_option( $lock );

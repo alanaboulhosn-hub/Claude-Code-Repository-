@@ -62,7 +62,7 @@ if ( ! function_exists( 'fika_club_on' ) ) {
 		$t      = fika_swim_totals( $uid );
 		$bag    = fika_swim_cart_grams();
 		$reach  = $t['delivered'] + $t['placed'] + $bag; // where the fish is
-		$unl    = fika_swim_unlock( $uid, $bag ); // what unlocks spins and rewards: delivered + one undelivered order
+		$unl    = fika_swim_unlock( $uid, $bag ); // what unlocks spins and rewards: delivered, + this bag while no order is on its way
 		$cps    = fika_swim_checkpoints();
 		$tastes = function_exists( 'fika_taste_list' ) ? fika_taste_list( $uid ) : array();
 		$spins  = array();
