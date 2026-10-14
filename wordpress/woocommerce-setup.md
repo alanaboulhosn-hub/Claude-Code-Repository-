@@ -1559,3 +1559,9 @@ choice). Snippet 91, fika-club.php (new):
   reward lane (Spin 1.5 kg, 100 g at 3 kg, 200 g at 6 kg, 400 g at 10 kg, 1 kg at 15 kg) with the fish at the bag
   weight, perk chips, and a pulsing "Join free & earn" button. Tapping it ticks "create account" as before and turns the
   card green ("You're joining Fika Club"). Sign-up logic unchanged. Live and checked on phone and desktop the same day.
+
+## Rosa Hourani: guest orders joined to her account (2026-10-14)
+- Owner confirmed rosahourani09@gmail.com (account, user 133) and r.hourani@ahliahschool.edu.lb (guest) are the same
+  person. Guest orders #1067, #1191, #1270, #1407 (all completed) set to customer 133 the way fika_link_past_orders
+  does (order note added, totals and lane refreshed). Billing emails on those orders unchanged. Rewards reach
+  0.5 kg -> 2.8 kg. Done with a one-off REST endpoint (snippet 112), deleted afterwards.
