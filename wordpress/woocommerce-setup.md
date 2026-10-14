@@ -1552,3 +1552,10 @@ choice). Snippet 91, fika-club.php (new):
   1024 px picture, same pile size and coverage), so they read as minis. The old photo (media 484) stays in the Media
   Library. Both renamed with "(Mini)": "BUBS Forest Berry Ovals (Mini)", "BUBS Fruity Lemon Mix Skulls (Mini)"; slugs
   unchanged (the cartoons find products by slug). Checked: shop on phone and desktop, search "mini", bag, checkout.
+
+## Checkout Fika Club invite redesign (2026-10-14)
+- Snippet 16 (`fika-signup-nudge.php`): the guest invite on checkout is now "Turn this order into free sweets" with a
+  "Free to join" ribbon, a line built from the bag weight (what this order counts toward and the next reward), a mini
+  reward lane (Spin 1.5 kg, 100 g at 3 kg, 200 g at 6 kg, 400 g at 10 kg, 1 kg at 15 kg) with the fish at the bag
+  weight, perk chips, and a pulsing "Join free & earn" button. Tapping it ticks "create account" as before and turns the
+  card green ("You're joining Fika Club"). Sign-up logic unchanged. Live and checked on phone and desktop the same day.
