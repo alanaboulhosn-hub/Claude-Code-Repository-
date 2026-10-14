@@ -175,35 +175,55 @@ add_action( 'wp_footer', function () {
 	) );
 	?>
 <style>
-.fika-signcard { display: flex; align-items: center; gap: 16px 18px; max-width: 1100px; margin: 0 auto 22px; padding: 16px 22px; border-radius: 20px; background: #fff; box-shadow: 0 6px 24px rgba(0, 74, 173, .08);
-  font-family: 'Outfit', Arial, sans-serif; color: #1b2a4a; box-sizing: border-box; }
-.fika-signcard .fsc-fish { flex: none; width: 54px; height: 54px; transform: scaleX(-1); animation: fscBob 1.6s ease-in-out infinite; }
+/* the invite on checkout, for guests: what this order earns in Fika Club, with a small lane like the rewards tracker */
+.fika-signcard { position: relative; display: flex; align-items: center; gap: 18px 26px; max-width: 1100px; margin: 0 auto 22px; padding: 22px 26px 20px; border-radius: 22px; box-sizing: border-box;
+  background: linear-gradient(120deg, #fff 0%, #fff 55%, #fde7f0 100%); border: 2px solid #ffc6dc; box-shadow: 0 10px 30px rgba(0, 74, 173, .10);
+  font-family: 'Outfit', Arial, sans-serif; color: #1b2a4a; overflow: hidden; }
+.fika-signcard .fsc-tag { position: absolute; top: 14px; right: -38px; transform: rotate(35deg); width: 150px; padding: 4px 0; background: #ff6fa5; color: #fff; text-align: center; font: 700 11.5px/1.3 'Outfit', Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+.fika-signcard .fsc-fish { flex: none; width: 60px; height: 60px; transform: scaleX(-1); animation: fscBob 1.6s ease-in-out infinite; }
 .fika-signcard .fsc-fish svg { display: block; width: 100%; height: 100%; }
 .fika-signcard .fsc-text { flex: 1; min-width: 0; }
-.fika-signcard b.fsc-title { display: block; font-family: 'Bebas Neue', Impact, sans-serif; font-weight: 400; font-size: 26px; letter-spacing: .02em; line-height: 1.05; color: #004aad; }
-.fika-signcard .fsc-sub { font-size: 15px; line-height: 1.45; }
+.fika-signcard b.fsc-title { display: block; font-family: 'Bebas Neue', Impact, sans-serif; font-weight: 400; font-size: 32px; letter-spacing: .02em; line-height: 1; color: #004aad; }
+.fika-signcard .fsc-sub { margin-top: 4px; font-size: 15.5px; line-height: 1.45; }
 .fika-signcard .fsc-sub b { color: #004aad; }
-.fika-signcard .fsc-acts { flex: none; display: flex; flex-direction: column; align-items: center; gap: 7px; }
-.fika-signcard .fsc-go { height: 46px; padding: 0 24px; border: 0; border-radius: 999px; background: #004aad; color: #fff; font: 600 14px/1 'Outfit', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+/* the lane */
+.fika-signcard .fsc-lane { position: relative; height: 14px; margin: 30px 8px 22px 4px; border-radius: 999px; background: #fdeaf2; }
+.fika-signcard .fsc-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: repeating-linear-gradient(135deg, #ff6fa5 0 6px, #ff8ab8 6px 12px); min-width: 14px; transition: width .5s; }
+.fika-signcard .fsc-me { position: absolute; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; transition: left .5s; }
+.fika-signcard .fsc-me svg { width: 100%; height: 100%; }
+.fika-signcard .fsc-cp { position: absolute; top: -27px; transform: translateX(-50%); text-align: center; font-size: 17px; line-height: 1; }
+.fika-signcard .fsc-cp small { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; font: 700 11px/1 'Outfit', Arial, sans-serif; color: #6b7894; }
+.fika-signcard .fsc-cp.is-spin small { color: #c2185b; }
+.fika-signcard .fsc-chips { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.fika-signcard .fsc-chips span { padding: 4px 10px; border-radius: 999px; background: #eef4ff; color: #004aad; font-size: 13px; font-weight: 600; }
+.fika-signcard .fsc-acts { flex: none; display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 250px; text-align: center; }
+.fika-signcard .fsc-go { height: 52px; padding: 0 28px; border: 0; border-radius: 999px; background: #004aad; color: #fff; font: 700 15px/1 'Outfit', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; white-space: nowrap; box-shadow: 0 6px 16px rgba(0, 74, 173, .28); animation: fscPulse 2.4s ease-in-out infinite; }
 .fika-signcard .fsc-go:hover { background: #003a8a; }
+.fika-signcard .fsc-quick { font-size: 12.5px; color: #6b7894; }
+.fika-signcard .fsc-warn { font-size: 12.5px; color: #a3245a; font-weight: 600; }
 .fika-signcard .fsc-in { font-size: 13.5px; color: #6b7894; }
 .fika-signcard .fsc-in a { color: #004aad; font-weight: 600; cursor: pointer; }
-.fika-signcard.is-on { border-left: 6px solid #2fb36b; }
-.fika-signcard.is-on .fsc-acts { display: none; }
+.fika-signcard.is-on { border-color: #b8e0c2; background: linear-gradient(120deg, #fff 0%, #fff 55%, #e7f6ea 100%); }
+.fika-signcard.is-on .fsc-acts, .fika-signcard.is-on .fsc-tag { display: none; }
 @keyframes fscBob { 0%, 100% { transform: scaleX(-1) translateY(-2px) rotate(-3deg); } 50% { transform: scaleX(-1) translateY(2px) rotate(3deg); } }
+@keyframes fscPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 @media (max-width: 700px) {
-  .fika-signcard { flex-wrap: wrap; padding: 16px; border-radius: 18px; }
-  .fika-signcard .fsc-fish { width: 44px; height: 44px; }
-  .fika-signcard .fsc-text { flex: 1 1 calc(100% - 64px); }
-  .fika-signcard .fsc-acts { flex: 1 1 100%; }
+  .fika-signcard { flex-wrap: wrap; padding: 20px 16px 16px; border-radius: 18px; }
+  .fika-signcard .fsc-fish { width: 46px; height: 46px; }
+  .fika-signcard .fsc-text { flex: 1 1 100%; }
+  .fika-signcard .fsc-lane { margin: 30px 12px 22px 12px; }
+  .fika-signcard b.fsc-title { font-size: 27px; padding-right: 34px; }
+  .fika-signcard .fsc-acts { flex: 1 1 100%; max-width: none; }
   .fika-signcard .fsc-go { width: 100%; }
 }
-@media (prefers-reduced-motion: reduce) { .fika-signcard .fsc-fish { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .fika-signcard .fsc-fish, .fika-signcard .fsc-go { animation: none; } }
 </style>
 <script>
 (function () {
 	var RM = <?php echo wp_json_encode( array_map( 'intval', $rm ) ); ?>;
 	var FISH = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M62 38 L90 22 C85 40 85 62 90 79 L62 64 Z" fill="#e3241f" stroke="#a3160f" stroke-width="3" stroke-linejoin="round"/><path d="M8 52 C16 32 44 25 66 38 C70 46 70 58 66 64 C44 78 16 72 8 52 Z" fill="#ff5a36" stroke="#a3160f" stroke-width="3" stroke-linejoin="round"/><ellipse cx="34" cy="36" rx="9" ry="4" transform="rotate(-30 34 36)" fill="#fff" opacity=".55"/><circle cx="24" cy="46" r="5.5" fill="#fff"/><circle cx="22.5" cy="46.5" r="3" fill="#1b2a4a"/><path d="M10 56 Q14 59 18 57" fill="none" stroke="#a3160f" stroke-width="2.2" stroke-linecap="round"/></svg>';
+	// the Fika Club lane (fika-loyalty.php): gifts at 3, 6, 10 and 15 kg; a mystery spin at 1.5 kg (fika-taste.php)
+	var LAP = 15000, STOPS = [[1500, '🎡', 'Spin', 1], [3000, '🎁', '100 g', 0], [6000, '🎁', '200 g', 0], [10000, '🎁', '400 g', 0], [15000, '🎁', '1 kg', 0]];
 	function cartGrams() {
 		try {
 			var items = wp.data.select('wc/store/cart').getCartData().items || [], g = 0;
@@ -219,32 +239,51 @@ add_action( 'wp_footer', function () {
 	function loginLink() {
 		return [].slice.call(document.querySelectorAll('.wc-block-checkout a, .wc-block-components-checkout-step a')).filter(function (a) { return /^\s*log in\s*$/i.test(a.textContent); })[0] || null;
 	}
+	// what this bag earns: the next stop after it, and the line saying so
+	function next(g) {
+		for (var i = 0; i < STOPS.length; i++) if (STOPS[i][0] > g) return STOPS[i];
+		return null;
+	}
+	function earnLine(g) {
+		var n = next(g), got = STOPS.filter(function (s) { return s[0] <= g; });
+		if (!g) return 'every gram you order counts towards <b>free sweets</b>.';
+		var head = 'this <b>' + gtext(g) + '</b> counts';
+		if (got.length) {
+			var last = got[got.length - 1];
+			head += ' and already reaches ' + (last[3] ? 'a <b>free mystery taste</b>' : '<b>' + last[2] + ' on us</b>');
+		}
+		return head + (n ? ': <b>' + gtext(n[0] - g) + '</b> to go until ' + (n[3] ? 'a <b>free mystery taste</b>' : '<b>' + n[2] + ' on us</b>') + '.' : '.');
+	}
 	var card = null, last = '';
 	function sync() {
 		if (!card) return;
 		var g = cartGrams(), cb = box(), on = cb ? cb.checked : false, key = g + ':' + on;
 		if (key === last) return;
 		last = key;
-		var gEl;
 		if (on) {
 			card.classList.add('is-on');
-			card.querySelector('.fsc-title').textContent = 'Your Fika Club account comes with this order';
-			card.querySelector('.fsc-sub').innerHTML = 'Choose a password below and this <b class="fsc-g"></b> becomes your first stretch towards <b>sweet rewards</b>: 100 g free at 3 kg, up to a whole kilo at 15 kg.';
+			card.querySelector('.fsc-title').textContent = '✓ You’re joining Fika Club';
+			card.querySelector('.fsc-sub').innerHTML = 'Choose a password below and ' + earnLine(g);
 		} else {
 			card.classList.remove('is-on');
-			card.querySelector('.fsc-title').textContent = 'Make this order count';
-			card.querySelector('.fsc-sub').innerHTML = 'Join Fika Club for free, and this <b class="fsc-g"></b> starts your swim to <b>sweet rewards</b> (100 g free at 3 kg, up to a whole kilo at 15 kg). Track your orders, and get member-only offers and bundles.';
+			card.querySelector('.fsc-title').textContent = 'Turn this order into free sweets';
+			card.querySelector('.fsc-sub').innerHTML = 'Join Fika Club for free and ' + earnLine(g);
 		}
-		gEl = card.querySelector('.fsc-g');
-		if (gEl) gEl.textContent = g ? gtext(g) : 'order';
+		var p = Math.min(1, g / LAP) * 100;
+		card.querySelector('.fsc-fill').style.width = p + '%';
+		card.querySelector('.fsc-me').style.left = p + '%';
 	}
 	function mount() {
 		var anchor = document.querySelector('.fika-shoptitle');
 		if (!anchor || document.querySelector('.fika-signcard')) return;
 		card = document.createElement('div');
 		card.className = 'fika-signcard';
-		card.innerHTML = '<span class="fsc-fish">' + FISH + '</span><div class="fsc-text"><b class="fsc-title"></b><div class="fsc-sub"></div></div>' +
-			'<div class="fsc-acts"><button type="button" class="fsc-go">Join Fika Club</button><span class="fsc-in">Already a member? <a class="fsc-login">Log in</a></span></div>';
+		var lane = '<div class="fsc-lane" aria-hidden="true"><div class="fsc-fill"></div>' + STOPS.map(function (s) {
+			return '<span class="fsc-cp' + (s[3] ? ' is-spin' : '') + '" style="left:' + (s[0] / LAP * 100) + '%">' + s[1] + '<small>' + s[2] + '</small></span>';
+		}).join('') + '<span class="fsc-me">' + FISH + '</span></div>';
+		card.innerHTML = '<span class="fsc-tag">Free to join</span><span class="fsc-fish">' + FISH + '</span><div class="fsc-text"><b class="fsc-title"></b><div class="fsc-sub"></div>' + lane +
+			'<div class="fsc-chips"><span>🎁 100 g free at 3 kg</span><span>🎡 Free mystery taste at 1.5 kg</span><span>🏆 Up to a whole kilo free</span><span>📦 Track your orders</span></div></div>' +
+			'<div class="fsc-acts"><button type="button" class="fsc-go">Join free &amp; earn</button><span class="fsc-quick">Takes 10 seconds: just add a password below.</span><span class="fsc-warn">As a guest, this order won’t count.</span><span class="fsc-in">Already a member? <a class="fsc-login">Log in</a></span></div>';
 		anchor.parentNode.insertBefore(card, anchor.nextSibling);
 		card.querySelector('.fsc-go').addEventListener('click', function () {
 			var cb = box();
