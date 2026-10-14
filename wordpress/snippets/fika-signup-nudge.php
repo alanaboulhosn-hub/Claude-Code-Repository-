@@ -190,7 +190,7 @@ add_action( 'wp_footer', function () {
 .fika-signcard .fsc-lane { position: relative; height: 14px; margin: 30px 10px 28px 6px; border-radius: 999px; background: #fdeaf2; }
 .fika-signcard .fsc-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: repeating-linear-gradient(135deg, #ff6fa5 0 6px, #ff8ab8 6px 12px); min-width: 14px; transition: width .5s; }
 .fika-signcard .fsc-me { position: absolute; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; transition: left .5s; }
-.fika-signcard .fsc-me svg { width: 100%; height: 100%; }
+.fika-signcard .fsc-me svg { width: 100%; height: 100%; transform: scaleX(-1); } /* faces right, toward the rewards */
 .fika-signcard .fsc-cp { position: absolute; top: -27px; transform: translateX(-50%); text-align: center; font-size: 17px; line-height: 1; }
 .fika-signcard .fsc-cp i { position: absolute; top: 50%; left: 100%; margin: -6px 0 0 3px; font: normal 700 12px/1 'Outfit', Arial, sans-serif; color: #004aad; white-space: nowrap; }
 .fika-signcard .fsc-cp.is-left i { left: auto; right: 100%; margin: -6px 3px 0 0; }
