@@ -10,13 +10,13 @@
  *   then the next 15 kg lap starts (18, 21, 25, 30 kg ...).
  * - The fish counts delivered kilos (Completed orders, deep blue water), kilos on their way (Processing / On hold,
  *   light blue) and what is in the bag right now (candy stripes, live). Rewards (gifts and mystery spins) unlock from
- *   the delivered orders + ONE order that is not delivered yet (an order on its way, or the bag being checked out):
- *   two undelivered orders are never added up, so pending orders cannot be stacked (place an order, place another on
- *   its progress, cancel the first). A gift that delivered + one order on its way reaches lights up and spins (tap to
- *   claim, use now or later); a gift that delivered + the bag reaches lights up too, and can be used in the very
- *   order that reaches it (at checkout). A gift the fish passes only by adding orders that are not delivered shows
- *   light blue with a waiting sign: "unlocks once order #N is delivered". The bag drawer and checkout say what this
- *   bag unlocks, or how much more to add (within 1 kg).
+ *   the delivered orders, plus the bag being checked out only while no order is on its way (Processing / On hold):
+ *   orders on their way move the fish but never unlock, so pending orders cannot be stacked (place an order, place
+ *   another on its progress, cancel the first). A gift the delivered orders reach lights up and spins (tap to claim,
+ *   use now or later, also while an order is on its way); a gift that delivered + the bag reaches lights up too, and
+ *   can be used in the very order that reaches it (at checkout). A gift the fish passes thanks to an order on its way
+ *   shows light blue with a waiting sign: "unlocks once order #N is delivered". The bag drawer and checkout say what
+ *   this bag unlocks, or how much more to add (within 1 kg).
  * - Tapping a lit checkpoint claims the reward: a personal one-use code locked to the customer's email, kept on the
  *   account until the customer chooses to use it. At checkout every saved reward has a "Use" / "Remove" button:
  *   nothing is applied by itself. Rewards combine with each other (e.g. 200 g + the free kilo) but not with other
@@ -173,32 +173,25 @@ if ( ! function_exists( 'fika_swim_claims' ) ) {
 		}
 		return $memo[ $user_id ];
 	}
-	// grams that unlock rewards: delivered + ONE order not delivered yet (the biggest order on its way, or the bag
-	// being checked out, $bag). Two undelivered orders are never added up: pending orders cannot be stacked.
+	// grams that unlock rewards: delivered, + the bag being checked out ($bag) only while no order is on its way.
+	// Orders on their way never unlock: pending orders cannot be stacked.
 	function fika_swim_unlock( $user_id, $bag = 0 ) {
-		$t   = fika_swim_totals( $user_id );
-		$max = (int) $bag;
-		foreach ( fika_swim_pending( $user_id ) as $p ) {
-			$max = max( $max, (int) $p[1] );
-		}
-		return $t['delivered'] + $max;
+		$t = fika_swim_totals( $user_id );
+		return $t['delivered'] + ( fika_swim_pending( $user_id ) ? 0 : (int) $bag );
 	}
-	// the order on its way whose delivery makes $need reachable (delivered + one order, or + the bag): its number, or ''
+	// the order on its way whose delivery unlocks $need: the first that brings the delivered grams up to it, else the
+	// newest one (once every order is delivered, the bag counts again). Its number, or ''
 	function fika_swim_wait_order( $user_id, $need, $bag = 0 ) {
 		$t    = fika_swim_totals( $user_id );
 		$have = $t['delivered'];
 		$pend = fika_swim_pending( $user_id );
-		foreach ( $pend as $i => $p ) {
+		foreach ( $pend as $p ) {
 			$have += (int) $p[1];
-			$best  = (int) $bag;
-			foreach ( array_slice( $pend, $i + 1 ) as $q ) {
-				$best = max( $best, (int) $q[1] );
-			}
-			if ( $have + $best >= $need ) {
+			if ( $have >= $need ) {
 				return $p[0];
 			}
 		}
-		return '';
+		return $pend ? $pend[ count( $pend ) - 1 ][0] : '';
 	}
 	// grams in the WooCommerce cart (the bag at checkout): 100 g per candy unit, 500 g per Ready Mix bag
 	function fika_swim_cart_grams() {
@@ -511,15 +504,10 @@ if ( ! function_exists( 'fika_swim_state' ) ) {
 			$t['delivered'] = (int) round( floatval( wp_unslash( $_GET['fika_fish'] ) ) * 1000 ); // phpcs:ignore
 			$t['placed']    = isset( $_GET['fika_pending'] ) ? (int) round( floatval( wp_unslash( $_GET['fika_pending'] ) ) * 1000 ) : 0; // phpcs:ignore
 		}
-		// what unlocks: delivered + the biggest single order on its way (the bag is added in the page)
-		$m = 0;
-		foreach ( $preview ? array() : fika_swim_pending( $uid ) as $pp ) {
-			$m = max( $m, (int) $pp[1] );
-		}
-		if ( $preview ) {
-			$m = $t['placed']; // preview: the kg on the way as one order
-		}
-		$claims  = $preview ? array() : fika_swim_sync( $uid, $t['delivered'] + $m );
+		// what unlocks: delivered (the bag is added in the page, only while no order is on its way: $pend)
+		$m       = 0;
+		$pend    = $preview ? ( $t['placed'] > 0 ? array( array( '', $t['placed'] ) ) : array() ) : fika_swim_pending( $uid );
+		$claims  = $preview ? array() : fika_swim_sync( $uid, $t['delivered'] );
 		$claimed = array();
 		foreach ( $claims as $cl ) {
 			$claimed[ (int) $cl['lap'] . ':' . (int) $cl['g'] ] = $cl['code'];
@@ -557,10 +545,10 @@ if ( ! function_exists( 'fika_swim_state' ) ) {
 				$state = 'delivered' === $co[ wc_strtolower( $code ) ] ? 'used' : 'claimed';
 			} elseif ( $code ) {
 				$state = fika_swim_code_used( $code ) ? 'claimed' : 'open';
-			} elseif ( $du + $m >= $g ) {
-				$state = 'ready'; // reached by delivered + one order on its way
+			} elseif ( $du >= $g ) {
+				$state = 'ready'; // reached by delivered orders
 			} elseif ( $d + $o >= $g ) {
-				$state = 'wait'; // the fish passed it only by adding orders not delivered: unlocks once one is delivered
+				$state = 'wait'; // the fish passed it thanks to an order on its way: unlocks once it is delivered
 			} else {
 				$state = 'locked';
 			}
@@ -569,7 +557,7 @@ if ( ! function_exists( 'fika_swim_state' ) ) {
 		$spins = array();
 		foreach ( $stops as $g ) {
 			$tk = isset( $tastes[ $lap . ':' . $g ] ) ? $tastes[ $lap . ':' . $g ] : null;
-			$st = $tk ? ( 'used' === $tk['status'] ? 'used' : 'won' ) : ( $du + $m >= $g ? 'ready' : ( $d + $o >= $g ? 'wait' : 'locked' ) );
+			$st = $tk ? ( 'used' === $tk['status'] ? 'used' : 'won' ) : ( $du >= $g ? 'ready' : ( $d + $o >= $g ? 'wait' : 'locked' ) );
 			$pn = $tk ? wc_get_product( (int) $tk['pid'] ) : null;
 			$spins[] = array( 'g' => $g, 'kg' => $g / 1000, 'state' => $st, 'name' => $pn ? html_entity_decode( $pn->get_name() ) : '', 'wait' => 'wait' === $st && ! $preview ? fika_swim_wait_order( $uid, $base + $g ) : '' );
 		}
@@ -582,7 +570,8 @@ if ( ! function_exists( 'fika_swim_state' ) ) {
 			'o'       => $o,
 			'u'       => $du,
 			'm'       => $m,
-			'wn'      => $preview ? '' : ( ( $pq = fika_swim_pending( $uid ) ) ? $pq[0][0] : '' ),
+			'p'       => $pend ? 1 : 0, // an order on its way: the bag does not unlock
+			'wn'      => $pend ? $pend[ count( $pend ) - 1 ][0] : '',
 			'cps'     => $list,
 			'open'    => $preview ? array() : fika_swim_open_codes( $uid ),
 			'preview' => $preview,
@@ -605,6 +594,7 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 			'o'     => $s['o'],
 			'u'     => $s['u'],
 			'm'     => $s['m'],
+			'p'     => $s['p'],
 			'wn'    => $s['wn'],
 			'cps'   => $s['cps'],
 			'spins' => $s['spins'],
@@ -886,9 +876,9 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			b.title = st === 'ready' || st === 'open' || st === 'bag' ? c.title + ': unlocked, tap to use it' : st === 'claimed' ? c.title + ': on its way to you' : st === 'used' ? c.title + ' used' : st === 'wait' ? c.title + ': ' + wt : c.title + ' at ' + c.kg + ' kg';
 		}
 		// gifts the bag reaches light up (they are used at checkout, in the order that reaches them). What unlocks is the
-		// delivered orders + one undelivered order (s.u + s.m on the server, s.u + the bag here); a gift the fish passes
-		// only by adding undelivered orders up waits (light blue, waiting sign) until one of them is delivered
-		function stOf(g) { return s.u + bagG >= g ? 'bag' : s.d + s.o + bagG >= g ? 'wait' : 'locked'; }
+		// delivered orders, + this bag while no order is on its way (s.p); a gift the fish passes thanks to an order on
+		// its way waits (light blue, waiting sign) until it is delivered
+		function stOf(g) { return s.u + (s.p ? 0 : bagG) >= g ? 'bag' : s.d + s.o + bagG >= g ? 'wait' : 'locked'; }
 		function wheelOf(g) { for (var i = 0; i < wheels.length; i++) if (+wheels[i].getAttribute('data-g') === g) return wheels[i]; return null; }
 		function lights() {
 			spins.forEach(function (sp) {
@@ -1140,10 +1130,12 @@ add_action( 'wp_footer', function () {
 </script>
 	<?php
 	// the bag drawer: what this bag unlocks, or how much more to add (live, gram by gram): delivered + this bag
-	// (rewards that delivered + one order on its way reach already wait on the tracker: $more)
+	// (only while no order is on its way: $wait is the order to deliver first)
 	$uid   = get_current_user_id();
 	$reach = fika_swim_totals( $uid )['delivered'];
-	$more  = fika_swim_unlock( $uid ) - $reach;
+	$more  = 0;
+	$pq    = fika_swim_pending( $uid );
+	$wait  = $pq ? $pq[ count( $pq ) - 1 ][0] : '';
 	$cps   = fika_swim_checkpoints();
 	$next  = array();
 	foreach ( fika_swim_unclaimed( $uid, $reach + FIKA_SWIM_LAP ) as $u ) {
@@ -1170,7 +1162,7 @@ add_action( 'wp_footer', function () {
 .mx-df .fk-rw-note.is-on { background: #e3f6ea; }</style>
 <script>
 (function () {
-	var REACH = <?php echo (int) $reach; ?>, M = <?php echo (int) $more; ?>, NEXT = <?php echo wp_json_encode( $next ); ?>, SAVED = <?php echo (int) $saved; ?>;
+	var REACH = <?php echo (int) $reach; ?>, M = <?php echo (int) $more; ?>, P = <?php echo wp_json_encode( (string) $wait ); ?>, NEXT = <?php echo wp_json_encode( $next ); ?>, SAVED = <?php echo (int) $saved; ?>;
 	function bagG() { var g = 0; try { var st = JSON.parse(localStorage.getItem('fika_bag_v1') || 'null'), bag = (st && st.bag) || {}; Object.keys(bag).forEach(function (k) { g += +bag[k] || 0; }); } catch (e) {} return g; }
 	function amt(g) { return g >= 1000 ? (Math.round(g / 100) / 10) + ' kg' : g + ' g'; }
 	function low(t) { return t.replace(/^A whole/, 'a whole'); }
@@ -1182,11 +1174,18 @@ add_action( 'wp_footer', function () {
 		// the next reward: reaching its checkpoint with this bag unlocks it for this order
 		// rewards already reached wait on the tracker; this bag is about the next checkpoint ahead
 		var g = bagG(), r = REACH + g, nx = NEXT.filter(function (n) { return n[0] > REACH + M; })[0], toCp = nx ? nx[0] - r : 0;
+		// an order on its way: this bag does not unlock anything until it is delivered
 		var waiting = SAVED + NEXT.filter(function (n) { return n[0] <= REACH + M; }).length;
 		var cpKg = nx ? ((nx[0] - 1) % <?php echo (int) FIKA_SWIM_LAP; ?> + 1) / 1000 : 0;
 		note.innerHTML = ''; note.classList.toggle('is-on', nx ? (g > 0 ? toCp <= 0 : false) : false);
 		function add(t, bold) { var x = bold ? document.createElement('b') : document.createTextNode(t); if (bold) x.textContent = t; note.appendChild(x); }
-		if (nx ? (g > 0 ? (toCp <= 0 ? nx[2] === 0 : false) : false) : false) {
+		if (P ? (nx ? (g > 0 ? toCp <= 0 : false) : false) : false) {
+			add('This bag reaches ' + cpKg + ' kg: '); add(nx[2] === 0 ? 'a mystery spin' : low(nx[1]), true); add(' unlocks once your order #' + P + ' is delivered.');
+		} else if (P ? !waiting : false) {
+			// nothing to nudge: adding to this bag does not unlock anything while an order is on its way
+		} else if (P) {
+			add(waiting === 1 ? 'You have a Fika Club reward waiting. Use it at checkout whenever you like.' : 'You have ' + waiting + ' Fika Club rewards waiting. Choose which to use at checkout.');
+		} else if (nx ? (g > 0 ? (toCp <= 0 ? nx[2] === 0 : false) : false) : false) {
 			add('This bag reaches ' + cpKg + ' kg: '); add('a mystery spin', true); add(' is waiting on your Fika Club lane. Spin it and 50 g of a surprise candy join this order, free.');
 		} else if (nx ? (g > 0 ? toCp <= 0 : false) : false) {
 			add('This bag reaches ' + cpKg + ' kg and unlocks '); add(low(nx[1]), true); add('! Tap “Use” at checkout and they come off this order.');
@@ -1394,8 +1393,10 @@ add_action( 'wp_footer', function () {
 		return;
 	}
 	$uid   = get_current_user_id();
-	$reach = fika_swim_totals( $uid )['delivered']; // delivered: + one undelivered order (the biggest on its way, $more, or this bag) in the page
-	$more  = fika_swim_unlock( $uid ) - $reach;
+	$reach = fika_swim_totals( $uid )['delivered']; // delivered: + this bag in the page, only while no order is on its way ($wait)
+	$more  = 0;
+	$pq    = fika_swim_pending( $uid );
+	$wait  = $pq ? $pq[ count( $pq ) - 1 ][0] : '';
 	$open  = fika_swim_open_codes( $uid );
 	$cps   = fika_swim_checkpoints();
 	$uncl  = array();
@@ -1433,7 +1434,7 @@ add_action( 'wp_footer', function () {
 <script>
 (function () {
 	// CODES: saved [code, title, text, checkout label, amount, grams needed]; UNCL: not claimed yet [lap, g, grams needed, title, checkout label, grams it pays for]
-	var CODES = <?php echo wp_json_encode( $open ); ?>, UNCL = <?php echo wp_json_encode( $uncl ); ?>, REACH = <?php echo (int) $reach; ?>, M = <?php echo (int) $more; ?>;
+	var CODES = <?php echo wp_json_encode( $open ); ?>, UNCL = <?php echo wp_json_encode( $uncl ); ?>, REACH = <?php echo (int) $reach; ?>, M = <?php echo (int) $more; ?>, P = <?php echo wp_json_encode( (string) $wait ); ?>;
 	var READY = <?php echo wp_json_encode( $ready ); ?>, CLAIM = <?php echo wp_json_encode( rest_url( 'fika/v1/swim-claim' ) ); ?>, NONCE = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
 	var BAG = <?php echo wp_json_encode( home_url( '/mix-your-own/?bag=open' ) ); ?>;
 	if (CODES.length) window.FIKA_FREEKG = CODES[0][0]; // the before-you-go popup (snippet 9) then skips its 10% offer
@@ -1485,14 +1486,14 @@ add_action( 'wp_footer', function () {
 	function worth(code) { return /^swim15-/i.test(code) ? 28 : /^swim10-/i.test(code) ? 11.2 : /^swim6-/i.test(code) ? 5.6 : 2.8; }
 	function render() {
 		if (!box) return;
-		var on = onCart(), g = grams(), reach = REACH + Math.max(M, g), rows = [], n = 0;
+		var on = onCart(), g = grams(), reach = REACH + (P ? 0 : g), rows = [], n = 0; // an order on its way: the bag does not unlock
 		var onSwim = on.filter(function (c) { return /^swim(3|6|10|15)-/.test(c); });
 		function withMe(code) { return onSwim.indexOf(code.toLowerCase()) !== -1 ? onSwim : onSwim.concat([code.toLowerCase()]); }
 		CODES.forEach(function (c) {
-			var used = on.indexOf(c[0].toLowerCase()) !== -1, short = c[5] - REACH - Math.max(M, paid());
+			var used = on.indexOf(c[0].toLowerCase()) !== -1, short = c[5] - REACH - (P ? 0 : paid());
 			if (used) n++;
 			// a reward worth more than the bag: say so (the rest would be lost)
-			var note = short > 0 ? 'Add ' + amt(short) + ' more to use this one' : (!used ? (worth(c[0]) > sub() + 0.001 ? 'Worth $' + worth(c[0]).toFixed(2).replace(/\.00$/, '') + ': best on a bag of ' + amt(Math.round(worth(c[0]) / 0.28) * 10) + ' or more' : '') : '');
+			var note = short > 0 ? (P ? 'Unlocks once your order #' + P + ' is delivered' : 'Add ' + amt(short) + ' more to use this one') : (!used ? (worth(c[0]) > sub() + 0.001 ? 'Worth $' + worth(c[0]).toFixed(2).replace(/\.00$/, '') + ': best on a bag of ' + amt(Math.round(worth(c[0]) / 0.28) * 10) + ' or more' : '') : '');
 			rows.push({ code: c[0], title: c[1], co: c[3], on: used, off: !used ? short > 0 : false, note: note, fresh: c[5] > REACH + M });
 		});
 		// rewards not claimed yet: shown (and usable) once this bag reaches them
@@ -1507,7 +1508,11 @@ add_action( 'wp_footer', function () {
 		list.innerHTML = '';
 		rows.forEach(function (o) { list.appendChild(row(o)); });
 		nudge.innerHTML = '';
-		if (ahead ? aheadCp <= 1000 : false) {
+		if (P ? (ahead ? ahead[2] <= REACH + g : false) : false) {
+			nudge.appendChild(document.createTextNode('This bag reaches ' + (ahead[1] / 1000) + ' kg: '));
+			var w = document.createElement('b'); w.textContent = low(ahead[3]); nudge.appendChild(w);
+			nudge.appendChild(document.createTextNode(' unlocks once your order #' + P + ' is delivered.'));
+		} else if (P ? false : (ahead ? aheadCp <= 1000 : false)) {
 			nudge.appendChild(document.createTextNode('Add '));
 			var x = document.createElement('b'); x.textContent = amt(aheadCp) + ' more'; nudge.appendChild(x);
 			nudge.appendChild(document.createTextNode(' to reach ' + (ahead[1] / 1000) + ' kg and get '));
