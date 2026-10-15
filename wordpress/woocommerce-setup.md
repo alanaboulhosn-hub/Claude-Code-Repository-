@@ -1570,6 +1570,9 @@ choice). Snippet 91, fika-club.php (new):
 - The "no stacking pending orders" rule (owner's final version: rewards unlock from delivered orders, + the bag
   only while no order is on its way; the fish still swims with orders on their way, and a gift it passes thanks to
   one shows a waiting sign "unlocks once order #N is delivered"; cancelled / failed orders: the fish swims back and
-  a code on that order is free again) is in git (fika-loyalty, fika-bag-rewards, fika-club, fika-taste) but NOT live:
-  owner said not to deploy it for now. Before deploying: check which customers hold unused gifts reached only via
-  pending orders, then deploy snippets 11, 98, the club and taste snippets, and test with a test account (no order).
+  a code on that order is free again): LIVE since 2026-10-15 (snippets 11, 98, 91, 46; each matched git before).
+  Before: no unused gift codes were affected; 14 won mystery tastes not yet in an order (3 of those customers have an
+  order on its way: their taste joins once it is delivered). Checked after: Rosa (2.3 kg delivered, #1521 on its way)
+  unlocks nothing from a bag, her honoured SWIM3 on #1521 untouched; a test account with no orders and a 4.4 kg bag
+  gets the gift for that bag at checkout, phone and desktop, no errors. No orders placed; test account, test saved
+  bags and temp check snippets deleted.
