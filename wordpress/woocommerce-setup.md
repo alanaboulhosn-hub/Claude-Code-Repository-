@@ -1576,3 +1576,11 @@ choice). Snippet 91, fika-club.php (new):
   unlocks nothing from a bag, her honoured SWIM3 on #1521 untouched; a test account with no orders and a 4.4 kg bag
   gets the gift for that bag at checkout, phone and desktop, no errors. No orders placed; test account, test saved
   bags and temp check snippets deleted.
+- End-to-end check, 2026-10-15 (owner asked): hidden test account + two TEST orders (product 123, no stock
+  tracking; safety snippet: no emails, no Meta, no order number), 2.5 kg delivered + 0.6 kg on its way. Passed:
+  3 kg gift waits on the lane (tap: "unlocks once order #… is delivered"); the server refuses to unlock it; a 0.7 kg
+  bag does not unlock it (drawer + checkout say it waits, no Use button); a saved code typed at checkout is refused
+  with the same message; after the order is marked Completed the code applies; reopening the order withdraws the
+  unused code again; cancelling the order on its way puts the fish back at 2.5 kg and the gift grey. No page errors on
+  phone or desktop. (The lane heading shows an unspun mystery spin before the waiting gift: by design.) Test orders,
+  customer, coupon, saved bag and temp snippets deleted afterwards.
