@@ -554,7 +554,7 @@ add_action( 'admin_post_fika_rtd_api_test', function () {
 			$res['msg'] = 'Signed in, but RT answered the shop list with ' . $r[0] . ': ' . ( isset( $r[1]['message'] ) ? $r[1]['message'] : 'no message' );
 		}
 	}
-	update_option( 'fika_rtd_api_test', $res, false ) // an option, not a transient: the site's cache dropped transients;
+	update_option( 'fika_rtd_api_test', $res, false ); // an option, not a transient: the site's cache dropped transients
 	fika_rtd_log( 'RT API test: ' . $res['msg'] );
 	wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd' ) );
 	exit;
