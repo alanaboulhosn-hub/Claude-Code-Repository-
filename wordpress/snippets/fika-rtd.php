@@ -406,7 +406,7 @@ add_action( 'admin_menu', function () {
 				$fika_mail = fika_rtd_api_email();
 				$fika_pass = fika_rtd_api_password();
 				$fika_note = isset( $_GET['apikey'] ) ? sanitize_key( wp_unslash( $_GET['apikey'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
-				$fika_test = get_transient( 'fika_rtd_api_test' );
+				$fika_test = get_option( 'fika_rtd_api_test' );
 				?>
 				<?php if ( 'saved' === $fika_note ) : ?><p><b>Saved.</b></p><?php elseif ( 'removed' === $fika_note ) : ?><p><b>RT API login removed.</b></p><?php endif; ?>
 				<p>What RT gave you for their API, and your RT dashboard login (RT's API signs in with it). Stored on this site only; the key and password are never shown in full. Leave a field empty to keep what is saved.</p>
@@ -501,7 +501,7 @@ add_action( 'admin_post_fika_rtd_api_key', function () {
 		delete_option( 'fika_rtd_api_key' );
 		delete_option( 'fika_rtd_api_email' );
 		delete_option( 'fika_rtd_api_password' );
-		delete_transient( 'fika_rtd_api_test' );
+		delete_option( 'fika_rtd_api_test' );
 		fika_rtd_log( 'RT API login removed' );
 		wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd&apikey=removed' ) );
 		exit;
@@ -523,7 +523,7 @@ add_action( 'admin_post_fika_rtd_api_key', function () {
 		$done[] = 'password';
 	}
 	if ( $done ) {
-		delete_transient( 'fika_rtd_api_test' );
+		delete_option( 'fika_rtd_api_test' );
 		fika_rtd_log( 'RT API login saved: ' . implode( ', ', $done ) );
 	}
 	wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd' . ( $done ? '&apikey=saved' : '' ) ) );
@@ -554,7 +554,7 @@ add_action( 'admin_post_fika_rtd_api_test', function () {
 			$res['msg'] = 'Signed in, but RT answered the shop list with ' . $r[0] . ': ' . ( isset( $r[1]['message'] ) ? $r[1]['message'] : 'no message' );
 		}
 	}
-	set_transient( 'fika_rtd_api_test', $res, DAY_IN_SECONDS );
+	update_option( 'fika_rtd_api_test', $res, false ) // an option, not a transient: the site's cache dropped transients;
 	fika_rtd_log( 'RT API test: ' . $res['msg'] );
 	wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd' ) );
 	exit;
