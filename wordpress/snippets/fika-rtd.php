@@ -13,8 +13,11 @@
  * A parcel is linked to its order by (1) its tracking ID saved on the order (box on the order page), or (2) the Fika
  * order number typed in RT's "Invoice no" field. Parcels that match nothing wait under "Parcels to link" on the
  * settings page, with suggested orders of the same amount; one click links them and applies their status.
- * RT API key: saved on the settings page (option fika_rtd_api_key, never shown in full) for calls to RT's API
- * (nothing uses it yet: parcel creation / status checks come once RT's API documentation is in).
+ * RT API login (settings page box "RT API login"): the API key (option fika_rtd_api_key, never shown in full), and
+ * the RT dashboard email + password (fika_rtd_api_email / fika_rtd_api_password, the password never shown), which
+ * RT's API needs to sign in (POST /merchant/signin -> auth_token; docs: wordpress/docs/RTD-Deliveries-API-v1.pdf).
+ * "Test connection" signs in and lists the RT shops (pickup points): read-only, creates nothing in RT.
+ * Parcel creation is not built yet (when it is: delivery priority always Normal).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-rtd.php
  */
 
@@ -61,6 +64,48 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 	// RT's API key (for calls to RT), typed in on the settings page; '' when not set
 	function fika_rtd_api_key() {
 		return trim( (string) get_option( 'fika_rtd_api_key', '' ) );
+	}
+	// the RT dashboard login the API signs in with
+	function fika_rtd_api_email() {
+		return trim( (string) get_option( 'fika_rtd_api_email', '' ) );
+	}
+	function fika_rtd_api_password() {
+		return (string) get_option( 'fika_rtd_api_password', '' );
+	}
+	if ( ! defined( 'FIKA_RTD_API' ) ) {
+		define( 'FIKA_RTD_API', 'https://app.rtdeliveries.net/api/v10' );
+	}
+	// a call to RT's API: array( http code, decoded body ) or WP_Error
+	function fika_rtd_api_call( $method, $path, $body = null, $token = '' ) {
+		$headers = array( 'apiKey' => fika_rtd_api_key(), 'Content-Type' => 'application/json', 'Accept' => 'application/json' );
+		if ( '' !== $token ) {
+			$headers['Authentication'] = 'Bearer ' . $token; // the header name RT's docs use
+			$headers['Authorization']  = 'Bearer ' . $token;
+		}
+		$args = array( 'method' => $method, 'timeout' => 25, 'headers' => $headers );
+		if ( null !== $body ) {
+			$args['body'] = wp_json_encode( $body );
+		}
+		$r = wp_remote_request( FIKA_RTD_API . $path, $args );
+		if ( is_wp_error( $r ) ) {
+			return $r;
+		}
+		return array( (int) wp_remote_retrieve_response_code( $r ), json_decode( wp_remote_retrieve_body( $r ), true ) );
+	}
+	// sign in to RT's API: the auth_token, or WP_Error with RT's message
+	function fika_rtd_api_signin() {
+		if ( '' === fika_rtd_api_key() || '' === fika_rtd_api_email() || '' === fika_rtd_api_password() ) {
+			return new WP_Error( 'fika_rtd', 'Save the API key, email and password first.' );
+		}
+		$r = fika_rtd_api_call( 'POST', '/merchant/signin', array( 'email' => fika_rtd_api_email(), 'password' => fika_rtd_api_password() ) );
+		if ( is_wp_error( $r ) ) {
+			return $r;
+		}
+		$tok = isset( $r[1]['data']['auth_token'] ) ? (string) $r[1]['data']['auth_token'] : '';
+		if ( '' === $tok ) {
+			return new WP_Error( 'fika_rtd', 'RT refused the sign-in (' . $r[0] . '): ' . ( isset( $r[1]['message'] ) ? $r[1]['message'] : 'no message' ) );
+		}
+		return $tok;
 	}
 	function fika_rtd_secret() {
 		$s = (string) get_option( 'fika_rtd_secret', '' );
@@ -355,23 +400,48 @@ add_action( 'admin_menu', function () {
 			</div>
 
 			<div class="box">
-				<h2>RT API key</h2>
-				<?php $fika_key = fika_rtd_api_key(); ?>
-				<?php if ( isset( $_GET['apikey'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
-					<p><b><?php echo 'removed' === $_GET['apikey'] ? 'API key removed.' : 'API key saved.'; // phpcs:ignore ?></b></p>
-				<?php endif; ?>
-				<p>The key RT gave you for their API (to create parcels and check statuses from here). Paste it below; it is stored on this site only and never shown in full.</p>
-				<p><b>Saved key</b><br><?php echo $fika_key ? '<code class="big">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;' . esc_html( substr( $fika_key, -4 ) ) . '</code> <span class="muted">(ends with ' . esc_html( substr( $fika_key, -4 ) ) . ')</span>' : '<span class="muted">None yet.</span>'; ?></p>
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<h2>RT API login</h2>
+				<?php
+				$fika_key  = fika_rtd_api_key();
+				$fika_mail = fika_rtd_api_email();
+				$fika_pass = fika_rtd_api_password();
+				$fika_note = isset( $_GET['apikey'] ) ? sanitize_key( wp_unslash( $_GET['apikey'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+				$fika_test = get_transient( 'fika_rtd_api_test' );
+				?>
+				<?php if ( 'saved' === $fika_note ) : ?><p><b>Saved.</b></p><?php elseif ( 'removed' === $fika_note ) : ?><p><b>RT API login removed.</b></p><?php endif; ?>
+				<p>What RT gave you for their API, and your RT dashboard login (RT's API signs in with it). Stored on this site only; the key and password are never shown in full. Leave a field empty to keep what is saved.</p>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" autocomplete="off">
 					<input type="hidden" name="action" value="fika_rtd_api_key">
 					<?php wp_nonce_field( 'fika_rtd_api_key' ); ?>
-					<input type="password" name="api_key" autocomplete="off" placeholder="<?php echo $fika_key ? 'Paste a new key to replace it' : 'Paste the RT API key'; ?>" style="width:100%;max-width:420px">
-					<button class="button button-primary">Save key</button>
-					<?php if ( $fika_key ) : ?>
-						<button class="button" name="remove" value="1" onclick="return confirm('Remove the saved RT API key?');">Remove</button>
+					<p><b>API key</b> <span class="muted"><?php echo $fika_key ? '(saved, ends with ' . esc_html( substr( $fika_key, -4 ) ) . ')' : '(none yet)'; ?></span><br>
+						<input type="password" name="api_key" autocomplete="new-password" placeholder="<?php echo $fika_key ? 'Paste a new key to replace it' : 'Paste the RT API key'; ?>" style="width:100%;max-width:420px"></p>
+					<p><b>RT dashboard email or phone</b> <span class="muted"><?php echo $fika_mail ? '(saved: ' . esc_html( $fika_mail ) . ')' : '(none yet)'; ?></span><br>
+						<input type="text" name="api_email" autocomplete="off" placeholder="<?php echo $fika_mail ? 'Type a new one to replace it' : 'The email or phone you log in to RT with'; ?>" style="width:100%;max-width:420px"></p>
+					<p><b>RT dashboard password</b> <span class="muted"><?php echo '' !== $fika_pass ? '(saved)' : '(none yet)'; ?></span><br>
+						<input type="password" name="api_password" autocomplete="new-password" placeholder="<?php echo '' !== $fika_pass ? 'Type a new one to replace it' : 'Your RT dashboard password'; ?>" style="width:100%;max-width:420px"></p>
+					<button class="button button-primary">Save</button>
+					<?php if ( $fika_key || $fika_mail || '' !== $fika_pass ) : ?>
+						<button class="button" name="remove" value="1" onclick="return confirm('Remove the saved RT API key, email and password?');">Remove all</button>
 					<?php endif; ?>
 				</form>
-				<p class="muted">Nothing uses the key yet: creating parcels and checking statuses with it are set up once RT's API documentation is in.</p>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:10px">
+					<input type="hidden" name="action" value="fika_rtd_api_test">
+					<?php wp_nonce_field( 'fika_rtd_api_test' ); ?>
+					<button class="button" <?php disabled( ! ( $fika_key && $fika_mail && '' !== $fika_pass ) ); ?>>Test connection</button>
+					<span class="muted">Signs in to RT and lists your shops (pickup points). Creates nothing in RT.</span>
+				</form>
+				<?php if ( is_array( $fika_test ) ) : ?>
+					<p style="margin-top:10px"><b><?php echo $fika_test['ok'] ? '&#10003; Connected to RT' : '&#10007; Not connected'; ?></b> <span class="muted">(<?php echo esc_html( $fmt( $fika_test['at'] ) ); ?>)</span><br><?php echo esc_html( $fika_test['msg'] ); ?></p>
+					<?php if ( ! empty( $fika_test['shops'] ) ) : ?>
+						<table>
+							<tr><th>Shop ID</th><th>Name</th><th>Address</th><th>Default</th><th>Status</th></tr>
+							<?php foreach ( $fika_test['shops'] as $sh ) : ?>
+								<tr><td><?php echo esc_html( $sh[0] ); ?></td><td><?php echo esc_html( $sh[1] ); ?></td><td class="muted"><?php echo esc_html( $sh[2] ); ?></td><td><?php echo $sh[3] ? 'Yes' : ''; ?></td><td class="muted"><?php echo esc_html( $sh[4] ); ?></td></tr>
+							<?php endforeach; ?>
+						</table>
+					<?php endif; ?>
+				<?php endif; ?>
+				<p class="muted">Sending orders to RT is not switched on yet (it comes next; parcels will always be sent as Normal priority).</p>
 			</div>
 
 			<div class="box">
@@ -429,16 +499,64 @@ add_action( 'admin_post_fika_rtd_api_key', function () {
 	check_admin_referer( 'fika_rtd_api_key' );
 	if ( ! empty( $_POST['remove'] ) ) {
 		delete_option( 'fika_rtd_api_key' );
-		fika_rtd_log( 'RT API key removed' );
+		delete_option( 'fika_rtd_api_email' );
+		delete_option( 'fika_rtd_api_password' );
+		delete_transient( 'fika_rtd_api_test' );
+		fika_rtd_log( 'RT API login removed' );
 		wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd&apikey=removed' ) );
 		exit;
 	}
-	$key = isset( $_POST['api_key'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['api_key'] ) ) ) : '';
+	$key  = isset( $_POST['api_key'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['api_key'] ) ) ) : '';
+	$mail = isset( $_POST['api_email'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['api_email'] ) ) ) : '';
+	$pass = isset( $_POST['api_password'] ) ? (string) wp_unslash( $_POST['api_password'] ) : ''; // phpcs:ignore -- a password: kept as typed
+	$done = array();
 	if ( '' !== $key ) {
 		update_option( 'fika_rtd_api_key', $key, false );
-		fika_rtd_log( 'RT API key saved (ends with ' . substr( $key, -4 ) . ')' );
+		$done[] = 'API key (ends with ' . substr( $key, -4 ) . ')';
 	}
-	wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd' . ( '' !== $key ? '&apikey=saved' : '' ) ) );
+	if ( '' !== $mail ) {
+		update_option( 'fika_rtd_api_email', $mail, false );
+		$done[] = 'email ' . $mail;
+	}
+	if ( '' !== $pass ) {
+		update_option( 'fika_rtd_api_password', $pass, false );
+		$done[] = 'password';
+	}
+	if ( $done ) {
+		delete_transient( 'fika_rtd_api_test' );
+		fika_rtd_log( 'RT API login saved: ' . implode( ', ', $done ) );
+	}
+	wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd' . ( $done ? '&apikey=saved' : '' ) ) );
+	exit;
+} );
+
+// "Test connection": sign in and list the RT shops (read-only)
+add_action( 'admin_post_fika_rtd_api_test', function () {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		wp_die( 'Not allowed.' );
+	}
+	check_admin_referer( 'fika_rtd_api_test' );
+	$res = array( 'ok' => false, 'at' => time(), 'msg' => '', 'shops' => array() );
+	$tok = fika_rtd_api_signin();
+	if ( is_wp_error( $tok ) ) {
+		$res['msg'] = $tok->get_error_message();
+	} else {
+		$r = fika_rtd_api_call( 'GET', '/get-shops', null, $tok );
+		if ( is_wp_error( $r ) ) {
+			$res['msg'] = 'Signed in, but the shop list failed: ' . $r->get_error_message();
+		} elseif ( isset( $r[1]['data']['shops'] ) && is_array( $r[1]['data']['shops'] ) ) {
+			$res['ok'] = true;
+			foreach ( $r[1]['data']['shops'] as $sh ) {
+				$res['shops'][] = array( isset( $sh['id'] ) ? $sh['id'] : '', isset( $sh['name'] ) ? $sh['name'] : '', isset( $sh['address'] ) ? $sh['address'] : '', ! empty( $sh['default_shop'] ), isset( $sh['statusName'] ) ? $sh['statusName'] : '' );
+			}
+			$res['msg'] = 'Signed in. ' . count( $res['shops'] ) . ' shop(s) found.';
+		} else {
+			$res['msg'] = 'Signed in, but RT answered the shop list with ' . $r[0] . ': ' . ( isset( $r[1]['message'] ) ? $r[1]['message'] : 'no message' );
+		}
+	}
+	set_transient( 'fika_rtd_api_test', $res, DAY_IN_SECONDS );
+	fika_rtd_log( 'RT API test: ' . $res['msg'] );
+	wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd' ) );
 	exit;
 } );
 

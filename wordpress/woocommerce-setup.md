@@ -1603,3 +1603,7 @@ choice). Snippet 91, fika-club.php (new):
   Response gives tracking_id (links with the existing webhook). No cancel or status endpoint in the docs.
 - Not built yet: needs the RT dashboard email + password (to sign in), the shop/pickup id, and RT's answer on phone
   format and on testing without a real parcel.
+- 2026-10-16 (snippet 94, LIVE): the box is now "RT API login": API key + RT dashboard email/phone + password
+  (options fika_rtd_api_key / _email / _password, not autoloaded; key and password never shown). "Test connection"
+  signs in (POST /merchant/signin) and lists the RT shops with their IDs (GET /get-shops): read-only. Owner's choice:
+  parcels will always be sent with Normal priority. Sending orders is not built yet.
