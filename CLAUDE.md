@@ -16,5 +16,6 @@
   - anything in the Hostinger account outside the WordPress install.
 - Test data (customers, orders, coupons) uses @example.com addresses and the note
   "TEST ORDER (Claude ... test) - safe to delete", and is deleted after each test.
-- **Email changes:** after any change to an email, show the owner the whole email in the chat (phone and computer
-  width, rendered from the shop's real email code, never sent), not just the part that changed.
+- **Email changes:** after any change to an email, show the owner the whole email (rendered from the shop's real
+  email code, never sent), not just the part that changed: republish the "Fika Win-back Email" artifact
+  (https://claude.ai/artifact/VtpguUmXoMcStVCDV1ZwHr, phone / computer switch) and open it in the side panel.
