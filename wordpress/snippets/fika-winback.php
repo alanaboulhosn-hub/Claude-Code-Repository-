@@ -151,6 +151,13 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return '<p style="margin-top:20px !important;text-align:center;color:#6c7b9c !important;font-size:12.5px !important;">You get this email because you shop with Fika. ' .
 			'<a href="' . esc_url( fika_wb_unsub_link( $email ) ) . '" style="color:#6c7b9c !important;">Unsubscribe</a>.</p>';
 	}
+	// headings drawn in the website's cute font (NF Le Petit Cochon), as pictures so every inbox shows them;
+	// made by wordpress/email-assets/make-email-headings.js at 2x: [file, width, height] at 1x
+	function fika_wb_head( $key, $alt, $h = 36 ) {
+		$size = array( 'we-miss-you' => array( 548, 87 ), 'fresh-from-sweden' => array( 839, 108 ), 'made-for-sharing' => array( 763, 98 ), 'your-fika-club' => array( 650, 103 ), 'join-the-fika-club' => array( 776, 108 ) );
+		$w    = (int) round( $size[ $key ][0] * $h / $size[ $key ][1] );
+		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-h-' . $key . '.png' ) ) . '" width="' . $w . '" height="' . (int) $h . '" alt="' . esc_attr( $alt ) . '" style="display:block;width:' . $w . 'px;max-width:100%;height:auto;margin:0 auto;border:0;">';
+	}
 	// email 1, part 2: what fika means (family time, quality, the warmth of sharing)
 	function fika_wb_divider( $id, $label ) {
 		return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:30px 0 6px;" id="' . esc_attr( $id ) . '"><tr>' .
@@ -165,7 +172,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		);
 		$out = fika_wb_divider( 's2', 'What fika means' ) .
 			'<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-friends.jpg' ) ) . '" width="520" alt="Three cartoon sweets holding hands" style="display:block;width:100%;max-width:520px;height:auto;margin:6px auto 4px;border-radius:18px;">' .
-			'<h2 style="text-align:center;">Made for sharing</h2>' .
+			'<p style="margin:22px 0 8px;text-align:center;">' . fika_wb_head( 'made-for-sharing', 'Made for sharing' ) . '</p>' .
 			'<p style="' . $f . 'color:#1b2a4a;font-size:16px;line-height:1.6;margin:0 0 14px;text-align:center;">Fika is the Swedish habit of pausing to share something sweet with the people you love. That is why we started Fika in Lebanon.</p>';
 		foreach ( $vals as $v ) {
 			$out .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:10px 0;"><tr><td class="fika-mail-box" style="background:' . $v[2] . ';">' .
@@ -244,7 +251,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$intro = $member ? 'Every kilo you order moves your Swedish fish closer to free sweets. Here is where you are' . ( $name ? ', ' . $name : '' ) . '.' : 'Every kilo you order earns free sweets, and the orders you have already placed count too.';
 		$small = 'margin:12px 0 0;' . $f . 'color:#1b2a4a;font-size:14px;line-height:1.5;';
 		return fika_wb_divider( 's3', 'Your rewards' ) .
-			'<h2 style="text-align:center;">' . esc_html( $title ) . '</h2>' .
+			'<p style="margin:16px 0 8px;text-align:center;">' . fika_wb_head( $member ? 'your-fika-club' : 'join-the-fika-club', $title ) . '</p>' .
 			'<p style="' . $f . 'color:#1b2a4a;font-size:16px;line-height:1.6;margin:0 0 14px;text-align:center;">' . esc_html( $intro ) . '</p>' .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td class="fika-mail-box">' .
 			'<p style="' . $f . 'padding-bottom:10px;color:#1b2a4a;font-size:14px;">' . ( $member ? 'You have' : 'You have already' ) . ' ordered' . ( $lap > 1 ? ' (lap ' . $lap . ')' : '' ) . '<br><span style="' . $h . 'font-variant:normal;font-size:40px;line-height:1.1;">' . $kg( $g ) . '</span> <span style="color:#6c7b9c;">of the 15 kg lane</span></p>' .
@@ -262,17 +269,22 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$list = fika_wb_products( $new );
 		$hi   = $p['name'] ? 'Hi ' . esc_html( $p['name'] ) . ',' : 'Hi there,';
 		$lead = $p['last']
-			? 'It&rsquo;s been a while since your last fika, so here is what&rsquo;s new on our candy wall.'
+			? 'It&rsquo;s been a while since your last fika! While you were away, a few new sweets found their way onto our candy wall. Let us introduce them.'
 			: 'You joined Fika a while ago but haven&rsquo;t picked your first mix yet. Here is what&rsquo;s on our candy wall right now.';
 		$body = '<div class="email-introduction"><p>' . $hi . '</p><p>' . $lead . '</p></div>' .
-			( $list ? '<h2 class="email-order-detail-heading">' . ( $new ? 'New drops' : 'Fan favourites' ) . '<br><span>' . ( $new ? 'Just landed from Sweden' : 'The sweets everyone keeps coming back for' ) . '</span></h2>' . fika_wb_grid( $list ) : '' ) .
+			( $list ? ( $new
+				? '<p style="margin:22px 0 4px;text-align:center;">' . fika_wb_head( 'fresh-from-sweden', 'Fresh from Sweden', 38 ) . '</p><p style="text-align:center;margin:0 0 6px;"><span style="color:#6c7b9c;font-size:13.5px;">' . ( 4 === count( $list ) ? 'Four' : 'A few' ) . ' new friends on the candy wall</span></p>'
+				: '<h2 class="email-order-detail-heading">Fan favourites<br><span>The sweets everyone keeps coming back for</span></h2>' ) .
+				fika_wb_grid( $list ) .
+				( $new ? '<p style="margin:10px 0 0;text-align:center;">Mix them with your old favourites. Every scoop is 100 g, so a little of everything is easy.</p>' : '' ) : '' ) .
 			( trim( $set['news_title'] . $set['news_text'] ) ? '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:22px 0 4px;"><tr><td class="fika-mail-box">' .
 				( $set['news_title'] ? '<h2>' . esc_html( $set['news_title'] ) . '</h2>' : '' ) . '<p>' . nl2br( esc_html( $set['news_text'] ) ) . '</p></td></tr></table>' : '' ) .
 			fika_wb_button( home_url( '/mix-your-own/' ), 'Pick your mix' ) .
 			fika_wb_part2() .
 			fika_wb_part3( $email, $p['name'] ) .
 			fika_wb_small( $email );
-		return array( 'It’s been a while' . ( $p['name'] ? ', ' . $p['name'] : '' ) . '! Here’s what’s new at Fika', WC()->mailer()->wrap_message( 'We miss you!', $body ) );
+		$html = str_replace( '>We miss you!</h1>', '>' . fika_wb_head( 'we-miss-you', 'We miss you!', 46 ) . '</h1>', WC()->mailer()->wrap_message( 'We miss you!', $body ) );
+		return array( 'It’s been a while' . ( $p['name'] ? ', ' . $p['name'] : '' ) . '! Here’s what’s new at Fika', $html );
 	}
 	// email 2: a personal discount code
 	function fika_wb_email2( $email, $p, $code, $expires ) {
