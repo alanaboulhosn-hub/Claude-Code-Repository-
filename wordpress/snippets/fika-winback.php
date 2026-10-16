@@ -60,7 +60,8 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 				continue;
 			}
 			$people[ $e ] = array(
-				'name' => $o->get_shipping_first_name() ? $o->get_shipping_first_name() : $o->get_billing_first_name(),
+				// the person who ordered (billing), not a gift recipient (shipping)
+				'name' => $o->get_billing_first_name() ? $o->get_billing_first_name() : $o->get_shipping_first_name(),
 				'last' => $o->get_date_created()->getTimestamp(),
 			);
 		}
@@ -348,7 +349,17 @@ add_action( 'admin_post_fika_wb_save', function () {
 	if ( ! empty( $in['preview'] ) ) {
 		$to = sanitize_email( isset( $in['preview_to'] ) ? $in['preview_to'] : '' );
 		if ( is_email( $to ) ) {
-			$p = array( 'name' => 'Sara', 'last' => time() - 40 * DAY_IN_SECONDS, 'since' => time() - 40 * DAY_IN_SECONDS );
+			// the preview greets the person it is sent to (their account or latest order); "Sara" if unknown
+			$name = '';
+			$pu   = get_user_by( 'email', $to );
+			if ( $pu ) {
+				$name = get_user_meta( $pu->ID, 'first_name', true );
+			}
+			if ( ! $name ) {
+				$po   = wc_get_orders( array( 'billing_email' => $to, 'limit' => 1, 'orderby' => 'date', 'order' => 'DESC' ) );
+				$name = $po ? $po[0]->get_billing_first_name() : '';
+			}
+			$p = array( 'name' => $name ? $name : 'Sara', 'last' => time() - 40 * DAY_IN_SECONDS, 'since' => time() - 40 * DAY_IN_SECONDS );
 			if ( '2' === $in['preview'] ) {
 				list( $code, $exp )     = fika_wb_coupon( $to, 'Win-back preview' );
 				list( $subject, $html ) = fika_wb_email2( $to, $p, $code, $exp );

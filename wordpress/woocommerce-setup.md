@@ -1630,3 +1630,11 @@ choice). Snippet 91, fika-club.php (new):
   The list is collapsed ("Show the list"); each row has a "Remove from list" button.
 - Matching by invoice number (old manual parcels) still works as before.
 - Orders the owner delivers personally are handled by hand in RT (change status or delete the parcel there).
+
+### 2026-10-16 – Win-back emails: which name they greet (snippet 35)
+- Real emails now greet the person who ordered (billing first name); the delivery name is used only when the billing
+  name is empty. Checked: 455 people in the audience, 1 without a name ("Hi there,"); no order so far has a different
+  billing and delivery first name, so nobody's greeting changes today.
+- "Send a preview" now greets the person it is sent to (their account's first name, else their latest order's
+  billing first name) and falls back to the sample name "Sara" when neither exists. alan.aboulhosn@gmail.com has no
+  account or order, and the admin account has no first name, so previews to those still say "Sara".
