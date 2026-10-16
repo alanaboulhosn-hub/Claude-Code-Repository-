@@ -1715,3 +1715,13 @@ choice). Snippet 91, fika-club.php (new):
   - Lane v4: the website lane drawn 300 px wide (media 1143-1145, fika-email-lane4-*), shown up to 400 px, so gifts
     and kg labels read better on phones; files uploads/fika-lane/lane-v4-<g>.png.
 - Checked by rendering (never sent) Rosa (member, 2.3 kg) and nobody@example.com (no account), HTML and plain text.
+
+### 2026-10-16 – Win-back email 1 goes Live on 17 October, 9:00 Beirut (snippet 35)
+- Owner: this design is email 1; go live tomorrow 9:00 Lebanon time for everyone due for email 1; email 2 not live.
+- New setting "Email 2" (email2, default 0, checkbox in WP Admin > WooCommerce > Win-back emails): while off, the
+  run skips email 2 also in Live mode.
+- One-off Action Scheduler action fika_winback_golive at 1792216800 (2026-10-17 06:00 UTC = 09:00 Beirut, EEST):
+  switches the mode to Live and runs fika_winback_batch; each batch sends up to 50 (the run's cap) and schedules the
+  next one 30 minutes later while 50 went out. At scheduling time: 248 due for email 1, 0 for email 2, so about five
+  batches, done around 11:00; the daily run is next at 13:04 Beirut. The settings page shows the planned switch.
+- Session check-ins at 09:02 and 11:15 Beirut to confirm (read-only).
