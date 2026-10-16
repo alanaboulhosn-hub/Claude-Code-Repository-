@@ -1695,3 +1695,23 @@ choice). Snippet 91, fika-club.php (new):
   admin preview. Audit of the 457 people before: 67 lowercase, 3 in capitals, 6 full names, 1 empty ("Hi there,");
   after: all clean. Each email still uses that customer's own name and kilos (looked up by their email).
 - The "Mix them with your old favourites..." line under the candy grid is removed (owner).
+- Review fixes (owner: fix 1-6 and the tweaks; progress moved up):
+  - Order: what's new, then the Fika Club progress (with a plain dotted divider, no "Your rewards" label), then
+    What fika means.
+  - Candies chosen in WP Admin are "Picked for you" / "A few favourites from our candy wall" (all products date from
+    the 7 October import, so "new" was not true); automatic picks from the last 45 days keep "Fresh from Sweden".
+    Opening line and subject follow: "We picked a few sweets from our candy wall we think you'll love:" /
+    "It's been a while, Rosa! A few sweets picked for you" (new: "Here's what's new:" / "Here's what's new at Fika").
+  - Inbox preview text (hidden div at the top of the body): "Your fish is only 700 g away from 100 g of free sweets
+    🍬" for members, "You already have 2.3 kg towards free sweets 🍬" without an account, else "New sweets on the
+    candy wall, and free sweets to swim for 🍬".
+  - Plain-text copy (snippet 28, fika-emails.php): pictures with class fika-t keep their alt text (headings, reward
+    names, lane); the hidden preview text is left out. Grid names and prices sit in their own blocks, so each
+    becomes its own line.
+  - Candy photos: JPG copies with off-white turned white (uploads/fika-email-img/p<id>-v1.jpg, GD), alt = product
+    name; names shortened in the email ("BUBS ... (Mini)" dropped); name row 52 px tall so prices line up.
+  - Box titles in the cute font (media 1146-1150: picked-for-you, lordagsmys-is-here, family-time, real-quality,
+    the-warmth-of-sharing); a news title without a picture falls back to the text heading.
+  - Lane v4: the website lane drawn 300 px wide (media 1143-1145, fika-email-lane4-*), shown up to 400 px, so gifts
+    and kg labels read better on phones; files uploads/fika-lane/lane-v4-<g>.png.
+- Checked by rendering (never sent) Rosa (member, 2.3 kg) and nobody@example.com (no account), HTML and plain text.

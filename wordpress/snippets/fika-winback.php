@@ -126,29 +126,69 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 				}
 			}
 			if ( $list ) {
-				$is_new = true;
+				$is_new = 'picked';
 				return array_slice( $list, 0, 4 );
 			}
 		}
 		$args   = array( 'status' => 'publish', 'visibility' => 'catalog', 'stock_status' => 'instock', 'limit' => 4, 'orderby' => 'date', 'order' => 'DESC' );
 		$list   = wc_get_products( array_merge( $args, array( 'date_created' => '>' . ( time() - 45 * DAY_IN_SECONDS ) ) ) );
-		$is_new = (bool) $list;
+		$is_new = $list ? 'new' : 'fav';
 		if ( ! $list ) {
 			$list = wc_get_products( array_merge( $args, array( 'featured' => true, 'orderby' => 'menu_order', 'order' => 'ASC' ) ) );
 		}
 		return $list;
 	}
+	// a product photo for email: a JPG copy (Outlook on Windows shows no WebP) with off-white turned pure white, so
+	// every photo sits on the same white; saved once under uploads/fika-email-img/; the original if it cannot be made
+	function fika_wb_photo( $att_id ) {
+		$url = wp_get_attachment_image_url( $att_id, 'woocommerce_thumbnail' );
+		if ( ! $url || ! function_exists( 'imagecreatefromstring' ) ) {
+			return $url;
+		}
+		$up  = wp_upload_dir();
+		$fn  = 'p' . (int) $att_id . '-v1.jpg';
+		$dir = trailingslashit( $up['basedir'] ) . 'fika-email-img';
+		if ( file_exists( $dir . '/' . $fn ) ) {
+			return trailingslashit( $up['baseurl'] ) . 'fika-email-img/' . $fn;
+		}
+		$path = str_replace( trailingslashit( $up['baseurl'] ), trailingslashit( $up['basedir'] ), $url );
+		$data = file_exists( $path ) ? file_get_contents( $path ) : false; // phpcs:ignore
+		$src  = $data ? @imagecreatefromstring( $data ) : false; // phpcs:ignore
+		if ( ! $src || ! wp_mkdir_p( $dir ) ) {
+			return $url;
+		}
+		$w  = imagesx( $src );
+		$h  = imagesy( $src );
+		$im = imagecreatetruecolor( $w, $h );
+		imagefill( $im, 0, 0, imagecolorallocate( $im, 255, 255, 255 ) );
+		imagecopy( $im, $src, 0, 0, 0, 0, $w, $h );
+		$white = imagecolorallocate( $im, 255, 255, 255 );
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$c = imagecolorat( $im, $x, $y );
+				if ( ( $c >> 16 & 255 ) >= 246 && ( $c >> 8 & 255 ) >= 246 && ( $c & 255 ) >= 246 ) {
+					imagesetpixel( $im, $x, $y, $white );
+				}
+			}
+		}
+		$ok = imagejpeg( $im, $dir . '/' . $fn, 86 );
+		imagedestroy( $im );
+		imagedestroy( $src );
+		return $ok ? trailingslashit( $up['baseurl'] ) . 'fika-email-img/' . $fn : $url;
+	}
 	function fika_wb_grid( $list ) {
 		$cells = array();
 		foreach ( $list as $p ) {
-			$img     = $p->get_image_id() ? wp_get_attachment_image_url( $p->get_image_id(), 'woocommerce_thumbnail' ) : '';
+			$img     = $p->get_image_id() ? fika_wb_photo( $p->get_image_id() ) : '';
 			$bag     = has_term( 'ready-mix', 'product_cat', $p->get_id() );
 			$price   = wc_price( wc_get_price_to_display( $p ) ) . ( $bag ? ' per 500 g bag' : ' per 100 g' );
+			$name    = trim( preg_replace( array( '/^BUBS\s+/i', '/\s*\(mini\)\s*$/i' ), '', $p->get_name() ) ); // "BUBS Forest Berry Ovals (Mini)" -> "Forest Berry Ovals"
+			$link    = esc_url( home_url( $bag ? '/ready-mix/' : '/mix-your-own/' ) );
 			$cells[] = '<td width="50%" valign="top" style="width:50%;padding:8px;text-align:center;">' .
-				'<a href="' . esc_url( home_url( $bag ? '/ready-mix/' : '/mix-your-own/' ) ) . '" style="text-decoration:none;">' .
-				( $img ? '<img src="' . esc_url( $img ) . '" width="200" alt="" style="display:block;width:100%;max-width:200px;height:auto;margin:0 auto 8px;border-radius:16px;">' : '' ) .
-				'<span class="fika-pname" style="display:block;">' . esc_html( $p->get_name() ) . '</span></a>' .
-				'<span style="display:block;color:#6c7b9c;font-size:13px;">' . wp_strip_all_tags( $price ) . '</span></td>';
+				( $img ? '<a href="' . $link . '" style="text-decoration:none;"><img src="' . esc_url( $img ) . '" width="200" alt="' . esc_attr( $p->get_name() ) . '" style="display:block;width:100%;max-width:200px;height:auto;margin:0 auto 8px;border-radius:16px;"></a>' : '' ) .
+				'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td height="52" valign="top" style="height:52px;padding:0;text-align:center;">' .
+				'<div><a href="' . $link . '" class="fika-pname" style="text-decoration:none;">' . esc_html( $name ) . '</a></div></td></tr>' .
+				'<tr><td style="padding:2px 0 0;text-align:center;"><div style="color:#6c7b9c;font-size:13px;">' . wp_strip_all_tags( $price ) . '</div></td></tr></table></td>';
 		}
 		$rows = '';
 		foreach ( array_chunk( $cells, 2 ) as $pair ) {
@@ -167,12 +207,25 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	// headings drawn in the website's cute font (NF Le Petit Cochon), as pictures so every inbox shows them;
 	// made by wordpress/email-assets/make-email-headings.js at 2x: [file, width, height] at 1x
 	function fika_wb_head( $key, $alt, $h = 36 ) {
-		$size = array( 'we-miss-you' => array( 548, 87 ), 'fresh-from-sweden' => array( 839, 108 ), 'made-for-sharing' => array( 763, 98 ), 'your-fika-club' => array( 650, 103 ), 'join-the-fika-club' => array( 776, 108 ) );
+		$size = array( 'we-miss-you' => array( 548, 87 ), 'fresh-from-sweden' => array( 839, 108 ), 'made-for-sharing' => array( 763, 98 ), 'your-fika-club' => array( 650, 103 ), 'join-the-fika-club' => array( 776, 108 ),
+			// media 1146-1150 (make-email-box-headings.js)
+			'picked-for-you' => array( 604, 105 ), 'lordagsmys-is-here' => array( 817, 105 ), 'family-time' => array( 477, 105 ), 'real-quality' => array( 543, 105 ), 'the-warmth-of-sharing' => array( 976, 105 ) );
 		$w    = (int) round( $size[ $key ][0] * $h / $size[ $key ][1] );
-		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-h-' . $key . '.png' ) ) . '" width="' . $w . '" height="' . (int) $h . '" alt="' . esc_attr( $alt ) . '" style="display:block;width:' . $w . 'px;max-width:100%;height:auto;margin:0 auto;border:0;">';
+		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-h-' . $key . '.png' ) ) . '" width="' . $w . '" height="' . (int) $h . '" alt="' . esc_attr( $alt ) . '" class="fika-t" style="display:block;width:' . $w . 'px;max-width:100%;height:auto;margin:0 auto;border:0;">';
+	}
+	// a box title: the cute-font picture when there is one for these words, else the email's own heading style
+	function fika_wb_box_title( $text ) {
+		$key = sanitize_title( remove_accents( $text ) );
+		if ( in_array( $key, array( 'lordagsmys-is-here', 'family-time', 'real-quality', 'the-warmth-of-sharing' ), true ) ) {
+			return '<p style="margin:0 0 8px;">' . str_replace( 'margin:0 auto;', 'margin:0;', fika_wb_head( $key, $text, 24 ) ) . '</p>';
+		}
+		return '<h2>' . esc_html( $text ) . '</h2>';
 	}
 	// email 1, part 2: what fika means (family time, quality, the warmth of sharing)
-	function fika_wb_divider( $id, $label ) {
+	function fika_wb_divider( $id, $label = '' ) {
+		if ( '' === $label ) {
+			return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:30px 0 6px;" id="' . esc_attr( $id ) . '"><tr><td style="border-top:2px dotted #f3b7cf;font-size:0;line-height:0;">&nbsp;</td></tr></table>';
+		}
 		return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:30px 0 6px;" id="' . esc_attr( $id ) . '"><tr>' .
 			'<td style="border-top:2px dotted #f3b7cf;width:38%;"></td><td align="center" style="font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#d35d93;padding:0 10px;white-space:nowrap;"><span style="color:#d35d93;">' . esc_html( $label ) . '</span></td><td style="border-top:2px dotted #f3b7cf;width:38%;"></td></tr></table>';
 	}
@@ -189,7 +242,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<p style="' . $f . 'color:#1b2a4a;font-size:16px;line-height:1.6;margin:0 0 14px;text-align:center;">Fika is the Swedish habit of pausing to share something sweet with the people you love. That is why we started Fika in Lebanon.</p>';
 		foreach ( $vals as $v ) {
 			$out .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:10px 0;"><tr><td class="fika-mail-box" style="background:' . $v[2] . ';">' .
-				'<h2>' . esc_html( $v[0] ) . '</h2>' .
+				fika_wb_box_title( $v[0] ) .
 				'<p style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.55;margin:0;">' . esc_html( $v[1] ) . '</p></td></tr></table>';
 		}
 		return $out . '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-bowl.jpg' ) ) . '" width="520" alt="A crystal bowl full of Swedish pick-and-mix" style="display:block;width:100%;max-width:520px;height:auto;margin:14px auto 0;border-radius:18px;">';
@@ -209,19 +262,19 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return $g;
 	}
 	// the website's fish lane as a picture for this many grams (0-15000, in 100 g steps): the empty lane, the full
-	// lane up to the fish, and the fish (media 1133-1135, drawn from the real lane by
+	// lane up to the fish, and the fish (media 1143-1145, fika-email-lane4-*, drawn from the real lane by
 	// wordpress/email-assets/make-email-lane.js at 3x). Saved once per step under uploads/fika-lane/, so email apps
 	// fetch a plain file. False if it cannot be made (no GD, missing pictures): the email then shows a plain bar.
 	function fika_wb_lane_url( $g ) {
 		$g   = max( 0, min( 15000, (int) round( $g / 100 ) * 100 ) );
 		$up  = wp_upload_dir();
 		$dir = trailingslashit( $up['basedir'] ) . 'fika-lane';
-		$fn  = 'lane-v3-' . $g . '.png';
+		$fn  = 'lane-v4-' . $g . '.png';
 		$url = trailingslashit( $up['baseurl'] ) . 'fika-lane/' . $fn;
 		if ( file_exists( $dir . '/' . $fn ) ) {
 			return $url;
 		}
-		$src = trailingslashit( $up['basedir'] ) . '2026/10/fika-email-lane-';
+		$src = trailingslashit( $up['basedir'] ) . '2026/10/fika-email-lane4-';
 		if ( ! function_exists( 'imagecreatefrompng' ) || ! file_exists( $src . 'empty.png' ) || ! file_exists( $src . 'full.png' ) || ! file_exists( $src . 'fish.png' ) || ! wp_mkdir_p( $dir ) ) {
 			return false;
 		}
@@ -231,10 +284,10 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		if ( ! $im || ! $full || ! $fish ) {
 			return false;
 		}
-		// the 1110 x 396 pictures (the website's phone lane at 3x): 0 kg tick at x 179.6, 15 kg at 1055.6, water
-		// band y 172-336 (centre 252), gifts above it (y 0-172), mystery wheels on it
+		// the 900 x 396 pictures (the website's lane drawn 300 px wide, at 3x): 0 kg tick at x 173.6, 15 kg at 809.6,
+		// water band y 172-336 (centre 252), gifts above it (y 0-172), mystery wheels on it
 		$at = function ( $grams ) {
-			return (int) round( 179.6 + $grams / 15000 * 876 );
+			return (int) round( 173.6 + $grams / 15000 * 636 );
 		};
 		$x = $at( $g );
 		if ( $g > 0 ) {
@@ -242,7 +295,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		}
 		foreach ( array( 3000, 6000, 10000, 15000 ) as $cp ) { // gifts reached light up
 			if ( $g >= $cp ) {
-				imagecopy( $im, $full, $at( $cp ) - 64, 0, $at( $cp ) - 64, 0, 128, 172 );
+				imagecopy( $im, $full, $at( $cp ) - 64, 0, $at( $cp ) - 64, 0, min( 128, imagesx( $full ) - $at( $cp ) + 64 ), 172 );
 			}
 		}
 		foreach ( array( 1500, 12500 ) as $sp ) { // mystery wheels the water has fully passed light up
@@ -267,7 +320,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		}
 		$key = sanitize_title( $name );
 		$px  = (int) round( $w[ $name ] * 22 / 111 );
-		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-r-' . $key . '.png' ) ) . '" width="' . $px . '" height="22" alt="' . esc_attr( $name ) . '" style="display:block;width:' . $px . 'px;height:22px;border:0;margin:0 0 3px;">';
+		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-r-' . $key . '.png' ) ) . '" width="' . $px . '" height="22" alt="' . esc_attr( $name ) . '" class="fika-t" style="display:block;width:' . $px . 'px;height:22px;border:0;margin:0 0 3px;">';
 	}
 	// email 1, part 3: the Fika Club, with this customer's place on the 15 kg lane
 	function fika_wb_part3( $email, $name ) {
@@ -306,7 +359,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$pct  = max( 0, min( 100, (int) round( $g / 150 ) ) );
 		$lane = fika_wb_lane_url( $g );
 		// a link, so Gmail shows no download button over it; opens the rewards (or sign-up) page
-		$bar  = $lane ? '<a href="' . esc_url( $member ? home_url( '/my-account/' ) : home_url( '/my-account/?action=register' ) ) . '" style="display:block;text-decoration:none;"><img src="' . esc_url( $lane ) . '" width="480" alt="Your fish at ' . esc_attr( $kg( $g ) ) . ' on the 15 kg lane" style="display:block;width:100%;max-width:480px;height:auto;margin:4px auto 0;border:0;"></a>' : '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;border-radius:999px;background:#ffffff;border:2px solid #004aad;"><tr>' .
+		$bar  = $lane ? '<a href="' . esc_url( $member ? home_url( '/my-account/' ) : home_url( '/my-account/?action=register' ) ) . '" style="display:block;text-decoration:none;"><img src="' . esc_url( $lane ) . '" width="400" alt="Your fish at ' . esc_attr( $kg( $g ) ) . ' on the 15 kg lane" class="fika-t" style="display:block;width:100%;max-width:400px;height:auto;margin:4px auto 0;border:0;"></a>' : '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;border-radius:999px;background:#ffffff;border:2px solid #004aad;"><tr>' .
 			( $pct > 0 ? '<td width="' . $pct . '%" style="width:' . $pct . '%;height:14px;background:#1c6fd6;border-radius:999px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) .
 			( $pct < 100 ? '<td style="height:14px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) . '</tr></table>';
 		$left = $next ? $next[0] - $g : 0;
@@ -326,7 +379,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$title = $member ? 'Your Fika Club' : 'Join the Fika Club';
 		$intro = $member ? 'Every kilo you order moves your Swedish fish closer to free sweets. Here is where you are' . ( $name ? ', ' . $name : '' ) . '.' : 'Every kilo you order earns free sweets, and the orders you have already placed count too.';
 		$small = 'margin:12px 0 0;' . $f . 'color:#1b2a4a;font-size:14px;line-height:1.5;';
-		return fika_wb_divider( 's3', 'Your rewards' ) .
+		return fika_wb_divider( 's3' ) .
 			'<p style="margin:16px 0 8px;text-align:center;">' . fika_wb_head( $member ? 'your-fika-club' : 'join-the-fika-club', $title ) . '</p>' .
 			'<p style="' . $f . 'color:#1b2a4a;font-size:16px;line-height:1.6;margin:0 0 14px;text-align:center;">' . esc_html( $intro ) . '</p>' .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td class="fika-mail-box">' .
@@ -337,28 +390,56 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			( ! $member && $g > 0 ? '<p style="' . $small . '">Sign up with this email address and your ' . $kg( $total ) . ' count straight away.</p>' : '' ) .
 			fika_wb_button( $member ? home_url( '/my-account/' ) : home_url( '/my-account/?action=register' ), $member ? 'See my rewards' : 'Join the Fika Club' );
 	}
+	// the inbox preview text for email 1: where the customer's fish is
+	function fika_wb_preheader( $email ) {
+		$user   = get_user_by( 'email', $email );
+		$member = $user && ! user_can( $user, 'manage_woocommerce' );
+		$g      = fika_wb_delivered( $email, $member ? $user : null ) % 15000;
+		$left   = 0;
+		$next   = '';
+		foreach ( array( 1500 => 'a free mystery taste', 3000 => '100 g of free sweets', 6000 => '200 g of free sweets', 10000 => '400 g of free sweets', 12500 => 'a free mystery taste', 15000 => 'a whole free kilo' ) as $at => $what ) {
+			if ( $at > $g ) {
+				$left = $at - $g;
+				$next = $what;
+				break;
+			}
+		}
+		$togo = $left < 1000 ? ( (int) round( $left / 50 ) * 50 ) . ' g' : rtrim( rtrim( number_format( $left / 1000, 1 ), '0' ), '.' ) . ' kg';
+		if ( $g > 0 && $member ) {
+			return 'Your fish is only ' . $togo . ' away from ' . $next . ' 🍬';
+		}
+		if ( $g > 0 ) {
+			return 'You already have ' . rtrim( rtrim( number_format( $g / 1000, 1 ), '0' ), '.' ) . ' kg towards free sweets 🍬';
+		}
+		return 'New sweets on the candy wall, and free sweets to swim for 🍬';
+	}
 	// email 1: it's been a while
 	function fika_wb_email1( $email, $p ) {
 		$set  = fika_wb_settings();
-		$new  = false;
-		$list = fika_wb_products( $new );
+		$kind = 'fav';
+		$list = fika_wb_products( $kind );
 		$hi   = $p['name'] ? 'Hi ' . esc_html( $p['name'] ) . ',' : 'Hi there,';
 		$lead = $p['last']
-			? 'It&rsquo;s been a while since your last fika! While you were away, a few new sweets found their way onto our candy wall. Let us introduce them.'
+			? ( 'new' === $kind
+				? 'It&rsquo;s been a while since your last fika! While you were away, a few new sweets found their way onto our candy wall. Here&rsquo;s what&rsquo;s new:'
+				: 'It&rsquo;s been a while since your last fika! We picked a few sweets from our candy wall we think you&rsquo;ll love:' )
 			: 'You joined Fika a while ago but haven&rsquo;t picked your first mix yet. Here is what&rsquo;s on our candy wall right now.';
 		$body = '<div class="email-introduction"><p>' . $hi . '</p><p>' . $lead . '</p></div>' .
-			( $list ? ( $new
-				? '<p style="margin:22px 0 4px;text-align:center;">' . fika_wb_head( 'fresh-from-sweden', 'Fresh from Sweden', 38 ) . '</p><p style="text-align:center;margin:0 0 6px;"><span style="color:#6c7b9c;font-size:13.5px;">' . ( 4 === count( $list ) ? 'Four' : 'A few' ) . ' new friends on the candy wall</span></p>'
+			( $list ? ( 'fav' !== $kind
+				? '<p style="margin:22px 0 4px;text-align:center;">' . ( 'new' === $kind ? fika_wb_head( 'fresh-from-sweden', 'Fresh from Sweden', 38 ) : fika_wb_head( 'picked-for-you', 'Picked for you', 38 ) ) . '</p><p style="text-align:center;margin:0 0 6px;"><span style="color:#6c7b9c;font-size:13.5px;">' . ( 'new' === $kind ? ( 4 === count( $list ) ? 'Four' : 'A few' ) . ' new friends on the candy wall' : 'A few favourites from our candy wall' ) . '</span></p>'
 				: '<h2 class="email-order-detail-heading">Fan favourites<br><span>The sweets everyone keeps coming back for</span></h2>' ) .
 				fika_wb_grid( $list ) : '' ) .
 			( trim( $set['news_title'] . $set['news_text'] ) ? '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:22px 0 4px;"><tr><td class="fika-mail-box">' .
-				( $set['news_title'] ? '<h2>' . esc_html( $set['news_title'] ) . '</h2>' : '' ) . '<p>' . nl2br( esc_html( $set['news_text'] ) ) . '</p></td></tr></table>' : '' ) .
+				( $set['news_title'] ? fika_wb_box_title( $set['news_title'] ) : '' ) . '<p>' . nl2br( esc_html( $set['news_text'] ) ) . '</p></td></tr></table>' : '' ) .
 			fika_wb_button( home_url( '/mix-your-own/' ), 'Pick your mix' ) .
-			fika_wb_part2() .
 			fika_wb_part3( $email, $p['name'] ) .
+			fika_wb_part2() .
 			fika_wb_small( $email );
 		$html = str_replace( '>We miss you!</h1>', '>' . fika_wb_head( 'we-miss-you', 'We miss you!', 46 ) . '</h1>', WC()->mailer()->wrap_message( 'We miss you!', $body ) );
-		return array( 'It’s been a while' . ( $p['name'] ? ', ' . $p['name'] : '' ) . '! Here’s what’s new at Fika', $html );
+		// the preview text, hidden at the very top (padded so the inbox does not run on into the email's first words)
+		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( fika_wb_preheader( $email ) ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
+		$html = preg_replace( '/(<body\b[^>]*>)/i', '$1' . $pre, $html, 1 );
+		return array( 'It’s been a while' . ( $p['name'] ? ', ' . $p['name'] : '' ) . ( 'new' === $kind ? '! Here’s what’s new at Fika' : '! A few sweets picked for you' ), $html );
 	}
 	// email 2: a personal discount code
 	function fika_wb_email2( $email, $p, $code, $expires ) {
