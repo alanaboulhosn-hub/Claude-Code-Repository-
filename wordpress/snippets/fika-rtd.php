@@ -19,10 +19,12 @@
  * "Test connection" signs in and lists the RT shops (pickup points): read-only, creates nothing in RT.
  * Sending orders to RT (switch "Send new orders to RT", Off by default): an order placed after the switch went On is
  * sent to RT as soon as it turns Processing (in the background, a few seconds later): shop 2392 (the RT shop), Inside
- * Beirut -> delivery type 3 (inside city) else 4, priority always Normal (2), special request None (4), invoice_no =
- * the Fika order number (how the webhook finds it), name / phone (961 + local number) / address from the order,
- * cash_collection = the order total for cash on delivery (0 otherwise), USD, the customer's note. RT's tracking ID is
- * saved on the order (RT column). Orders that already have a tracking ID, test orders (@example.com) and orders from
+ * Beirut -> delivery type 3 (inside city) else 4, priority always Normal (2), special request None (4), name (RT
+ * requires it) / phone (961 + local number) / address from the order, cash_collection = the order total for cash on
+ * delivery (0 otherwise), USD. No invoice number and no note (owner's choice, 16 Oct). RT's tracking ID is saved on
+ * the order (RT column) and is how the webhook finds the order. Bags: 1 up to 1.5 kg, then one more per started 1.5 kg
+ * (1.6 kg = 2, 3.1 kg = 3); RT's API has no documented bags field yet, so an order of 2+ bags gets a private note
+ * "N bags: set the bag count in RT" until RT names the field. Orders that already have a tracking ID, test orders (@example.com) and orders from
  * before the switch are never sent. A failed send is tried again twice (10 and 30 minutes later); after that the RT
  * column shows "Not sent to RT" in red and the order page has "Send to RT now". RT's API cannot cancel a parcel:
  * cancel it in the RT dashboard.
@@ -141,14 +143,17 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 			'delivery_type_id'     => 'BA' === $area ? 3 : 4,
 			'delivery_priority_id' => 2, // always Normal (owner's choice)
 			'special_request_id'   => 4, // None
-			'invoice_no'           => (string) $order->get_order_number(),
 			'customer_name'        => fika_rtd_cut( '' !== $name ? $name : 'Fika customer', 191 ),
 			'customer_phone'       => fika_rtd_phone( $phone ),
 			'customer_address'     => fika_rtd_cut( implode( ', ', array_filter( array_map( 'trim', $addr ) ) ), 191 ),
 			'cash_collection'      => 'cod' === $order->get_payment_method() ? round( (float) $order->get_total(), 2 ) : 0,
 			'currency_type'        => 1, // USD
-			'note'                 => fika_rtd_cut( $order->get_customer_note(), 191 ),
 		);
+	}
+	// bags for an order: 1 up to 1.5 kg, one more for each started 1.5 kg above that
+	function fika_rtd_bags( $order ) {
+		$g = function_exists( 'fika_order_grams' ) ? (int) fika_order_grams( $order ) : 0;
+		return max( 1, (int) ceil( $g / 1500 ) );
 	}
 	// RT's answer -> one readable line
 	function fika_rtd_api_error( $r ) {
@@ -176,7 +181,8 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 		if ( '' !== $t ) {
 			$order->update_meta_data( '_fika_rtd_sent', time() );
 			$order->delete_meta_data( '_fika_rtd_send_error' );
-			$order->add_order_note( 'Sent to RT: parcel ' . $t . '.' );
+			$bags = fika_rtd_bags( $order );
+			$order->add_order_note( 'Sent to RT: parcel ' . $t . '.' . ( $bags > 1 ? ' ' . $bags . ' bags: set the bag count in RT.' : '' ) );
 			fika_rtd_link( $order, $t ); // saves, and replays any RT update that came first
 			return array( true, 'Sent to RT: parcel ' . $t );
 		}
