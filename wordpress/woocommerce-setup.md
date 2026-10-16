@@ -1685,3 +1685,7 @@ choice). Snippet 91, fika-club.php (new):
   hidden (it would poke past the card edge); the finish flag on the lane stays.
 - Checked before going live with the live lane CSS at phone (358 px) and computer (1000 px) widths, and after: home,
   Mix your own, Ready Mix, My account return 200 and the lane prints the new labels.
+- Reward list (owner-approved preview): names in the cute font as pictures, media 1137-1141
+  (fika-email-r-mystery-taste / 100-g-on-us / 200-g-on-us / 400-g-on-us / a-whole-kilo-on-us .png, 2x, 111 px tall,
+  shown 22 px; wordpress/email-assets/make-email-rewards.js), alt text = the words. Mystery taste line is now
+  "A free 50 g surprise". The "Delivered orders count towards the lane..." line under the list is removed.

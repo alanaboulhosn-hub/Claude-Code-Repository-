@@ -245,6 +245,17 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		imagedestroy( $fish );
 		return $ok ? $url : false;
 	}
+	// a reward's name in the cute font, as a picture (media 1137-1141, made by
+	// wordpress/email-assets/make-email-rewards.js at 2x, 111 px tall); the words stay as alt text
+	function fika_wb_reward_name( $name ) {
+		$w = array( 'Mystery taste' => 614, '100 g on us' => 520, '200 g on us' => 526, '400 g on us' => 534, 'A whole kilo on us' => 789 );
+		if ( ! isset( $w[ $name ] ) ) {
+			return esc_html( $name );
+		}
+		$key = sanitize_title( $name );
+		$px  = (int) round( $w[ $name ] * 22 / 111 );
+		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-r-' . $key . '.png' ) ) . '" width="' . $px . '" height="22" alt="' . esc_attr( $name ) . '" style="display:block;width:' . $px . 'px;height:22px;border:0;margin:0 0 3px;">';
+	}
 	// email 1, part 3: the Fika Club, with this customer's place on the 15 kg lane
 	function fika_wb_part3( $email, $name ) {
 		$f      = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
@@ -262,11 +273,11 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			return $x < 1000 ? ( (int) round( $x / 50 ) * 50 ) . ' g' : $kg( $x );
 		};
 		$ladder = array(
-			array( 1500, 'Mystery taste', '50 g of a surprise sweet, free' ),
+			array( 1500, 'Mystery taste', 'A free 50 g surprise' ),
 			array( 3000, '100 g on us', 'worth $2.80' ),
 			array( 6000, '200 g on us', 'worth $5.60' ),
 			array( 10000, '400 g on us', 'worth $11.20' ),
-			array( 12500, 'Mystery taste', '50 g of a surprise sweet, free' ),
+			array( 12500, 'Mystery taste', 'A free 50 g surprise' ),
 			array( 15000, 'A whole kilo on us', 'worth $28' ),
 		);
 		$next = null;
@@ -296,7 +307,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			$is_next = $next && $r[0] === $next[0];
 			$st      = $done ? '<span style="color:#1f7a4d;font-weight:600;">Reached &#10003;</span>' : ( $is_next ? '<span style="color:#004aad;font-weight:600;">Next</span>' : '<span style="color:#8a96b3;">' . $togo( $r[0] - $g ) . ' to go</span>' );
 			$rows   .= '<tr><td style="' . $f . 'padding:9px 0;border-bottom:1px solid #f3d3e1;width:58px;color:#004aad;font-weight:600;font-size:15px;white-space:nowrap;">' . $kg( $r[0] ) . '</td>' .
-				'<td style="' . $f . 'padding:9px 8px;border-bottom:1px solid #f3d3e1;color:#1b2a4a;font-size:15px;' . ( $is_next ? 'font-weight:600;' : '' ) . '">' . esc_html( $r[1] ) . '<span style="display:block;color:#6c7b9c;font-size:13px;font-weight:400;">' . esc_html( $r[2] ) . '</span></td>' .
+				'<td style="' . $f . 'padding:9px 8px;border-bottom:1px solid #f3d3e1;color:#1b2a4a;font-size:15px;' . ( $is_next ? 'font-weight:600;' : '' ) . '">' . fika_wb_reward_name( $r[1] ) . '<span style="display:block;color:#6c7b9c;font-size:13px;font-weight:400;">' . esc_html( $r[2] ) . '</span></td>' .
 				'<td align="right" style="' . $f . 'padding:9px 0;border-bottom:1px solid #f3d3e1;font-size:13.5px;white-space:nowrap;">' . $st . '</td></tr>';
 		}
 		$title = $member ? 'Your Fika Club' : 'Join the Fika Club';
@@ -309,7 +320,6 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<p style="' . $f . 'padding-bottom:10px;color:#1b2a4a;font-size:14px;">' . ( $member ? 'You have' : 'You have already' ) . ' ordered' . ( $lap > 1 ? ' (lap ' . $lap . ')' : '' ) . '<br><span style="' . $h . 'font-variant:normal;font-size:40px;line-height:1.1;">' . $kg( $g ) . '</span> <span style="color:#6c7b9c;">of the 15 kg lane</span></p>' .
 			$bar . '<p style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;padding-top:12px;">' . $line . '</p></td></tr></table>' .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;">' . $rows . '</table>' .
-			'<p style="' . $f . 'color:#6c7b9c;font-size:13px;line-height:1.5;margin:10px 0 0;">Delivered orders count towards the lane. Free sweets don&rsquo;t count, and after 15 kg a new lap starts.</p>' .
 			( $member && $gift ? '<p style="' . $small . '">Rewards you have reached wait on your account until you use them. Tap them under My account.</p>' : '' ) .
 			( ! $member && $g > 0 ? '<p style="' . $small . '">Sign up with this email address and your ' . $kg( $total ) . ' count straight away.</p>' : '' ) .
 			fika_wb_button( $member ? home_url( '/my-account/' ) : home_url( '/my-account/?action=register' ), $member ? 'See my rewards' : 'Join the Fika Club' );
