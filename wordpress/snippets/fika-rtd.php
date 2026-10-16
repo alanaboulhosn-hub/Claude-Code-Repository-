@@ -11,8 +11,9 @@
  * Cancelled and refunded orders are left alone. The RT column in Orders shows RT's exact step and tracking ID.
  * Each update adds a private order note. No order emails (customer or shop) are sent for RT's status changes.
  * A parcel is linked to its order by (1) its tracking ID saved on the order (box on the order page), or (2) the Fika
- * order number typed in RT's "Invoice no" field. Parcels that match nothing wait under "Parcels to link" on the
- * settings page, with suggested orders of the same amount; one click links them and applies their status.
+ * order number typed in RT's "Invoice no" field. Parcels that match nothing are parcels made directly in RT's
+ * dashboard (e.g. a free replacement): they are filed quietly under "RT parcels not from the website" on the settings
+ * page (no to-do, no menu badge, no effect on any order or reward); each can still be linked to an order with a click.
  * RT API login (settings page box "RT API login"): the API key (option fika_rtd_api_key, never shown in full), and
  * the RT dashboard email + password (fika_rtd_api_email / fika_rtd_api_password, the password never shown), which
  * RT's API needs to sign in (POST /merchant/signin -> auth_token; docs: wordpress/docs/RTD-Deliveries-API-v1.pdf).
@@ -348,7 +349,7 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 			$prev[] = $ev;
 			$wait[ $key ] = array( 'ev' => $ev, 'events' => array_slice( $prev, -20 ), 'got' => time() );
 			update_option( 'fika_rtd_unmatched', array_slice( $wait, -100, null, true ), false );
-			fika_rtd_log( $tag . ': no order linked yet (waiting under Parcels to link)' );
+			fika_rtd_log( $tag . ': not a website order (filed under RT parcels not from the website)' );
 			return array( 'ok' => true, 'matched' => false );
 		}
 		$r = fika_rtd_apply( $order, $ev );
@@ -480,8 +481,7 @@ add_action( 'admin_post_fika_rtd_send_switch', function () {
 } );
 
 add_action( 'admin_menu', function () {
-	$n     = count( (array) get_option( 'fika_rtd_unmatched', array() ) );
-	$title = 'RT Deliveries' . ( $n ? ' <span class="awaiting-mod">' . (int) $n . '</span>' : '' );
+	$title = 'RT Deliveries'; // parcels not from the website are reference only: no to-do badge
 	add_submenu_page( 'woocommerce', 'RT Deliveries', $title, 'manage_woocommerce', 'fika-rtd', function () {
 		$url   = rest_url( 'fika/v1/rtd-webhook' );
 		$wait  = (array) get_option( 'fika_rtd_unmatched', array() );
@@ -507,11 +507,12 @@ add_action( 'admin_menu', function () {
 			<?php endif; ?>
 
 			<div class="box">
-				<h2>Parcels to link (<?php echo (int) count( $wait ); ?>)</h2>
-				<p class="muted">RT sent updates for these parcels but no order has their tracking ID or order number yet. Pick the order and press Link. Next time, type the Fika order number (e.g. 1458) in RT's <b>Invoice no</b> field, and the parcel links by itself.</p>
+				<h2>RT parcels not from the website (<?php echo (int) count( $wait ); ?>)</h2>
+				<p class="muted">Parcels RT sent updates for that match no website order: ones made directly in RT's dashboard (e.g. a free replacement). Website orders are linked by themselves when they are sent to RT, so nothing here needs doing. For reference only: they change no order and no reward. If one does belong to a website order, pick it and press Link.</p>
 				<?php if ( ! $wait ) : ?>
-					<p>Nothing waiting.</p>
+					<p>None.</p>
 				<?php else : ?>
+					<details><summary style="cursor:pointer;font-weight:600">Show the list</summary>
 					<table>
 						<tr><th>RT parcel</th><th>Latest RT status</th><th>Cash</th><th>Link to order</th></tr>
 						<?php foreach ( array_reverse( $wait, true ) as $tid => $w ) :
@@ -543,12 +544,13 @@ add_action( 'admin_menu', function () {
 											</optgroup>
 										</select>
 										<button class="button button-primary">Link</button>
-										<button class="button" name="ignore" value="1" title="Not a website order (e.g. a WhatsApp order)">Not a website order</button>
+										<button class="button" name="ignore" value="1" title="Remove it from this list">Remove from list</button>
 									</form>
 								</td>
 							</tr>
 						<?php endforeach; ?>
 					</table>
+					</details>
 				<?php endif; ?>
 			</div>
 
@@ -654,7 +656,7 @@ add_action( 'admin_post_fika_rtd_link', function () {
 		$wait = get_option( 'fika_rtd_unmatched', array() );
 		unset( $wait[ $tracking ] );
 		update_option( 'fika_rtd_unmatched', $wait, false );
-		fika_rtd_log( $tracking . ': marked as not a website order' );
+		fika_rtd_log( $tracking . ': removed from RT parcels not from the website' );
 		wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd' ) );
 		exit;
 	}
