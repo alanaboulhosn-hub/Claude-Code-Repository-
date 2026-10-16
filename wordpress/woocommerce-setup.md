@@ -1689,3 +1689,8 @@ choice). Snippet 91, fika-club.php (new):
   (fika-email-r-mystery-taste / 100-g-on-us / 200-g-on-us / 400-g-on-us / a-whole-kilo-on-us .png, 2x, 111 px tall,
   shown 22 px; wordpress/email-assets/make-email-rewards.js), alt text = the words. Mystery taste line is now
   "A free 50 g surprise". The "Delivered orders count towards the lane..." line under the list is removed.
+- Greeting names (owner: make sure each name matches the customer): fika_wb_first_name() keeps the first word with
+  a capital letter ("galia" -> "Galia", "SARA" -> "Sara", "Henriette rawady" -> "Henriette", "jean-paul" ->
+  "Jean-Paul"); used for the audience (latest order's billing first name, else the account's first name) and the
+  admin preview. Audit of the 457 people before: 67 lowercase, 3 in capitals, 6 full names, 1 empty ("Hi there,");
+  after: all clean. Each email still uses that customer's own name and kilos (looked up by their email).
