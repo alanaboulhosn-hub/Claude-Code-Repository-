@@ -281,7 +281,8 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		}
 		$pct  = max( 0, min( 100, (int) round( $g / 150 ) ) );
 		$lane = fika_wb_lane_url( $g );
-		$bar  = $lane ? '<img src="' . esc_url( $lane ) . '" width="480" alt="Your fish at ' . esc_attr( $kg( $g ) ) . ' on the 15 kg lane" style="display:block;width:100%;max-width:480px;height:auto;margin:4px auto 0;border:0;">' : '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;border-radius:999px;background:#ffffff;border:2px solid #004aad;"><tr>' .
+		// a link, so Gmail shows no download button over it; opens the rewards (or sign-up) page
+		$bar  = $lane ? '<a href="' . esc_url( $member ? home_url( '/my-account/' ) : home_url( '/my-account/?action=register' ) ) . '" style="display:block;text-decoration:none;"><img src="' . esc_url( $lane ) . '" width="480" alt="Your fish at ' . esc_attr( $kg( $g ) ) . ' on the 15 kg lane" style="display:block;width:100%;max-width:480px;height:auto;margin:4px auto 0;border:0;"></a>' : '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;border-radius:999px;background:#ffffff;border:2px solid #004aad;"><tr>' .
 			( $pct > 0 ? '<td width="' . $pct . '%" style="width:' . $pct . '%;height:14px;background:#1c6fd6;border-radius:999px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) .
 			( $pct < 100 ? '<td style="height:14px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) . '</tr></table>';
 		$left = $next ? $next[0] - $g : 0;
