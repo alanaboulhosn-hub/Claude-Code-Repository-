@@ -27,6 +27,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'valid_days'  => 14,
 			'first_days'  => 30,
 			'second_days' => 14,
+			'products'    => '118,121,120,107', // email 1 candy grid: product IDs, in order; empty = automatic
 		) );
 	}
 	function fika_wb_state() {
@@ -101,6 +102,21 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	}
 	// candies to show: added in the last 45 days, else the favourites
 	function fika_wb_products( &$is_new ) {
+		$set  = fika_wb_settings();
+		$pick = array_filter( array_map( 'absint', explode( ',', (string) $set['products'] ) ) );
+		if ( $pick ) {
+			$list = array();
+			foreach ( $pick as $pid ) {
+				$pr = wc_get_product( $pid );
+				if ( $pr && 'publish' === $pr->get_status() && $pr->is_in_stock() ) {
+					$list[] = $pr;
+				}
+			}
+			if ( $list ) {
+				$is_new = true;
+				return array_slice( $list, 0, 4 );
+			}
+		}
 		$args   = array( 'status' => 'publish', 'visibility' => 'catalog', 'stock_status' => 'instock', 'limit' => 4, 'orderby' => 'date', 'order' => 'DESC' );
 		$list   = wc_get_products( array_merge( $args, array( 'date_created' => '>' . ( time() - 45 * DAY_IN_SECONDS ) ) ) );
 		$is_new = (bool) $list;
@@ -135,6 +151,110 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return '<p style="margin-top:20px !important;text-align:center;color:#6c7b9c !important;font-size:12.5px !important;">You get this email because you shop with Fika. ' .
 			'<a href="' . esc_url( fika_wb_unsub_link( $email ) ) . '" style="color:#6c7b9c !important;">Unsubscribe</a>.</p>';
 	}
+	// email 1, part 2: what fika means (family time, quality, the warmth of sharing)
+	function fika_wb_divider( $id, $label ) {
+		return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:30px 0 6px;" id="' . esc_attr( $id ) . '"><tr>' .
+			'<td style="border-top:2px dotted #f3b7cf;width:38%;"></td><td align="center" style="font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#d35d93;padding:0 10px;white-space:nowrap;"><span style="color:#d35d93;">' . esc_html( $label ) . '</span></td><td style="border-top:2px dotted #f3b7cf;width:38%;"></td></tr></table>';
+	}
+	function fika_wb_part2() {
+		$f    = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
+		$vals = array(
+			array( 'Family time', 'Saturday evening, one big bowl, everyone picking their favourites. In Sweden it is called lördagsmys, and it is our favourite tradition.', '#fdeaf2' ),
+			array( 'Real quality', 'Every sweet is hand-selected and imported from Sweden, with clean ingredients and gelatin-free options clearly marked.', '#eaf2ff' ),
+			array( 'The warmth of sharing', 'Pick-and-mix is made to be passed around: a bag for the car, a bowl for the table, a little extra for a friend.', '#fff4d9' ),
+		);
+		$out = fika_wb_divider( 's2', 'What fika means' ) .
+			'<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-friends.jpg' ) ) . '" width="520" alt="Three cartoon sweets holding hands" style="display:block;width:100%;max-width:520px;height:auto;margin:6px auto 4px;border-radius:18px;">' .
+			'<h2 style="text-align:center;">Made for sharing</h2>' .
+			'<p style="' . $f . 'color:#1b2a4a;font-size:16px;line-height:1.6;margin:0 0 14px;text-align:center;">Fika is the Swedish habit of pausing to share something sweet with the people you love. That is why we started Fika in Lebanon.</p>';
+		foreach ( $vals as $v ) {
+			$out .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:10px 0;"><tr><td class="fika-mail-box" style="background:' . $v[2] . ';">' .
+				'<h2>' . esc_html( $v[0] ) . '</h2>' .
+				'<p style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.55;margin:0;">' . esc_html( $v[1] ) . '</p></td></tr></table>';
+		}
+		return $out . '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-bowl.jpg' ) ) . '" width="520" alt="A crystal bowl full of Swedish pick-and-mix" style="display:block;width:100%;max-width:520px;height:auto;margin:14px auto 0;border-radius:18px;">';
+	}
+	// delivered grams for an email: the account's orders, or (no account) the orders placed with that email
+	function fika_wb_delivered( $email, $user ) {
+		if ( $user && function_exists( 'fika_swim_totals' ) ) {
+			$t = fika_swim_totals( $user->ID );
+			return (int) $t['delivered'];
+		}
+		$g = 0;
+		if ( function_exists( 'fika_swim_order_grams' ) ) {
+			foreach ( wc_get_orders( array( 'billing_email' => $email, 'status' => 'wc-completed', 'limit' => -1, 'type' => 'shop_order' ) ) as $o ) {
+				$g += fika_swim_order_grams( $o );
+			}
+		}
+		return $g;
+	}
+	// email 1, part 3: the Fika Club, with this customer's place on the 15 kg lane
+	function fika_wb_part3( $email, $name ) {
+		$f      = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
+		$h      = 'display:block;font-variant:small-caps;font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-weight:400;color:#004aad;';
+		$user   = get_user_by( 'email', $email );
+		$member = $user && ! user_can( $user, 'manage_woocommerce' );
+		$total  = fika_wb_delivered( $email, $member ? $user : null );
+		$lap    = (int) floor( $total / 15000 ) + 1;
+		$g      = $total - ( $lap - 1 ) * 15000; // grams in the current lap
+		$kg     = function ( $x ) {
+			$x = round( $x / 1000, 1 );
+			return ( fmod( $x, 1 ) ? number_format( $x, 1 ) : number_format( $x, 0 ) ) . ' kg';
+		};
+		$togo   = function ( $x ) use ( $kg ) {
+			return $x < 1000 ? ( (int) round( $x / 50 ) * 50 ) . ' g' : $kg( $x );
+		};
+		$ladder = array(
+			array( 1500, 'Mystery taste', '50 g of a surprise sweet, free' ),
+			array( 3000, '100 g on us', 'worth $2.80' ),
+			array( 6000, '200 g on us', 'worth $5.60' ),
+			array( 10000, '400 g on us', 'worth $11.20' ),
+			array( 12500, 'Mystery taste', '50 g of a surprise sweet, free' ),
+			array( 15000, 'A whole kilo on us', 'worth $28' ),
+		);
+		$next = null;
+		$gift = false;
+		foreach ( $ladder as $r ) {
+			if ( $r[0] > $g && ! $next ) {
+				$next = $r;
+			}
+			if ( $r[0] <= $g && 'Mystery taste' !== $r[1] ) {
+				$gift = true;
+			}
+		}
+		$pct  = max( 0, min( 100, (int) round( $g / 150 ) ) );
+		$bar  = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;border-radius:999px;background:#ffffff;border:2px solid #004aad;"><tr>' .
+			( $pct > 0 ? '<td width="' . $pct . '%" style="width:' . $pct . '%;height:14px;background:#1c6fd6;border-radius:999px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) .
+			( $pct < 100 ? '<td style="height:14px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) . '</tr></table>';
+		$left = $next ? $next[0] - $g : 0;
+		$bags = (int) ceil( $left / 500 );
+		$line = $next
+			? '<b>' . $togo( $left ) . ' to go</b> until ' . lcfirst( $next[1] ) . ' (' . $next[2] . ')' . ( $left >= 500 ? ', about ' . $bags . ' Ready Mix bag' . ( $bags > 1 ? 's' : '' ) : ', one small scoop away' ) . '.'
+			: '<b>You finished the whole lane!</b> A new 15 kg lap starts with your next order.';
+		$rows = '';
+		foreach ( $ladder as $r ) {
+			$done    = $r[0] <= $g;
+			$is_next = $next && $r[0] === $next[0];
+			$st      = $done ? '<span style="color:#1f7a4d;font-weight:600;">Reached &#10003;</span>' : ( $is_next ? '<span style="color:#004aad;font-weight:600;">Next</span>' : '<span style="color:#8a96b3;">' . $togo( $r[0] - $g ) . ' to go</span>' );
+			$rows   .= '<tr><td style="' . $f . 'padding:9px 0;border-bottom:1px solid #f3d3e1;width:58px;color:#004aad;font-weight:600;font-size:15px;white-space:nowrap;">' . $kg( $r[0] ) . '</td>' .
+				'<td style="' . $f . 'padding:9px 8px;border-bottom:1px solid #f3d3e1;color:#1b2a4a;font-size:15px;' . ( $is_next ? 'font-weight:600;' : '' ) . '">' . esc_html( $r[1] ) . '<span style="display:block;color:#6c7b9c;font-size:13px;font-weight:400;">' . esc_html( $r[2] ) . '</span></td>' .
+				'<td align="right" style="' . $f . 'padding:9px 0;border-bottom:1px solid #f3d3e1;font-size:13.5px;white-space:nowrap;">' . $st . '</td></tr>';
+		}
+		$title = $member ? 'Your Fika Club' : 'Join the Fika Club';
+		$intro = $member ? 'Every kilo you order moves your Swedish fish closer to free sweets. Here is where you are' . ( $name ? ', ' . $name : '' ) . '.' : 'Every kilo you order earns free sweets, and the orders you have already placed count too.';
+		$small = 'margin:12px 0 0;' . $f . 'color:#1b2a4a;font-size:14px;line-height:1.5;';
+		return fika_wb_divider( 's3', 'Your rewards' ) .
+			'<h2 style="text-align:center;">' . esc_html( $title ) . '</h2>' .
+			'<p style="' . $f . 'color:#1b2a4a;font-size:16px;line-height:1.6;margin:0 0 14px;text-align:center;">' . esc_html( $intro ) . '</p>' .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td class="fika-mail-box">' .
+			'<p style="' . $f . 'padding-bottom:10px;color:#1b2a4a;font-size:14px;">' . ( $member ? 'You have' : 'You have already' ) . ' ordered' . ( $lap > 1 ? ' (lap ' . $lap . ')' : '' ) . '<br><span style="' . $h . 'font-variant:normal;font-size:40px;line-height:1.1;">' . $kg( $g ) . '</span> <span style="color:#6c7b9c;">of the 15 kg lane</span></p>' .
+			$bar . '<p style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;padding-top:12px;">' . $line . '</p></td></tr></table>' .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;">' . $rows . '</table>' .
+			'<p style="' . $f . 'color:#6c7b9c;font-size:13px;line-height:1.5;margin:10px 0 0;">Delivered orders count towards the lane. Free sweets don&rsquo;t count, and after 15 kg a new lap starts.</p>' .
+			( $member && $gift ? '<p style="' . $small . '">Rewards you have reached wait on your account until you use them. Tap them under My account.</p>' : '' ) .
+			( ! $member && $g > 0 ? '<p style="' . $small . '">Sign up with this email address and your ' . $kg( $total ) . ' count straight away.</p>' : '' ) .
+			fika_wb_button( $member ? home_url( '/my-account/' ) : home_url( '/my-account/?action=register' ), $member ? 'See my rewards' : 'Join the Fika Club' );
+	}
 	// email 1: it's been a while
 	function fika_wb_email1( $email, $p ) {
 		$set  = fika_wb_settings();
@@ -149,6 +269,8 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			( trim( $set['news_title'] . $set['news_text'] ) ? '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:22px 0 4px;"><tr><td class="fika-mail-box">' .
 				( $set['news_title'] ? '<h2>' . esc_html( $set['news_title'] ) . '</h2>' : '' ) . '<p>' . nl2br( esc_html( $set['news_text'] ) ) . '</p></td></tr></table>' : '' ) .
 			fika_wb_button( home_url( '/mix-your-own/' ), 'Pick your mix' ) .
+			fika_wb_part2() .
+			fika_wb_part3( $email, $p['name'] ) .
 			fika_wb_small( $email );
 		return array( 'It’s been a while' . ( $p['name'] ? ', ' . $p['name'] : '' ) . '! Here’s what’s new at Fika', WC()->mailer()->wrap_message( 'We miss you!', $body ) );
 	}
@@ -344,6 +466,7 @@ add_action( 'admin_post_fika_wb_save', function () {
 	$set['valid_days']  = max( 1, absint( isset( $in['valid_days'] ) ? $in['valid_days'] : 14 ) );
 	$set['first_days']  = max( 1, absint( isset( $in['first_days'] ) ? $in['first_days'] : 30 ) );
 	$set['second_days'] = max( 1, absint( isset( $in['second_days'] ) ? $in['second_days'] : 14 ) );
+	$set['products']    = implode( ',', array_slice( array_filter( array_map( 'absint', isset( $in['products'] ) ? (array) $in['products'] : array() ) ), 0, 4 ) );
 	update_option( 'fika_winback_settings', $set, false );
 	$msg = 'saved';
 	if ( ! empty( $in['preview'] ) ) {
@@ -417,6 +540,13 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 			<tr><th>Test addresses</th><td><textarea name="test_emails" rows="2" class="large-text"><?php echo esc_textarea( $set['test_emails'] ); ?></textarea><p class="description">Used in Test mode. One or more, separated by commas.</p></td></tr>
 			<tr><th>News (email 1)</th><td><input type="text" name="news_title" class="regular-text" value="<?php echo esc_attr( $set['news_title'] ); ?>" placeholder="Title"><br><br>
 				<textarea name="news_text" rows="3" class="large-text" placeholder="A few words of news"><?php echo esc_textarea( $set['news_text'] ); ?></textarea><p class="description">Shown in a pink box. Leave both empty to leave it out. &ldquo;New drops&rdquo; fill in by themselves: candies added in the last 45 days, otherwise your favourites.</p></td></tr>
+			<tr><th>Candies (email 1)</th><td><?php
+				$chosen = array_filter( array_map( 'absint', explode( ',', (string) $set['products'] ) ) );
+				$all    = wc_get_products( array( 'status' => 'publish', 'limit' => -1, 'orderby' => 'title', 'order' => 'ASC' ) );
+				for ( $i = 0; $i < 4; $i++ ) :
+					?><select name="products[]" style="margin:0 6px 6px 0;max-width:260px"><option value="">(automatic)</option><?php foreach ( $all as $pr ) : ?><option value="<?php echo (int) $pr->get_id(); ?>"<?php selected( isset( $chosen[ $i ] ) ? $chosen[ $i ] : 0, $pr->get_id() ); ?>><?php echo esc_html( $pr->get_name() ); ?></option><?php endforeach; ?></select><?php
+				endfor; ?>
+				<p class="description">The four candies in the &ldquo;New drops&rdquo; grid. All left on (automatic): candies added in the last 45 days, otherwise your favourites. Sold-out candies are skipped.</p></td></tr>
 			<tr><th>Discount (email 2)</th><td><input type="number" name="discount" min="1" max="100" value="<?php echo (int) $set['discount']; ?>" style="width:80px"> % off the candies, valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
 			<tr><th>Timing</th><td>Email 1 after <input type="number" name="first_days" min="1" value="<?php echo (int) $set['first_days']; ?>" style="width:70px"> days without an order, email 2 <input type="number" name="second_days" min="1" value="<?php echo (int) $set['second_days']; ?>" style="width:70px"> days after email 1</td></tr>
 			<tr><th>Send a preview</th><td><input type="email" name="preview_to" class="regular-text" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>"> <input type="text" name="preview_name" placeholder="Name to greet (optional)">

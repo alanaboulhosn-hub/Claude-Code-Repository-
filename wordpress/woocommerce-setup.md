@@ -1641,3 +1641,20 @@ choice). Snippet 91, fika-club.php (new):
 - Later the same day: "Send a preview" has a "Name to greet (optional)" box. Order of choice: the name typed in,
   the recipient's account first name, their latest order's billing first name, the start of the address
   (alan.aboulhosn@gmail.com -> "Alan"), and only then "Sara".
+
+### 2026-10-16 – Win-back email 1 in three parts (snippet 35)
+- Designed with the owner on an interactive preview page (claude.ai artifact "Fika Reminder Email").
+- Part 1 (unchanged): "We miss you!", the candy grid, the news box, "Pick your mix".
+- Candy grid: new setting "Candies (email 1)" in WP Admin > WooCommerce > Win-back emails: four product pickers,
+  set to BUBS Fruity Lemon Mix Skulls (Mini) 118, BUBS Forest Berry Ovals (Mini) 121, BUBS Bubblegum Skull 120,
+  BUBS Raspberry Salty Licorice Skulls 107. Sold-out picks are skipped; all on "(automatic)" = the old rule.
+- Part 2 "What fika means": illustration (media 1120, fika-email-friends.jpg), "Made for sharing", three boxes
+  (Family time, Real quality, The warmth of sharing), bowl photo (media 1121, fika-email-bowl.jpg).
+- Part 3 "Your rewards": the customer's delivered kilos in the current 15 kg lap (fika_swim_totals for accounts;
+  Completed orders with that billing email for guests), a bar, the next reward and how far it is, the six stops
+  (1.5 mystery taste, 3, 6, 10, 12.5 mystery taste, 15 kg) marked Reached / Next / to go. Members: "Your Fika Club",
+  "See my rewards" (My account). No account: "Join the Fika Club", "your X kg count straight away", button to sign up.
+  Staff accounts are treated as no account.
+- Titles use the email's own h2 / .fika-mail-box styles (fika-emails.php forces p/td fonts and colours).
+- Checked by rendering (not sending) for Rosa (user 133, 2.3 kg) and the preview sample. Mode stays Test
+  (only alan.aboulhosn@gmail.com); nothing was sent.
