@@ -1590,3 +1590,16 @@ choice). Snippet 91, fika-club.php (new):
   option fika_rtd_api_key (not autoloaded), shown only as its last 4 characters; saving/removing is logged.
   fika_rtd_api_key() returns it. Nothing uses it yet: parcel creation / status checks wait for RT's API docs.
 - Live matched git before; after deploy the site and the webhook (401 without the secret, as before) respond normally.
+
+## RT (Road Train Deliveries) API — docs received 2026-10-16 (wordpress/docs/RTD-Deliveries-API-v1.pdf)
+- Base URL (live): https://app.rtdeliveries.net/api/v10 (reachable from the site: 401 without login, as expected).
+  The sandbox URL in the docs (sendbox.rtdeliveries.net/api/v10) answers 404, so there is no working test server.
+- Every request: headers apiKey (the key, saved in WooCommerce > RT Deliveries), Content-Type/Accept application/json,
+  plus "Authentication: Bearer <auth_token>" from POST /merchant/signin {email, password} (the RT dashboard login).
+- GET /get-shops (pickup points, shop_id), GET /get-package (packaging ids), POST /parcel-create, POST /parcel-bulk-create.
+- parcel-create: shop_id, delivery_type_id (3 inside city / 4 outside), delivery_priority_id (1 express / 2 normal),
+  special_request_id (4 none), invoice_no (our order number), customer_name, customer_phone ("11 digits"),
+  customer_address (<=191 chars), cash_collection, currency_type (1 USD), optional packaging_id, note.
+  Response gives tracking_id (links with the existing webhook). No cancel or status endpoint in the docs.
+- Not built yet: needs the RT dashboard email + password (to sign in), the shop/pickup id, and RT's answer on phone
+  format and on testing without a real parcel.
