@@ -44,6 +44,19 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$stop = get_option( 'fika_marketing_stop', array() );
 		return is_array( $stop ) ? in_array( md5( strtolower( $email ) ), $stop, true ) : false;
 	}
+	// the name to greet: the first word only, with a capital letter ("galia" -> "Galia", "SARA" -> "Sara",
+	// "Henriette rawady" -> "Henriette", "jean-paul" -> "Jean-Paul"); '' if nothing usable is left
+	function fika_wb_first_name( $name ) {
+		$name = trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( (string) $name ) ) );
+		if ( '' === $name ) {
+			return '';
+		}
+		$first = explode( ' ', $name )[0];
+		if ( ! preg_match( '/\p{L}/u', $first ) ) {
+			return '';
+		}
+		return mb_convert_case( mb_strtolower( $first, 'UTF-8' ), MB_CASE_TITLE, 'UTF-8' );
+	}
 	function fika_wb_unsub_link( $email ) {
 		$email = strtolower( $email );
 		return add_query_arg( array( 'fika_unsub' => rawurlencode( $email ), 'k' => substr( wp_hash( 'fika-wb|' . $email ), 0, 20 ) ), home_url( '/' ) );
@@ -62,7 +75,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			}
 			$people[ $e ] = array(
 				// the person who ordered (billing), not a gift recipient (shipping)
-				'name' => $o->get_billing_first_name() ? $o->get_billing_first_name() : $o->get_shipping_first_name(),
+				'name' => fika_wb_first_name( $o->get_billing_first_name() ? $o->get_billing_first_name() : $o->get_shipping_first_name() ),
 				'last' => $o->get_date_created()->getTimestamp(),
 			);
 		}
@@ -72,7 +85,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 				continue;
 			}
 			if ( ! isset( $people[ $e ] ) ) {
-				$people[ $e ] = array( 'name' => get_user_meta( $u->ID, 'first_name', true ), 'last' => 0, 'joined' => strtotime( $u->user_registered . ' UTC' ) );
+				$people[ $e ] = array( 'name' => fika_wb_first_name( get_user_meta( $u->ID, 'first_name', true ) ), 'last' => 0, 'joined' => strtotime( $u->user_registered . ' UTC' ) );
 			}
 		}
 		foreach ( $people as $e => $p ) {
@@ -560,7 +573,8 @@ add_action( 'admin_post_fika_wb_save', function () {
 			if ( ! $name && preg_match( '/^([a-z]{2,})/i', $to, $mm ) ) {
 				$name = ucfirst( strtolower( $mm[1] ) );
 			}
-			$p = array( 'name' => $name ? $name : 'Sara', 'last' => time() - 40 * DAY_IN_SECONDS, 'since' => time() - 40 * DAY_IN_SECONDS );
+			$name = fika_wb_first_name( $name );
+			$p    = array( 'name' => $name ? $name : 'Sara', 'last' => time() - 40 * DAY_IN_SECONDS, 'since' => time() - 40 * DAY_IN_SECONDS );
 			if ( '2' === $in['preview'] ) {
 				list( $code, $exp )     = fika_wb_coupon( $to, 'Win-back preview' );
 				list( $subject, $html ) = fika_wb_email2( $to, $p, $code, $exp );
