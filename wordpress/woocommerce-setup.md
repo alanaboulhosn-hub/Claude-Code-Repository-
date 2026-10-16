@@ -1666,3 +1666,11 @@ choice). Snippet 91, fika-club.php (new):
   our candy wall. Let us introduce them." Grid heading "Fresh from Sweden" + "Four new friends on the candy wall",
   the same 2x2 grid, then "Mix them with your old favourites. Every scoop is 100 g, so a little of everything is
   easy." (the "Fan favourites" fallback keeps its text heading and has no closing line). Rendered for Rosa, not sent.
+- Later the same day (owner: the bar should look like the one on the website): part 3 shows the website's fish lane
+  as a picture. The real lane (fika_swim_html with the manager preview) was drawn at phone size, 3x, three times:
+  empty (wheels grey), full (gifts lit, wheels ticked) and the fish alone (turned to face right): media 1130-1132
+  (fika-email-lane-empty / -full / -fish .png; wordpress/email-assets/make-email-lane.js). fika_wb_lane_url($g)
+  combines them with GD for the grams in the current lap (100 g steps): water up to the fish, gifts reached lit,
+  wheels the water has passed lit, the fish on top; saved once as uploads/fika-lane/lane-v2-<g>.png (a plain file,
+  loads for Gmail's image proxy). Without GD or the pictures it falls back to the plain bar. Earlier test uploads
+  1127-1129 were deleted; uploads/fika-lane/lane-v1-2300.png is a harmless leftover.

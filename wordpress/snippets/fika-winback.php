@@ -195,6 +195,56 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		}
 		return $g;
 	}
+	// the website's fish lane as a picture for this many grams (0-15000, in 100 g steps): the empty lane, the full
+	// lane up to the fish, and the fish (media 1130-1132, drawn from the real lane by
+	// wordpress/email-assets/make-email-lane.js at 3x). Saved once per step under uploads/fika-lane/, so email apps
+	// fetch a plain file. False if it cannot be made (no GD, missing pictures): the email then shows a plain bar.
+	function fika_wb_lane_url( $g ) {
+		$g   = max( 0, min( 15000, (int) round( $g / 100 ) * 100 ) );
+		$up  = wp_upload_dir();
+		$dir = trailingslashit( $up['basedir'] ) . 'fika-lane';
+		$fn  = 'lane-v2-' . $g . '.png';
+		$url = trailingslashit( $up['baseurl'] ) . 'fika-lane/' . $fn;
+		if ( file_exists( $dir . '/' . $fn ) ) {
+			return $url;
+		}
+		$src = trailingslashit( $up['basedir'] ) . '2026/10/fika-email-lane-';
+		if ( ! function_exists( 'imagecreatefrompng' ) || ! file_exists( $src . 'empty.png' ) || ! file_exists( $src . 'full.png' ) || ! file_exists( $src . 'fish.png' ) || ! wp_mkdir_p( $dir ) ) {
+			return false;
+		}
+		$im   = imagecreatefrompng( $src . 'empty.png' );
+		$full = imagecreatefrompng( $src . 'full.png' );
+		$fish = imagecreatefrompng( $src . 'fish.png' );
+		if ( ! $im || ! $full || ! $fish ) {
+			return false;
+		}
+		// the 1110 x 396 pictures (the website's phone lane at 3x): 0 kg tick at x 179.6, 15 kg at 1055.6, water
+		// band y 172-336 (centre 252), gifts above it (y 0-172), mystery wheels on it
+		$at = function ( $grams ) {
+			return (int) round( 179.6 + $grams / 15000 * 876 );
+		};
+		$x = $at( $g );
+		if ( $g > 0 ) {
+			imagecopy( $im, $full, 0, 172, 0, 172, $x, 164 ); // the water up to the fish
+		}
+		foreach ( array( 3000, 6000, 10000, 15000 ) as $cp ) { // gifts reached light up
+			if ( $g >= $cp ) {
+				imagecopy( $im, $full, $at( $cp ) - 64, 0, $at( $cp ) - 64, 0, 128, 172 );
+			}
+		}
+		foreach ( array( 1500, 12500 ) as $sp ) { // mystery wheels the water has fully passed light up
+			if ( $x >= $at( $sp ) + 66 ) {
+				imagecopy( $im, $full, $at( $sp ) - 52, 190, $at( $sp ) - 52, 190, 118, 122 );
+			}
+		}
+		imagealphablending( $im, true );
+		imagecopy( $im, $fish, $x - 125, 252 - (int) ( imagesy( $fish ) / 2 ), 0, 0, imagesx( $fish ), imagesy( $fish ) );
+		$ok = imagepng( $im, $dir . '/' . $fn, 9 );
+		imagedestroy( $im );
+		imagedestroy( $full );
+		imagedestroy( $fish );
+		return $ok ? $url : false;
+	}
 	// email 1, part 3: the Fika Club, with this customer's place on the 15 kg lane
 	function fika_wb_part3( $email, $name ) {
 		$f      = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
@@ -230,7 +280,8 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			}
 		}
 		$pct  = max( 0, min( 100, (int) round( $g / 150 ) ) );
-		$bar  = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;border-radius:999px;background:#ffffff;border:2px solid #004aad;"><tr>' .
+		$lane = fika_wb_lane_url( $g );
+		$bar  = $lane ? '<img src="' . esc_url( $lane ) . '" width="480" alt="Your fish at ' . esc_attr( $kg( $g ) ) . ' on the 15 kg lane" style="display:block;width:100%;max-width:480px;height:auto;margin:4px auto 0;border:0;">' : '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;border-radius:999px;background:#ffffff;border:2px solid #004aad;"><tr>' .
 			( $pct > 0 ? '<td width="' . $pct . '%" style="width:' . $pct . '%;height:14px;background:#1c6fd6;border-radius:999px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) .
 			( $pct < 100 ? '<td style="height:14px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) . '</tr></table>';
 		$left = $next ? $next[0] - $g : 0;
