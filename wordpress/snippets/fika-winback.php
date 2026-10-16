@@ -196,14 +196,14 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return $g;
 	}
 	// the website's fish lane as a picture for this many grams (0-15000, in 100 g steps): the empty lane, the full
-	// lane up to the fish, and the fish (media 1130-1132, drawn from the real lane by
+	// lane up to the fish, and the fish (media 1133-1135, drawn from the real lane by
 	// wordpress/email-assets/make-email-lane.js at 3x). Saved once per step under uploads/fika-lane/, so email apps
 	// fetch a plain file. False if it cannot be made (no GD, missing pictures): the email then shows a plain bar.
 	function fika_wb_lane_url( $g ) {
 		$g   = max( 0, min( 15000, (int) round( $g / 100 ) * 100 ) );
 		$up  = wp_upload_dir();
 		$dir = trailingslashit( $up['basedir'] ) . 'fika-lane';
-		$fn  = 'lane-v2-' . $g . '.png';
+		$fn  = 'lane-v3-' . $g . '.png';
 		$url = trailingslashit( $up['baseurl'] ) . 'fika-lane/' . $fn;
 		if ( file_exists( $dir . '/' . $fn ) ) {
 			return $url;
