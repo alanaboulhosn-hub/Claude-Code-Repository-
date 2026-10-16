@@ -1623,3 +1623,10 @@ choice). Snippet 91, fika-club.php (new):
   "N bags: set the bag count in RT" (ask RT for the field name). Owner asked to send today's orders: #1526-#1530 sent
   (all 1 bag): RTL64834184 (#1526), RTL33197061 (#1527), RTL48810151 (#1528), RTL60502637 (#1529),
   RTL18444083 (#1530); tracking IDs saved on the orders. The automatic switch is still OFF.
+
+### 2026-10-16 – RT parcels not made on the website (snippet 94)
+- Parcels that reach the RT webhook but match no website order (made by hand in RT's dashboard) are now
+  filed quietly under "RT parcels not from the website" on the RT Deliveries page: no menu badge, no to-do.
+  The list is collapsed ("Show the list"); each row has a "Remove from list" button.
+- Matching by invoice number (old manual parcels) still works as before.
+- Orders the owner delivers personally are handled by hand in RT (change status or delete the parcel there).
