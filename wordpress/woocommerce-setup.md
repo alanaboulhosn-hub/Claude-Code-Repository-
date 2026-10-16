@@ -1678,3 +1678,10 @@ choice). Snippet 91, fika-club.php (new):
   (the website's lane is pink, the same as the email box), the marked numbers read "0 kg ... 15 kg" (the little
   chequered flag after 15 is dropped, the finish flag on the lane stays). Media 1133-1135 replace 1130-1132 (deleted);
   files are now uploads/fika-lane/lane-v3-<g>.png (v1/v2 files there are unused leftovers).
+
+### 2026-10-16 – Website lane: "kg" after the numbers (snippet 11)
+- The marked numbers under the fish lane (0, 3, 6, 10, 15) now read "0 kg ... 15 kg"; the other numbers (shown on
+  wide screens only) stay plain. Tick labels no longer wrap. On phones the small chequered flag after "15 kg" is
+  hidden (it would poke past the card edge); the finish flag on the lane stays.
+- Checked before going live with the live lane CSS at phone (358 px) and computer (1000 px) widths, and after: home,
+  Mix your own, Ready Mix, My account return 200 and the lane prints the new labels.
