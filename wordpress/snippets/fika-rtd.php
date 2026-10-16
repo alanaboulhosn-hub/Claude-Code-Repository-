@@ -17,7 +17,15 @@
  * the RT dashboard email + password (fika_rtd_api_email / fika_rtd_api_password, the password never shown), which
  * RT's API needs to sign in (POST /merchant/signin -> auth_token; docs: wordpress/docs/RTD-Deliveries-API-v1.pdf).
  * "Test connection" signs in and lists the RT shops (pickup points): read-only, creates nothing in RT.
- * Parcel creation is not built yet (when it is: delivery priority always Normal).
+ * Sending orders to RT (switch "Send new orders to RT", Off by default): an order placed after the switch went On is
+ * sent to RT as soon as it turns Processing (in the background, a few seconds later): shop 2392 (the RT shop), Inside
+ * Beirut -> delivery type 3 (inside city) else 4, priority always Normal (2), special request None (4), invoice_no =
+ * the Fika order number (how the webhook finds it), name / phone (961 + local number) / address from the order,
+ * cash_collection = the order total for cash on delivery (0 otherwise), USD, the customer's note. RT's tracking ID is
+ * saved on the order (RT column). Orders that already have a tracking ID, test orders (@example.com) and orders from
+ * before the switch are never sent. A failed send is tried again twice (10 and 30 minutes later); after that the RT
+ * column shows "Not sent to RT" in red and the order page has "Send to RT now". RT's API cannot cancel a parcel:
+ * cancel it in the RT dashboard.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-rtd.php
  */
 
@@ -91,6 +99,93 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 			return $r;
 		}
 		return array( (int) wp_remote_retrieve_response_code( $r ), json_decode( wp_remote_retrieve_body( $r ), true ) );
+	}
+	// RT's shop (pickup point) for parcels: "Swedish Mums", Aley (GET /get-shops, 16 Oct 2026)
+	if ( ! defined( 'FIKA_RTD_SHOP' ) ) {
+		define( 'FIKA_RTD_SHOP', 2392 );
+	}
+	// a Lebanese phone number the way RT wants it: 961 + the local number (no +, spaces or leading 0)
+	function fika_rtd_phone( $raw ) {
+		$d = preg_replace( '/\D/', '', (string) $raw );
+		if ( 0 === strpos( $d, '00' ) ) {
+			$d = substr( $d, 2 );
+		}
+		if ( 0 === strpos( $d, '961' ) && strlen( $d ) > 9 ) {
+			$d = substr( $d, 3 );
+		}
+		$d = ltrim( $d, '0' );
+		return '' === $d ? '' : '961' . $d;
+	}
+	function fika_rtd_send_on() {
+		return 'on' === get_option( 'fika_rtd_send', 'off' );
+	}
+	function fika_rtd_cut( $text, $max ) {
+		$text = trim( preg_replace( '/\s+/', ' ', (string) $text ) );
+		return function_exists( 'mb_substr' ) ? mb_substr( $text, 0, $max ) : substr( $text, 0, $max );
+	}
+	// what RT gets for an order (POST /parcel-create)
+	function fika_rtd_parcel_data( $order ) {
+		$ship = '' !== trim( $order->get_shipping_address_1() );
+		$name = $ship ? trim( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ) : '';
+		if ( '' === $name ) {
+			$name = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+		}
+		$area = $ship ? $order->get_shipping_state() : $order->get_billing_state();
+		$addr = $ship
+			? array( $order->get_shipping_address_1(), $order->get_shipping_address_2(), $order->get_shipping_city() )
+			: array( $order->get_billing_address_1(), $order->get_billing_address_2(), $order->get_billing_city() );
+		$addr[] = 'BA' === $area ? 'Beirut' : '';
+		$phone  = method_exists( $order, 'get_shipping_phone' ) && '' !== (string) $order->get_shipping_phone() ? $order->get_shipping_phone() : $order->get_billing_phone();
+		return array(
+			'shop_id'              => FIKA_RTD_SHOP,
+			'delivery_type_id'     => 'BA' === $area ? 3 : 4,
+			'delivery_priority_id' => 2, // always Normal (owner's choice)
+			'special_request_id'   => 4, // None
+			'invoice_no'           => (string) $order->get_order_number(),
+			'customer_name'        => fika_rtd_cut( '' !== $name ? $name : 'Fika customer', 191 ),
+			'customer_phone'       => fika_rtd_phone( $phone ),
+			'customer_address'     => fika_rtd_cut( implode( ', ', array_filter( array_map( 'trim', $addr ) ) ), 191 ),
+			'cash_collection'      => 'cod' === $order->get_payment_method() ? round( (float) $order->get_total(), 2 ) : 0,
+			'currency_type'        => 1, // USD
+			'note'                 => fika_rtd_cut( $order->get_customer_note(), 191 ),
+		);
+	}
+	// RT's answer -> one readable line
+	function fika_rtd_api_error( $r ) {
+		if ( is_wp_error( $r ) ) {
+			return $r->get_error_message();
+		}
+		$b   = is_array( $r[1] ) ? $r[1] : array();
+		$msg = isset( $b['message'] ) ? (string) $b['message'] : 'RT answered ' . $r[0];
+		if ( ! empty( $b['errors'] ) && is_array( $b['errors'] ) ) {
+			$all = array();
+			array_walk_recursive( $b['errors'], function ( $e ) use ( &$all ) { $all[] = $e; } );
+			$msg = implode( ' ', array_unique( $all ) );
+		}
+		return $msg;
+	}
+	// create the parcel in RT for an order: array( ok, message )
+	function fika_rtd_send( $order ) {
+		if ( '' !== (string) $order->get_meta( '_fika_rtd_tracking' ) ) {
+			return array( true, 'Already has an RT parcel: ' . $order->get_meta( '_fika_rtd_tracking' ) );
+		}
+		$tok = fika_rtd_api_signin();
+		$r   = is_wp_error( $tok ) ? $tok : fika_rtd_api_call( 'POST', '/parcel-create', fika_rtd_parcel_data( $order ), $tok );
+		$t   = ! is_wp_error( $r ) && isset( $r[1]['data']['parcel']['tracking_id'] ) ? (string) $r[1]['data']['parcel']['tracking_id'] : '';
+		$order = wc_get_order( $order->get_id() ); // fresh: the webhook may have written meanwhile
+		if ( '' !== $t ) {
+			$order->update_meta_data( '_fika_rtd_sent', time() );
+			$order->delete_meta_data( '_fika_rtd_send_error' );
+			$order->add_order_note( 'Sent to RT: parcel ' . $t . '.' );
+			fika_rtd_link( $order, $t ); // saves, and replays any RT update that came first
+			return array( true, 'Sent to RT: parcel ' . $t );
+		}
+		$msg = fika_rtd_api_error( $r );
+		$order->update_meta_data( '_fika_rtd_send_error', $msg );
+		$order->add_order_note( 'Not sent to RT: ' . $msg );
+		$order->save();
+		fika_rtd_log( 'Order #' . $order->get_order_number() . ' not sent to RT: ' . $msg );
+		return array( false, $msg );
 	}
 	// sign in to RT's API: the auth_token, or WP_Error with RT's message
 	function fika_rtd_api_signin() {
@@ -313,6 +408,71 @@ add_action( 'rest_api_init', function () {
 } );
 
 // ---------- WooCommerce > RT Deliveries ----------
+// ---------- sending new orders to RT (switch on the settings page) ----------
+add_action( 'woocommerce_order_status_processing', function ( $order_id, $order = null ) {
+	if ( ! fika_rtd_send_on() ) {
+		return;
+	}
+	$order = $order instanceof WC_Order ? $order : wc_get_order( $order_id );
+	if ( ! $order || '' !== (string) $order->get_meta( '_fika_rtd_tracking' ) || $order->get_meta( '_fika_rtd_queued' ) ) {
+		return;
+	}
+	if ( preg_match( '/@example\.(com|org|net)$/i', (string) $order->get_billing_email() ) ) {
+		return; // test orders never go to RT
+	}
+	$since = (int) get_option( 'fika_rtd_send_since', 0 );
+	if ( ! $order->get_date_created() || $order->get_date_created()->getTimestamp() < $since ) {
+		return; // orders from before the switch went on (old orders moved back to Processing) are not sent
+	}
+	$order->update_meta_data( '_fika_rtd_queued', time() );
+	$order->save_meta_data();
+	if ( function_exists( 'as_enqueue_async_action' ) ) {
+		as_enqueue_async_action( 'fika_rtd_send_order', array( (int) $order_id, 1 ), 'fika' );
+	} else {
+		do_action( 'fika_rtd_send_order', (int) $order_id, 1 );
+	}
+}, 20, 2 );
+add_action( 'fika_rtd_send_order', function ( $order_id, $try = 1 ) {
+	$order = wc_get_order( $order_id );
+	if ( ! $order || ! fika_rtd_send_on() || '' !== (string) $order->get_meta( '_fika_rtd_tracking' ) ) {
+		return;
+	}
+	if ( $order->has_status( array( 'cancelled', 'refunded', 'failed', 'trash' ) ) ) {
+		return;
+	}
+	$res = fika_rtd_send( $order );
+	if ( ! $res[0] && $try < 3 && function_exists( 'as_schedule_single_action' ) ) {
+		as_schedule_single_action( time() + ( 1 === (int) $try ? 10 : 30 ) * MINUTE_IN_SECONDS, 'fika_rtd_send_order', array( (int) $order_id, (int) $try + 1 ), 'fika' );
+	}
+}, 10, 2 );
+add_action( 'admin_post_fika_rtd_send_now', function () {
+	$id = isset( $_GET['order'] ) ? absint( $_GET['order'] ) : 0;
+	if ( ! current_user_can( 'edit_shop_orders' ) ) {
+		wp_die( 'Not allowed.' );
+	}
+	check_admin_referer( 'fika_rtd_send_now_' . $id );
+	$order = wc_get_order( $id );
+	if ( $order ) {
+		fika_rtd_send( $order );
+	}
+	wp_safe_redirect( $order ? $order->get_edit_order_url() : admin_url( 'admin.php?page=wc-orders' ) );
+	exit;
+} );
+add_action( 'admin_post_fika_rtd_send_switch', function () {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		wp_die( 'Not allowed.' );
+	}
+	check_admin_referer( 'fika_rtd_send_switch' );
+	$on = ! empty( $_POST['on'] );
+	update_option( 'fika_rtd_send', $on ? 'on' : 'off', false );
+	if ( $on ) {
+		update_option( 'fika_rtd_send_since', time(), false );
+	}
+	fika_rtd_log( 'Sending new orders to RT switched ' . ( $on ? 'ON' : 'OFF' ) );
+	wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd' ) );
+	exit;
+} );
+
 add_action( 'admin_menu', function () {
 	$n     = count( (array) get_option( 'fika_rtd_unmatched', array() ) );
 	$title = 'RT Deliveries' . ( $n ? ' <span class="awaiting-mod">' . (int) $n . '</span>' : '' );
@@ -441,7 +601,15 @@ add_action( 'admin_menu', function () {
 						</table>
 					<?php endif; ?>
 				<?php endif; ?>
-				<p class="muted">Sending orders to RT is not switched on yet (it comes next; parcels will always be sent as Normal priority).</p>
+				<h3 style="margin:16px 0 6px">Send new orders to RT</h3>
+				<p><b><?php echo fika_rtd_send_on() ? '&#9679; On' : '&#9675; Off'; ?></b><?php echo fika_rtd_send_on() ? ' <span class="muted">since ' . esc_html( $fmt( (int) get_option( 'fika_rtd_send_since', 0 ) ) ) . '</span>' : ''; ?></p>
+				<p class="muted">When on, each new order is sent to RT as soon as it is placed (Processing): shop 2392, Normal priority, the order number as RT's invoice number, cash on delivery = the order total. Test orders and older orders are never sent. RT cannot cancel parcels through the API: cancel them in RT's dashboard.</p>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm(this.on.value ? 'Start sending every new order to RT?' : 'Stop sending new orders to RT?');">
+					<input type="hidden" name="action" value="fika_rtd_send_switch">
+					<input type="hidden" name="on" value="<?php echo fika_rtd_send_on() ? '' : '1'; ?>">
+					<?php wp_nonce_field( 'fika_rtd_send_switch' ); ?>
+					<button class="button <?php echo fika_rtd_send_on() ? '' : 'button-primary'; ?>"><?php echo fika_rtd_send_on() ? 'Turn off' : 'Turn on'; ?></button>
+				</form>
 			</div>
 
 			<div class="box">
@@ -592,6 +760,13 @@ add_action( 'add_meta_boxes', function () {
 		} elseif ( $t ) {
 			echo '<p style="color:#646970">No update from RT yet.</p>';
 		}
+		$err = (string) $order->get_meta( '_fika_rtd_send_error' );
+		if ( '' === $t ) {
+			if ( '' !== $err ) {
+				echo '<p style="color:#a11c1c"><b>Not sent to RT:</b> ' . esc_html( $err ) . '</p>';
+			}
+			echo '<p><a class="button" href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=fika_rtd_send_now&order=' . $order->get_id() ), 'fika_rtd_send_now_' . $order->get_id() ) ) . '" onclick="return confirm(\'Create this parcel in RT now?\');">Send to RT now</a></p>';
+		}
 	}, $screen, 'side', 'high' );
 } );
 add_action( 'woocommerce_process_shop_order_meta', function ( $order_id ) {
@@ -635,7 +810,7 @@ if ( ! function_exists( 'fika_rtd_column' ) ) {
 		$slug = (string) $order->get_meta( '_fika_rtd_status' );
 		$t    = (string) $order->get_meta( '_fika_rtd_tracking' );
 		if ( '' === $slug && '' === $t ) {
-			echo '<span style="color:#a7aaad">–</span>';
+			echo '' !== (string) $order->get_meta( '_fika_rtd_send_error' ) ? '<span style="color:#a11c1c;font-weight:600" title="' . esc_attr( $order->get_meta( '_fika_rtd_send_error' ) ) . '">Not sent to RT</span>' : '<span style="color:#a7aaad">–</span>';
 			return;
 		}
 		echo esc_html( '' !== $slug ? fika_rtd_label( $slug ) : 'Linked' );

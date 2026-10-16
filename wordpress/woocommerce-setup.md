@@ -1612,3 +1612,9 @@ choice). Snippet 91, fika-club.php (new):
   19 characters ending in 3456, the same shape as the key printed in RT's docs (RTD-merchant-123456), and RT's live
   server accepted it: confirm with RT it is the key meant for us. Test result now kept in an option (the site's cache
   dropped the transient).
+- 2026-10-16 (snippet 94, LIVE but switched OFF): sending new orders to RT built (see the snippet header). Dry run on
+  orders #1528-1530 built the right data (type 3/4, invoice = order number, COD total, note). Validation probe (a
+  request missing customer_name, so RT refused it and created nothing): RT accepts 10-digit numbers (961 + 3xxxxxx).
+  ONE test parcel created with the owner's OK: tracking RTL39012367, RT order 0303529, invoice FIKA-TEST-1, status
+  Pending, delivery fee $5, cash 0, pickup date 16 Oct. The owner deletes it in RT's dashboard. Its webhook updates
+  will wait under "Parcels to link" (no order matches): "Not a website order" clears them.
