@@ -648,7 +648,7 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 			</div></div>
 		</div>
 	</div>
-	<div class="fs-ticks" aria-hidden="true"><?php for ( $i = 0; $i <= FIKA_SWIM_LAP / 1000; $i++ ) : ?><i data-i="<?php echo (int) $i; ?>"<?php echo in_array( $i, array_merge( array( 0 ), wp_list_pluck( fika_swim_checkpoints(), 'kg' ) ), true ) ? ' class="m"' : ''; ?>><?php echo (int) $i; ?></i><?php endfor; ?></div>
+	<div class="fs-ticks" aria-hidden="true"><?php for ( $i = 0; $i <= FIKA_SWIM_LAP / 1000; $i++ ) : $fs_m = in_array( $i, array_merge( array( 0 ), wp_list_pluck( fika_swim_checkpoints(), 'kg' ) ), true ); ?><i data-i="<?php echo (int) $i; ?>"<?php echo $fs_m ? ' class="m"' : ''; ?>><?php echo (int) $i . ( $fs_m ? ' kg' : '' ); ?></i><?php endfor; ?></div>
 	<p class="fs-note">Every gram you pay for moves the fish. Free sweets don&rsquo;t count towards your next reward.</p>
 </section>
 		<?php
@@ -699,7 +699,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 .fika-swim.is-swimming .fs-fish svg { animation-duration: .7s; }
 .fika-swim .fs-bubble { position: absolute; z-index: 3; width: 8px; height: 8px; border-radius: 50%; border: 1.6px solid rgba(255, 255, 255, .95); background: rgba(160, 205, 255, .35); pointer-events: none; animation: fsRise 1.3s ease-out forwards; }
 .fika-swim .fs-ticks { position: relative; height: 18px; margin: 6px 0 0; font-size: 12.5px; font-weight: 600; color: #8b97b3; }
-.fika-swim .fs-ticks i { position: absolute; top: 0; left: 0; transform: translateX(-50%); font-style: normal; }
+.fika-swim .fs-ticks i { position: absolute; top: 0; left: 0; transform: translateX(-50%); font-style: normal; white-space: nowrap; }
 .fika-swim .fs-ticks i::before { content: ''; position: absolute; left: 50%; top: -7px; width: 2px; height: 5px; border-radius: 1px; background: #c9d4ea; }
 .fika-swim .fs-rewards:empty { display: none; }
 .fika-swim .fs-reward.is-new { animation: fsPop .5s cubic-bezier(.2, 1.4, .4, 1); }
@@ -733,7 +733,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
   .fika-swim .fs-code b { font-size: 25px; }
 }
 .fika-swim .fs-note { margin: 4px 0 0; font-size: 12.5px; color: #8b97b3; text-align: right; }
-@media (max-width: 700px) { .fika-swim .fs-ticks i:not(.m) { color: transparent; } .fika-swim .fs-note { text-align: left; } }
+@media (max-width: 700px) { .fika-swim .fs-ticks i:not(.m) { color: transparent; } .fika-swim .fs-note { text-align: left; } .fika-swim .fs-ticks i[data-i="15"]::after { display: none; } }
 /* checkpoints: a gift above the lane at each checkpoint */
 .fika-swim .fs-cps { position: relative; height: 70px; }
 .fika-swim .fs-cp { position: absolute; bottom: 6px; left: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 60px; margin-left: -30px; padding: 0; border: 0; background: none; cursor: default; font: inherit; z-index: 2; }
