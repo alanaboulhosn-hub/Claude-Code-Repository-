@@ -1674,3 +1674,7 @@ choice). Snippet 91, fika-club.php (new):
   wheels the water has passed lit, the fish on top; saved once as uploads/fika-lane/lane-v2-<g>.png (a plain file,
   loads for Gmail's image proxy). Without GD or the pictures it falls back to the plain bar. Earlier test uploads
   1127-1129 were deleted; uploads/fika-lane/lane-v1-2300.png is a harmless leftover.
+- Lane v3 (owner: the bar must be visible; add "kg" to the numbers): the track is white with a light blue edge
+  (the website's lane is pink, the same as the email box), the marked numbers read "0 kg ... 15 kg" (the little
+  chequered flag after 15 is dropped, the finish flag on the lane stays). Media 1133-1135 replace 1130-1132 (deleted);
+  files are now uploads/fika-lane/lane-v3-<g>.png (v1/v2 files there are unused leftovers).
