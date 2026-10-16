@@ -1658,3 +1658,11 @@ choice). Snippet 91, fika-club.php (new):
 - Titles use the email's own h2 / .fika-mail-box styles (fika-emails.php forces p/td fonts and colours).
 - Checked by rendering (not sending) for Rosa (user 133, 2.3 kg) and the preview sample. Mode stays Test
   (only alan.aboulhosn@gmail.com); nothing was sent.
+- Later the same day (owner: "the fonts are great", keep the grid): headings in the website's cute font
+  (NF Le Petit Cochon) as pictures, media 1122-1126 (fika-email-h-we-miss-you / fresh-from-sweden /
+  made-for-sharing / your-fika-club / join-the-fika-club .png, 2x, made by wordpress/email-assets/
+  make-email-headings.js). "We miss you!" replaces the header text after wrap_message (alt text keeps the words).
+  Opening line: "It's been a while since your last fika! While you were away, a few new sweets found their way onto
+  our candy wall. Let us introduce them." Grid heading "Fresh from Sweden" + "Four new friends on the candy wall",
+  the same 2x2 grid, then "Mix them with your old favourites. Every scoop is 100 g, so a little of everything is
+  easy." (the "Fan favourites" fallback keeps its text heading and has no closing line). Rendered for Rosa, not sent.
