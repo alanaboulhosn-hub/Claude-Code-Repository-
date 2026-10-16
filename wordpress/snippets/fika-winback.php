@@ -27,6 +27,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'valid_days'  => 14,
 			'first_days'  => 30,
 			'second_days' => 14,
+			'email2'      => 0, // 1 = email 2 (the code) is sent too; 0 = only email 1 goes out
 			'products'    => '118,121,120,107', // email 1 candy grid: product IDs, in order; empty = automatic
 		) );
 	}
@@ -520,7 +521,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 				unset( $st[ $email ] );
 			}
 			$due = fika_wb_due( $email, $p, $st, $set );
-			if ( ! $due ) {
+			if ( ! $due || ( '2' === $due && empty( $set['email2'] ) ) ) {
 				continue;
 			}
 			$ok = fika_wb_send( $email, $p, $due );
@@ -542,6 +543,21 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 
 // ---------- once a day ----------
 add_action( 'fika_winback_daily', 'fika_wb_run' );
+// a one-off "go live" at a set time (scheduled with Action Scheduler as fika_winback_golive): switches the mode to
+// Live and sends to everyone due in batches of 50, one batch every 30 minutes until nobody is left
+add_action( 'fika_winback_golive', function () {
+	$set         = fika_wb_settings();
+	$set['mode'] = 'live';
+	update_option( 'fika_winback_settings', $set, false );
+	fika_wb_log( '-', 'Switched to Live (scheduled)' );
+	do_action( 'fika_winback_batch' );
+} );
+add_action( 'fika_winback_batch', function () {
+	$sent = fika_wb_run();
+	if ( 50 <= $sent && function_exists( 'as_schedule_single_action' ) && ! as_next_scheduled_action( 'fika_winback_batch', array(), 'fika' ) ) {
+		as_schedule_single_action( time() + 30 * MINUTE_IN_SECONDS, 'fika_winback_batch', array(), 'fika' );
+	}
+} );
 add_action( 'init', function () {
 	if ( ! function_exists( 'as_next_scheduled_action' ) || as_next_scheduled_action( 'fika_winback_daily', array(), 'fika' ) ) {
 		return;
@@ -633,6 +649,7 @@ add_action( 'admin_post_fika_wb_save', function () {
 	$set['valid_days']  = max( 1, absint( isset( $in['valid_days'] ) ? $in['valid_days'] : 14 ) );
 	$set['first_days']  = max( 1, absint( isset( $in['first_days'] ) ? $in['first_days'] : 30 ) );
 	$set['second_days'] = max( 1, absint( isset( $in['second_days'] ) ? $in['second_days'] : 14 ) );
+	$set['email2']      = empty( $in['email2'] ) ? 0 : 1;
 	$set['products']    = implode( ',', array_slice( array_filter( array_map( 'absint', isset( $in['products'] ) ? (array) $in['products'] : array() ) ), 0, 4 ) );
 	update_option( 'fika_winback_settings', $set, false );
 	$msg = 'saved';
@@ -704,7 +721,10 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 			<tr><th>Sending</th><td>
 				<label><input type="radio" name="mode" value="test" <?php checked( 'test', $set['mode'] ); ?>> <strong>Test</strong>: only to the addresses below</label><br>
 				<label><input type="radio" name="mode" value="live" <?php checked( 'live', $set['mode'] ); ?>> <strong>Live</strong>: to every customer who is due</label><br>
-				<label><input type="radio" name="mode" value="off" <?php checked( 'off', $set['mode'] ); ?>> Off</label></td></tr>
+				<label><input type="radio" name="mode" value="off" <?php checked( 'off', $set['mode'] ); ?>> Off</label>
+				<?php $golive = function_exists( 'as_next_scheduled_action' ) ? as_next_scheduled_action( 'fika_winback_golive', array(), 'fika' ) : false; ?>
+				<?php if ( $golive ) : ?><p class="description" style="color:#004aad"><strong>Goes Live by itself on <?php echo esc_html( wp_date( 'j F, H:i', $golive, new DateTimeZone( 'Asia/Beirut' ) ) ); ?> Beirut time</strong>, then sends to everyone due in batches of 50 every 30 minutes.</p><?php endif; ?></td></tr>
+			<tr><th>Email 2</th><td><label><input type="checkbox" name="email2" value="1" <?php checked( ! empty( $set['email2'] ) ); ?>> Send email 2 (the personal code) as well</label><p class="description">Off: only email 1 goes out, also in Live mode. Customers who got email 1 receive email 2 once this is on and 14 days have passed.</p></td></tr>
 			<tr><th>Test addresses</th><td><textarea name="test_emails" rows="2" class="large-text"><?php echo esc_textarea( $set['test_emails'] ); ?></textarea><p class="description">Used in Test mode. One or more, separated by commas.</p></td></tr>
 			<tr><th>News (email 1)</th><td><input type="text" name="news_title" class="regular-text" value="<?php echo esc_attr( $set['news_title'] ); ?>" placeholder="Title"><br><br>
 				<textarea name="news_text" rows="3" class="large-text" placeholder="A few words of news"><?php echo esc_textarea( $set['news_text'] ); ?></textarea><p class="description">Shown in a pink box. Leave both empty to leave it out. &ldquo;New drops&rdquo; fill in by themselves: candies added in the last 45 days, otherwise your favourites.</p></td></tr>
