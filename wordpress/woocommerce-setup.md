@@ -1584,3 +1584,9 @@ choice). Snippet 91, fika-club.php (new):
   unused code again; cancelling the order on its way puts the fish back at 2.5 kg and the gift grey. No page errors on
   phone or desktop. (The lane heading shows an unspun mystery spin before the waiting gift: by design.) Test orders,
   customer, coupon, saved bag and temp snippets deleted afterwards.
+
+## RT API key field (snippet 94) — 2026-10-16, LIVE
+- WooCommerce > RT Deliveries has a new "RT API key" box: paste the key RT gave, Save (or Remove). Stored in the
+  option fika_rtd_api_key (not autoloaded), shown only as its last 4 characters; saving/removing is logged.
+  fika_rtd_api_key() returns it. Nothing uses it yet: parcel creation / status checks wait for RT's API docs.
+- Live matched git before; after deploy the site and the webhook (401 without the secret, as before) respond normally.

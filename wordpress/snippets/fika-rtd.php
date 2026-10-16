@@ -13,6 +13,8 @@
  * A parcel is linked to its order by (1) its tracking ID saved on the order (box on the order page), or (2) the Fika
  * order number typed in RT's "Invoice no" field. Parcels that match nothing wait under "Parcels to link" on the
  * settings page, with suggested orders of the same amount; one click links them and applies their status.
+ * RT API key: saved on the settings page (option fika_rtd_api_key, never shown in full) for calls to RT's API
+ * (nothing uses it yet: parcel creation / status checks come once RT's API documentation is in).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-rtd.php
  */
 
@@ -55,6 +57,10 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 	function fika_rtd_label( $slug ) {
 		$s = fika_rtd_statuses();
 		return isset( $s[ $slug ] ) ? $s[ $slug ][0] : str_replace( '_', ' ', (string) $slug );
+	}
+	// RT's API key (for calls to RT), typed in on the settings page; '' when not set
+	function fika_rtd_api_key() {
+		return trim( (string) get_option( 'fika_rtd_api_key', '' ) );
 	}
 	function fika_rtd_secret() {
 		$s = (string) get_option( 'fika_rtd_secret', '' );
@@ -349,6 +355,26 @@ add_action( 'admin_menu', function () {
 			</div>
 
 			<div class="box">
+				<h2>RT API key</h2>
+				<?php $fika_key = fika_rtd_api_key(); ?>
+				<?php if ( isset( $_GET['apikey'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
+					<p><b><?php echo 'removed' === $_GET['apikey'] ? 'API key removed.' : 'API key saved.'; // phpcs:ignore ?></b></p>
+				<?php endif; ?>
+				<p>The key RT gave you for their API (to create parcels and check statuses from here). Paste it below; it is stored on this site only and never shown in full.</p>
+				<p><b>Saved key</b><br><?php echo $fika_key ? '<code class="big">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;' . esc_html( substr( $fika_key, -4 ) ) . '</code> <span class="muted">(ends with ' . esc_html( substr( $fika_key, -4 ) ) . ')</span>' : '<span class="muted">None yet.</span>'; ?></p>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="fika_rtd_api_key">
+					<?php wp_nonce_field( 'fika_rtd_api_key' ); ?>
+					<input type="password" name="api_key" autocomplete="off" placeholder="<?php echo $fika_key ? 'Paste a new key to replace it' : 'Paste the RT API key'; ?>" style="width:100%;max-width:420px">
+					<button class="button button-primary">Save key</button>
+					<?php if ( $fika_key ) : ?>
+						<button class="button" name="remove" value="1" onclick="return confirm('Remove the saved RT API key?');">Remove</button>
+					<?php endif; ?>
+				</form>
+				<p class="muted">Nothing uses the key yet: creating parcels and checking statuses with it are set up once RT's API documentation is in.</p>
+			</div>
+
+			<div class="box">
 				<h2>What each RT status does</h2>
 				<table>
 					<?php foreach ( fika_rtd_statuses() as $slug => $s ) : ?>
@@ -393,6 +419,26 @@ add_action( 'admin_post_fika_rtd_link', function () {
 		fika_rtd_link( $order, $tracking );
 	}
 	wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd&linked=1' ) );
+	exit;
+} );
+
+add_action( 'admin_post_fika_rtd_api_key', function () {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		wp_die( 'Not allowed.' );
+	}
+	check_admin_referer( 'fika_rtd_api_key' );
+	if ( ! empty( $_POST['remove'] ) ) {
+		delete_option( 'fika_rtd_api_key' );
+		fika_rtd_log( 'RT API key removed' );
+		wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd&apikey=removed' ) );
+		exit;
+	}
+	$key = isset( $_POST['api_key'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['api_key'] ) ) ) : '';
+	if ( '' !== $key ) {
+		update_option( 'fika_rtd_api_key', $key, false );
+		fika_rtd_log( 'RT API key saved (ends with ' . substr( $key, -4 ) . ')' );
+	}
+	wp_safe_redirect( admin_url( 'admin.php?page=fika-rtd' . ( '' !== $key ? '&apikey=saved' : '' ) ) );
 	exit;
 } );
 
