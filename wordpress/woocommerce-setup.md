@@ -1638,3 +1638,6 @@ choice). Snippet 91, fika-club.php (new):
 - "Send a preview" now greets the person it is sent to (their account's first name, else their latest order's
   billing first name) and falls back to the sample name "Sara" when neither exists. alan.aboulhosn@gmail.com has no
   account or order, and the admin account has no first name, so previews to those still say "Sara".
+- Later the same day: "Send a preview" has a "Name to greet (optional)" box. Order of choice: the name typed in,
+  the recipient's account first name, their latest order's billing first name, the start of the address
+  (alan.aboulhosn@gmail.com -> "Alan"), and only then "Sara".
