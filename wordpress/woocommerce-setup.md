@@ -1618,3 +1618,8 @@ choice). Snippet 91, fika-club.php (new):
   ONE test parcel created with the owner's OK: tracking RTL39012367, RT order 0303529, invoice FIKA-TEST-1, status
   Pending, delivery fee $5, cash 0, pickup date 16 Oct. The owner deletes it in RT's dashboard. Its webhook updates
   will wait under "Parcels to link" (no order matches): "Not a website order" clears them.
+- 2026-10-16: owner's changes: no invoice number and no note sent to RT (name kept: RT requires it). Bags: 1 up to
+  1.5 kg, +1 per started 1.5 kg; RT's API has no documented bags field, so 2+ bag orders get the private note
+  "N bags: set the bag count in RT" (ask RT for the field name). Owner asked to send today's orders: #1526-#1530 sent
+  (all 1 bag): RTL64834184 (#1526), RTL33197061 (#1527), RTL48810151 (#1528), RTL60502637 (#1529),
+  RTL18444083 (#1530); tracking IDs saved on the orders. The automatic switch is still OFF.
