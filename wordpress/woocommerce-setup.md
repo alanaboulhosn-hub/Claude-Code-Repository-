@@ -1694,3 +1694,4 @@ choice). Snippet 91, fika-club.php (new):
   "Jean-Paul"); used for the audience (latest order's billing first name, else the account's first name) and the
   admin preview. Audit of the 457 people before: 67 lowercase, 3 in capitals, 6 full names, 1 empty ("Hi there,");
   after: all clean. Each email still uses that customer's own name and kilos (looked up by their email).
+- The "Mix them with your old favourites..." line under the candy grid is removed (owner).

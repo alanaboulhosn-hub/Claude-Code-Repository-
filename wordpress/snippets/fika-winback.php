@@ -350,8 +350,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			( $list ? ( $new
 				? '<p style="margin:22px 0 4px;text-align:center;">' . fika_wb_head( 'fresh-from-sweden', 'Fresh from Sweden', 38 ) . '</p><p style="text-align:center;margin:0 0 6px;"><span style="color:#6c7b9c;font-size:13.5px;">' . ( 4 === count( $list ) ? 'Four' : 'A few' ) . ' new friends on the candy wall</span></p>'
 				: '<h2 class="email-order-detail-heading">Fan favourites<br><span>The sweets everyone keeps coming back for</span></h2>' ) .
-				fika_wb_grid( $list ) .
-				( $new ? '<p style="margin:10px 0 0;text-align:center;">Mix them with your old favourites. Every scoop is 100 g, so a little of everything is easy.</p>' : '' ) : '' ) .
+				fika_wb_grid( $list ) : '' ) .
 			( trim( $set['news_title'] . $set['news_text'] ) ? '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:22px 0 4px;"><tr><td class="fika-mail-box">' .
 				( $set['news_title'] ? '<h2>' . esc_html( $set['news_title'] ) . '</h2>' : '' ) . '<p>' . nl2br( esc_html( $set['news_text'] ) ) . '</p></td></tr></table>' : '' ) .
 			fika_wb_button( home_url( '/mix-your-own/' ), 'Pick your mix' ) .
