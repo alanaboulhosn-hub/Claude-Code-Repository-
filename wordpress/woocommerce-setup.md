@@ -1607,3 +1607,8 @@ choice). Snippet 91, fika-club.php (new):
   (options fika_rtd_api_key / _email / _password, not autoloaded; key and password never shown). "Test connection"
   signs in (POST /merchant/signin) and lists the RT shops with their IDs (GET /get-shops): read-only. Owner's choice:
   parcels will always be sent with Normal priority. Sending orders is not built yet.
+- 2026-10-16: connection test OK (signed in with the owner's RT login). RT shop: "Swedish Mums", Aley, id 2392
+  (default, active) = the pickup point for parcels. RT packaging list: "Box" id 3 (price 0). The saved API key is
+  19 characters ending in 3456, the same shape as the key printed in RT's docs (RTD-merchant-123456), and RT's live
+  server accepted it: confirm with RT it is the key meant for us. Test result now kept in an option (the site's cache
+  dropped the transient).
