@@ -349,15 +349,19 @@ add_action( 'admin_post_fika_wb_save', function () {
 	if ( ! empty( $in['preview'] ) ) {
 		$to = sanitize_email( isset( $in['preview_to'] ) ? $in['preview_to'] : '' );
 		if ( is_email( $to ) ) {
-			// the preview greets the person it is sent to (their account or latest order); "Sara" if unknown
-			$name = '';
-			$pu   = get_user_by( 'email', $to );
+			// the preview greets: the name typed in, else the recipient's account or latest order, else a name taken
+			// from the address (alan.aboulhosn@... -> Alan), else "Sara"
+			$name = sanitize_text_field( isset( $in['preview_name'] ) ? $in['preview_name'] : '' );
+			$pu   = $name ? false : get_user_by( 'email', $to );
 			if ( $pu ) {
 				$name = get_user_meta( $pu->ID, 'first_name', true );
 			}
 			if ( ! $name ) {
 				$po   = wc_get_orders( array( 'billing_email' => $to, 'limit' => 1, 'orderby' => 'date', 'order' => 'DESC' ) );
 				$name = $po ? $po[0]->get_billing_first_name() : '';
+			}
+			if ( ! $name && preg_match( '/^([a-z]{2,})/i', $to, $mm ) ) {
+				$name = ucfirst( strtolower( $mm[1] ) );
 			}
 			$p = array( 'name' => $name ? $name : 'Sara', 'last' => time() - 40 * DAY_IN_SECONDS, 'since' => time() - 40 * DAY_IN_SECONDS );
 			if ( '2' === $in['preview'] ) {
@@ -415,7 +419,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 				<textarea name="news_text" rows="3" class="large-text" placeholder="A few words of news"><?php echo esc_textarea( $set['news_text'] ); ?></textarea><p class="description">Shown in a pink box. Leave both empty to leave it out. &ldquo;New drops&rdquo; fill in by themselves: candies added in the last 45 days, otherwise your favourites.</p></td></tr>
 			<tr><th>Discount (email 2)</th><td><input type="number" name="discount" min="1" max="100" value="<?php echo (int) $set['discount']; ?>" style="width:80px"> % off the candies, valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
 			<tr><th>Timing</th><td>Email 1 after <input type="number" name="first_days" min="1" value="<?php echo (int) $set['first_days']; ?>" style="width:70px"> days without an order, email 2 <input type="number" name="second_days" min="1" value="<?php echo (int) $set['second_days']; ?>" style="width:70px"> days after email 1</td></tr>
-			<tr><th>Send a preview</th><td><input type="email" name="preview_to" class="regular-text" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>">
+			<tr><th>Send a preview</th><td><input type="email" name="preview_to" class="regular-text" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>"> <input type="text" name="preview_name" placeholder="Name to greet (optional)">
 				<button class="button" name="preview" value="1">Email 1</button> <button class="button" name="preview" value="2">Email 2</button>
 				<p class="description">A preview of email 2 creates a real code for that address.</p></td></tr>
 		</table>
