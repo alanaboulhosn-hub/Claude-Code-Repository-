@@ -11,12 +11,12 @@ const S = process.argv[2];
     const d = JSON.parse(fs.readFileSync(S+'/lane'+k+'.json','utf8'));
     await p.evaluate(({html, assets}) => {
       let ff = ''; for (const sh of document.styleSheets) { try { for (const r of sh.cssRules) if (r.cssText.startsWith('@font-face')) ff += r.cssText + '\n'; } catch (e) {} }
-      document.body.innerHTML = '<style>' + ff + '</style><div id="box" style="width:370px;padding:10px 0;background:#fdeaf2">' + html + '</div>';
+      document.body.innerHTML = '<style>' + ff + '</style><div id="box" style="width:300px;padding:10px 0;background:#fdeaf2">' + html + '</div>';
       document.body.style.background = '#fdeaf2';
       const t = document.createElement('div'); t.innerHTML = assets;
       t.querySelectorAll('style').forEach(s => document.head.appendChild(s.cloneNode(true)));
       t.querySelectorAll('script').forEach(s => { const n = document.createElement('script'); n.textContent = s.textContent; document.body.appendChild(n); });
-      const x = document.createElement('style'); x.textContent = '.fika-swim{box-shadow:none!important;background:#fdeaf2!important;padding:0 10px!important}.fs-head,.fs-note{display:none!important}*{animation-play-state:paused!important;transition:none!important}.fs-lane{background-color:#ffffff!important;box-shadow:inset 0 0 0 2px #c9d9f2!important}.fs-ticks i.m{white-space:nowrap}.fs-ticks i[data-i="15"]::after{display:none!important}'; document.head.appendChild(x);
+      const x = document.createElement('style'); x.textContent = '.fika-swim{box-shadow:none!important;background:#fdeaf2!important;padding:0 22px 0 8px!important}.fs-head,.fs-note{display:none!important}*{animation-play-state:paused!important;transition:none!important}.fs-lane{background-color:#ffffff!important;box-shadow:inset 0 0 0 2px #c9d9f2!important}.fs-ticks i.m{white-space:nowrap}.fs-ticks i[data-i="15"]::after{display:none!important}'; document.head.appendChild(x);
     }, d);
     await p.waitForTimeout(2500);
     await p.evaluate(() => { document.querySelectorAll('.fs-ticks i.m').forEach(e => { if (!/kg/.test(e.textContent)) e.textContent = e.textContent + ' kg'; }); });
@@ -24,12 +24,12 @@ const S = process.argv[2];
     await p.waitForTimeout(500);
     const sec = await p.$('.fika-swim');
     await p.addStyleTag({content:'.fs-fish{visibility:hidden!important}'});
-    await sec.screenshot({ path: S+'/lane/lane-'+k+'.png' });
+    await sec.screenshot({ path: S+'/lane4/lane-'+k+'.png' });
     if (k === '0') {
       await p.addStyleTag({content:'.fs-fish{visibility:visible!important}'});
       const fw = await p.evaluate(() => Math.round(document.querySelector('.fs-fish').getBoundingClientRect().width)); const fp = await ctx.newPage(); const svg = await p.evaluate(() => document.querySelector('.fs-fish svg').outerHTML);
       await fp.setContent('<html><body style="margin:0;background:transparent"><div id="f" style="width:' + fw + 'px;height:' + fw + 'px">' + svg.replace('<svg', '<svg width="' + fw + '" height="' + fw + '"') + '</div></body></html>');
-      await (await fp.$('#f')).screenshot({ path: S+'/lane/fish.png', omitBackground: true }); await fp.close();
+      await (await fp.$('#f')).screenshot({ path: S+'/lane4/fish.png', omitBackground: true }); await fp.close();
       const info = await p.evaluate(() => { const s=document.querySelector('.fika-swim').getBoundingClientRect(), l=document.querySelector('.fs-lane').getBoundingClientRect(), f=document.querySelector('.fs-fish').getBoundingClientRect(); const c=i=>{const r=document.querySelector('.fs-ticks i[data-i="'+i+'"]').getBoundingClientRect();return r.x+r.width/2-s.x;}; return {sec:[s.width,s.height], x0:c(0), x15:c(15), laneY:l.y-s.y+l.height/2, fish:[f.width,f.height]}; });
       console.log(JSON.stringify(info));
     }

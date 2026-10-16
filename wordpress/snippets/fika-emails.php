@@ -226,6 +226,11 @@ add_action( 'phpmailer_init', function ( $m ) {
 	}
 	$h = (string) $m->Body;
 	$h = preg_replace( '#<(style|script|head)\b[^>]*>.*?</\1>#is', '', $h );
+	$h = preg_replace( '#<div\b[^>]*class="[^"]*\bfika-pre\b[^"]*"[^>]*>.*?</div>#is', '', $h ); // hidden inbox preview text
+	// pictures that carry words (headings and reward names in the cute font, the rewards lane): keep their words
+	$h = preg_replace_callback( '#<img\b[^>]*>#i', function ( $x ) {
+		return preg_match( '#\bclass="[^"]*\bfika-t\b#i', $x[0] ) && preg_match( '#\balt="([^"]*)"#i', $x[0], $a ) ? ' ' . $a[1] . ' ' : $x[0];
+	}, $h );
 	$h = preg_replace_callback( '#<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>#is', function ( $x ) {
 		$t = trim( wp_strip_all_tags( $x[2] ) );
 		$u = html_entity_decode( $x[1] );
