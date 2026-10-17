@@ -1778,3 +1778,6 @@ choice). Snippet 91, fika-club.php (new):
   About us return 200. Existing reward coupons keep their old description text (internal only).
 - Win-back email: all reward-name pictures shown 17 px tall (one size, so "A whole kilogram on us" fits a phone
   column like the others).
+- 2026-10-17: on the owner's request, one preview of email 1 shown as Riwa (account, 1.7 kg, waiting taste) was sent
+  to alan.aboulhosn@gmail.com only (subject "[Preview] It's been a while, Riwa! A few sweets picked for you").
+  No customer was emailed; mode stays Test.
