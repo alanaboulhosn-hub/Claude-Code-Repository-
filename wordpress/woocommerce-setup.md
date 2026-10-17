@@ -1757,3 +1757,8 @@ choice). Snippet 91, fika-club.php (new):
   Of the 5 due members: Riwa, Zeina, Elena get the box.
 - Opening line shortened: "It's been a while since your last fika! Here's how close your Swedish fish is to free
   sweets." (the "plus a few treats..." part removed).
+- The three waiting mystery tastes were spun by the customers themselves on the website (Riwa 9 Oct, Zeina 11 Oct,
+  Elena 13 Oct, Beirut time); nothing was spun or changed for them. The box line is now exact: the free 50 g joins
+  the bag once delivered kilos + the bag reach the wheel's stop (fika_taste_need), so Elena (1.1 kg delivered, wheel
+  at 1.5 kg) reads "Add at least 400 g to your bag and your free 50 g is added at checkout."; Riwa and Zeina
+  (past 1.5 kg) keep "Fill your bag and your free 50 g is added at checkout."
