@@ -401,10 +401,15 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		}
 		$out    = array();
 		$tastes = get_user_meta( $user->ID, 'fika_tastes', true );
-		foreach ( is_array( $tastes ) ? $tastes : array() as $t ) {
+		$have   = fika_wb_delivered( $email, $user );
+		foreach ( is_array( $tastes ) ? $tastes : array() as $k => $t ) {
 			$pr = ! empty( $t['pid'] ) && 'won' === ( isset( $t['status'] ) ? $t['status'] : '' ) ? wc_get_product( (int) $t['pid'] ) : null;
 			if ( $pr ) {
-				$out[] = array( 'a free 50 g of ' . trim( preg_replace( array( '/^BUBS\s+/i', '/\s*\(mini\)\s*$/i' ), '', $pr->get_name() ) ), 'Fill your bag and your free 50 g is added at checkout.', $pr );
+				// the free 50 g joins the bag once delivered kilos + the bag reach the wheel's stop (fika-taste.php)
+				$need  = function_exists( 'fika_taste_need' ) ? (int) fika_taste_need( $k ) : 0;
+				$short = $need > $have ? (int) ( ceil( ( $need - $have ) / 100 ) * 100 ) : 0;
+				$how   = $short ? 'Add at least ' . ( $short >= 1000 ? rtrim( rtrim( number_format( $short / 1000, 1 ), '0' ), '.' ) . ' kg' : $short . ' g' ) . ' to your bag and your free 50 g is added at checkout.' : 'Fill your bag and your free 50 g is added at checkout.';
+				$out[] = array( 'a free 50 g of ' . trim( preg_replace( array( '/^BUBS\s+/i', '/\s*\(mini\)\s*$/i' ), '', $pr->get_name() ) ), $how, $pr );
 			}
 		}
 		if ( function_exists( 'fika_swim_open_codes' ) ) {
