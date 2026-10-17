@@ -1785,3 +1785,10 @@ choice). Snippet 91, fika-club.php (new):
   shown as a real due customer: 1 account + reward waiting (Riwa), 2 account + waiting, needs more in the bag
   (Elena), 3 account, nothing waiting (Leen), 4 no account, below 1.5 kg (Sarah), 5 no account, passed a reward
   (Suzy), 6 signed up, never ordered (sample "Alan", 0 kg). Subjects start "[Preview n/6: scenario]". Mode Test.
+- Link check before roll-out (all six scenarios rendered, not sent): "Join the Fika Club" and the lane picture for
+  customers without an account now go to /my-account/#register (the page jumps to the sign-up form; with
+  ?action=register it opened on the Log in form with sign-up below the fold). "See my rewards" and the members'
+  lane go to /my-account/ (the Rewards page; signed-out customers see Log in first, then land on Rewards).
+  "Use it now", the candy photos and names and "Pick your mix" go to /mix-your-own/. Footer: WhatsApp, mailto,
+  Instagram (as in every order email). Shop links return 200; a wrong unsubscribe key shows "Link not recognised"
+  and changes nothing. Mode still Test, email 2 off, nothing scheduled.
