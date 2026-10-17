@@ -415,7 +415,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return 'New sweets on the candy wall, and free sweets to swim for 🍬';
 	}
 	// email 1: it's been a while
-	function fika_wb_email1( $email, $p ) {
+	// $as: show another customer's Fika Club progress (admin previews); the email itself is for $email
+	function fika_wb_email1( $email, $p, $as = '' ) {
+		$who  = $as ? $as : $email;
 		$set  = fika_wb_settings();
 		$kind = 'fav';
 		$list = fika_wb_products( $kind );
@@ -424,7 +426,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			? 'It&rsquo;s been a while since your last fika! Here&rsquo;s how close your Swedish fish is to free sweets, plus ' . ( 'new' === $kind ? 'what&rsquo;s new on our candy wall.' : ( 'picked' === $kind ? 'a few treats we picked for you.' : 'the treats everyone keeps coming back for.' ) )
 			: 'You joined Fika a while ago but haven&rsquo;t picked your first mix yet. Here&rsquo;s how our free sweets work, and what&rsquo;s on our candy wall right now.';
 		$body = '<div class="email-introduction"><p>' . $hi . '</p><p>' . $lead . '</p></div>' .
-			fika_wb_part3( $email, $p['name'], false ) .
+			fika_wb_part3( $who, $p['name'], false ) .
 			( $list ? fika_wb_divider( 's1' ) : '' ) .
 			( $list ? ( 'fav' !== $kind
 				? '<p style="margin:16px 0 4px;text-align:center;">' . ( 'new' === $kind ? fika_wb_head( 'fresh-from-sweden', 'Fresh from Sweden', 38 ) : fika_wb_head( 'picked-for-you', 'Picked for you', 38 ) ) . '</p><p style="text-align:center;margin:0 0 6px;"><span style="color:#6c7b9c;font-size:13.5px;">' . ( 'new' === $kind ? ( 4 === count( $list ) ? 'Four' : 'A few' ) . ' new friends on the candy wall' : 'A few favourites from our candy wall' ) . '</span></p>'
@@ -437,7 +439,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			fika_wb_small( $email );
 		$html = str_replace( '>We miss you!</h1>', '>' . fika_wb_head( 'we-miss-you', 'We miss you!', 46 ) . '</h1>', WC()->mailer()->wrap_message( 'We miss you!', $body ) );
 		// the preview text, hidden at the very top (padded so the inbox does not run on into the email's first words)
-		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( fika_wb_preheader( $email ) ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
+		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( fika_wb_preheader( $who ) ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
 		$html = preg_replace( '/(<body\b[^>]*>)/i', '$1' . $pre, $html, 1 );
 		return array( 'It’s been a while' . ( $p['name'] ? ', ' . $p['name'] : '' ) . ( 'new' === $kind ? '! Here’s what’s new at Fika' : '! A few sweets picked for you' ), $html );
 	}
@@ -658,7 +660,14 @@ add_action( 'admin_post_fika_wb_save', function () {
 			// the preview greets: the name typed in, else the recipient's account or latest order, else a name taken
 			// from the address (alan.aboulhosn@... -> Alan), else "Sara"
 			$name = sanitize_text_field( isset( $in['preview_name'] ) ? $in['preview_name'] : '' );
-			$pu   = $name ? false : get_user_by( 'email', $to );
+			// "Show it as this customer": their name and Fika Club progress, sent only to the preview address
+			$as   = strtolower( sanitize_email( isset( $in['preview_as'] ) ? $in['preview_as'] : '' ) );
+			$aud  = $as ? fika_wb_audience() : array();
+			$as   = isset( $aud[ $as ] ) ? $as : '';
+			if ( $as && ! $name ) {
+				$name = $aud[ $as ]['name'];
+			}
+			$pu   = $name || $as ? false : get_user_by( 'email', $to );
 			if ( $pu ) {
 				$name = get_user_meta( $pu->ID, 'first_name', true );
 			}
@@ -666,7 +675,7 @@ add_action( 'admin_post_fika_wb_save', function () {
 				$po   = wc_get_orders( array( 'billing_email' => $to, 'limit' => 1, 'orderby' => 'date', 'order' => 'DESC' ) );
 				$name = $po ? $po[0]->get_billing_first_name() : '';
 			}
-			if ( ! $name && preg_match( '/^([a-z]{2,})/i', $to, $mm ) ) {
+			if ( ! $name && ! $as && preg_match( '/^([a-z]{2,})/i', $to, $mm ) ) {
 				$name = ucfirst( strtolower( $mm[1] ) );
 			}
 			$name = fika_wb_first_name( $name );
@@ -675,7 +684,7 @@ add_action( 'admin_post_fika_wb_save', function () {
 				list( $code, $exp )     = fika_wb_coupon( $to, 'Win-back preview' );
 				list( $subject, $html ) = fika_wb_email2( $to, $p, $code, $exp );
 			} else {
-				list( $subject, $html ) = fika_wb_email1( $to, $p );
+				list( $subject, $html ) = fika_wb_email1( $to, $p, $as );
 			}
 			$msg = WC()->mailer()->send( $to, '[Preview] ' . $subject, $html ) ? 'preview' : 'preview-failed';
 		}
@@ -736,9 +745,10 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 				<p class="description">The four candies in the &ldquo;New drops&rdquo; grid. All left on (automatic): candies added in the last 45 days, otherwise your favourites. Sold-out candies are skipped.</p></td></tr>
 			<tr><th>Discount (email 2)</th><td><input type="number" name="discount" min="1" max="100" value="<?php echo (int) $set['discount']; ?>" style="width:80px"> % off the candies, valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
 			<tr><th>Timing</th><td>Email 1 after <input type="number" name="first_days" min="1" value="<?php echo (int) $set['first_days']; ?>" style="width:70px"> days without an order, email 2 <input type="number" name="second_days" min="1" value="<?php echo (int) $set['second_days']; ?>" style="width:70px"> days after email 1</td></tr>
-			<tr><th>Send a preview</th><td><input type="email" name="preview_to" class="regular-text" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>"> <input type="text" name="preview_name" placeholder="Name to greet (optional)">
+			<tr><th>Send a preview</th><td><input type="email" name="preview_to" class="regular-text" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>"> <input type="text" name="preview_name" placeholder="Name to greet (optional)"><br>
+				<input type="email" name="preview_as" class="regular-text" placeholder="Show it as this customer (their email, optional)" style="margin-top:6px">
 				<button class="button" name="preview" value="1">Email 1</button> <button class="button" name="preview" value="2">Email 2</button>
-				<p class="description">A preview of email 2 creates a real code for that address.</p></td></tr>
+				<p class="description">A preview of email 2 creates a real code for that address. &ldquo;Show it as this customer&rdquo; uses that customer&rsquo;s name and Fika Club progress; the preview still goes only to the address above.</p></td></tr>
 		</table>
 		<?php submit_button( 'Save' ); ?>
 	</form>

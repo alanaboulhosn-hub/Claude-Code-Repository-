@@ -1737,3 +1737,9 @@ choice). Snippet 91, fika-club.php (new):
   "It's been a while since your last fika! Here's how close your Swedish fish is to free sweets, plus a few treats
   we picked for you." (new candies: "plus what's new on our candy wall."; never ordered: "Here's how our free sweets
   work, and what's on our candy wall right now."). Still Test mode, email 2 off, nothing scheduled, nothing sent.
+- Progress check (owner: everyone has ordered, so everyone should show progress): of the 251 due for email 1,
+  5 have an account and 246 do not; all 251 have delivered kilos (guest orders, old-store imports included, are
+  found by billing email). The 0 kg version only appeared in previews to alan.aboulhosn@gmail.com (no orders).
+- Preview: new box "Show it as this customer (their email)" - the preview uses that customer's name and Fika Club
+  progress (fika_wb_email1( $to, $p, $as )) and still goes only to the preview address. The side-panel preview's
+  "No account" example is now a real due customer without an account (4 kg), rendered for preview@example.com.
