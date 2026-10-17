@@ -324,7 +324,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-r-' . $key . '.png' ) ) . '" width="' . $px . '" height="22" alt="' . esc_attr( $name ) . '" class="fika-t" style="display:block;width:' . $px . 'px;height:22px;border:0;margin:0 0 3px;">';
 	}
 	// email 1, part 3: the Fika Club, with this customer's place on the 15 kg lane
-	function fika_wb_part3( $email, $name ) {
+	function fika_wb_part3( $email, $name, $divider = true ) {
 		$f      = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
 		$h      = 'display:block;font-variant:small-caps;font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-weight:400;color:#004aad;';
 		$user   = get_user_by( 'email', $email );
@@ -380,7 +380,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$title = $member ? 'Your Fika Club' : 'Join the Fika Club';
 		$intro = $member ? 'Every kilo you order moves your Swedish fish closer to free sweets. Here is where you are' . ( $name ? ', ' . $name : '' ) . '.' : 'Every kilo you order earns free sweets, and the orders you have already placed count too.';
 		$small = 'margin:12px 0 0;' . $f . 'color:#1b2a4a;font-size:14px;line-height:1.5;';
-		return fika_wb_divider( 's3' ) .
+		return ( $divider ? fika_wb_divider( 's3' ) : '' ) .
 			'<p style="margin:16px 0 8px;text-align:center;">' . fika_wb_head( $member ? 'your-fika-club' : 'join-the-fika-club', $title ) . '</p>' .
 			'<p style="' . $f . 'color:#1b2a4a;font-size:16px;line-height:1.6;margin:0 0 14px;text-align:center;">' . esc_html( $intro ) . '</p>' .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td class="fika-mail-box">' .
@@ -421,19 +421,18 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$list = fika_wb_products( $kind );
 		$hi   = $p['name'] ? 'Hi ' . esc_html( $p['name'] ) . ',' : 'Hi there,';
 		$lead = $p['last']
-			? ( 'new' === $kind
-				? 'It&rsquo;s been a while since your last fika! While you were away, a few new sweets found their way onto our candy wall. Here&rsquo;s what&rsquo;s new:'
-				: 'It&rsquo;s been a while since your last fika! We picked a few sweets from our candy wall we think you&rsquo;ll love:' )
-			: 'You joined Fika a while ago but haven&rsquo;t picked your first mix yet. Here is what&rsquo;s on our candy wall right now.';
+			? 'It&rsquo;s been a while since your last fika! Here&rsquo;s how close your Swedish fish is to free sweets, plus ' . ( 'new' === $kind ? 'what&rsquo;s new on our candy wall.' : ( 'picked' === $kind ? 'a few treats we picked for you.' : 'the treats everyone keeps coming back for.' ) )
+			: 'You joined Fika a while ago but haven&rsquo;t picked your first mix yet. Here&rsquo;s how our free sweets work, and what&rsquo;s on our candy wall right now.';
 		$body = '<div class="email-introduction"><p>' . $hi . '</p><p>' . $lead . '</p></div>' .
+			fika_wb_part3( $email, $p['name'], false ) .
+			( $list ? fika_wb_divider( 's1' ) : '' ) .
 			( $list ? ( 'fav' !== $kind
-				? '<p style="margin:22px 0 4px;text-align:center;">' . ( 'new' === $kind ? fika_wb_head( 'fresh-from-sweden', 'Fresh from Sweden', 38 ) : fika_wb_head( 'picked-for-you', 'Picked for you', 38 ) ) . '</p><p style="text-align:center;margin:0 0 6px;"><span style="color:#6c7b9c;font-size:13.5px;">' . ( 'new' === $kind ? ( 4 === count( $list ) ? 'Four' : 'A few' ) . ' new friends on the candy wall' : 'A few favourites from our candy wall' ) . '</span></p>'
+				? '<p style="margin:16px 0 4px;text-align:center;">' . ( 'new' === $kind ? fika_wb_head( 'fresh-from-sweden', 'Fresh from Sweden', 38 ) : fika_wb_head( 'picked-for-you', 'Picked for you', 38 ) ) . '</p><p style="text-align:center;margin:0 0 6px;"><span style="color:#6c7b9c;font-size:13.5px;">' . ( 'new' === $kind ? ( 4 === count( $list ) ? 'Four' : 'A few' ) . ' new friends on the candy wall' : 'A few favourites from our candy wall' ) . '</span></p>'
 				: '<h2 class="email-order-detail-heading">Fan favourites<br><span>The sweets everyone keeps coming back for</span></h2>' ) .
 				fika_wb_grid( $list ) : '' ) .
 			( trim( $set['news_title'] . $set['news_text'] ) ? '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:22px 0 4px;"><tr><td class="fika-mail-box">' .
 				( $set['news_title'] ? fika_wb_box_title( $set['news_title'] ) : '' ) . '<p>' . nl2br( esc_html( $set['news_text'] ) ) . '</p></td></tr></table>' : '' ) .
 			fika_wb_button( home_url( '/mix-your-own/' ), 'Pick your mix' ) .
-			fika_wb_part3( $email, $p['name'] ) .
 			fika_wb_part2() .
 			fika_wb_small( $email );
 		$html = str_replace( '>We miss you!</h1>', '>' . fika_wb_head( 'we-miss-you', 'We miss you!', 46 ) . '</h1>', WC()->mailer()->wrap_message( 'We miss you!', $body ) );
