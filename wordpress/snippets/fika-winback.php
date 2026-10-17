@@ -667,6 +667,13 @@ add_action( 'template_redirect', function () {
 	if ( isset( $_GET['fika_unsub'], $_GET['k'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		$email = strtolower( sanitize_email( wp_unslash( $_GET['fika_unsub'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		$ok    = $email ? hash_equals( substr( wp_hash( 'fika-wb|' . $email ), 0, 20 ), (string) wp_unslash( $_GET['k'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification
+		// opening the link only asks; the button (a POST) unsubscribes, so mail scanners that open every link
+		// (Outlook Safe Links and the like) cannot unsubscribe anyone
+		if ( $ok && 'POST' !== ( isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : '' ) ) {
+			wp_die( '<h1 style="font-family:sans-serif;color:#004aad">Unsubscribe from Fika emails?</h1><p style="font-family:sans-serif">You will stop getting our &ldquo;it&rsquo;s been a while&rdquo; emails at ' . esc_html( $email ) . '. Order emails still arrive as usual.</p>' .
+				'<form method="post" action="' . esc_url( add_query_arg( array( 'fika_unsub' => rawurlencode( $email ), 'k' => (string) wp_unslash( $_GET['k'] ) ), home_url( '/' ) ) ) . '"><button type="submit" style="font:600 15px sans-serif;padding:12px 26px;border:0;border-radius:999px;background:#004aad;color:#fff;cursor:pointer">Unsubscribe me</button></form>' . // phpcs:ignore
+				'<p style="font-family:sans-serif"><a href="' . esc_url( home_url( '/' ) ) . '">No, take me back to Fika</a></p>', 'Fika', array( 'response' => 200 ) );
+		}
 		if ( $ok ) {
 			$stop   = get_option( 'fika_marketing_stop', array() );
 			$stop   = is_array( $stop ) ? $stop : array();

@@ -1792,3 +1792,14 @@ choice). Snippet 91, fika-club.php (new):
   "Use it now", the candy photos and names and "Pick your mix" go to /mix-your-own/. Footer: WhatsApp, mailto,
   Instagram (as in every order email). Shop links return 200; a wrong unsubscribe key shows "Link not recognised"
   and changes nothing. Mode still Test, email 2 off, nothing scheduled.
+
+### 2026-10-17 – Win-back email 1 is Live (snippet 35)
+- Owner's green light: email 1 to everyone who has not ordered in 30 days; email 2 stays off. Checked first:
+  first_days 30, email2 0, 252 due for email 1, 0 for email 2. Started with fika_winback_golive at 16:23 Beirut
+  (13:23 UTC): mode Live, first batch 50 sent, then a batch of 50 every 30 minutes (16:53, 17:23, 17:53, 18:23).
+- One unsubscribe 30 s after the first batch, from a university address (queensu.ca, Microsoft 365): very likely a
+  link scanner opening every link. Left unsubscribed (owner can decide). Fix: the unsubscribe link now opens a page
+  "Unsubscribe from Fika emails?" with an "Unsubscribe me" button; only the button (a POST) unsubscribes. Checked
+  with claude.unsub.test@example.com: opening the link did not unsubscribe; a wrong key still says "Link not
+  recognised".
+- TMP status snippet 168 ("TMP send status (Claude)") stays until the last batch is checked, then is deleted.
