@@ -1781,3 +1781,7 @@ choice). Snippet 91, fika-club.php (new):
 - 2026-10-17: on the owner's request, one preview of email 1 shown as Riwa (account, 1.7 kg, waiting taste) was sent
   to alan.aboulhosn@gmail.com only (subject "[Preview] It's been a while, Riwa! A few sweets picked for you").
   No customer was emailed; mode stays Test.
+- 2026-10-17: on the owner's request, six scenario previews of email 1 sent to alan.aboulhosn@gmail.com only, each
+  shown as a real due customer: 1 account + reward waiting (Riwa), 2 account + waiting, needs more in the bag
+  (Elena), 3 account, nothing waiting (Leen), 4 no account, below 1.5 kg (Sarah), 5 no account, passed a reward
+  (Suzy), 6 signed up, never ordered (sample "Alan", 0 kg). Subjects start "[Preview n/6: scenario]". Mode Test.
