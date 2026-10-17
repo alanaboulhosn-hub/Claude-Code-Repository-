@@ -1732,3 +1732,8 @@ choice). Snippet 91, fika-club.php (new):
   owner says go.
 - Note: one REST call at 00:12 UTC hit "Error establishing a database connection" (a Hostinger hiccup); it
   answered again 20 s later.
+- New order (owner): the Fika Club progress opens the email (right after the greeting, no dotted line above it),
+  then a dotted line and the candies with the news box and "Pick your mix", then What fika means. Opening line:
+  "It's been a while since your last fika! Here's how close your Swedish fish is to free sweets, plus a few treats
+  we picked for you." (new candies: "plus what's new on our candy wall."; never ordered: "Here's how our free sweets
+  work, and what's on our candy wall right now."). Still Test mode, email 2 off, nothing scheduled, nothing sent.
