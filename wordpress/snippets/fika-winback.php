@@ -361,7 +361,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$pct  = max( 0, min( 100, (int) round( $g / 150 ) ) );
 		$lane = fika_wb_lane_url( $g );
 		// a link, so Gmail shows no download button over it; opens the rewards (or sign-up) page
-		$bar  = $lane ? '<a href="' . esc_url( $member ? home_url( '/my-account/' ) : home_url( '/my-account/?action=register' ) ) . '" style="display:block;text-decoration:none;"><img src="' . esc_url( $lane ) . '" width="400" alt="Your fish at ' . esc_attr( $kg( $g ) ) . ' on the 15 kg lane" class="fika-t" style="display:block;width:100%;max-width:400px;height:auto;margin:4px auto 0;border:0;"></a>' : '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;border-radius:999px;background:#ffffff;border:2px solid #004aad;"><tr>' .
+		$bar  = $lane ? '<a href="' . esc_url( $member ? home_url( '/my-account/' ) : home_url( '/my-account/#register' ) ) . '" style="display:block;text-decoration:none;"><img src="' . esc_url( $lane ) . '" width="400" alt="Your fish at ' . esc_attr( $kg( $g ) ) . ' on the 15 kg lane" class="fika-t" style="display:block;width:100%;max-width:400px;height:auto;margin:4px auto 0;border:0;"></a>' : '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;border-radius:999px;background:#ffffff;border:2px solid #004aad;"><tr>' .
 			( $pct > 0 ? '<td width="' . $pct . '%" style="width:' . $pct . '%;height:14px;background:#1c6fd6;border-radius:999px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) .
 			( $pct < 100 ? '<td style="height:14px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) . '</tr></table>';
 		$left = $next ? $next[0] - $g : 0;
@@ -391,7 +391,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;">' . $rows . '</table>' .
 			( $member && $gift ? '<p style="' . $small . '">Rewards you have reached wait on your account until you use them. Tap them under My account.</p>' : '' ) .
 			( ! $member && $g > 0 ? '<p style="' . $small . '">Sign up with this email address and your ' . $kg( $total ) . ' count straight away.</p>' : '' ) .
-			fika_wb_button( $member ? home_url( '/my-account/' ) : home_url( '/my-account/?action=register' ), $member ? 'See my rewards' : 'Join the Fika Club' );
+			fika_wb_button( $member ? home_url( '/my-account/' ) : home_url( '/my-account/#register' ), $member ? 'See my rewards' : 'Join the Fika Club' );
 	}
 	// rewards a member has and has not used yet: mystery tastes won (a free 50 g line at checkout), reward codes
 	// claimed, and gifts their delivered kilos reached but not claimed yet: [ [what, how to use, product], ... ]
