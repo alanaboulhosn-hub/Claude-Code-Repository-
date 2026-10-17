@@ -1767,3 +1767,14 @@ choice). Snippet 91, fika-club.php (new):
   to fit a phone column), preview text "a whole free kilogram"; reward titles taken from the website are switched
   too. "kg" after numbers stays. Checked: no "kilo"/"kilos" left in the 10 rendered emails. The website itself
   still says "A whole kilo on us" (not changed).
+
+### 2026-10-17 – "kilogram" instead of "kilo" on the website (snippets 10, 11, 16, 28, 91)
+- Owner: never "kilo". Changed "every kilo" / "a whole kilo" to "kilogram" in the texts customers see:
+  fika-loyalty.php (15 kg reward title "A whole kilogram on us", unlock text), fika-accounts.php (sign-up and
+  confirm texts, welcome line), fika-club.php (club code email text; the welcome popup's "1 KG" badge regex now
+  matches "a whole kilogram"), fika-emails.php (new-account email line "Every kilogram you order now swims you closer
+  to a free one."), fika-signup-nudge.php (checkout invite lines and chip). Comments untouched; "kg" after numbers
+  stays. Live copies matched git before; all five active without errors; home, Mix your own, Ready Mix, My account,
+  About us return 200. Existing reward coupons keep their old description text (internal only).
+- Win-back email: all reward-name pictures shown 17 px tall (one size, so "A whole kilogram on us" fits a phone
+  column like the others).

@@ -53,7 +53,7 @@ if ( ! function_exists( 'fika_club_on' ) ) {
 		$mailer = WC()->mailer();
 		$body   = '<p>Here is your Fika Club code:</p>'
 			. '<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:22px auto;"><tr><td align="center" style="padding:16px 28px;border-radius:16px;background:#fdeaf2;font-family:Helvetica,Arial,sans-serif;font-size:34px;font-weight:700;letter-spacing:10px;color:#004aad;">' . esc_html( $code ) . '</td></tr></table>'
-			. '<p>Type it at the checkout to join Fika Club. Your earlier orders join your account straight away, and every kilo moves your fish towards free sweets.</p>'
+			. '<p>Type it at the checkout to join Fika Club. Your earlier orders join your account straight away, and every kilogram moves your fish towards free sweets.</p>'
 			. '<p>The code works for 15 minutes. Didn&rsquo;t ask for it? You can safely ignore this email.</p>';
 		return $mailer->send( $email, 'Your Fika Club code: ' . $code, $mailer->wrap_message( 'Welcome to Fika Club!', $body ) );
 	}
@@ -502,7 +502,7 @@ add_action( 'wp_footer', function () {
       h += '<div class="fkc-rew"><span class="ic sp"></span><p><b>Mystery spin unlocked</b>You passed ' + kg(sp.need) + '. Spin for 50 g of a surprise candy, free in this order.</p><button type="button" data-k="spin" data-i="' + i + '">Spin now</button></div>';
     });
     s.rewards.forEach(function (r, i) {
-      h += '<div class="fkc-rew"><span class="ic">' + esc(r.title.replace(/ on us$/i, '').replace(/^a whole kilo$/i, '1 KG').toUpperCase()) + '</span><p><b>' + esc(r.title) + '</b>' + esc(r.co) + '.</p><button type="button" data-k="claim" data-i="' + i + '">Use now</button></div>';
+      h += '<div class="fkc-rew"><span class="ic">' + esc(r.title.replace(/ on us$/i, '').replace(/^a whole kilogram$/i, '1 KG').toUpperCase()) + '</span><p><b>' + esc(r.title) + '</b>' + esc(r.co) + '.</p><button type="button" data-k="claim" data-i="' + i + '">Use now</button></div>';
     });
     s.open.forEach(function (o, i) {
       h += '<div class="fkc-rew"><span class="ic">✓</span><p><b>' + esc(o.title) + '</b>' + esc(o.co) + '.</p><button type="button" data-k="apply" data-i="' + i + '">Use now</button></div>';

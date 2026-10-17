@@ -533,7 +533,7 @@ if ( ! function_exists( 'fika_past_orders' ) ) {
 			. '<td align="center" bgcolor="#004aad" style="background:#004aad;border-radius:999px;mso-padding-alt:14px 30px;">'
 			. '<a class="button" href="' . esc_url( $url ) . '" target="_blank" style="display:inline-block;padding:14px 30px;background:#004aad;color:#ffffff !important;font-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;line-height:20px;text-decoration:none;border-radius:999px;">Verify and confirm my email</a>'
 			. '</td></tr></table>'
-			. '<p>If you&rsquo;ve ordered from Fika before with this email, those orders join your account too, and every kilo counts toward your Fika Club rewards.</p>'
+			. '<p>If you&rsquo;ve ordered from Fika before with this email, those orders join your account too, and every kilogram counts toward your Fika Club rewards.</p>'
 			. '<p>The button works for 7 days. Didn&rsquo;t sign up? You can safely ignore this email.</p>';
 		return $mailer->send( $u->user_email, 'Confirm your email to join Fika Club', $mailer->wrap_message( 'Welcome to Fika Club!', $body ) );
 	}
@@ -690,7 +690,7 @@ add_action( 'woocommerce_account_dashboard', function () {
 	if ( ctype_digit( $st ) ) {
 		$n = (int) $st;
 		echo '<div class="fika-past is-done"><b>Your account is confirmed</b><p>'
-			. ( $n ? esc_html( sprintf( 'Welcome to Fika Club! %d earlier %s joined your account and count toward your rewards.', $n, 1 === $n ? 'order' : 'orders' ) ) : 'Welcome to Fika Club! Every kilo you order moves your fish towards free sweets.' )
+			. ( $n ? esc_html( sprintf( 'Welcome to Fika Club! %d earlier %s joined your account and count toward your rewards.', $n, 1 === $n ? 'order' : 'orders' ) ) : 'Welcome to Fika Club! Every kilogram you order moves your fish towards free sweets.' )
 			. '</p></div>';
 		$GLOBALS['fika_past_css'] = true;
 		return;
@@ -702,7 +702,7 @@ add_action( 'woocommerce_account_dashboard', function () {
 	if ( isset( $_GET['fika-check'] ) ) {
 		echo '<p>We&rsquo;ve sent a new link to <strong>' . esc_html( $u->user_email ) . '</strong>. It can take a minute, and may land in spam.</p>';
 	} else {
-		echo '<p>We sent a link to <strong>' . esc_html( $u->user_email ) . '</strong>. Tap it to confirm your Fika Club account' . ( fika_past_orders( $u->user_email ) ? ' and bring in your earlier orders, so every kilo counts toward your rewards' : '' ) . '. You&rsquo;ll need it to log in next time.</p>';
+		echo '<p>We sent a link to <strong>' . esc_html( $u->user_email ) . '</strong>. Tap it to confirm your Fika Club account' . ( fika_past_orders( $u->user_email ) ? ' and bring in your earlier orders, so every kilogram counts toward your rewards' : '' ) . '. You&rsquo;ll need it to log in next time.</p>';
 		echo '<form method="post" action="' . esc_url( wc_get_page_permalink( 'myaccount' ) ) . '"><input type="hidden" name="_fika_link" value="' . esc_attr( wp_create_nonce( 'fika_link_' . $uid ) ) . '"><button type="submit" name="fika_send_link" value="1" class="fika-past-btn">Send the link again</button></form>';
 	}
 	echo '</div>';
@@ -759,7 +759,7 @@ add_action( 'wp_footer', function () {
 	$n    = absint( $_GET['fika-welcome'] ); // phpcs:ignore WordPress.Security.NonceVerification
 	$u    = wp_get_current_user();
 	$name = $u->first_name ? $u->first_name : '';
-	$line = $n ? sprintf( '%d earlier %s joined your account and count toward your rewards.', $n, 1 === $n ? 'order' : 'orders' ) : 'Every kilo you order now moves your fish towards free sweets.';
+	$line = $n ? sprintf( '%d earlier %s joined your account and count toward your rewards.', $n, 1 === $n ? 'order' : 'orders' ) : 'Every kilogram you order now moves your fish towards free sweets.';
 	?>
 <div class="fika-welcome" role="status"><b>Welcome to Fika Club<?php echo $name ? ', ' . esc_html( $name ) : ''; ?>!</b><span><?php echo esc_html( $line ); ?></span><button type="button" aria-label="Close">&times;</button></div>
 <style>
