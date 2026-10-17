@@ -1762,3 +1762,8 @@ choice). Snippet 91, fika-club.php (new):
   the bag once delivered kilos + the bag reach the wheel's stop (fika_taste_need), so Elena (1.1 kg delivered, wheel
   at 1.5 kg) reads "Add at least 400 g to your bag and your free 50 g is added at checkout."; Riwa and Zeina
   (past 1.5 kg) keep "Fill your bag and your free 50 g is added at checkout."
+- Wording (owner): "kilogram", never "kilo", in the email: "Every kilogram you order...", "A whole kilogram on us"
+  (new reward-name picture, media 1153, fika-email-r-a-whole-kilogram-on-us.png; reward-name pictures may now shrink
+  to fit a phone column), preview text "a whole free kilogram"; reward titles taken from the website are switched
+  too. "kg" after numbers stays. Checked: no "kilo"/"kilos" left in the 10 rendered emails. The website itself
+  still says "A whole kilo on us" (not changed).
