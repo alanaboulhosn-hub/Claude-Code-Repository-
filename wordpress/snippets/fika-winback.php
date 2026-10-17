@@ -315,13 +315,13 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	// a reward's name in the cute font, as a picture (media 1137-1141, made by
 	// wordpress/email-assets/make-email-rewards.js at 2x, 111 px tall); the words stay as alt text
 	function fika_wb_reward_name( $name ) {
-		$w = array( 'Mystery taste' => 614, '100 g on us' => 520, '200 g on us' => 526, '400 g on us' => 534, 'A whole kilo on us' => 789 );
+		$w = array( 'Mystery taste' => 614, '100 g on us' => 520, '200 g on us' => 526, '400 g on us' => 534, 'A whole kilogram on us' => 1006 );
 		if ( ! isset( $w[ $name ] ) ) {
 			return esc_html( $name );
 		}
 		$key = sanitize_title( $name );
 		$px  = (int) round( $w[ $name ] * 22 / 111 );
-		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-r-' . $key . '.png' ) ) . '" width="' . $px . '" height="22" alt="' . esc_attr( $name ) . '" class="fika-t" style="display:block;width:' . $px . 'px;height:22px;border:0;margin:0 0 3px;">';
+		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-r-' . $key . '.png' ) ) . '" width="' . $px . '" height="22" alt="' . esc_attr( $name ) . '" class="fika-t" style="display:block;width:' . $px . 'px;max-width:100%;height:auto;border:0;margin:0 0 3px;">';
 	}
 	// email 1, part 3: the Fika Club, with this customer's place on the 15 kg lane
 	function fika_wb_part3( $email, $name, $divider = true ) {
@@ -345,7 +345,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			array( 6000, '200 g on us', 'worth $5.60' ),
 			array( 10000, '400 g on us', 'worth $11.20' ),
 			array( 12500, 'Mystery taste', 'A free 50 g surprise' ),
-			array( 15000, 'A whole kilo on us', 'worth $28' ),
+			array( 15000, 'A whole kilogram on us', 'worth $28' ),
 		);
 		$next = null;
 		$gift = false;
@@ -379,7 +379,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 				'<td align="right" style="' . $f . 'padding:9px 0;border-bottom:1px solid #f3d3e1;font-size:13.5px;white-space:nowrap;">' . $st . '</td></tr>';
 		}
 		$title = $member ? 'Your Fika Club' : 'Join the Fika Club';
-		$intro = $member ? 'Every kilo you order moves your Swedish fish closer to free sweets. Here is where you are' . ( $name ? ', ' . $name : '' ) . '.' : 'Every kilo you order earns free sweets, and the orders you have already placed count too.';
+		$intro = $member ? 'Every kilogram you order moves your Swedish fish closer to free sweets. Here is where you are' . ( $name ? ', ' . $name : '' ) . '.' : 'Every kilogram you order earns free sweets, and the orders you have already placed count too.';
 		$small = 'margin:12px 0 0;' . $f . 'color:#1b2a4a;font-size:14px;line-height:1.5;';
 		return ( $divider ? fika_wb_divider( 's3' ) : '' ) .
 			'<p style="margin:16px 0 8px;text-align:center;">' . fika_wb_head( $member ? 'your-fika-club' : 'join-the-fika-club', $title ) . '</p>' .
@@ -414,13 +414,13 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		}
 		if ( function_exists( 'fika_swim_open_codes' ) ) {
 			foreach ( fika_swim_open_codes( $user->ID ) as $c ) {
-				$out[] = array( lcfirst( $c[1] ) . ' (' . $c[3] . ')', 'It is saved on your account: tap Use at checkout.', null );
+				$out[] = array( str_replace( 'kilo ', 'kilogram ', lcfirst( $c[1] ) ) . ' (' . $c[3] . ')', 'It is saved on your account: tap Use at checkout.', null );
 			}
 		}
 		if ( function_exists( 'fika_swim_unclaimed' ) && function_exists( 'fika_swim_checkpoints' ) ) {
 			$cps = fika_swim_checkpoints();
 			foreach ( fika_swim_unclaimed( $user->ID, fika_wb_delivered( $email, $user ) ) as $u ) {
-				$out[] = array( lcfirst( $cps[ $u[1] ]['title'] ) . ' (worth $' . rtrim( rtrim( number_format( $cps[ $u[1] ]['amount'], 2 ), '0' ), '.' ) . ')', 'Tap the gift on your rewards lane to claim it, then use it whenever you like.', null );
+				$out[] = array( str_replace( 'kilo ', 'kilogram ', lcfirst( $cps[ $u[1] ]['title'] ) ) . ' (worth $' . rtrim( rtrim( number_format( $cps[ $u[1] ]['amount'], 2 ), '0' ), '.' ) . ')', 'Tap the gift on your rewards lane to claim it, then use it whenever you like.', null );
 			}
 		}
 		return $out;
@@ -453,7 +453,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$g      = fika_wb_delivered( $email, $member ? $user : null ) % 15000;
 		$left   = 0;
 		$next   = '';
-		foreach ( array( 1500 => 'a free mystery taste', 3000 => '100 g of free sweets', 6000 => '200 g of free sweets', 10000 => '400 g of free sweets', 12500 => 'a free mystery taste', 15000 => 'a whole free kilo' ) as $at => $what ) {
+		foreach ( array( 1500 => 'a free mystery taste', 3000 => '100 g of free sweets', 6000 => '200 g of free sweets', 10000 => '400 g of free sweets', 12500 => 'a free mystery taste', 15000 => 'a whole free kilogram' ) as $at => $what ) {
 			if ( $at > $g ) {
 				$left = $at - $g;
 				$next = $what;
