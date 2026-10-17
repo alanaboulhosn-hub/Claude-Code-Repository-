@@ -1725,3 +1725,10 @@ choice). Snippet 91, fika-club.php (new):
   next one 30 minutes later while 50 went out. At scheduling time: 248 due for email 1, 0 for email 2, so about five
   batches, done around 11:00; the daily run is next at 13:04 Beirut. The settings page shows the planned switch.
 - Session check-ins at 09:02 and 11:15 Beirut to confirm (read-only).
+- Cancelled the same night (owner: send nothing tomorrow, keep the current not-live status, more tests first):
+  fika_winback_golive and any fika_winback_batch unscheduled; mode Test, email 2 off; nothing was sent (log empty,
+  no send state). The daily run (13:04 Beirut) stays scheduled but in Test mode only reaches the test address,
+  which is not due. The session check-ins were removed. The go-live code stays in snippet 35, unused until the
+  owner says go.
+- Note: one REST call at 00:12 UTC hit "Error establishing a database connection" (a Hostinger hiccup); it
+  answered again 20 s later.
