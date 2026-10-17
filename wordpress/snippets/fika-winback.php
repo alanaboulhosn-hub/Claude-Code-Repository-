@@ -210,7 +210,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	function fika_wb_head( $key, $alt, $h = 36 ) {
 		$size = array( 'we-miss-you' => array( 548, 87 ), 'fresh-from-sweden' => array( 839, 108 ), 'made-for-sharing' => array( 763, 98 ), 'your-fika-club' => array( 650, 103 ), 'join-the-fika-club' => array( 776, 108 ),
 			// media 1146-1150 (make-email-box-headings.js)
-			'picked-for-you' => array( 604, 105 ), 'lordagsmys-is-here' => array( 817, 105 ), 'family-time' => array( 477, 105 ), 'real-quality' => array( 543, 105 ), 'the-warmth-of-sharing' => array( 976, 105 ) );
+			'picked-for-you' => array( 604, 105 ), 'waiting-for-you' => array( 675, 105 ), 'lordagsmys-is-here' => array( 817, 105 ), 'family-time' => array( 477, 105 ), 'real-quality' => array( 543, 105 ), 'the-warmth-of-sharing' => array( 976, 105 ) );
 		$w    = (int) round( $size[ $key ][0] * $h / $size[ $key ][1] );
 		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-h-' . $key . '.png' ) ) . '" width="' . $w . '" height="' . (int) $h . '" alt="' . esc_attr( $alt ) . '" class="fika-t" style="display:block;width:' . $w . 'px;max-width:100%;height:auto;margin:0 auto;border:0;">';
 	}
@@ -392,6 +392,55 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			( ! $member && $g > 0 ? '<p style="' . $small . '">Sign up with this email address and your ' . $kg( $total ) . ' count straight away.</p>' : '' ) .
 			fika_wb_button( $member ? home_url( '/my-account/' ) : home_url( '/my-account/?action=register' ), $member ? 'See my rewards' : 'Join the Fika Club' );
 	}
+	// rewards a member has and has not used yet: mystery tastes won (a free 50 g line at checkout), reward codes
+	// claimed, and gifts their delivered kilos reached but not claimed yet: [ [what, how to use, product], ... ]
+	function fika_wb_waiting_list( $email ) {
+		$user = get_user_by( 'email', $email );
+		if ( ! $user || user_can( $user, 'manage_woocommerce' ) ) {
+			return array();
+		}
+		$out    = array();
+		$tastes = get_user_meta( $user->ID, 'fika_tastes', true );
+		foreach ( is_array( $tastes ) ? $tastes : array() as $t ) {
+			$pr = ! empty( $t['pid'] ) && 'won' === ( isset( $t['status'] ) ? $t['status'] : '' ) ? wc_get_product( (int) $t['pid'] ) : null;
+			if ( $pr ) {
+				$out[] = array( 'a free 50 g of ' . trim( preg_replace( array( '/^BUBS\s+/i', '/\s*\(mini\)\s*$/i' ), '', $pr->get_name() ) ), 'Fill your bag and your free 50 g is added at checkout.', $pr );
+			}
+		}
+		if ( function_exists( 'fika_swim_open_codes' ) ) {
+			foreach ( fika_swim_open_codes( $user->ID ) as $c ) {
+				$out[] = array( lcfirst( $c[1] ) . ' (' . $c[3] . ')', 'It is saved on your account: tap Use at checkout.', null );
+			}
+		}
+		if ( function_exists( 'fika_swim_unclaimed' ) && function_exists( 'fika_swim_checkpoints' ) ) {
+			$cps = fika_swim_checkpoints();
+			foreach ( fika_swim_unclaimed( $user->ID, fika_wb_delivered( $email, $user ) ) as $u ) {
+				$out[] = array( lcfirst( $cps[ $u[1] ]['title'] ) . ' (worth $' . rtrim( rtrim( number_format( $cps[ $u[1] ]['amount'], 2 ), '0' ), '.' ) . ')', 'Tap the gift on your rewards lane to claim it, then use it whenever you like.', null );
+			}
+		}
+		return $out;
+	}
+	// the "Waiting for you" box at the top of email 1 (only for members with something unused)
+	function fika_wb_waiting( $email, $name ) {
+		$list = fika_wb_waiting_list( $email );
+		if ( ! $list ) {
+			return '';
+		}
+		$first = $list[0];
+		$img   = $first[2] && $first[2]->get_image_id() ? fika_wb_photo( $first[2]->get_image_id() ) : '';
+		$items = '';
+		foreach ( $list as $w ) {
+			$items .= '<p style="margin:0 0 6px;"><b>' . str_replace( ' g ', '&nbsp;g ', esc_html( ucfirst( $w[0] ) ) ) . '</b><br><span style="color:#6c7b9c;font-size:13.5px;">' . str_replace( ' g ', '&nbsp;g ', esc_html( $w[1] ) ) . '</span></p>';
+		}
+		return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:18px 0 22px;"><tr><td class="fika-mail-box" style="background:#fff4d9;border:2px dashed #f2b84b;">' .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' .
+			( $img ? '<td width="96" valign="top" style="width:96px;padding:0;"><img src="' . esc_url( $img ) . '" width="96" alt="' . esc_attr( $first[2]->get_name() ) . '" style="display:block;width:96px;height:auto;border-radius:14px;border:0;"></td><td width="14" style="width:14px;padding:0;font-size:0;line-height:0;">&nbsp;</td>' : '' ) .
+			'<td valign="top" style="padding:0;">' .
+			'<p style="margin:0 0 8px;">' . str_replace( 'margin:0 auto;', 'margin:0;', fika_wb_head( 'waiting-for-you', 'Waiting for you', 24 ) ) . '</p>' .
+			'<p style="margin:0 0 8px;">' . esc_html( ( $name ? $name . ', you' : 'You' ) . ' still have ' . ( 1 === count( $list ) ? 'a reward' : count( $list ) . ' rewards' ) . ' on your Fika account:' ) . '</p>' .
+			$items . '</td></tr></table>' .
+			fika_wb_button( home_url( '/mix-your-own/' ), 'Use it now' ) . '</td></tr></table>';
+	}
 	// the inbox preview text for email 1: where the customer's fish is
 	function fika_wb_preheader( $email ) {
 		$user   = get_user_by( 'email', $email );
@@ -407,6 +456,10 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			}
 		}
 		$togo = $left < 1000 ? ( (int) round( $left / 50 ) * 50 ) . ' g' : rtrim( rtrim( number_format( $left / 1000, 1 ), '0' ), '.' ) . ' kg';
+		$wait = $member ? fika_wb_waiting_list( $email ) : array();
+		if ( $wait ) {
+			return ucfirst( $wait[0][0] ) . ' is waiting for you on your Fika account 🍬';
+		}
 		if ( $g > 0 && $member ) {
 			return 'Your fish is only ' . $togo . ' away from ' . $next . ' 🍬';
 		}
@@ -424,9 +477,10 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$list = fika_wb_products( $kind );
 		$hi   = $p['name'] ? 'Hi ' . esc_html( $p['name'] ) . ',' : 'Hi there,';
 		$lead = $p['last']
-			? 'It&rsquo;s been a while since your last fika! Here&rsquo;s how close your Swedish fish is to free sweets, plus ' . ( 'new' === $kind ? 'what&rsquo;s new on our candy wall.' : ( 'picked' === $kind ? 'a few treats we picked for you.' : 'the treats everyone keeps coming back for.' ) )
+			? 'It&rsquo;s been a while since your last fika! Here&rsquo;s how close your Swedish fish is to free sweets.'
 			: 'You joined Fika a while ago but haven&rsquo;t picked your first mix yet. Here&rsquo;s how our free sweets work, and what&rsquo;s on our candy wall right now.';
 		$body = '<div class="email-introduction"><p>' . $hi . '</p><p>' . $lead . '</p></div>' .
+			fika_wb_waiting( $who, $p['name'] ) .
 			fika_wb_part3( $who, $p['name'], false ) .
 			( $list ? fika_wb_divider( 's1' ) : '' ) .
 			( $list ? ( 'fav' !== $kind

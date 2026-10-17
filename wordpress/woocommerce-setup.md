@@ -1748,3 +1748,12 @@ choice). Snippet 91, fika-club.php (new):
 - Checked for the loss-aversion idea: rewards on the website do not expire (no expiry anywhere in fika-loyalty.php /
   fika-taste.php). Of the 5 due members, Riwa, Zeina and Elena hold a won-but-unused mystery taste (user meta
   fika_tastes status "won"); none holds an unused gift code. Waiting on the owner's choice before any expiry wording.
+- "Waiting for you" box (owner-approved; no expiry wording, since rewards do not expire): right after the greeting,
+  only for members with something unused - mystery tastes won (fika_tastes status "won": "A free 50 g of Sour
+  Cherries", "Fill your bag and your free 50 g is added at checkout."), claimed reward codes not used yet
+  (fika_swim_open_codes), and gifts their delivered kilos reached but not claimed (fika_swim_unclaimed). Yellow
+  dashed box, the candy photo, "Waiting for you" heading (media 1152, cute font), "Use it now" button (Mix your own).
+  Their preview text becomes "A free 50 g of Sour Cherries is waiting for you on your Fika account 🍬".
+  Of the 5 due members: Riwa, Zeina, Elena get the box.
+- Opening line shortened: "It's been a while since your last fika! Here's how close your Swedish fish is to free
+  sweets." (the "plus a few treats..." part removed).
