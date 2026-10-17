@@ -97,10 +97,10 @@ add_action( 'wp_footer', function () {
 		cloud.querySelector('h3').textContent = bag ? 'Make every gram count' : 'Join Fika Club';
 		var p = cloud.querySelector('p');
 		if (bag) {
-			p.innerHTML = 'Join Fika Club and the <b class="fkc-g"></b> in your bag starts your swim to <b>sweet rewards</b>: 100 g free at 3 kg, up to a whole kilo at 15 kg.';
+			p.innerHTML = 'Join Fika Club and the <b class="fkc-g"></b> in your bag starts your swim to <b>sweet rewards</b>: 100 g free at 3 kg, up to a whole kilogram at 15 kg.';
 			p.querySelector('.fkc-g').textContent = gtext(g);
 		} else {
-			p.innerHTML = 'Join Fika Club, it&rsquo;s free: every order fills your fish&rsquo;s lane: <b>100 g free at 3 kg, 200 g at 6 kg, 400 g at 10 kg and a whole kilo at 15 kg</b>.';
+			p.innerHTML = 'Join Fika Club, it&rsquo;s free: every order fills your fish&rsquo;s lane: <b>100 g free at 3 kg, 200 g at 6 kg, 400 g at 10 kg and a whole kilogram at 15 kg</b>.';
 		}
 	}
 	function hide(closedByUser) {
@@ -285,7 +285,7 @@ add_action( 'wp_footer', function () {
 			return '<span class="fsc-cp' + (s[3] ? ' is-spin is-left' : s[0] === LAP ? ' is-left' : '') + '" style="left:' + (s[0] / LAP * 100) + '%">' + s[1] + '<i>' + s[2] + '</i><small>' + gtext(s[0]) + '</small></span>';
 		}).join('') + '<span class="fsc-me">' + FISH + '</span></div>';
 		card.innerHTML = '<span class="fsc-tag">Free to join</span><span class="fsc-fish">' + FISH + '</span><div class="fsc-text"><b class="fsc-title"></b><div class="fsc-sub"></div>' + lane +
-			'<div class="fsc-chips"><span>🎁 100 g free at 3 kg</span><span>🎡 Free mystery taste at 1.5 kg</span><span>🏆 Up to a whole kilo free</span><span>📦 Track your orders</span></div></div>' +
+			'<div class="fsc-chips"><span>🎁 100 g free at 3 kg</span><span>🎡 Free mystery taste at 1.5 kg</span><span>🏆 Up to a whole kilogram free</span><span>📦 Track your orders</span></div></div>' +
 			'<div class="fsc-acts"><button type="button" class="fsc-go">Join free &amp; earn</button><span class="fsc-quick">Takes 10 seconds: just add a password below.</span><span class="fsc-warn">As a guest, this order won’t count.</span><span class="fsc-in">Already a member? <a class="fsc-login">Log in</a></span></div>';
 		anchor.parentNode.insertBefore(card, anchor.nextSibling);
 		card.querySelector('.fsc-go').addEventListener('click', function () {

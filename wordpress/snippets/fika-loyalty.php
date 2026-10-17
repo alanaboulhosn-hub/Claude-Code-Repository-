@@ -44,7 +44,7 @@ if ( ! function_exists( 'fika_swim_checkpoints' ) ) {
 			3000  => array( 'kg' => 3, 'prefix' => 'SWIM3', 'badge' => '100 g', 'title' => '100 g on us', 'unlock' => '100 g on us (worth $2.80)', 'text' => 'Worth $2.80 on any sweets you choose', 'co' => '$2.80 off this order', 'amount' => 2.8, 'rg' => 100 ),
 			6000  => array( 'kg' => 6, 'prefix' => 'SWIM6', 'badge' => '200 g', 'title' => '200 g on us', 'unlock' => '200 g on us (worth $5.60)', 'text' => 'Worth $5.60 on any sweets you choose', 'co' => '$5.60 off this order', 'amount' => 5.6, 'rg' => 200 ),
 			10000 => array( 'kg' => 10, 'prefix' => 'SWIM10', 'badge' => '400 g', 'title' => '400 g on us', 'unlock' => '400 g on us (worth $11.20)', 'text' => 'Worth $11.20 on any sweets you choose', 'co' => '$11.20 off this order', 'amount' => 11.2, 'rg' => 400 ),
-			15000 => array( 'kg' => 15, 'prefix' => 'SWIM15', 'badge' => '1 kg', 'title' => 'A whole kilo on us', 'unlock' => 'a whole kilo on us (worth $28)', 'text' => 'Worth $28 on any sweets you choose', 'co' => '$28 off this order', 'amount' => 28, 'rg' => 1000 ),
+			15000 => array( 'kg' => 15, 'prefix' => 'SWIM15', 'badge' => '1 kg', 'title' => 'A whole kilogram on us', 'unlock' => 'a whole kilogram on us (worth $28)', 'text' => 'Worth $28 on any sweets you choose', 'co' => '$28 off this order', 'amount' => 28, 'rg' => 1000 ),
 		);
 	}
 	function fika_swim_is_code( $code ) {

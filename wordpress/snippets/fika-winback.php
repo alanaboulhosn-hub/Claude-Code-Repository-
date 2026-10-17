@@ -320,8 +320,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			return esc_html( $name );
 		}
 		$key = sanitize_title( $name );
-		$px  = (int) round( $w[ $name ] * 22 / 111 );
-		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-r-' . $key . '.png' ) ) . '" width="' . $px . '" height="22" alt="' . esc_attr( $name ) . '" class="fika-t" style="display:block;width:' . $px . 'px;max-width:100%;height:auto;border:0;margin:0 0 3px;">';
+		// one size for all, small enough that the longest ("A whole kilogram on us") fits a phone's column
+		$px  = (int) round( $w[ $name ] * 17 / 111 );
+		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-r-' . $key . '.png' ) ) . '" width="' . $px . '" height="17" alt="' . esc_attr( $name ) . '" class="fika-t" style="display:block;width:' . $px . 'px;max-width:100%;height:auto;border:0;margin:0 0 3px;">';
 	}
 	// email 1, part 3: the Fika Club, with this customer's place on the 15 kg lane
 	function fika_wb_part3( $email, $name, $divider = true ) {

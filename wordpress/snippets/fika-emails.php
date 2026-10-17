@@ -197,7 +197,7 @@ if ( ! function_exists( 'fika_mail_copy' ) ) {
 			'customer_refunded_order'   => array( 'subject' => 'Your Fika order #{order_number} has been refunded', 'heading' => 'Your refund is on its way', 'additional_content' => 'Questions about your refund? Reply to this email or WhatsApp us on 79 411 565.' ),
 			'customer_cancelled_order'  => array( 'subject' => 'Your Fika order #{order_number} was cancelled', 'heading' => 'Your order was cancelled', 'additional_content' => 'If this is a surprise, reply to this email or WhatsApp us on 79 411 565.' ),
 			'customer_note'             => array( 'subject' => 'A note about your Fika order #{order_number}', 'heading' => 'A note about your order', 'additional_content' => '' ),
-			'customer_new_account'      => array( 'subject' => 'Welcome to Fika!', 'heading' => 'Welcome to Fika!', 'additional_content' => 'Every kilo you order now swims you closer to a free one. Follow your progress in your account.' ),
+			'customer_new_account'      => array( 'subject' => 'Welcome to Fika!', 'heading' => 'Welcome to Fika!', 'additional_content' => 'Every kilogram you order now swims you closer to a free one. Follow your progress in your account.' ),
 			'customer_reset_password'   => array( 'subject' => 'Reset your Fika password', 'heading' => 'Reset your password', 'additional_content' => 'Didn’t ask for this? You can safely ignore this email.' ),
 			'customer_verify_email'     => array( 'heading' => 'Confirm your email' ),
 			'customer_invoice'          => array( 'subject' => 'Your Fika order #{order_number}', 'heading' => 'Your order details' ),
