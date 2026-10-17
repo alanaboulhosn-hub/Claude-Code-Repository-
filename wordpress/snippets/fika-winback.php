@@ -372,7 +372,8 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		foreach ( $ladder as $r ) {
 			$done    = $r[0] <= $g;
 			$is_next = $next && $r[0] === $next[0];
-			$st      = $done ? '<span style="color:#1f7a4d;font-weight:600;">Reached &#10003;</span>' : ( $is_next ? '<span style="color:#004aad;font-weight:600;">Next</span>' : '<span style="color:#8a96b3;">' . $togo( $r[0] - $g ) . ' to go</span>' );
+			// without an account a reward reached cannot be claimed yet: it unlocks once they join with this email
+			$st      = $done ? ( $member ? '<span style="color:#1f7a4d;font-weight:600;">Reached &#10003;</span>' : '<span style="color:#d35d93;font-weight:600;white-space:normal;">Unlocks when<br>you join</span>' ) : ( $is_next ? '<span style="color:#004aad;font-weight:600;">Next</span>' : '<span style="color:#8a96b3;">' . $togo( $r[0] - $g ) . ' to go</span>' );
 			$rows   .= '<tr><td style="' . $f . 'padding:9px 0;border-bottom:1px solid #f3d3e1;width:58px;color:#004aad;font-weight:600;font-size:15px;white-space:nowrap;">' . $kg( $r[0] ) . '</td>' .
 				'<td style="' . $f . 'padding:9px 8px;border-bottom:1px solid #f3d3e1;color:#1b2a4a;font-size:15px;' . ( $is_next ? 'font-weight:600;' : '' ) . '">' . fika_wb_reward_name( $r[1] ) . '<span style="display:block;color:#6c7b9c;font-size:13px;font-weight:400;">' . esc_html( $r[2] ) . '</span></td>' .
 				'<td align="right" style="' . $f . 'padding:9px 0;border-bottom:1px solid #f3d3e1;font-size:13.5px;white-space:nowrap;">' . $st . '</td></tr>';

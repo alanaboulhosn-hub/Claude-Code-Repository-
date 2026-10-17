@@ -1743,3 +1743,8 @@ choice). Snippet 91, fika-club.php (new):
 - Preview: new box "Show it as this customer (their email)" - the preview uses that customer's name and Fika Club
   progress (fika_wb_email1( $to, $p, $as )) and still goes only to the preview address. The side-panel preview's
   "No account" example is now a real due customer without an account (4 kg), rendered for preview@example.com.
+- Customers without an account: a reward their kilos have passed reads "Unlocks when you join" (pink) instead of
+  "Reached ✓" (they cannot claim it before signing up). Of the 10 sample customers only Assil (2.4 kg) shows it.
+- Checked for the loss-aversion idea: rewards on the website do not expire (no expiry anywhere in fika-loyalty.php /
+  fika-taste.php). Of the 5 due members, Riwa, Zeina and Elena hold a won-but-unused mystery taste (user meta
+  fika_tastes status "won"); none holds an unused gift code. Waiting on the owner's choice before any expiry wording.
