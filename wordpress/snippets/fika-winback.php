@@ -595,6 +595,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			if ( is_string( $ok ) ) {
 				$st[ $email ]['coupon'] = $ok;
 			}
+			// saved after every email: if a run is cut off part-way (a stuck mail server, the PHP time limit), the
+			// ones already sent stay marked and are never sent twice
+			update_option( 'fika_winback_state', $st, false );
 			fika_wb_log( $email, '1' === $due ? 'Email 1 sent (it’s been a while)' : 'Email 2 sent (code ' . ( is_string( $ok ) ? $ok : '' ) . ')' );
 			$sent++;
 		}
