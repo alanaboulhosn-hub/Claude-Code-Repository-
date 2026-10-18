@@ -1817,3 +1817,8 @@ choice). Snippet 91, fika-club.php (new):
   60 a day (counted from the log); a mail error stops that batch. The daily action only starts the batch chain, and
   "is a batch waiting" counts pending actions only (the running batch is "in progress", which had stopped the old
   chain from planning its next batch). The 181 still due go out over about 3 days.
+- 18 Oct 13:34: the first small batch froze again after 2 emails (a 3rd customer was marked and not retried). Cause
+  is most likely Hostinger's per-mailbox sending limit (about 100 emails in any 24 hours on the free/legacy email
+  plan; order emails count too): win-back had sent 91 in 24 h. Now: at most 50 win-back emails in any 24 hours
+  (counted from the log), and a 30-second SMTP timeout on win-back sends so a held email fails instead of freezing.
+  Win-back left Off until the owner says to resume.
