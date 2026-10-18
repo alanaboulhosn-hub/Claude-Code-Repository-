@@ -1803,3 +1803,10 @@ choice). Snippet 91, fika-club.php (new):
   with claude.unsub.test@example.com: opening the link did not unsubscribe; a wrong key still says "Link not
   recognised".
 - TMP status snippet 168 ("TMP send status (Claude)") stays until the last batch is checked, then is deleted.
+
+## Win-back email 1: stuck batch (2026-10-17/18)
+- Batch 2 (17 Oct 17:03 Beirut) sent 21 emails and then hung before saving who had them; no batch 3 was scheduled.
+  The daily run on 18 Oct 13:04 re-sent to 18 of those 21, then hung again at a different point in the list (so not
+  one bad address; most likely the Hostinger SMTP server stalling after a burst, until PHP's 300 s limit ends the run).
+- Fixed: win-back switched to Off; the 21 marked as sent (71 have email 1 now, 181 still due); fika_wb_run now saves
+  the state after every email, so a run cut off part-way can never send anyone the same email twice.
