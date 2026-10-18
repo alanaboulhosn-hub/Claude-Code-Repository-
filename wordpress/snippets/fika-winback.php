@@ -8,7 +8,8 @@
  *   one use, only for their email, valid 14 days). Its button opens the shop and the code applies at checkout.
  * - Ordering again starts the cycle over. Every email has an unsubscribe link, and unsubscribed addresses never get
  *   these emails again. Shop staff accounts and test addresses (@example.com/.org/.net) are left out.
- * - Runs once a day (WooCommerce's scheduler, about 10:00 Beirut time), at most 50 emails per run.
+ * - Sends in small batches (10 emails, a few seconds apart, one batch an hour, 10:00-20:00 Beirut, at most 60 a
+ *   day), so Hostinger's mail server is never flooded; a big list goes out over a few days.
  * - Mode: "Test" sends only to the addresses listed in WP Admin; "Live" sends to everyone due; "Off" sends nothing.
  * - WP Admin > WooCommerce > Win-back emails: settings, previews, who is due, what was sent, who came back.
  * Sent with WooCommerce's email layout (the same template as the order emails).
@@ -561,7 +562,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return WC()->cart->apply_coupon( $code );
 	}
 	// the daily run
-	function fika_wb_run() {
+	function fika_wb_run( $limit = 10 ) {
 		$set = fika_wb_settings();
 		if ( 'off' === $set['mode'] ) {
 			return 0;
@@ -580,7 +581,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$st   = fika_wb_state();
 		$sent = 0;
 		foreach ( fika_wb_audience() as $email => $p ) {
-			if ( 50 <= $sent ) {
+			if ( $limit <= $sent ) {
 				break;
 			}
 			if ( 'test' === $set['mode'] ? ! in_array( $email, $test, true ) : false ) {
@@ -601,10 +602,13 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			$st[ $email ]               = isset( $st[ $email ] ) ? $st[ $email ] : array( 'base' => (int) $p['last'] );
 			$st[ $email ][ 's' . $due ] = time();
 			update_option( 'fika_winback_state', $st, false );
+			if ( $sent ) {
+				sleep( 4 ); // a short gap between emails, so the mail server is not flooded
+			}
 			$ok = fika_wb_send( $email, $p, $due );
 			if ( ! $ok ) {
 				fika_wb_log( $email, 'Email ' . $due . ' not sent (mail error), not retried' );
-				continue;
+				break; // the mail server is struggling: stop this batch, the next one tries the next people
 			}
 			if ( is_string( $ok ) ) {
 				$st[ $email ]['coupon'] = $ok;
@@ -619,22 +623,69 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	}
 }
 
-// ---------- once a day ----------
-add_action( 'fika_winback_daily', 'fika_wb_run' );
+// ---------- sending: small batches, one an hour ----------
+if ( ! function_exists( 'fika_wb_sent_today' ) ) {
+	// emails sent today (Beirut time), from the log
+	function fika_wb_sent_today() {
+		$from = ( new DateTime( 'today', new DateTimeZone( 'Asia/Beirut' ) ) )->getTimestamp();
+		$n    = 0;
+		foreach ( (array) get_option( 'fika_winback_log', array() ) as $l ) {
+			if ( (int) $l['t'] < $from ) {
+				break;
+			}
+			$n += preg_match( '/^Email \d sent/', $l['what'] ) ? 1 : 0;
+		}
+		return $n;
+	}
+	// when the next batch may go: in an hour, kept between 10:00 and 20:00 Beirut, and tomorrow at 10:00 once 60 went today
+	function fika_wb_next_slot( $full_today ) {
+		$z    = new DateTimeZone( 'Asia/Beirut' );
+		$next = new DateTime( '@' . ( time() + HOUR_IN_SECONDS ) );
+		$next->setTimezone( $z );
+		$h = (int) $next->format( 'G' );
+		if ( $full_today ) {
+			$next = new DateTime( 'tomorrow 10:00', $z ); // the day after today in Beirut
+		} elseif ( $h >= 20 ) {
+			$next->modify( 'tomorrow 10:00' );
+		} elseif ( $h < 10 ) {
+			$next->modify( 'today 10:00' );
+		}
+		return max( time() + 10 * MINUTE_IN_SECONDS, $next->getTimestamp() );
+	}
+	// a batch is waiting to go (only pending ones count: the batch that is running right now is "in progress")
+	function fika_wb_batch_pending() {
+		return function_exists( 'as_get_scheduled_actions' ) && as_get_scheduled_actions( array( 'hook' => 'fika_winback_batch', 'group' => 'fika', 'status' => 'pending', 'per_page' => 1 ), 'ids' );
+	}
+}
+add_action( 'fika_winback_batch', function () {
+	$set = fika_wb_settings();
+	if ( 'off' === $set['mode'] ) {
+		return;
+	}
+	$h    = (int) wp_date( 'G', null, new DateTimeZone( 'Asia/Beirut' ) );
+	$left = 60 - fika_wb_sent_today();
+	$open = $h >= 10 && $h < 20 && $left > 0;
+	$sent = $open ? fika_wb_run( min( 10, $left ) ) : 0;
+	// plan the next batch while people may still be due (this one sent something, or it was too early, too late or
+	// the day was full); a batch that found nobody to send to ends the chain until the next daily start
+	if ( ( $sent || ! $open ) && function_exists( 'as_schedule_single_action' ) && ! fika_wb_batch_pending() ) {
+		as_schedule_single_action( fika_wb_next_slot( fika_wb_sent_today() >= 60 ), 'fika_winback_batch', array(), 'fika' );
+	}
+} );
+// once a day: start the batches (those then keep going an hour apart while people are due)
+add_action( 'fika_winback_daily', function () {
+	if ( ! fika_wb_batch_pending() ) {
+		do_action( 'fika_winback_batch' );
+	}
+} );
 // a one-off "go live" at a set time (scheduled with Action Scheduler as fika_winback_golive): switches the mode to
-// Live and sends to everyone due in batches of 50, one batch every 30 minutes until nobody is left
+// Live and starts the batches
 add_action( 'fika_winback_golive', function () {
 	$set         = fika_wb_settings();
 	$set['mode'] = 'live';
 	update_option( 'fika_winback_settings', $set, false );
 	fika_wb_log( '-', 'Switched to Live (scheduled)' );
 	do_action( 'fika_winback_batch' );
-} );
-add_action( 'fika_winback_batch', function () {
-	$sent = fika_wb_run();
-	if ( 50 <= $sent && function_exists( 'as_schedule_single_action' ) && ! as_next_scheduled_action( 'fika_winback_batch', array(), 'fika' ) ) {
-		as_schedule_single_action( time() + 30 * MINUTE_IN_SECONDS, 'fika_winback_batch', array(), 'fika' );
-	}
 } );
 add_action( 'init', function () {
 	if ( ! function_exists( 'as_next_scheduled_action' ) || as_next_scheduled_action( 'fika_winback_daily', array(), 'fika' ) ) {
@@ -815,7 +866,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 				<label><input type="radio" name="mode" value="live" <?php checked( 'live', $set['mode'] ); ?>> <strong>Live</strong>: to every customer who is due</label><br>
 				<label><input type="radio" name="mode" value="off" <?php checked( 'off', $set['mode'] ); ?>> Off</label>
 				<?php $golive = function_exists( 'as_next_scheduled_action' ) ? as_next_scheduled_action( 'fika_winback_golive', array(), 'fika' ) : false; ?>
-				<?php if ( $golive ) : ?><p class="description" style="color:#004aad"><strong>Goes Live by itself on <?php echo esc_html( wp_date( 'j F, H:i', $golive, new DateTimeZone( 'Asia/Beirut' ) ) ); ?> Beirut time</strong>, then sends to everyone due in batches of 50 every 30 minutes.</p><?php endif; ?></td></tr>
+				<?php if ( $golive ) : ?><p class="description" style="color:#004aad"><strong>Goes Live by itself on <?php echo esc_html( wp_date( 'j F, H:i', $golive, new DateTimeZone( 'Asia/Beirut' ) ) ); ?> Beirut time</strong>, then sends to everyone due in small batches (10 an hour, 10:00-20:00, at most 60 a day).</p><?php endif; ?></td></tr>
 			<tr><th>Email 2</th><td><label><input type="checkbox" name="email2" value="1" <?php checked( ! empty( $set['email2'] ) ); ?>> Send email 2 (the personal code) as well</label><p class="description">Off: only email 1 goes out, also in Live mode. Customers who got email 1 receive email 2 once this is on and 14 days have passed.</p></td></tr>
 			<tr><th>Test addresses</th><td><textarea name="test_emails" rows="2" class="large-text"><?php echo esc_textarea( $set['test_emails'] ); ?></textarea><p class="description">Used in Test mode. One or more, separated by commas.</p></td></tr>
 			<tr><th>News (email 1)</th><td><input type="text" name="news_title" class="regular-text" value="<?php echo esc_attr( $set['news_title'] ); ?>" placeholder="Title"><br><br>

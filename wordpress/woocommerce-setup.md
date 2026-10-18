@@ -1813,3 +1813,7 @@ choice). Snippet 91, fika-club.php (new):
 - Owner's rule (18 Oct): never send anyone the same email twice; none is better than two. fika_wb_run now marks
   the email as sent and saves it BEFORE sending (a failed send is logged "not sent (mail error), not retried"), and
   only one run can go at a time (option fika_winback_lock; a lock older than 15 min, from a cut-off run, is taken over).
+- Smaller batches (18 Oct): 10 emails per batch, 4 s apart, one batch an hour between 10:00 and 20:00 Beirut, at most
+  60 a day (counted from the log); a mail error stops that batch. The daily action only starts the batch chain, and
+  "is a batch waiting" counts pending actions only (the running batch is "in progress", which had stopped the old
+  chain from planning its next batch). The 181 still due go out over about 3 days.
