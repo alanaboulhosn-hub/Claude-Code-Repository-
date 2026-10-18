@@ -566,6 +566,16 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		if ( 'off' === $set['mode'] ) {
 			return 0;
 		}
+		// one run at a time (two runs at once could both send to the same person); a lock left by a run that was cut
+		// off is taken over after 15 minutes
+		$lock = (int) get_option( 'fika_winback_lock', 0 );
+		if ( $lock && time() - $lock < 15 * MINUTE_IN_SECONDS ) {
+			return 0;
+		}
+		delete_option( 'fika_winback_lock' );
+		if ( ! add_option( 'fika_winback_lock', time(), '', false ) ) {
+			return 0;
+		}
 		$test = array_filter( array_map( 'strtolower', array_map( 'trim', preg_split( '/[\s,;]+/', (string) $set['test_emails'] ) ) ) );
 		$st   = fika_wb_state();
 		$sent = 0;
@@ -586,22 +596,25 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			if ( ! $due || ( '2' === $due && empty( $set['email2'] ) ) ) {
 				continue;
 			}
-			$ok = fika_wb_send( $email, $p, $due );
-			if ( ! $ok ) {
-				continue;
-			}
+			// never twice, even at the cost of none: the email is marked as sent (and saved) BEFORE it goes out, so a run
+			// cut off part-way (a stuck mail server, the PHP time limit) or a send that fails is never sent again
 			$st[ $email ]               = isset( $st[ $email ] ) ? $st[ $email ] : array( 'base' => (int) $p['last'] );
 			$st[ $email ][ 's' . $due ] = time();
+			update_option( 'fika_winback_state', $st, false );
+			$ok = fika_wb_send( $email, $p, $due );
+			if ( ! $ok ) {
+				fika_wb_log( $email, 'Email ' . $due . ' not sent (mail error), not retried' );
+				continue;
+			}
 			if ( is_string( $ok ) ) {
 				$st[ $email ]['coupon'] = $ok;
+				update_option( 'fika_winback_state', $st, false );
 			}
-			// saved after every email: if a run is cut off part-way (a stuck mail server, the PHP time limit), the
-			// ones already sent stay marked and are never sent twice
-			update_option( 'fika_winback_state', $st, false );
 			fika_wb_log( $email, '1' === $due ? 'Email 1 sent (it’s been a while)' : 'Email 2 sent (code ' . ( is_string( $ok ) ? $ok : '' ) . ')' );
 			$sent++;
 		}
 		update_option( 'fika_winback_state', $st, false );
+		delete_option( 'fika_winback_lock' );
 		return $sent;
 	}
 }

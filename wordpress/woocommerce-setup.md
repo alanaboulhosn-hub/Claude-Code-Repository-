@@ -1810,3 +1810,6 @@ choice). Snippet 91, fika-club.php (new):
   one bad address; most likely the Hostinger SMTP server stalling after a burst, until PHP's 300 s limit ends the run).
 - Fixed: win-back switched to Off; the 21 marked as sent (71 have email 1 now, 181 still due); fika_wb_run now saves
   the state after every email, so a run cut off part-way can never send anyone the same email twice.
+- Owner's rule (18 Oct): never send anyone the same email twice; none is better than two. fika_wb_run now marks
+  the email as sent and saves it BEFORE sending (a failed send is logged "not sent (mail error), not retried"), and
+  only one run can go at a time (option fika_winback_lock; a lock older than 15 min, from a cut-off run, is taken over).

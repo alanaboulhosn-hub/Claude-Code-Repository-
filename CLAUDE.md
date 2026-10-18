@@ -16,6 +16,9 @@
   - anything in the Hostinger account outside the WordPress install.
 - Test data (customers, orders, coupons) uses @example.com addresses and the note
   "TEST ORDER (Claude ... test) - safe to delete", and is deleted after each test.
+- **Never send a customer the same email twice.** The owner would rather a customer gets no email than two. Any
+  sending code marks the email as sent before it goes out (a failed or cut-off send is not retried), runs one at a
+  time, and a stopped send is never restarted until it is clear who already got it.
 - **Email changes:** after any change to an email, show the owner the whole email (rendered from the shop's real
   email code, never sent), not just the part that changed: republish the "Fika Win-back Email" artifact
   (https://claude.ai/artifact/VtpguUmXoMcStVCDV1ZwHr, phone / computer switch) and open it in the side panel.
