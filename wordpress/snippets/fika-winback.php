@@ -48,8 +48,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$t = get_option( 'fika_winback_trace', array() );
 		$t = is_array( $t ) ? $t : array();
 		if ( $new ) {
-			$last = empty( $t['steps'] ) ? '' : (string) end( $t['steps'] )[1];
-			if ( $last && 0 !== strpos( $last, 'done:' ) ) {
+			// (the closing QUIT can come after "done", so look for "done" anywhere in the steps)
+			$done = ! empty( array_filter( empty( $t['steps'] ) ? array() : $t['steps'], function ( $x ) { return 0 === strpos( (string) $x[1], 'done:' ); } ) );
+			if ( ! empty( $t['steps'] ) && ! $done ) {
 				$stuck = get_option( 'fika_winback_trace_stuck', array() );
 				$stuck = array_slice( array_merge( array( $t ), is_array( $stuck ) ? $stuck : array() ), 0, 5 );
 				update_option( 'fika_winback_trace_stuck', $stuck, false );
