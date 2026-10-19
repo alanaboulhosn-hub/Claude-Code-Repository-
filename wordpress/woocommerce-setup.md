@@ -1826,3 +1826,9 @@ choice). Snippet 91, fika-club.php (new):
   30 s mail timeout did not end it). That customer stays marked (never retried). Fix: each batch now plans the next
   one BEFORE it sends, so a cut-off run no longer stops the chain; a batch that finds nobody due ends it.
   Two orders already came back after email 1 (#1539, #1540, 19 Oct).
+- Why the 30 s timeout did not help: PHPMailer's SMTP Timelimit (wait for the server's answer) stays at 300 s;
+  only Timeout (connect / each read) was 30. Now both are 30 s for win-back sends. Each send also records its steps
+  with the mail server (option fika_winback_trace; a send that never reached "done" is kept in
+  fika_winback_trace_stuck, the last 5), using PHPMailer's debug output filtered to commands and answers (no login
+  lines, no email content). Checked with a send to an @example.com address, which Hostinger refuses at the end of
+  DATA (nothing delivered): all steps recorded in 0.6 s.

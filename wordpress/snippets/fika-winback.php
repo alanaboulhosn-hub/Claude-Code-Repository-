@@ -42,6 +42,23 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		array_unshift( $log, array( 't' => time(), 'email' => $email, 'what' => $what ) );
 		update_option( 'fika_winback_log', array_slice( $log, 0, 200 ), false );
 	}
+	// the steps of the email being sent (who, then each step with the time). A trace that never reached "done" (a
+	// send that froze) is kept in fika_winback_trace_stuck (the last 5), so the last step shows where it froze
+	function fika_wb_trace( $email, $step, $new = false ) {
+		$t = get_option( 'fika_winback_trace', array() );
+		$t = is_array( $t ) ? $t : array();
+		if ( $new ) {
+			$last = empty( $t['steps'] ) ? '' : (string) end( $t['steps'] )[1];
+			if ( $last && 0 !== strpos( $last, 'done:' ) ) {
+				$stuck = get_option( 'fika_winback_trace_stuck', array() );
+				$stuck = array_slice( array_merge( array( $t ), is_array( $stuck ) ? $stuck : array() ), 0, 5 );
+				update_option( 'fika_winback_trace_stuck', $stuck, false );
+			}
+			$t = array( 'who' => substr( md5( strtolower( $email ) ), 0, 6 ), 'steps' => array() );
+		}
+		$t['steps'][] = array( round( microtime( true ), 2 ), $step );
+		update_option( 'fika_winback_trace', $t, false );
+	}
 	function fika_wb_stopped( $email ) {
 		$stop = get_option( 'fika_marketing_stop', array() );
 		return is_array( $stop ) ? in_array( md5( strtolower( $email ) ), $stop, true ) : false;
@@ -546,14 +563,26 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		} else {
 			list( $subject, $html ) = fika_wb_email1( $email, $p );
 		}
-		// a mail server that stops answering (Hostinger holds mail once the mailbox's daily limit is reached) fails
-		// this email after 30 seconds instead of freezing the whole run
+		// a mail server that stops answering fails this email after 30 seconds instead of freezing the whole run:
+		// Timeout covers connecting and each read, Timelimit the wait for an answer (PHPMailer's default is 300 s,
+		// which is why a held email used to freeze the run until the PHP time limit ended it)
+		fika_wb_trace( $email, 'start', true );
 		$short = function ( $m ) {
 			$m->Timeout = 30;
+			$m->getSMTPInstance()->Timelimit = 30;
+			// each step of the conversation with the mail server goes into the trace (not the email's own lines)
+			$m->SMTPDebug   = 3;
+			$m->Debugoutput = function ( $line ) {
+				$line = trim( preg_replace( '/\s+/', ' ', (string) $line ) );
+				if ( preg_match( '/^(SERVER -> CLIENT|Connection:|SMTP|CLIENT -> SERVER: (EHLO|STARTTLS|AUTH|MAIL|RCPT|DATA|QUIT|\.$))/', $line ) ) {
+					fika_wb_trace( '', preg_replace( '/^(CLIENT -> SERVER: AUTH \S+).*/', '$1 ...', substr( $line, 0, 160 ) ) );
+				}
+			};
 		};
 		add_action( 'phpmailer_init', $short, 999 );
 		$ok = WC()->mailer()->send( $email, $subject, $html );
 		remove_action( 'phpmailer_init', $short, 999 );
+		fika_wb_trace( '', $ok ? 'done: sent' : 'done: mail error' );
 		return $ok ? ( isset( $code ) ? $code : true ) : false;
 	}
 	// a personal code (tied to one email): fill in that email for the shopper, then add the code
