@@ -1832,3 +1832,10 @@ choice). Snippet 91, fika-club.php (new):
   fika_winback_trace_stuck, the last 5), using PHPMailer's debug output filtered to commands and answers (no login
   lines, no email content). Checked with a send to an @example.com address, which Hostinger refuses at the end of
   DATA (nothing delivered): all steps recorded in 0.6 s.
+- 19 Oct 2026: RT export of 19 Oct 17:12 (502 parcels) applied the same way (fika_rtd_apply, RT column + order note,
+  no emails; temporary endpoint deleted). Matching: tracking already on the order, then phone + cash, and #1514 by
+  name + phone (RT cash $27.80, order $27.40). 38 status changes: 35 processing -> completed (completed time = export
+  time), #1461 and #1473 -> failed (RT: Cancel), #1529 -> failed (RT: Delivery failed). RT step updated on 12 open
+  orders (#1507, #1522, #1531-#1540; #1532 "Return to warehouse"). #1530 is linked to RTL18444083 ($0 parcel); RT
+  also has RTL74930512 ($27.40, delivered) for the same customer. Cancelled #1148, #1151, #1284 left alone; parcels
+  not from the website ignored.
