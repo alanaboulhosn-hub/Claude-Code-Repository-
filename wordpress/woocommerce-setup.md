@@ -1822,3 +1822,7 @@ choice). Snippet 91, fika-club.php (new):
   plan; order emails count too): win-back had sent 91 in 24 h. Now: at most 50 win-back emails in any 24 hours
   (counted from the log), and a 30-second SMTP timeout on win-back sends so a held email fails instead of freezing.
   Win-back left Off until the owner says to resume.
+- 19 Oct 17:11: a batch froze again on its 2nd email (only 41 sent in 24 h, so not only the mailbox limit; the
+  30 s mail timeout did not end it). That customer stays marked (never retried). Fix: each batch now plans the next
+  one BEFORE it sends, so a cut-off run no longer stops the chain; a batch that finds nobody due ends it.
+  Two orders already came back after email 1 (#1539, #1540, 19 Oct).

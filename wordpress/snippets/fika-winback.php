@@ -670,11 +670,15 @@ add_action( 'fika_winback_batch', function () {
 	$h    = (int) wp_date( 'G', null, new DateTimeZone( 'Asia/Beirut' ) );
 	$left = 50 - fika_wb_sent_24h();
 	$open = $h >= 10 && $h < 20 && $left > 0;
-	$sent = $open ? fika_wb_run( min( 10, $left ) ) : 0;
-	// plan the next batch while people may still be due (this one sent something, or it was too early, too late or
-	// the last 24 hours were full); a batch that found nobody to send to ends the chain until the next daily start
-	if ( ( $sent || ! $open ) && function_exists( 'as_schedule_single_action' ) && ! fika_wb_batch_pending() ) {
+	// the next batch is planned BEFORE this one sends, so a run cut off part-way (a mail server that stops
+	// answering, the PHP time limit) does not stop the chain
+	if ( function_exists( 'as_schedule_single_action' ) && ! fika_wb_batch_pending() ) {
 		as_schedule_single_action( fika_wb_next_slot(), 'fika_winback_batch', array(), 'fika' );
+	}
+	$sent = $open ? fika_wb_run( min( 10, $left ) ) : 0;
+	// a batch that could send but found nobody due ends the chain until the next daily start
+	if ( $open && ! $sent && function_exists( 'as_unschedule_all_actions' ) ) {
+		as_unschedule_all_actions( 'fika_winback_batch', array(), 'fika' );
 	}
 } );
 // once a day: start the batches (those then keep going an hour apart while people are due)
