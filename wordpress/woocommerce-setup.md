@@ -1245,6 +1245,13 @@ Owner's rule: once per person, existing customers included. Snippet 9 (fika-exit
 - 20 Oct 2026, at the owner's request: review clip 2 (fika-review-2, the @guide.lb video) removed the same way (live
   page matched git first). 3 clips now (3, 4, 5); carousel, dots and arrows checked on phone and desktop, no errors.
   Clip 2 also stays in the Media Library, unlinked.
+- 20 Oct 2026: new clip 6 (owner's "swedish candy taste test" video, 2:34) added second, after the @racil clip 3
+  (owner's choice): 33 s made of 0:15.5-0:37 (bag on the lap, opening it, the first sweets) + 0.4 s fade + 2:04.5-2:16.5
+  (later tasting, a sweet held up to the camera), both ends on pauses in the talking, audio/video fades. Same format as
+  the others (H.264 Main 576x1024, 780 kb/s 2-pass, AAC 96k, faststart, 3.7 MB); poster = the frame where the bag reads
+  FIKA (it is held backwards, mirrored, in other moments). Media 1164 (mp4) + 1165 (jpg); copies in
+  wordpress/pages/media/reviews/. Previewed in an artifact first. Order now 3, 6, 4, 5; checked on phone and desktop:
+  4 clips, 4 dots, arrows, no errors.
 
 ## Fika Club: email code at checkout + welcome popup (2026-10-09)
 
