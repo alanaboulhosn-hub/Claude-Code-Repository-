@@ -1242,6 +1242,9 @@ Owner's rule: once per person, existing customers included. Snippet 9 (fika-exit
   carousel: REVIEW_CLIPS in build-shop-pages.py, then page 41 rebuilt and published (live copy matched git first).
   The carousel, dots and arrows work with 4 clips on phone and desktop.
 - The clip and its poster are still in the Media Library (and wordpress/pages/media/reviews/); nothing links to them.
+- 20 Oct 2026, at the owner's request: review clip 2 (fika-review-2, the @guide.lb video) removed the same way (live
+  page matched git first). 3 clips now (3, 4, 5); carousel, dots and arrows checked on phone and desktop, no errors.
+  Clip 2 also stays in the Media Library, unlinked.
 
 ## Fika Club: email code at checkout + welcome popup (2026-10-09)
 
