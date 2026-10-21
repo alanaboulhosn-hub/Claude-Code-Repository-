@@ -1849,3 +1849,10 @@ choice). Snippet 91, fika-club.php (new):
   orders (#1507, #1522, #1531-#1540; #1532 "Return to warehouse"). #1530 is linked to RTL18444083 ($0 parcel); RT
   also has RTL74930512 ($27.40, delivered) for the same customer. Cancelled #1148, #1151, #1284 left alone; parcels
   not from the website ignored.
+- 21 Oct 2026: cause of the frozen batches found. Every failed batch (7, 17-21 Oct) had been started by Action
+  Scheduler "via Async Request"; every batch started "via WP Cron" finished. The async request is a loopback HTTP
+  call the web server (LiteSpeed) ends part-way (no "noabort" for it). The 21 Oct 16:34 trace proves it was not the
+  mail server: the 2nd email was accepted ("250 queued"), the 3rd customer was marked, and the run died before that
+  email was even built. Fix: fika_winback_batch sends only when wp_doing_cron(); a run started any other way plans
+  the batch again a minute later. The customers marked in a frozen batch (5 since mark-before-send) did not get the
+  email (at least the last one provably not); they are not retried (owner's rule).

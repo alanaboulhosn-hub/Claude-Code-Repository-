@@ -697,6 +697,15 @@ add_action( 'fika_winback_batch', function () {
 	if ( 'off' === $set['mode'] ) {
 		return;
 	}
+	// sends only from WordPress's own cron (wp-cron.php). WooCommerce's scheduler sometimes runs a job through an
+	// "async request" instead, and the web server ends that request part-way (every frozen batch, 17-21 Oct, had
+	// started that way; every batch run from cron finished). Such a run just plans the batch again in a minute
+	if ( ! wp_doing_cron() ) {
+		if ( function_exists( 'as_schedule_single_action' ) && ! fika_wb_batch_pending() ) {
+			as_schedule_single_action( time() + MINUTE_IN_SECONDS, 'fika_winback_batch', array(), 'fika' );
+		}
+		return;
+	}
 	$h    = (int) wp_date( 'G', null, new DateTimeZone( 'Asia/Beirut' ) );
 	$left = 50 - fika_wb_sent_24h();
 	$open = $h >= 10 && $h < 20 && $left > 0;
