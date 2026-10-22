@@ -1856,3 +1856,19 @@ choice). Snippet 91, fika-club.php (new):
   email was even built. Fix: fika_winback_batch sends only when wp_doing_cron(); a run started any other way plans
   the batch again a minute later. The customers marked in a frozen batch (5 since mark-before-send) did not get the
   email (at least the last one provably not); they are not retried (owner's rule).
+
+## Skeptical-buyer fixes (2026-10-22)
+- Banner (synced pattern head, 239): "Order by 5 pm: delivered tomorrow in Beirut, in 2 days across Lebanon · Cash on
+  delivery · Freshly sealed Swedish sweets" instead of the Nabatieh notice (which moved to checkout; the FAQ keeps it).
+- Snippet 182 "Fika: product list in the page" (fika-products-inline.php): the Store API product list is written into
+  every shop page as window.fikaProductsData (transient fika_products_json, 12 h; cleared + LiteSpeed purge on a
+  product save, stock-status change or trash). window.fikaProducts() in pattern 239 uses it, else fetches as before.
+  Grids list the sweets ~20 ms after the page is ready instead of ~330 ms (more on slow phones; the Store API call
+  alone took ~2 s cold).
+- Snippet 183 "Fika: delivery date at checkout" (fika-delivery-estimate.php): expected delivery above the Place order
+  row (owner's rule: Beirut next day before 17:00 Beirut, 2 days from 17:00; outside 2 / 3 days; Sundays skipped like
+  the Delivery column), both dates until an area is picked; "We can't deliver to Nabatieh and bordering cities for
+  now." under the delivery area; the country field hidden (Lebanon is preset).
+- About (page 257): "every kilogram swims you closer to free sweets".
+- Previewed first by rewriting the live pages in a test browser only (Playwright route), then made live; the live
+  copies matched git before they were replaced.
