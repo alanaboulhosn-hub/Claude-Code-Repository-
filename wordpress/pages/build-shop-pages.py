@@ -31,6 +31,10 @@ head = L(2, 289)
 photo_line = lines[39]
 assert photo_line.lstrip().startswith('background: var(--fika-pink) url(data:image/jpeg;base64,'), 'hero photo line moved'
 head = head.replace(photo_line + '\n', '', 1)
+# the banner says why to order now; the Nabatieh notice moved to the delivery area at checkout (fika-delivery-estimate.php)
+BANNER_OLD = 'Due to unforeseen regional circumstances, we are unable to deliver to Nabatieh and bordering cities.'
+assert head.count(BANNER_OLD) == 1, 'banner'
+head = head.replace(BANNER_OLD, 'Order by 5 pm: delivered tomorrow in Beirut, in 2 days across Lebanon &middot; Cash on delivery &middot; Freshly sealed Swedish sweets', 1)
 
 # ---------- home-only: hero + skull eyes (+ the hero photo, which only the home page needs) ----------
 # the photo is a file (media 274, a smaller copy 275 for phones) instead of being pasted into the page: lighter and cached
@@ -786,7 +790,7 @@ html.fika-about-page #shop, html.fika-about-page #rmPage { display: none !import
       <h2 class="fika-h2">How it works</h2>
       <div class="fa-steps">
         <div class="fa-step"><h3>Pick your sweets</h3><p><a href="/mix-your-own/">Mix your own</a> from <span class="fk-n">28</span> candies at $2.80 per 100 g, or choose a 500 g <a href="/ready-mix/">Ready Mix</a> bag for $14.</p></div>
-        <div class="fa-step"><h3>Check out</h3><p>Pick your delivery area and pay in cash when your sweets arrive. Join Fika Club and every kilo swims you closer to a free one.</p></div>
+        <div class="fa-step"><h3>Check out</h3><p>Pick your delivery area and pay in cash when your sweets arrive. Join Fika Club and every kilogram swims you closer to free sweets.</p></div>
         <div class="fa-step"><h3>Enjoy your fika</h3><p>We deliver all over Lebanon (except Nabatieh and bordering cities), Monday to Saturday.</p></div>
       </div>
     </div>
@@ -995,8 +999,10 @@ for k in ('mix', 'foot'):
 OLD_URL = '/wp-json/wc/store/v1/products?per_page=100&orderby=menu_order&order=asc'
 PRODUCTS_URL = OLD_URL + '&catalog_visibility=catalog'
 head += "\n" + r"""<script>
+// the product list comes written into the page (window.fikaProductsData, snippet fika-products-inline.php), so the
+// grids draw at once; without it (an old cached page) it is fetched as before
 window.fikaProducts = function () {
-  if (!window.fikaProductsP) window.fikaProductsP = fetch('URL', { credentials: 'same-origin' });
+  if (!window.fikaProductsP) window.fikaProductsP = window.fikaProductsData ? Promise.resolve(new Response(JSON.stringify(window.fikaProductsData), { headers: { 'Content-Type': 'application/json' } })) : fetch('URL', { credentials: 'same-origin' });
   return window.fikaProductsP.then(function (r) { return r.clone(); });
 };
 </script>""".replace('URL', PRODUCTS_URL)
