@@ -1886,5 +1886,14 @@ choice). Snippet 91, fika-club.php (new):
   D (projected stock) = stock at count - sold since count instead of minus the forecast; nightly trigger 00:30 Beirut.
   nightly(): rewrites the last 7 days, then one Stock Log row per candy (Source "nightly orders").
 - Name mapping agreed with the owner: Fizzy Blue = FIZZYPOP BLUE 6 KG LÖSVIKT, Fizzy Pop = Bubbliz Original.
-- Preview from real orders 2026-10-09..22: 88 orders, 104 kg, all 31 candies matched; Ready Mix 21 kg unsplit.
+- Preview from real orders 2026-10-09..22: 88 orders, 82.55 kg, all 31 candies matched; Ready Mix 21 kg unsplit.
+- Tested offline (wordpress/google-sheet/test/): the snippet on the real orders matches the preview row for row; edge
+  cases (refunds, 23:50 / 00:10, test / failed / cancelled, mystery taste, unmapped candy, a mix split) right; the .gs
+  on a copy of FIKA recalculated in LibreOffice: setup 247 rows, nightly adds the new days, a second run the same
+  night changes nothing, Cola N 0.5 -> E 31.265 to 30.765 and Inventory System D the same, no new error cells, wrong
+  key = error (Google emails the owner). Google-style requests reach WordPress through the CDN; 3 tries 20 s apart.
+- Go live (owner's word): fill FIKA_DS_MIXES (grams of each candy per 500 g bag, product ids), re-run the tests, then
+  WORK=<scratch> wordpress/google-sheet/golive.sh (installs with POST, checks the link, writes the owner's script
+  with the key), send that file, owner follows wordpress/google-sheet/README.md, then read the sheet to confirm.
+- FIZZYPOP BLUE has no Est. Quant., so it gets no nightly Stock Log row (Inventory System D still subtracts its sales).
 - Inventory E25 (FIZZYPOP BLUE) has no formula; setup leaves it, so the Inventory System flags it "Est. Quant. blank".

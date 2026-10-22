@@ -25,15 +25,19 @@ function fikaDay_(n) {
   return Utilities.formatDate(new Date(Date.now() - n * 864e5), TZ, 'yyyy-MM-dd');
 }
 
+// up to 3 tries, 20 s apart (the site's bot check can turn a request away)
 function fikaFetch_(from, to) {
-  var res = UrlFetchApp.fetch(SHOP_URL + '?from=' + from + '&to=' + to, {
-    headers: { 'X-Fika-Key': SHOP_KEY },
-    muteHttpExceptions: true
-  });
-  if (res.getResponseCode() !== 200) {
-    throw new Error('Shop answered ' + res.getResponseCode() + ': ' + res.getContentText().slice(0, 300));
+  var res;
+  for (var i = 0; i < 3; i++) {
+    if (i) Utilities.sleep(20000);
+    res = UrlFetchApp.fetch(SHOP_URL + '?from=' + from + '&to=' + to, {
+      headers: { 'X-Fika-Key': SHOP_KEY },
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() === 200) return JSON.parse(res.getContentText()).rows;
+    if (res.getResponseCode() === 401 || res.getResponseCode() === 403) break; // wrong key: trying again won't help
   }
-  return JSON.parse(res.getContentText()).rows;
+  throw new Error('Shop answered ' + res.getResponseCode() + ': ' + res.getContentText().slice(0, 300));
 }
 
 // rewrite the days from..to (YYYY-MM-DD) on the Daily Sales tab

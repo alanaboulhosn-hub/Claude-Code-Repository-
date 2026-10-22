@@ -1,0 +1,12 @@
+[
+ {"id":1,"status":"processing","date_created":"2026-10-23T23:50:00","customer_note":"","refunded":{"11":-1},"line_items":[
+   {"id":10,"product_id":124,"quantity":3,"meta_data":[]},
+   {"id":11,"product_id":120,"quantity":2,"meta_data":[]},
+   {"id":12,"product_id":94,"quantity":2,"meta_data":[]},
+   {"id":13,"product_id":121,"quantity":1,"meta_data":[{"key":"_fika_taste","value":"1500"}]}]},
+ {"id":2,"status":"completed","date_created":"2026-10-24T00:10:00","customer_note":"","line_items":[{"id":20,"product_id":124,"quantity":1,"meta_data":[]},{"id":21,"product_id":999,"quantity":2,"meta_data":[]}]},
+ {"id":3,"status":"processing","date_created":"2026-10-23T12:00:00","customer_note":"TEST ORDER (Claude x test) - safe to delete","line_items":[{"id":30,"product_id":124,"quantity":5,"meta_data":[]}]},
+ {"id":4,"status":"failed","date_created":"2026-10-23T12:00:00","customer_note":"","line_items":[{"id":40,"product_id":124,"quantity":5,"meta_data":[]}]},
+ {"id":5,"status":"cancelled","date_created":"2026-10-23T12:00:00","customer_note":"","line_items":[{"id":50,"product_id":124,"quantity":5,"meta_data":[]}]},
+ {"id":6,"status":"on-hold","date_created":"2026-10-23T09:00:00","customer_note":"","line_items":[{"id":60,"product_id":124,"quantity":1,"meta_data":[]},{"id":61,"product_id":96,"quantity":1,"meta_data":[]}]}
+]
