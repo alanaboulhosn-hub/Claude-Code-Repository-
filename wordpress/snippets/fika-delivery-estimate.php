@@ -4,7 +4,7 @@
  * - Owner's rule, from the time the order is placed (Beirut time): Inside Beirut, before 5 pm -> the next day,
  *   from 5 pm -> in 2 days. Outside Beirut, before 5 pm -> in 2 days, from 5 pm -> in 3 days. Sundays are skipped
  *   (RT delivers Monday to Saturday), the same rule as the "Delivery" column in WooCommerce > Orders.
- * - Shown above the Place order button: the date for the chosen delivery area, or both dates until one is picked.
+ * - Shown just above the row with the Place order button: the date for the chosen delivery area, or both dates until one is picked.
  * - Under the delivery area: "We can't deliver to Nabatieh and bordering cities for now." (it used to scroll in the
  *   banner on every page).
  * - The country field is hidden: the shop delivers only in Lebanon, which it is set to already (fika-checkout.php).
@@ -47,21 +47,23 @@ add_action( 'wp_footer', function () {
 		return s ? s.value : '';
 	}
 	function draw() {
-		var btn = document.querySelector('.wc-block-components-checkout-place-order-button');
-		if (btn) {
+		// a full-width box just above the row with the Place order button
+		var row = document.querySelector('.wc-block-checkout__actions_row');
+		if (row) {
 			var box = document.getElementById('fika-eta');
-			if (!box) {
+			if (!box || box.nextElementSibling !== row) {
+				if (box) { box.remove(); }
 				box = document.createElement('div');
 				box.id = 'fika-eta';
 				box.className = 'fika-eta';
 				box.setAttribute('aria-live', 'polite');
-				btn.parentNode.insertBefore(box, btn);
+				row.parentNode.insertBefore(box, row);
 			}
 			var a = area(), late = beirut().hour >= 17;
 			var html = a === 'BA' || a === 'OB'
 				? '<b>Expected delivery: ' + due(a) + '</b>'
 				: '<b>Expected delivery</b><br>Inside Beirut: ' + due('BA') + '<br>Outside Beirut: ' + due('OB');
-			html += '<small>' + (late ? 'Ordered after 5 pm, so it leaves with tomorrow’s deliveries.' : 'Order before 5 pm for this date.') + ' No deliveries on Sundays.</small>';
+			html += '<small>' + (late ? 'Orders placed after 5 pm arrive a day later.' : 'For orders placed before 5 pm; after 5 pm it is a day later.') + ' No deliveries on Sundays.</small>';
 			if (box.innerHTML !== html) { box.innerHTML = html; }
 		}
 		var sel = document.querySelector('#shipping-state, #billing-state');
