@@ -1872,3 +1872,19 @@ choice). Snippet 91, fika-club.php (new):
 - About (page 257): "every kilogram swims you closer to free sweets".
 - Previewed first by rewriting the live pages in a test browser only (Playwright route), then made live; the live
   copies matched git before they were replaced.
+
+## Nightly candy sales into the FIKA Google Sheet (2026-10-22, not live yet)
+
+- Shop side: snippet "Fika: daily candy sales for the FIKA sheet" (wordpress/snippets/fika-daily-sales.php).
+  GET /wp-json/fika/v1/daily-sales?from=&to= (Beirut days, header X-Fika-Key) answers kg per candy per day under the
+  Inventory tab's names. Counting: processing / on hold / completed, no TEST ORDER, 100 g per unit, mystery taste 50 g,
+  refunded units off. Ready Mix stays its own line ("Ready Mix: <name>") until FIKA_DS_MIXES holds each bag's contents.
+  The key is option fika_ds_key; admins read it at /wp-json/fika/v1/daily-sales-key. Never commit it.
+- Sheet side: wordpress/google-sheet/fika-daily-sales.gs, pasted into FIKA > Extensions > Apps Script with the key.
+  setup() once: Daily Sales tab (Date | Candy | Sold (kg) | Orders) filled from 2026-10-09; Inventory N "Sold since
+  count" (orders after the candy's count date: Inventory System Q, else B8); Inventory E = C + D - N; Inventory System
+  D (projected stock) = stock at count - sold since count instead of minus the forecast; nightly trigger 00:30 Beirut.
+  nightly(): rewrites the last 7 days, then one Stock Log row per candy (Source "nightly orders").
+- Name mapping agreed with the owner: Fizzy Blue = FIZZYPOP BLUE 6 KG LÖSVIKT, Fizzy Pop = Bubbliz Original.
+- Preview from real orders 2026-10-09..22: 88 orders, 104 kg, all 31 candies matched; Ready Mix 21 kg unsplit.
+- Inventory E25 (FIZZYPOP BLUE) has no formula; setup leaves it, so the Inventory System flags it "Est. Quant. blank".
