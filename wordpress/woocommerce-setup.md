@@ -1930,3 +1930,9 @@ choice). Snippet 91, fika-club.php (new):
   fredagsmys fits right in"; "make Friday night the sweetest night of the week"; "Build your Friday bowl". The delivery
   line "Monday to Saturday" stays. Live page 257 matched git before the change.
 - Still says lördagsmys: the win-back email (fika-winback.php: "Lördagsmys is here" block, "Family time" text).
+- 2026-10-23 win-back email: Fredagsmys instead of Lördagsmys. Code (snippet 35, POST, live = git): defaults
+  "Fredagsmys is here" / "Make Friday night the sweetest night of the week: ...", "Family time" now "Friday evening ...
+  In Sweden it is called fredagsmys ...", heading picture fika-email-h-fredagsmys-is-here.png (media 1175, 817 x 104,
+  drawn like the others). Saved settings (option fika_winback_settings) news_title / news_text changed by a temporary
+  admin route (removed). At the change: mode live, no batch pending, lock free, next daily run 2026-10-24 08:55 UTC.
+  Whole email shown in the "Fika Win-back Email" artifact (10 real customers, rendered by the shop's code, not sent).
