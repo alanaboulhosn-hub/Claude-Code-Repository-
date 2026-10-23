@@ -1920,3 +1920,13 @@ choice). Snippet 91, fika-club.php (new):
 - Noticed, not changed: the My account page says "Every kilo you order" (owner rule: kilogram).
 
 - Fixed in wordpress/google-sheet/golive.sh: the app password has spaces, so curl gets it as one quoted -u argument.
+
+## About page: Lördagsmys -> Fredagsmys (2026-10-23, in git, not live yet)
+
+- Owner: the section should be about fredagsmys (Friday), not lördagsmys. Changed in about-us.raw.html and
+  build-shop-pages.py: heading "Fredagsmys, now in Lebanon"; "Fredagsmys (say "fray-dahgs-mees") means "Friday
+  cosiness""; "When Friday evening comes ... after the week"; the Saturday-sweets sentence replaced with "All over
+  Sweden, Friday night means the sofa, a film and a bowl of sweets, and the whole week builds up to it."; "We think
+  fredagsmys fits right in"; "make Friday night the sweetest night of the week"; "Build your Friday bowl". The delivery
+  line "Monday to Saturday" stays. Live page 257 matched git before the change.
+- Still says lördagsmys: the win-back email (fika-winback.php: "Lördagsmys is here" block, "Family time" text).
