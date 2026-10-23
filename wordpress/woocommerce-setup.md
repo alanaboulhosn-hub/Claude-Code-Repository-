@@ -1910,4 +1910,9 @@ choice). Snippet 91, fika-club.php (new):
   activation (option fika_hw_live = version) and by the one-off cron event fika_hw_ended at the end.
 - Tested in a test browser (HTML rewritten, nothing live): home, Mix your own, Ready Mix, About, My account, phone
   and desktop; add to bag, the bag drawer, checkout via the bag's button, cart, phone menu: no page errors, no order.
+- Every fish SVG (identified by its tail path 'M62 38 L90 22': rewards lane, sign-up card, Fika Club card and pop-up)
+  is swapped for a spider, also when added later (MutationObserver). Cursor: jack-o'-lantern PNGs in
+  wordpress/cursor/halloween (draw.py), lit + tilted over links; the fish bite on click is hidden.
+- Off / on in one click: "Halloween look" in the WP admin top bar (option fika_hw_off, nonce, admins only, purges
+  LiteSpeed). Switching the snippet off removes it entirely; the normal site underneath is never changed.
 - Noticed, not changed: the My account page says "Every kilo you order" (owner rule: kilogram).
