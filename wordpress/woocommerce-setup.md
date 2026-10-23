@@ -1898,7 +1898,7 @@ choice). Snippet 91, fika-club.php (new):
 - FIZZYPOP BLUE has no Est. Quant., so it gets no nightly Stock Log row (Inventory System D still subtracts its sales).
 - Inventory E25 (FIZZYPOP BLUE) has no formula; setup leaves it, so the Inventory System flags it "Est. Quant. blank".
 
-## Halloween week look (2026-10-23, not live yet)
+## Halloween week look (2026-10-23: installed as snippet 184, look OFF until the owner clicks)
 
 - Snippet "Fika: Halloween week look" (wordpress/snippets/fika-halloween.php), built by build-halloween.py from
   fika-halloween.css + fika-halloween.js. Adds body class fika-hw, the Creepster font, the CSS (wp_head) and the
@@ -1913,6 +1913,10 @@ choice). Snippet 91, fika-club.php (new):
 - Every fish SVG (identified by its tail path 'M62 38 L90 22': rewards lane, sign-up card, Fika Club card and pop-up)
   is swapped for a spider, also when added later (MutationObserver). Cursor: jack-o'-lantern PNGs in
   wordpress/cursor/halloween (draw.py), lit + tilted over links; the fish bite on click is hidden.
-- Off / on in one click: "Halloween look" in the WP admin top bar (option fika_hw_off, nonce, admins only, purges
-  LiteSpeed). Switching the snippet off removes it entirely; the normal site underneath is never changed.
+- Off / on in one click: "Halloween look" in the WP admin top bar (option fika_hw_on, absent = off; nonce, admins only,
+  purges LiteSpeed). Status for admins: GET /wp-json/fika/v1/halloween.
+- 2026-10-23: snippet 184 "Fika: Halloween week look" installed active (POST), live copy = git, status on:false; all
+  shop pages 200 with no theme markup; checked on phone and desktop: unchanged for customers. Switching the snippet off removes it entirely; the normal site underneath is never changed.
 - Noticed, not changed: the My account page says "Every kilo you order" (owner rule: kilogram).
+
+- Fixed in wordpress/google-sheet/golive.sh: the app password has spaces, so curl gets it as one quoted -u argument.
