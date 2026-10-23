@@ -1897,3 +1897,17 @@ choice). Snippet 91, fika-club.php (new):
   with the key), send that file, owner follows wordpress/google-sheet/README.md, then read the sheet to confirm.
 - FIZZYPOP BLUE has no Est. Quant., so it gets no nightly Stock Log row (Inventory System D still subtracts its sales).
 - Inventory E25 (FIZZYPOP BLUE) has no formula; setup leaves it, so the Inventory System flags it "Est. Quant. blank".
+
+## Halloween week look (2026-10-23, not live yet)
+
+- Snippet "Fika: Halloween week look" (wordpress/snippets/fika-halloween.php), built by build-halloween.py from
+  fika-halloween.css + fika-halloween.js. Adds body class fika-hw, the Creepster font, the CSS (wp_head) and the
+  decorations (wp_footer). Colours and decorations only; no markup, text, links or shop code change.
+- Look: night background, pumpkin orange instead of the blue, Creepster section titles with a skull, candy photos in
+  tombstone frames, banner dots as skulls, bats, cobwebs and a dangling spider in every hero, glowing googly eyes,
+  skull row in the footer. Cart / checkout / My account: night page, forms stay light, orange Place order.
+- On from activation until FIKA_HW_END = 2026-11-01 00:00 Beirut, then off by itself; LiteSpeed purged once on
+  activation (option fika_hw_live = version) and by the one-off cron event fika_hw_ended at the end.
+- Tested in a test browser (HTML rewritten, nothing live): home, Mix your own, Ready Mix, About, My account, phone
+  and desktop; add to bag, the bag drawer, checkout via the bag's button, cart, phone menu: no page errors, no order.
+- Noticed, not changed: the My account page says "Every kilo you order" (owner rule: kilogram).
