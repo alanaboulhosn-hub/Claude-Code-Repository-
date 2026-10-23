@@ -1,0 +1,214 @@
+/* Fika Halloween week: colours and decorations only, layered over the normal site (body.fika-hw). */
+body.fika-hw {
+  --hw-night: #140e22;
+  --hw-deep: #1c1430;
+  --hw-plum: #2b1c47;
+  --hw-line: rgba(244, 236, 220, .14);
+  --hw-orange: #ff7b1c;
+  --hw-orange-d: #e8640c;
+  --hw-bone: #f4ecdc;
+  --hw-muted: #c3b6dc;
+  --hw-slime: #a6e35b;
+  --hw-skull: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M12 1.6c-5.4 0-9.1 3.8-9.1 8.7 0 2.8 1.2 4.8 3.1 6V19c0 .7.5 1.2 1.2 1.2H9v-2.1h1.6v2.1h2.8v-2.1H15v2.1h1.8c.7 0 1.2-.5 1.2-1.2v-2.7c1.9-1.2 3.1-3.2 3.1-6 0-4.9-3.7-8.7-9.1-8.7zM8.4 8.6a2.3 2.3 0 1 0 0 4.6 2.3 2.3 0 0 0 0-4.6zm7.2 0a2.3 2.3 0 1 0 0 4.6 2.3 2.3 0 0 0 0-4.6zM12 13.4l-1.3 2.4h2.6z'/%3E%3C/svg%3E");
+  --hw-bat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 32'%3E%3Cpath d='M32 9c-1.2 0-2 .9-2.4 2.1L28.4 9l-.9 3.3C24 7.6 16.6 4.3 8 5.6c3.3 1.7 5 4.4 4.9 7.4C9.6 11.6 5 11.9 0 14.9c5.6.1 10.4 2.6 12.6 6.6 1.5-2.4 4.3-3.4 6.6-2.3.4-2.4 2.9-3.7 5.2-2.7 1.9.9 3.7 3.6 7.6 9.5 3.9-5.9 5.7-8.6 7.6-9.5 2.3-1 4.8.3 5.2 2.7 2.3-1.1 5.1-.1 6.6 2.3 2.2-4 7-6.5 12.6-6.6-5-3-9.6-3.3-12.9-1.9-.1-3 1.6-5.7 4.9-7.4-8.6-1.3-16 2-19.5 6.7L35.6 9l-1.2 2.1C34 9.9 33.2 9 32 9z'/%3E%3C/svg%3E");
+  background: var(--hw-night) !important;
+  color: var(--hw-bone);
+}
+html:has(body.fika-hw) { background: var(--hw-night); }
+
+/* the shop's own colour variables: blue becomes pumpkin orange, pink becomes night plum */
+body.fika-hw .fika-hero, body.fika-hw .fika-header, body.fika-hw .fika-sec, body.fika-hw .mx-page,
+body.fika-hw .mx-fab, body.fika-hw .mx-drawer, body.fika-hw .mx-veil, body.fika-hw .fika-banner, body.fika-hw .fika-bagviz {
+  --fika-blue: var(--hw-orange);
+  --fika-pink: var(--hw-plum);
+}
+
+/* ---------- banner and header ---------- */
+body.fika-hw .fika-banner { background: #0b0714 !important; color: var(--hw-orange) !important; border-bottom: 1px solid rgba(255, 123, 28, .35); }
+body.fika-hw .fika-banner a { color: var(--hw-orange) !important; }
+body.fika-hw .hw-sk { display: inline-block; width: 1.05em; height: 1.05em; margin: 0 .55em; vertical-align: -.17em; background: var(--hw-bone);
+  -webkit-mask: var(--hw-skull) center / contain no-repeat; mask: var(--hw-skull) center / contain no-repeat; }
+body.fika-hw .fika-header.fika-scrolled, body.fika-hw .fika-header:not(.fika-top) { background: rgba(20, 14, 34, .9) !important; box-shadow: 0 4px 22px rgba(0, 0, 0, .5) !important; }
+body.fika-hw .fika-logo { color: var(--hw-orange) !important; text-shadow: 0 0 18px rgba(255, 123, 28, .55), 0 2px 0 #6b2a00; }
+body.fika-hw .fika-nav a, body.fika-hw .fika-nav .fika-menu-btn, body.fika-hw .fika-cart { color: var(--hw-bone) !important; }
+body.fika-hw .fika-nav a:hover, body.fika-hw .fika-nav a.on { border-bottom-color: var(--hw-orange) !important; color: var(--hw-orange) !important; }
+@media (max-width: 760px) {
+  body.fika-hw .fika-nav .fika-nav-links { background: var(--hw-deep) !important; border: 1px solid var(--hw-line); }
+  body.fika-hw .fika-nav .fika-nav-links a:hover, body.fika-hw .fika-nav .fika-nav-links a.on { background: var(--hw-plum) !important; }
+}
+@media (min-width: 761px) { body.fika-hw .fika-nav .fika-nav-links { background: none !important; } }
+
+/* ---------- heroes: the same photos, at night ---------- */
+body.fika-hw .fika-hero .fika-title, body.fika-hw .fika-hero .fsh-title {
+  color: var(--hw-orange) !important; text-shadow: 0 0 26px rgba(255, 123, 28, .55), 0 3px 0 #5c2400 !important;
+}
+body.fika-hw .fika-hero .fika-text, body.fika-hw .fika-hero .fsh-text { color: var(--hw-bone) !important; text-shadow: 0 2px 10px rgba(0, 0, 0, .8) !important; }
+body.fika-hw .fika-btn { background: var(--hw-orange) !important; color: #1b0d00 !important; box-shadow: 0 0 22px rgba(255, 123, 28, .45); }
+body.fika-hw .fika-btn:hover { background: var(--hw-orange-d) !important; }
+/* the googly eyes glow a little */
+body.fika-hw .fika-eye { box-shadow: 0 0 10px rgba(166, 227, 91, .75), 0 0 0 1px rgba(0, 0, 0, .5) !important; }
+
+/* the bag weight next to the bag icon */
+body.fika-hw .fika-cart .fk-count { background: var(--hw-orange) !important; color: #1b0d00 !important; border-color: #1b0d00 !important; }
+
+/* ---------- sections ---------- */
+body.fika-hw .fika-sec, body.fika-hw .fika-sec.fika-whitebg, body.fika-hw .mx-page {
+  background-color: var(--hw-night) !important;
+  background-image: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(124, 77, 255, .12), transparent 70%) !important;
+}
+body.fika-hw .fika-sec.fika-pinkbg { background-color: var(--hw-deep) !important; }
+body.fika-hw .fika-h2, body.fika-hw .mx-h1, body.fika-hw .fika-title {
+  font-family: 'Creepster', 'NF Le Petit Cochon', cursive !important; font-variant: normal !important; letter-spacing: .03em;
+  color: var(--hw-orange) !important; text-shadow: 0 0 18px rgba(255, 123, 28, .35);
+}
+body.fika-hw .fika-hero .fika-title { font-family: 'NF Le Petit Cochon', cursive !important; font-variant: small-caps !important; letter-spacing: 0; }
+body.fika-hw .fika-h2::before, body.fika-hw .mx-h1::before {
+  content: ''; display: inline-block; width: .8em; height: .8em; margin-right: .3em; vertical-align: -.05em; background: var(--hw-bone);
+  -webkit-mask: var(--hw-skull) center / contain no-repeat; mask: var(--hw-skull) center / contain no-repeat;
+}
+body.fika-hw .fika-sec, body.fika-hw .fika-sec p, body.fika-hw .fika-text { color: var(--hw-bone); }
+body.fika-hw .mx-count, body.fika-hw .mx-empty { color: var(--hw-muted) !important; }
+
+/* ---------- candy cards: little tombstones ---------- */
+body.fika-hw .mx-img {
+  background: #f1e7d2 !important; border: 2px solid #5a4a72 !important;
+  border-radius: 48% 48% 10px 10px / 26% 26% 10px 10px !important;
+  box-shadow: inset 0 -10px 18px rgba(60, 40, 90, .18), 0 8px 22px rgba(0, 0, 0, .45);
+}
+body.fika-hw .mx-img img { mix-blend-mode: multiply; }
+body.fika-hw .mx-card:hover .mx-img { border-color: var(--hw-orange) !important; box-shadow: 0 0 0 1px var(--hw-orange), 0 0 26px rgba(255, 123, 28, .4) !important; }
+body.fika-hw .mx-card.has .mx-img { border-color: var(--hw-slime) !important; }
+body.fika-hw .mx-name, body.fika-hw .mx-price { color: var(--hw-bone) !important; }
+body.fika-hw .mx-link { color: var(--hw-orange) !important; text-decoration-color: var(--hw-orange) !important; }
+body.fika-hw .mx-price { color: var(--hw-orange) !important; }
+body.fika-hw .mx-badge { background: #0b0714 !important; color: var(--hw-slime) !important; }
+body.fika-hw .mx-add { background: var(--hw-orange) !important; color: #1b0d00 !important; box-shadow: 0 0 16px rgba(255, 123, 28, .35) !important; }
+body.fika-hw .mx-add:hover { background: var(--hw-orange-d) !important; }
+body.fika-hw .mx-pill { background: var(--hw-plum) !important; }
+body.fika-hw .mx-pill button { background: var(--hw-orange) !important; color: #1b0d00 !important; }
+body.fika-hw .mx-pill span { color: var(--hw-bone) !important; }
+body.fika-hw .mx-prog { background: var(--hw-plum) !important; }
+body.fika-hw .mx-nav { background: var(--hw-plum) !important; color: var(--hw-bone) !important; }
+body.fika-hw .mx-nav:hover { background: var(--hw-orange) !important; color: #1b0d00 !important; }
+body.fika-hw .mx-loading .mx-card .mx-img { background: linear-gradient(100deg, #2b1c47 30%, #3a2760 50%, #2b1c47 70%) !important; background-size: 200% 100% !important; }
+
+/* home: the hand-drawn "All pick & mix" link */
+body.fika-hw #shop .fk-allpm { color: var(--hw-slime) !important; }
+body.fika-hw #shop .fk-allpm b { color: var(--hw-orange) !important; }
+body.fika-hw #shop .fk-allpm .sq { stroke: rgba(166, 227, 91, .6) !important; }
+body.fika-hw #shop .fk-allpm:hover { color: var(--hw-orange) !important; }
+
+/* filters and search on Mix your own */
+body.fika-hw .fs-bar { background: var(--hw-night) !important; border-color: var(--hw-line) !important; }
+body.fika-hw .fs-chip { background: transparent !important; color: var(--hw-bone) !important; border-color: var(--hw-orange) !important; }
+body.fika-hw .fs-chip.on { background: var(--hw-orange) !important; color: #1b0d00 !important; }
+body.fika-hw .fs-search { background: transparent !important; }
+body.fika-hw .fs-search input { background: var(--hw-deep) !important; color: var(--hw-bone) !important; border-color: var(--hw-line) !important; }
+
+/* ---------- the bag (drawer) and its button ---------- */
+body.fika-hw .mx-fab { background: var(--hw-orange) !important; color: #1b0d00 !important; box-shadow: 0 0 24px rgba(255, 123, 28, .5) !important; }
+body.fika-hw .mx-fab b { background: #1b0d00 !important; color: var(--hw-orange) !important; }
+body.fika-hw .mx-drawer { background: var(--hw-deep) !important; color: var(--hw-bone); }
+body.fika-hw .mx-dh { background: var(--hw-plum) !important; }
+body.fika-hw .mx-dh h3, body.fika-hw .mx-sug h4 { color: var(--hw-orange) !important; }
+body.fika-hw .mx-x, body.fika-hw .mx-sug-nav button { background: var(--hw-night) !important; color: var(--hw-bone) !important; border-color: var(--hw-line) !important; }
+body.fika-hw .mx-line, body.fika-hw .mx-df, body.fika-hw .mx-none { color: var(--hw-bone) !important; border-color: var(--hw-line) !important; }
+body.fika-hw .mx-line small, body.fika-hw .mx-note, body.fika-hw .mx-clear { color: var(--hw-muted) !important; }
+body.fika-hw .mx-qb, body.fika-hw .mx-go { background: var(--hw-orange) !important; color: #1b0d00 !important; }
+body.fika-hw .mx-sc { background: var(--hw-plum) !important; border-color: var(--hw-line) !important; color: var(--hw-bone) !important; }
+body.fika-hw .mx-sc b { color: var(--hw-bone) !important; }
+body.fika-hw .mx-sc small { color: var(--hw-orange) !important; }
+
+/* ---------- home: reviews, cards, FAQ ---------- */
+body.fika-hw .fika-card { background: var(--hw-deep) !important; box-shadow: 0 6px 24px rgba(0, 0, 0, .4) !important; border: 1px solid var(--hw-line); }
+body.fika-hw .fika-card h3, body.fika-hw .fika-card .fika-note { color: var(--hw-orange) !important; }
+body.fika-hw .fika-icon { background: var(--hw-plum) !important; color: var(--hw-orange) !important; }
+body.fika-hw .fika-tile { background: var(--hw-orange) !important; color: #1b0d00 !important; }
+body.fika-hw .fika-tile.fika-light { background: var(--hw-plum) !important; color: var(--hw-bone) !important; border-color: var(--hw-orange) !important; }
+body.fika-hw .fika-faq details { background: var(--hw-deep) !important; border: 1px solid var(--hw-line); }
+body.fika-hw .fika-faq summary { color: var(--hw-bone) !important; }
+body.fika-hw .fika-faq summary::after { color: var(--hw-orange) !important; }
+body.fika-hw .fika-faq .fika-answer, body.fika-hw .fika-faq .fika-answer p { color: var(--hw-muted) !important; }
+body.fika-hw .fika-faq .fika-answer a { color: var(--hw-orange) !important; }
+body.fika-hw .fk-rev, body.fika-hw .fk-vr { color: var(--hw-bone); }
+body.fika-hw .fk-vr-sub { color: var(--hw-muted) !important; }
+body.fika-hw .fk-vr-arrow { background: var(--hw-plum) !important; color: var(--hw-bone) !important; }
+
+/* ---------- footer ---------- */
+body.fika-hw .fika-footer.fika-sec { background: var(--hw-night) !important; }
+body.fika-hw .fika-footer .fika-foot-body { background: #0b0714 !important; }
+body.fika-hw .fika-footer svg path[fill="#004aad"], body.fika-hw .fika-footer svg [fill="#004aad"] { fill: #0b0714 !important; }
+body.fika-hw .fika-footer .fika-foot-logo { color: var(--hw-orange) !important; text-shadow: 0 0 18px rgba(255, 123, 28, .5); }
+body.fika-hw .fika-footer .fika-foot-tag, body.fika-hw .fika-footer li a { color: var(--hw-bone) !important; }
+body.fika-hw .fika-footer h4 { color: var(--hw-orange) !important; }
+body.fika-hw .fika-footer .fika-foot-social a { background: var(--hw-plum) !important; color: var(--hw-orange) !important; }
+body.fika-hw .hw-skulls { display: flex; justify-content: center; gap: 18px; padding: 26px 0 6px; opacity: .9; }
+body.fika-hw .hw-skulls i { width: 22px; height: 22px; background: var(--hw-orange);
+  -webkit-mask: var(--hw-skull) center / contain no-repeat; mask: var(--hw-skull) center / contain no-repeat; }
+body.fika-hw .hw-skulls i:nth-child(even) { background: var(--hw-bone); transform: translateY(4px) rotate(-8deg); }
+
+/* ---------- decorations: bats, webs, a spider ---------- */
+.hw-fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1;
+  /* the hero photo at night: a moon glow top right, darker towards the words */
+  background:
+    radial-gradient(ellipse 38% 46% at 84% 22%, rgba(255, 190, 90, .26), transparent 70%),
+    linear-gradient(180deg, rgba(20, 14, 34, .7) 0%, rgba(43, 28, 71, .5) 45%, rgba(20, 14, 34, .9) 100%); }
+.hw-bat { position: absolute; left: -110px; width: 84px; height: 42px; background: #0a0612; filter: drop-shadow(0 0 5px rgba(255, 140, 50, .85));
+  -webkit-mask: var(--hw-bat) center / contain no-repeat; mask: var(--hw-bat) center / contain no-repeat;
+  animation: hwFly var(--t, 16s) linear var(--d, 0s) infinite; }
+.hw-bat::after { content: ''; }
+@keyframes hwFly {
+  0% { transform: translate(0, 0) scale(var(--s, 1)) scaleY(1); }
+  10% { transform: translate(12vw, -18px) scale(var(--s, 1)) scaleY(.55); }
+  20% { transform: translate(24vw, 10px) scale(var(--s, 1)) scaleY(1); }
+  30% { transform: translate(36vw, -14px) scale(var(--s, 1)) scaleY(.55); }
+  40% { transform: translate(48vw, 6px) scale(var(--s, 1)) scaleY(1); }
+  50% { transform: translate(60vw, -20px) scale(var(--s, 1)) scaleY(.55); }
+  60% { transform: translate(72vw, 4px) scale(var(--s, 1)) scaleY(1); }
+  70% { transform: translate(84vw, -10px) scale(var(--s, 1)) scaleY(.55); }
+  80%, 100% { transform: translate(calc(100vw + 160px), 0) scale(var(--s, 1)) scaleY(1); }
+}
+.hw-web { position: absolute; top: 0; width: min(30vw, 260px); height: min(30vw, 260px); opacity: .5; }
+.hw-web.l { left: 0; }
+.hw-web.r { right: 0; transform: scaleX(-1); }
+.hw-spider { position: absolute; top: 0; right: 31%; width: 2px; height: 120px; background: linear-gradient(rgba(244, 236, 220, .6), rgba(244, 236, 220, .25));
+  transform-origin: top; animation: hwDangle 5.5s ease-in-out infinite; }
+.hw-spider i { position: absolute; bottom: -14px; left: -10px; width: 22px; height: 18px; border-radius: 50%; background: #07040d;
+  box-shadow: 0 0 0 1px rgba(244, 236, 220, .25); }
+.hw-spider i::before, .hw-spider i::after { content: ''; position: absolute; top: 5px; width: 34px; height: 8px; left: -6px;
+  border: 2px solid #07040d; border-bottom: 0; border-radius: 50% 50% 0 0; }
+.hw-spider i::after { top: 9px; }
+@keyframes hwDangle { 0%, 100% { height: 110px; transform: rotate(2deg); } 50% { height: 170px; transform: rotate(-2deg); } }
+@media (max-width: 700px) { .hw-spider { right: 22%; } .hw-bat { width: 52px; height: 26px; } }
+@media (prefers-reduced-motion: reduce) { .hw-bat, .hw-spider { animation: none; } .hw-bat { display: none; } }
+
+/* ---------- About page ---------- */
+body.fika-hw .fa-lede { color: var(--hw-orange) !important; }
+body.fika-hw .fa-say { background: var(--hw-plum) !important; color: var(--hw-bone) !important; border-color: var(--hw-orange) !important; }
+body.fika-hw .fa-step { color: var(--hw-bone); }
+
+/* ---------- cart, checkout, My account: a night page, the forms stay light so they read easily ---------- */
+body.fika-hw.woocommerce-page, body.fika-hw.woocommerce-account {
+  --fika-blue: #5b2fa3;
+  --fika-pink: #f1e8fb;
+  background: var(--hw-night) !important;
+  background-image: radial-gradient(ellipse 70% 35% at 50% 0%, rgba(124, 77, 255, .16), transparent 70%) !important;
+}
+body.fika-hw .fika-shopbar .fs-logo { color: var(--hw-orange) !important; text-shadow: 0 0 18px rgba(255, 123, 28, .5); }
+body.fika-hw .fika-shopbar nav a { color: var(--hw-bone) !important; }
+body.fika-hw .fika-shopbar nav a:hover { border-bottom-color: var(--hw-orange) !important; }
+body.fika-hw .fika-shoptitle h1 { font-family: 'Creepster', 'NF Le Petit Cochon', cursive !important; font-variant: normal !important; letter-spacing: .03em;
+  color: var(--hw-orange) !important; text-shadow: 0 0 18px rgba(255, 123, 28, .35); }
+body.fika-hw .fika-shoptitle h1::before { content: ''; display: inline-block; width: .8em; height: .8em; margin-right: .3em; vertical-align: -.05em; background: var(--hw-bone);
+  -webkit-mask: var(--hw-skull) center / contain no-repeat; mask: var(--hw-skull) center / contain no-repeat; }
+body.fika-hw .fika-shoptitle, body.fika-hw .fika-shoptitle p { color: var(--hw-bone) !important; }
+body.fika-hw .fika-shoptitle a, body.fika-hw .fika-shoptitle .fika-back { color: var(--hw-orange) !important; }
+html body.fika-hw .wc-block-components-checkout-place-order-button.wc-block-components-button, html body.fika-hw .wc-block-cart__submit-button.wc-block-components-button,
+html body.fika-hw .wc-block-components-checkout-place-order-button, html body.fika-hw .wc-block-cart__submit-button,
+html body.fika-hw.woocommerce-account .woocommerce .button, html body.fika-hw.woocommerce-account .woocommerce button.button {
+  background: var(--hw-orange) !important; color: #1b0d00 !important; box-shadow: 0 0 22px rgba(255, 123, 28, .4) !important; }
+html body.fika-hw .wc-block-components-checkout-place-order-button.wc-block-components-button:hover, html body.fika-hw .wc-block-cart__submit-button.wc-block-components-button:hover,
+html body.fika-hw.woocommerce-account .woocommerce .button:hover { background: var(--hw-orange-d) !important; }
+html body.fika-hw .wc-block-components-checkout-place-order-button *, html body.fika-hw .wc-block-cart__submit-button * { color: #1b0d00 !important; }
+body.fika-hw .fika-shophelp { color: var(--hw-muted) !important; }
+body.fika-hw .fika-shophelp a { color: var(--hw-orange) !important; }
