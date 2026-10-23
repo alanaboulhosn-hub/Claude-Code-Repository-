@@ -22,8 +22,8 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return wp_parse_args( is_array( $s ) ? $s : array(), array(
 			'mode'        => 'test',
 			'test_emails' => 'alan.aboulhosn@gmail.com',
-			'news_title'  => 'Lördagsmys is here',
-			'news_text'   => 'Make Saturday the sweetest day of the week: let everyone pick a few favourites, pour them into one big bowl and gather the family around it.',
+			'news_title'  => 'Fredagsmys is here',
+			'news_text'   => 'Make Friday night the sweetest night of the week: let everyone pick a few favourites, pour them into one big bowl and gather the family around it.',
 			'discount'    => 10,
 			'valid_days'  => 14,
 			'first_days'  => 30,
@@ -228,15 +228,15 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	// made by wordpress/email-assets/make-email-headings.js at 2x: [file, width, height] at 1x
 	function fika_wb_head( $key, $alt, $h = 36 ) {
 		$size = array( 'we-miss-you' => array( 548, 87 ), 'fresh-from-sweden' => array( 839, 108 ), 'made-for-sharing' => array( 763, 98 ), 'your-fika-club' => array( 650, 103 ), 'join-the-fika-club' => array( 776, 108 ),
-			// media 1146-1150 (make-email-box-headings.js)
-			'picked-for-you' => array( 604, 105 ), 'waiting-for-you' => array( 675, 105 ), 'lordagsmys-is-here' => array( 817, 105 ), 'family-time' => array( 477, 105 ), 'real-quality' => array( 543, 105 ), 'the-warmth-of-sharing' => array( 976, 105 ) );
+			// media 1146-1150 (make-email-box-headings.js); fredagsmys-is-here added 2026-10-23
+			'picked-for-you' => array( 604, 105 ), 'waiting-for-you' => array( 675, 105 ), 'lordagsmys-is-here' => array( 817, 105 ), 'fredagsmys-is-here' => array( 817, 104 ), 'family-time' => array( 477, 105 ), 'real-quality' => array( 543, 105 ), 'the-warmth-of-sharing' => array( 976, 105 ) );
 		$w    = (int) round( $size[ $key ][0] * $h / $size[ $key ][1] );
 		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/fika-email-h-' . $key . '.png' ) ) . '" width="' . $w . '" height="' . (int) $h . '" alt="' . esc_attr( $alt ) . '" class="fika-t" style="display:block;width:' . $w . 'px;max-width:100%;height:auto;margin:0 auto;border:0;">';
 	}
 	// a box title: the cute-font picture when there is one for these words, else the email's own heading style
 	function fika_wb_box_title( $text ) {
 		$key = sanitize_title( remove_accents( $text ) );
-		if ( in_array( $key, array( 'lordagsmys-is-here', 'family-time', 'real-quality', 'the-warmth-of-sharing' ), true ) ) {
+		if ( in_array( $key, array( 'lordagsmys-is-here', 'fredagsmys-is-here', 'family-time', 'real-quality', 'the-warmth-of-sharing' ), true ) ) {
 			return '<p style="margin:0 0 8px;">' . str_replace( 'margin:0 auto;', 'margin:0;', fika_wb_head( $key, $text, 24 ) ) . '</p>';
 		}
 		return '<h2>' . esc_html( $text ) . '</h2>';
@@ -252,7 +252,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	function fika_wb_part2() {
 		$f    = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
 		$vals = array(
-			array( 'Family time', 'Saturday evening, one big bowl, everyone picking their favourites. In Sweden it is called lördagsmys, and it is our favourite tradition.', '#fdeaf2' ),
+			array( 'Family time', 'Friday evening, one big bowl, everyone picking their favourites. In Sweden it is called fredagsmys, and it is our favourite tradition.', '#fdeaf2' ),
 			array( 'Real quality', 'Every sweet is hand-selected and imported from Sweden, with clean ingredients and gelatin-free options clearly marked.', '#eaf2ff' ),
 			array( 'The warmth of sharing', 'Pick-and-mix is made to be passed around: a bag for the car, a bowl for the table, a little extra for a friend.', '#fff4d9' ),
 		);
