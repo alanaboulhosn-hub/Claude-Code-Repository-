@@ -65,6 +65,30 @@
 	skulls();
 	setTimeout(skulls, 1500); // the banner may be filled in after load
 
+	// every fish (rewards lane, sign-up card, Fika Club card and pop-up) becomes a little spider, also fish added later
+	var LEGS_L = 'M40 48Q22 36 12 44M38 56Q18 52 8 60M38 64Q18 70 10 80M42 72Q28 84 22 94';
+	var LEGS_R = 'M60 48Q78 36 88 44M62 56Q82 52 92 60M62 64Q82 70 90 80M58 72Q72 84 78 94';
+	var SPIDER = '<svg viewBox="0 0 100 100" class="hw-spd" aria-hidden="true"><g transform="rotate(-90 50 54)">' +
+		'<g fill="none" stroke="#1a1026" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">' +
+		'<path class="hw-leg-a" d="' + LEGS_L + '"/><path class="hw-leg-b" d="' + LEGS_R + '"/></g>' +
+		'<ellipse cx="50" cy="62" rx="17" ry="19" fill="#2a1840" stroke="#0d0716" stroke-width="3"/>' +
+		'<path d="M44 56h12l-6 6 6 6H44l6-6z" fill="#ff7b1c"/>' +
+		'<circle cx="50" cy="38" r="12" fill="#2a1840" stroke="#0d0716" stroke-width="3"/>' +
+		'<circle cx="45" cy="36" r="4.4" fill="#fff"/><circle cx="55" cy="36" r="4.4" fill="#fff"/>' +
+		'<circle cx="45" cy="34.6" r="2.1" fill="#1b2a4a"/><circle cx="55" cy="34.6" r="2.1" fill="#1b2a4a"/></g></svg>';
+	function spiders() {
+		var svgs = document.querySelectorAll('svg:not(.hw-spd)');
+		for (var i = 0; i < svgs.length; i++) {
+			if (svgs[i].innerHTML.indexOf('M62 38 L90 22') === -1) { continue; } // the fish's tail
+			var t = document.createElement('div');
+			t.innerHTML = SPIDER;
+			svgs[i].parentNode.replaceChild(t.firstChild, svgs[i]);
+		}
+	}
+	spiders();
+	var st = null;
+	new MutationObserver(function () { clearTimeout(st); st = setTimeout(spiders, 120); }).observe(document.body, { childList: true, subtree: true });
+
 	// a row of skulls in the footer
 	var fb = document.querySelector('.fika-footer .fika-foot-body');
 	if (fb && !fb.querySelector('.hw-skulls')) {

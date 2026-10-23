@@ -212,3 +212,27 @@ html body.fika-hw.woocommerce-account .woocommerce .button:hover { background: v
 html body.fika-hw .wc-block-components-checkout-place-order-button *, html body.fika-hw .wc-block-cart__submit-button * { color: #1b0d00 !important; }
 body.fika-hw .fika-shophelp { color: var(--hw-muted) !important; }
 body.fika-hw .fika-shophelp a { color: var(--hw-orange) !important; }
+
+/* ---------- the rewards spider (was the fish) ---------- */
+.hw-spd { overflow: visible; }
+.hw-spd .hw-leg-a, .hw-spd .hw-leg-b { transform-box: view-box; transform-origin: 50% 58%; animation: hwLegs .5s ease-in-out infinite alternate; }
+.hw-spd .hw-leg-b { animation-delay: -.25s; }
+@keyframes hwLegs { from { rotate: -5deg; } to { rotate: 5deg; } }
+@media (prefers-reduced-motion: reduce) { .hw-spd .hw-leg-a, .hw-spd .hw-leg-b { animation: none; } }
+
+/* ---------- the jack-o'-lantern cursor (instead of the fish), lit and tilted over links and buttons ---------- */
+body.fika-hw, body.fika-hw *, html.fika-biting body.fika-hw, html.fika-biting body.fika-hw * {
+  cursor: url({{PUMPKIN_40}}) 3 2, auto !important;
+  cursor: image-set(url({{PUMPKIN_40}}) 1x, url({{PUMPKIN_80}}) 2x) 3 2, auto !important;
+}
+body.fika-hw a, body.fika-hw a *, body.fika-hw button, body.fika-hw button *, body.fika-hw summary, body.fika-hw summary *,
+body.fika-hw label, body.fika-hw select, body.fika-hw [role="button"], body.fika-hw [role="button"] *, body.fika-hw input[type="submit"],
+body.fika-hw input[type="button"], body.fika-hw input[type="checkbox"], body.fika-hw input[type="radio"], body.fika-hw [onclick] {
+  cursor: url({{PUMPKIN_LIT_44}}) 3 2, pointer !important;
+  cursor: image-set(url({{PUMPKIN_LIT_44}}) 1x, url({{PUMPKIN_LIT_88}}) 2x) 3 2, pointer !important;
+}
+body.fika-hw input[type="text"], body.fika-hw input[type="email"], body.fika-hw input[type="search"], body.fika-hw input[type="tel"],
+body.fika-hw input[type="number"], body.fika-hw input[type="password"], body.fika-hw input:not([type]), body.fika-hw textarea,
+body.fika-hw [contenteditable="true"] { cursor: text !important; }
+/* the fish's bite on click is left out while the pumpkin is the cursor */
+body.fika-hw .fika-bite { display: none !important; }
