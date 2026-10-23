@@ -16,12 +16,13 @@ php = """<?php
 /**
  * Fika: Halloween week look. Colours and decorations only: night colours, pumpkin orange, skulls, bats, cobwebs and
  * a spider over the normal site. Every page, button and checkout step works exactly as before.
- * - On from the moment this snippet is switched on until FIKA_HW_END (1 November 2026, 00:00 Beirut), then off by
- *   itself. One click on "Halloween look" in the WP admin top bar switches it off or back on (option fika_hw_off);
- *   switching the snippet off removes it completely.
+ * - Installed switched off. One click on "Halloween look" in the WP admin top bar switches it on (option fika_hw_on),
+ *   another click switches it off again. It also goes off by itself at FIKA_HW_END (1 November 2026, 00:00 Beirut).
+ *   Deactivating the snippet removes it completely; the normal site underneath is never changed.
+ * - GET /wp-json/fika/v1/halloween (shop admins): whether it is on, the end date and the version installed.
  * - Every fish (rewards lane, sign-up card, Fika Club card and pop-up) is drawn as a spider, and the fish cursor is a
  *   jack-o'-lantern (wordpress/cursor/halloween), lit and tilted over links and buttons.
- * - The page cache (LiteSpeed) is cleared once when it goes on, and again when it ends, so no visitor gets a stale look.
+ * - The page cache (LiteSpeed) is cleared at each click and when it ends, so no visitor gets a stale look.
  * - Built from wordpress/snippets/fika-halloween.css and fika-halloween.js by build-halloween.py (edit those, rebuild).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-halloween.php
  */
@@ -36,7 +37,7 @@ if ( ! function_exists( 'fika_hw_on' ) ) {
 		return ( new DateTime( FIKA_HW_END, new DateTimeZone( 'Asia/Beirut' ) ) )->getTimestamp();
 	}
 	function fika_hw_on() {
-		return time() < fika_hw_end_ts() && ! is_admin() && ! get_option( 'fika_hw_off' );
+		return time() < fika_hw_end_ts() && ! is_admin() && get_option( 'fika_hw_on' );
 	}
 }
 
@@ -45,7 +46,7 @@ add_action( 'admin_bar_menu', function ( $bar ) {
 	if ( ! current_user_can( 'manage_options' ) || time() >= fika_hw_end_ts() ) {
 		return;
 	}
-	$off = (bool) get_option( 'fika_hw_off' );
+	$off = ! get_option( 'fika_hw_on' );
 	$bar->add_node( array(
 		'id'    => 'fika-hw',
 		'title' => $off ? '&#127875; Halloween look: off (click to switch on)' : '&#127875; Halloween look: on (click to switch off)',
@@ -57,15 +58,19 @@ add_action( 'admin_post_fika_hw_toggle', function () {
 		wp_die( 'Not allowed.', 403 );
 	}
 	check_admin_referer( 'fika_hw_toggle' );
-	update_option( 'fika_hw_off', get_option( 'fika_hw_off' ) ? 0 : 1, false );
+	$on = get_option( 'fika_hw_on' ) ? 0 : 1;
+	update_option( 'fika_hw_on', $on, false );
+	if ( $on ) {
+		update_option( 'fika_hw_live', FIKA_HW_VERSION, false );
+	}
 	do_action( 'litespeed_purge_all' );
 	wp_safe_redirect( wp_get_referer() ? wp_get_referer() : home_url( '/' ) );
 	exit;
 } );
 
-// clear the page cache when the look goes on or changes, and once more when it ends
+// while it is on: clear the page cache if the look itself was updated, and once more when it ends
 add_action( 'init', function () {
-	if ( time() >= fika_hw_end_ts() ) {
+	if ( time() >= fika_hw_end_ts() || ! get_option( 'fika_hw_on' ) ) {
 		return;
 	}
 	if ( get_option( 'fika_hw_live' ) !== FIKA_HW_VERSION ) {
@@ -78,6 +83,16 @@ add_action( 'init', function () {
 } );
 add_action( 'fika_hw_ended', function () {
 	do_action( 'litespeed_purge_all' );
+} );
+
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'fika/v1', '/halloween', array(
+		'methods'             => 'GET',
+		'permission_callback' => function () { return current_user_can( 'manage_options' ); },
+		'callback'            => function () {
+			return array( 'on' => (bool) get_option( 'fika_hw_on' ), 'ends' => FIKA_HW_END . ' Beirut', 'version' => FIKA_HW_VERSION, 'ended' => time() >= fika_hw_end_ts() );
+		},
+	) );
 } );
 
 add_filter( 'body_class', function ( $classes ) {
