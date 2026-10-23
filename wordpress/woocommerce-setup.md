@@ -1921,7 +1921,7 @@ choice). Snippet 91, fika-club.php (new):
 
 - Fixed in wordpress/google-sheet/golive.sh: the app password has spaces, so curl gets it as one quoted -u argument.
 
-## About page: Lördagsmys -> Fredagsmys (2026-10-23, in git, not live yet)
+## About page: Lördagsmys -> Fredagsmys (2026-10-23, live)
 
 - Owner: the section should be about fredagsmys (Friday), not lördagsmys. Changed in about-us.raw.html and
   build-shop-pages.py: heading "Fredagsmys, now in Lebanon"; "Fredagsmys (say "fray-dahgs-mees") means "Friday
@@ -1936,3 +1936,5 @@ choice). Snippet 91, fika-club.php (new):
   drawn like the others). Saved settings (option fika_winback_settings) news_title / news_text changed by a temporary
   admin route (removed). At the change: mode live, no batch pending, lock free, next daily run 2026-10-24 08:55 UTC.
   Whole email shown in the "Fika Win-back Email" artifact (10 real customers, rendered by the shop's code, not sent).
+- 2026-10-23 15:07: About page 257 updated (POST, saved text = git, live matched the checked copy first); the page
+  shows Fredagsmys, no Lördagsmys; checked on phone and desktop; Halloween look still off.
