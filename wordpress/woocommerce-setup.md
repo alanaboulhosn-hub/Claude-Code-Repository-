@@ -1965,3 +1965,15 @@ choice). Snippet 91, fika-club.php (new):
   is gone (it made the card look stuck); keyboard focus still pauses; reduced motion: a new message every 4 s.
   After the arrow, the heading shows "Real texts from customers" again (it kept "typing...").
 - Working checkout copy for the owner: wordpress/checkout-preview (capture-co.js, assemble-co.py).
+
+## 2026-10-24: Fika inbox checkout card, where it sits (NOT live)
+
+- Computer (two-column checkout): top of the right-hand column, sticky (top 24px), so it is 80-100% on screen while the
+  whole form is filled in; the order summary scrolls under it. Tried under the summary instead: unseen for the first
+  two thirds of the form, so not used.
+- Phone: card stays just under Place order; a slim message (short texts only) slides up from the bottom 8 s in, then
+  4.5 s every 18 s. Hidden while typing in a field, while the card or Place order is on screen, and for the visit once
+  closed with x (sessionStorage fikaToastOff).
+- The counter updates as soon as the next text is chosen, so a tap on the arrow during the fade moves one step.
+- Preview: https://claude.ai/artifact/Cvhdgb4AqaeNancaP52jTQ (version 2). Going live: create the snippet from
+  wordpress/snippets/fika-checkout-texts.php, and update Halloween snippet 184 with the .fika-texts CSS (stays OFF).
