@@ -1946,3 +1946,17 @@ choice). Snippet 91, fika-club.php (new):
   and buttons themed; footer copyright readable; phones: no cobwebs (they read as patches under the fixed header),
   smaller spider between Menu and the bag icon, two bats. Preview: googly eyes placed by the live home page's own
   eye script (home-skull-eyes.html in git is an older version), photo sizing script kept.
+
+## Fika inbox at checkout (2026-10-24, preview only, not live)
+
+- Snippet "Fika: customer texts at checkout" (wordpress/snippets/fika-checkout-texts.php): a card just under Place
+  order (.wc-block-checkout__actions_row) that plays real customer WhatsApp messages (owner's screenshots, word for
+  word, no names) like a chat: typing dots + "a customer is typing...", the bubbles with their times, the pink heart.
+- The fitting message first: BUBS Wild Berry Pomegranate (108) in the bag -> the Wild Berry message (left out while
+  108 is out of stock); sweet and sour candies or the Sweet & Sour Mix (94) -> "loved both the sweet and the sour".
+- One fixed height (the tallest message, measured at the page width), messages anchored at the bottom: the Place order
+  button never moves (tested: phone and computer, 21 s, button position constant). Plays only on screen; a mouse
+  or keyboard focus pauses it (touch does not); tap / arrow = next; reduced motion = no typing, no auto-play.
+- "N orders delivered since August" = wc_orders_count('completed'), cached 6 h (488 on 2026-10-24).
+- Halloween look: avatar fish becomes the spider by itself; fika-halloween.css tints the card's blue to the
+  checkout's purple (in git, goes into snippet 184 with its next update).

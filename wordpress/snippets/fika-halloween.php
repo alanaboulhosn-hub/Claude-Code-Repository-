@@ -15,7 +15,7 @@
 
 if ( ! defined( 'FIKA_HW_END' ) ) {
 	define( 'FIKA_HW_END', '2026-11-01 00:00' ); // Beirut time
-	define( 'FIKA_HW_VERSION', '746a4a728a' );
+	define( 'FIKA_HW_VERSION', '8f2d090a14' );
 }
 
 if ( ! function_exists( 'fika_hw_on' ) ) {
@@ -365,6 +365,9 @@ body.fika-hw .fika-footer .fika-foot-bottom, body.fika-hw .fika-footer .fika-foo
   .hw-bat { width: 44px; height: 22px; }
 }
 @keyframes hwDanglePhone { 0%, 100% { height: 150px; transform: rotate(2deg); } 50% { height: 200px; transform: rotate(-2deg); } }
+
+/* ---------- the Fika inbox card at checkout (fika-checkout-texts.php): the checkout's Halloween purple ---------- */
+body.fika-hw .fika-texts .ft-who b, body.fika-hw .fika-texts .ft-foot b, body.fika-hw .fika-texts .ft-next { color: #5b2fa3 !important; }
 FIKA_HW_CSS
 	. "\n</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 }, 99 );
