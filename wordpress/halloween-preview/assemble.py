@@ -62,7 +62,11 @@ for dev, pre in (('desk', ''), ('phone', 'm-')):
         helper = (HELPER.replace('__PHONE__', 'true' if dev == 'phone' else 'false')
                   .replace('__OTHER__', other_pre + name).replace('__OTHERNAME__', 'computer view' if dev == 'phone' else 'phone view')
                   .replace('__CHECKOUT__', pre + 'checkout.html'))
-        h = re.sub(r'</body>(?![\s\S]*</body>)', helper + '</body>', h)
+        # the site's own scripts that size the top photo and place the googly eyes for this screen
+        keep = open(site.parent / 'keep-photo.js.html').read()
+        if name == 'index.html':
+            keep += open(site.parent / 'keep-eyes.js.html').read()
+        h = re.sub(r'</body>(?![\s\S]*</body>)', keep + helper + '</body>', h)
         left = set(re.findall(r'https://swedishfikalb\.com/wp-content/[^\s"\'()<>]+', h))
         (site / (pre + name)).write_text(h)
         print(dev, name, round(len(h) / 1024), 'KB', 'unreplaced site files:', len(left))

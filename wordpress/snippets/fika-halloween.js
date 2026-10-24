@@ -87,7 +87,25 @@
 	}
 	spiders();
 	var st = null;
-	new MutationObserver(function () { clearTimeout(st); st = setTimeout(spiders, 120); }).observe(document.body, { childList: true, subtree: true });
+
+	// the Ready Mix photos on plain white (media 1178-1180), like the pick-and-mix photos
+	var MIX = { 'Sweet_Sour-Mix': 'fika-hw-sweet-sour-mix', 'Sweet-Mix': 'fika-hw-sweet-mix', 'Sour-Mix': 'fika-hw-sour-mix' };
+	function mixes() {
+		var imgs = document.querySelectorAll('img:not([data-hw])');
+		for (var i = 0; i < imgs.length; i++) {
+			var src = imgs[i].getAttribute('src') || '';
+			for (var k in MIX) {
+				if (src.indexOf('/' + k + '.') !== -1 || src.indexOf('/' + k + '-') !== -1) {
+					imgs[i].setAttribute('data-hw', '1');
+					imgs[i].removeAttribute('srcset');
+					imgs[i].src = src.replace(/\/wp-content\/uploads\/.*$/, '/wp-content/uploads/2026/10/' + MIX[k] + '.jpg');
+					break;
+				}
+			}
+		}
+	}
+	mixes();
+	new MutationObserver(function () { clearTimeout(st); st = setTimeout(function () { spiders(); mixes(); }, 120); }).observe(document.body, { childList: true, subtree: true });
 
 	// a row of skulls in the footer
 	var fb = document.querySelector('.fika-footer .fika-foot-body');
