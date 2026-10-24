@@ -1977,3 +1977,19 @@ choice). Snippet 91, fika-club.php (new):
 - The counter updates as soon as the next text is chosen, so a tap on the arrow during the fade moves one step.
 - Preview: https://claude.ai/artifact/Cvhdgb4AqaeNancaP52jTQ (version 2). Going live: create the snippet from
   wordpress/snippets/fika-checkout-texts.php, and update Halloween snippet 184 with the .fika-texts CSS (stays OFF).
+
+## 2026-10-24: Fika inbox LIVE; full journey; speed work (in progress)
+
+- Customer texts at checkout went live as snippet 190 ("Fika: customer texts at checkout"), from
+  wordpress/snippets/fika-checkout-texts.php. Checked on the live checkout (bag with two sweets, no order): computer card
+  in the right column 80-100% on screen while scrolling; phone message slides up while filling the form, hides while
+  typing and near Place order; no page errors.
+- Halloween snippet 184 updated with the .fika-texts purple (live copy matched git first); look still OFF
+  (GET /fika/v1/halloween on:false, no fika-hw on the home page).
+- Journey on 7 devices (desktop, laptop, iPad, iPhone, Instagram, Facebook, small phone): all pass (38-39 checks
+  each), no failed requests, no script errors, order request stopped (no orders). 7 saved test bags removed.
+- Speed: theme fonts used at checkout / account (Open Sans, Fira Sans, Roboto: 580 KB .ttf) subset to Latin .woff2
+  (150 KB; wordpress/fonts, media 1181-1183, uploaded through a temporary admin-only woff2 snippet 191, deleted).
+  New fika-speed.php (23) in git: those Latin copies on checkout/cart/account, our Open Sans copy instead of Google's
+  blocking style sheet on the shop pages, and a high-priority preload of each page's top photo. Being A/B tested,
+  NOT live yet.
