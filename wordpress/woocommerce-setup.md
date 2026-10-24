@@ -1938,3 +1938,11 @@ choice). Snippet 91, fika-club.php (new):
   Whole email shown in the "Fika Win-back Email" artifact (10 real customers, rendered by the shop's code, not sent).
 - 2026-10-23 15:07: About page 257 updated (POST, saved text = git, live matched the checked copy first); the page
   shows Fredagsmys, no Lördagsmys; checked on phone and desktop; Halloween look still off.
+- 2026-10-24 Halloween look fixes (owner's review of the preview), installed in snippet 184, still OFF:
+  flat night section backgrounds (no lighter boxes); badges as a pill at the top middle of the tombstone; Ready Mix
+  photos swapped (only while the look is on) for white-background copies, media 1178-1180
+  (wordpress/media/halloween, made by whiten.py: only the neutral grey backdrop is whitened, bag and sweets kept);
+  "Can't decide?" / "Rather pick your own?" box black with orange; About "How it works" cards, links, number circles
+  and buttons themed; footer copyright readable; phones: no cobwebs (they read as patches under the fixed header),
+  smaller spider between Menu and the bag icon, two bats. Preview: googly eyes placed by the live home page's own
+  eye script (home-skull-eyes.html in git is an older version), photo sizing script kept.

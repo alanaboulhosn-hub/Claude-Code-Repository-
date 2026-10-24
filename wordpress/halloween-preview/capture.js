@@ -33,6 +33,7 @@ function freeze() {
   document.querySelectorAll('video').forEach(v => { if (v.currentSrc) v.src = v.currentSrc; if (v.poster) v.poster = abs(v.poster); v.querySelectorAll('source').forEach(s => s.remove()); });
   document.querySelectorAll('script, noscript, iframe, link[rel=preload], link[rel=prefetch], link[rel=modulepreload], link[rel=preconnect], link[rel=dns-prefetch], link[rel=alternate], link[rel="https://api.w.org/"], link[rel=EditURI], link[rel=pingback]').forEach(e => e.remove());
   document.querySelectorAll('#wpadminbar').forEach(e => e.remove());
+  document.querySelectorAll('.fika-eyes').forEach(e => e.remove()); // the preview places them again for its own screen size
   document.querySelectorAll('a[href]').forEach(a => a.setAttribute('href', abs(a.getAttribute('href'))));
   return '<!doctype html>\n' + document.documentElement.outerHTML;
 }

@@ -15,7 +15,7 @@
 
 if ( ! defined( 'FIKA_HW_END' ) ) {
 	define( 'FIKA_HW_END', '2026-11-01 00:00' ); // Beirut time
-	define( 'FIKA_HW_VERSION', '6a841d5430' );
+	define( 'FIKA_HW_VERSION', '746a4a728a' );
 }
 
 if ( ! function_exists( 'fika_hw_on' ) ) {
@@ -150,7 +150,7 @@ body.fika-hw .fika-cart .fk-count { background: var(--hw-orange) !important; col
 /* ---------- sections ---------- */
 body.fika-hw .fika-sec, body.fika-hw .fika-sec.fika-whitebg, body.fika-hw .mx-page {
   background-color: var(--hw-night) !important;
-  background-image: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(124, 77, 255, .12), transparent 70%) !important;
+  background-image: none !important;
 }
 body.fika-hw .fika-sec.fika-pinkbg { background-color: var(--hw-deep) !important; }
 body.fika-hw .fika-h2, body.fika-hw .mx-h1, body.fika-hw .fika-title {
@@ -177,7 +177,7 @@ body.fika-hw .mx-card.has .mx-img { border-color: var(--hw-slime) !important; }
 body.fika-hw .mx-name, body.fika-hw .mx-price { color: var(--hw-bone) !important; }
 body.fika-hw .mx-link { color: var(--hw-orange) !important; text-decoration-color: var(--hw-orange) !important; }
 body.fika-hw .mx-price { color: var(--hw-orange) !important; }
-body.fika-hw .mx-badge { background: #0b0714 !important; color: var(--hw-slime) !important; }
+body.fika-hw .mx-badge { background: #0b0714 !important; color: var(--hw-slime) !important; left: 50% !important; top: 10px !important; transform: translateX(-50%); border-radius: 999px; white-space: nowrap; padding: 4px 12px !important; line-height: 18px !important; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
 body.fika-hw .mx-add { background: var(--hw-orange) !important; color: #1b0d00 !important; box-shadow: 0 0 16px rgba(255, 123, 28, .35) !important; }
 body.fika-hw .mx-add:hover { background: var(--hw-orange-d) !important; }
 body.fika-hw .mx-pill { background: var(--hw-plum) !important; }
@@ -332,6 +332,39 @@ body.fika-hw input[type="number"], body.fika-hw input[type="password"], body.fik
 body.fika-hw [contenteditable="true"] { cursor: text !important; }
 /* the fish's bite on click is left out while the pumpkin is the cursor */
 body.fika-hw .fika-bite { display: none !important; }
+
+/* ---------- "Can't decide?" / "Rather pick your own?" box: black and pumpkin orange ---------- */
+body.fika-hw .fs-cross { background: #0b0714 !important; border: 2px solid var(--hw-orange) !important; box-shadow: 0 0 26px rgba(255, 123, 28, .25) !important; }
+body.fika-hw .fs-cross .t { color: var(--hw-orange) !important; text-shadow: 0 0 14px rgba(255, 123, 28, .35); }
+body.fika-hw .fs-cross .s { color: var(--hw-bone) !important; }
+body.fika-hw .fs-cross a.go { background: var(--hw-orange) !important; color: #0b0714 !important; border-color: var(--hw-orange) !important; box-shadow: 0 0 18px rgba(255, 123, 28, .45); }
+body.fika-hw .fs-cross a.go:hover { background: var(--hw-orange-d) !important; }
+
+/* ---------- About: How it works, the buttons ---------- */
+body.fika-hw .fika-about .fa-step, body.fika-hw .fa-step { background: var(--hw-deep) !important; border: 1px solid var(--hw-line); box-shadow: 0 8px 26px rgba(0, 0, 0, .4) !important; }
+body.fika-hw .fika-about .fa-step::before { background: var(--hw-orange) !important; color: #0b0714 !important; }
+body.fika-hw .fika-about .fa-step h3, body.fika-hw .fa-step h3 { color: var(--hw-orange) !important; }
+body.fika-hw .fika-about .fa-step p, body.fika-hw .fa-step p { color: var(--hw-bone) !important; }
+body.fika-hw .fika-about .fa-step a, body.fika-hw .fa-step a { color: var(--hw-orange) !important; }
+body.fika-hw .fa-mys-go a, body.fika-hw .fa-btns a.solid { background: var(--hw-orange) !important; color: #0b0714 !important; border-color: var(--hw-orange) !important; }
+body.fika-hw .fa-mys-go a:hover, body.fika-hw .fa-btns a.solid:hover { background: var(--hw-orange-d) !important; }
+body.fika-hw .fa-btns a.line { background: transparent !important; color: var(--hw-orange) !important; border-color: var(--hw-orange) !important; }
+body.fika-hw .fa-btns a.line:hover { background: var(--hw-plum) !important; }
+
+/* ---------- footer: the copyright line ---------- */
+body.fika-hw .fika-footer .fika-foot-bottom, body.fika-hw .fika-footer .fika-foot-bottom * { color: var(--hw-muted) !important; border-color: var(--hw-line) !important; }
+
+/* ---------- phones: lighter decorations so the menu and the bag icon stay clear ---------- */
+@media (max-width: 760px) {
+  .hw-web { display: none; } /* under the fixed header on a small screen they read as patches */
+  .hw-spider { right: auto; left: 58%; height: 70px; animation-name: hwDanglePhone; }
+  .hw-spider i { width: 16px; height: 13px; left: -7px; bottom: -11px; }
+  .hw-spider i::before, .hw-spider i::after { width: 26px; height: 6px; left: -5px; top: 4px; }
+  .hw-spider i::after { top: 7px; }
+  .hw-bat:nth-of-type(n+3) { display: none; }
+  .hw-bat { width: 44px; height: 22px; }
+}
+@keyframes hwDanglePhone { 0%, 100% { height: 150px; transform: rotate(2deg); } 50% { height: 200px; transform: rotate(-2deg); } }
 FIKA_HW_CSS
 	. "\n</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 }, 99 );
@@ -430,7 +463,25 @@ add_action( 'wp_footer', function () {
 	}
 	spiders();
 	var st = null;
-	new MutationObserver(function () { clearTimeout(st); st = setTimeout(spiders, 120); }).observe(document.body, { childList: true, subtree: true });
+
+	// the Ready Mix photos on plain white (media 1178-1180), like the pick-and-mix photos
+	var MIX = { 'Sweet_Sour-Mix': 'fika-hw-sweet-sour-mix', 'Sweet-Mix': 'fika-hw-sweet-mix', 'Sour-Mix': 'fika-hw-sour-mix' };
+	function mixes() {
+		var imgs = document.querySelectorAll('img:not([data-hw])');
+		for (var i = 0; i < imgs.length; i++) {
+			var src = imgs[i].getAttribute('src') || '';
+			for (var k in MIX) {
+				if (src.indexOf('/' + k + '.') !== -1 || src.indexOf('/' + k + '-') !== -1) {
+					imgs[i].setAttribute('data-hw', '1');
+					imgs[i].removeAttribute('srcset');
+					imgs[i].src = src.replace(/\/wp-content\/uploads\/.*$/, '/wp-content/uploads/2026/10/' + MIX[k] + '.jpg');
+					break;
+				}
+			}
+		}
+	}
+	mixes();
+	new MutationObserver(function () { clearTimeout(st); st = setTimeout(function () { spiders(); mixes(); }, 120); }).observe(document.body, { childList: true, subtree: true });
 
 	// a row of skulls in the footer
 	var fb = document.querySelector('.fika-footer .fika-foot-body');
