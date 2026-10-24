@@ -3,8 +3,13 @@
  * Fika: "Fika inbox" at checkout. Real messages customers sent the shop after their delivery (WhatsApp, October 2026,
  * screenshots from the owner, copied word for word with their own spelling and emoji), played one after another like
  * a chat: "a customer is typing...", the message, then the pink heart the shop reacted with.
- * - Just under the Place order button, where people hesitate. One fixed height (the tallest message), messages at the
- *   bottom like a chat, so nothing on the page moves.
+ * - Where it sits: on a computer (two-column checkout, .is-large) at the top of the right-hand column, staying in view
+ *   (sticky) while the customer fills in the form, the order summary scrolling by under it (under the summary it would only
+ *   show in the last third of the form); on a phone just under the Place order button. One
+ *   fixed height (the tallest message), messages at the bottom like a chat, so nothing on the page moves.
+ * - Phones also get a slim message that slides up from the bottom now and then (short messages only, about 4.5 s every
+ *   18 s): never while a field is being typed in, never while the card or the Place order button is on screen, and
+ *   not again this visit once closed.
  * - The message that fits the bag comes first: BUBS Wild Berry Pomegranate (product 108) in the bag -> the Wild Berry
  *   message; sweet and sour candies (or the Sweet & Sour Mix) -> "loved both the sweet and the sour".
  * - The Wild Berry message is left out while BUBS Wild Berry Pomegranate is out of stock, and comes back with it.
@@ -128,7 +133,23 @@ add_action( 'wp_footer', function () {
 .fika-texts .ft-out { transition: opacity .25s ease; opacity: 0; }
 .fika-texts .ft-foot { padding: 8px 12px 9px; background: #fff; border-top: 1px solid #f3d3e1; font-size: 12.5px; color: #4a5878; display: flex; gap: 6px; align-items: center; }
 .fika-texts .ft-foot b { color: #004aad; }
-@media (prefers-reduced-motion: reduce) { .fika-texts .ft-in { animation: none; } .fika-texts .ft-dots i { animation: none; } }
+.fika-texts.ft-side { position: sticky; top: 24px; z-index: 5; margin: 0 0 18px; box-shadow: 0 8px 24px rgba(0, 74, 173, .10); }
+.wc-block-components-sidebar-layout.is-large { align-items: stretch; }
+.wc-block-components-sidebar-layout.is-large > .wc-block-checkout__sidebar { align-self: stretch; }
+/* phones: the slim message from the bottom */
+.fika-toast { position: fixed; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 9990;
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px 9px 9px; border-radius: 16px; background: #fff; border: 1px solid #f3d3e1; box-shadow: 0 8px 28px rgba(0, 74, 173, .18);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; transform: translateY(140%); opacity: 0; transition: transform .35s cubic-bezier(.2, 1.2, .4, 1), opacity .25s ease; pointer-events: none; }
+.fika-toast.on { transform: none; opacity: 1; pointer-events: auto; }
+.fika-toast .ft-av { flex: none; width: 34px; height: 34px; border-radius: 50%; background: #fdeaf2; display: grid; place-items: center; }
+.fika-toast .ft-av svg { width: 24px; height: 24px; transform: scaleX(-1); }
+.fika-toast .ft-tx { flex: 1; min-width: 0; line-height: 1.3; }
+.fika-toast .ft-tx b { display: block; font-size: 12px; font-weight: 600; color: #004aad; }
+.fika-toast .ft-tx b span { font-weight: 400; color: #667781; }
+.fika-toast .ft-tx b span.is-typing { color: #1f9d55; }
+.fika-toast .ft-tx p { margin: 2px 0 0; font-size: 14px; color: #111b21; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fika-toast .ft-x { flex: none; width: 28px; height: 28px; border: 0; border-radius: 50%; background: #f4f6f9; color: #667781; font: 400 18px/1 Arial, sans-serif; cursor: pointer; padding: 0; }
+@media (prefers-reduced-motion: reduce) { .fika-texts .ft-in { animation: none; } .fika-texts .ft-dots i { animation: none; } .fika-toast { transition: none; } }
 </style>
 <script id="fika-texts-js">
 (function () {
@@ -218,8 +239,10 @@ add_action( 'wp_footer', function () {
 		setTimeout(bubble, 1100);
 	}
 	function next(manual) {
+		clearTimeout(timer); // a tap on the arrow replaces the switch that was due
 		if (!manual && (hold || document.hidden)) { later(next, 1500); return; }
 		cur = (cur + 1) % D.groups.length;
+		count.textContent = (cur + 1) + '/' + D.groups.length; // straight away, so a tap during the fade counts from what is shown
 		if (thread.children.length && !reduce) {
 			thread.classList.add('ft-out');
 			var my = ++step;
@@ -228,11 +251,57 @@ add_action( 'wp_footer', function () {
 	}
 
 	// just under the Place order button (the checkout draws itself after the page loads, and redraws)
+	// computer (two columns): the right-hand column, staying in view; phone: just under the Place order button
 	function place() {
 		var row = document.querySelector('.wc-block-checkout__actions_row');
 		if (!row) { return; }
 		if (!box) { build(); }
-		if (box.previousElementSibling !== row) { row.parentNode.insertBefore(box, row.nextSibling); measure(); }
+		var lay = document.querySelector('.wc-block-components-sidebar-layout');
+		var side = lay ? lay.querySelector('.wc-block-checkout__sidebar') : null;
+		if (side ? lay.classList.contains('is-large') : false) {
+			if (box.parentNode !== side || box.previousElementSibling) { side.insertBefore(box, side.firstChild); box.classList.add('ft-side'); measure(); }
+		} else if (box.previousElementSibling !== row) {
+			row.parentNode.insertBefore(box, row.nextSibling); box.classList.remove('ft-side'); measure();
+		}
+		toastSetup();
+	}
+
+	// phones: a short message slides up from the bottom now and then, while the customer goes through the form
+	var toast = null, tIdx = -1, tShort = [], tTimer = null, inView = { card: false, button: false };
+	function closed() { try { return sessionStorage.getItem('fikaToastOff') === '1'; } catch (e) { return false; } }
+	function typing() { var a = document.activeElement; return a ? /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) : false; }
+	function narrow() { return !box.classList.contains('ft-side'); }
+	function hideToast() { if (toast) { toast.classList.remove('on'); } }
+	function toastSetup() {
+		if (toast || closed()) { return; }
+		tShort = D.groups.filter(function (g) { return g.m.reduce(function (n, x) { return n + x[0].length; }, 0) <= 90; });
+		if (!tShort.length) { return; }
+		toast = el('div', 'fika-toast'); toast.setAttribute('role', 'status'); toast.setAttribute('aria-live', 'off');
+		var av = el('span', 'ft-av'); av.innerHTML = FISH; toast.appendChild(av);
+		var tx = el('div', 'ft-tx'); var hb = el('b', '', 'Fika inbox '); var hs = el('span'); hb.appendChild(hs); tx.appendChild(hb); var tp = el('p'); tx.appendChild(tp); toast.appendChild(tx);
+		var x = el('button', 'ft-x', '\u00d7'); x.type = 'button'; x.setAttribute('aria-label', 'Close'); toast.appendChild(x);
+		x.addEventListener('click', function () { hideToast(); clearTimeout(tTimer); try { sessionStorage.setItem('fikaToastOff', '1'); } catch (e) {} });
+		document.body.appendChild(toast);
+		if ('IntersectionObserver' in window) {
+			var io = new IntersectionObserver(function (en) { en.forEach(function (e) { if (e.target === box) { inView.card = e.isIntersecting; } else { inView.button = e.isIntersecting; } }); if (inView.card || inView.button) { hideToast(); } });
+			io.observe(box); var r = document.querySelector('.wc-block-checkout__actions_row'); if (r) { io.observe(r); }
+		}
+		document.addEventListener('focusin', function () { if (typing()) { hideToast(); } });
+		function round() {
+			clearTimeout(tTimer);
+			if (closed()) { return; }
+			if (!narrow() || typing() || inView.card || inView.button || document.hidden) { tTimer = setTimeout(round, 4000); return; }
+			tIdx = (tIdx + 1) % tShort.length;
+			var g = tShort[tIdx];
+			hs.textContent = '\u00b7 a customer is typing\u2026'; hs.className = 'is-typing'; tp.textContent = '\u2026';
+			toast.classList.add('on');
+			tTimer = setTimeout(function () {
+				hs.textContent = '\u00b7 ' + g.m[0][1]; hs.className = '';
+				tp.textContent = g.m.map(function (m) { return m[0]; }).join(' \u00b7 ') + ' \ud83d\udc97';
+				tTimer = setTimeout(function () { hideToast(); tTimer = setTimeout(round, 18000); }, 4500);
+			}, reduce ? 0 : 1100);
+		}
+		tTimer = setTimeout(round, 8000);
 	}
 	var rz = null;
 	window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(measure, 200); });

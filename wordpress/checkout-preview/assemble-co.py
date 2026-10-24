@@ -4,12 +4,13 @@ import json, re, sys, pathlib
 site = pathlib.Path(sys.argv[1])
 card = pathlib.Path(sys.argv[2]).read_text()
 card_js = re.search(r'<script id="fika-texts-js">[\s\S]*?</script>', card).group(0)
+card_css = re.search(r'<style id="fika-texts-css">[\s\S]*?</style>', card).group(0)
 HELPER = r"""
 <style>
-.cop-chip{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:2147483000;display:flex;gap:8px;align-items:center;
+.cop-chip{position:fixed;right:max(12px,env(safe-area-inset-right,0px));top:max(12px,env(safe-area-inset-top,0px));z-index:2147483000;display:flex;gap:8px;align-items:center;
   background:#004aad;color:#fff;border-radius:999px;padding:7px 12px;font:600 12px/1.2 Outfit,system-ui,sans-serif;box-shadow:0 4px 18px rgba(0,74,173,.3)}
 .cop-chip a{color:#ffd23f!important;text-decoration:underline}
-.cop-toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:2147483001;max-width:min(360px,calc(100vw - 32px));background:#1b2a4a;color:#fff;
+.cop-toast{position:fixed;left:50%;top:60px;transform:translateX(-50%);z-index:2147483001;max-width:min(360px,calc(100vw - 32px));background:#1b2a4a;color:#fff;
   border-radius:12px;padding:10px 14px;font:500 14px/1.4 Outfit,system-ui,sans-serif;text-align:center;opacity:0;transition:opacity .25s;pointer-events:none}
 .cop-toast.on{opacity:1}
 </style>
@@ -45,6 +46,8 @@ for dev, out_name, other in (('desk', 'index.html', 'm-index.html'), ('phone', '
         return m.group(1) + '#cop-off"'
     h = re.sub(r'(href=")([^"]*)"', link, h)
     h = re.sub(r'\saction="[^"]*"', '', h)
+    # the card's current style (the capture may hold an older one)
+    h = re.sub(r'<style id="fika-texts-css">[\s\S]*?</style>', lambda m: card_css, h)
     h = re.sub(r'<title>.*?</title>', '<title>Fika Checkout Preview</title>', h, count=1, flags=re.S)
     helper = HELPER.replace('__PHONE__', 'true' if dev == 'phone' else 'false').replace('__OTHER__', other).replace('__OTHERNAME__', 'computer view' if dev == 'phone' else 'phone view')
     h = re.sub(r'</body>(?![\s\S]*</body>)', lambda m: card_js + helper + '</body>', h)  # as plain text: the script has backslashes
