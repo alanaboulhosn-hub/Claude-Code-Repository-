@@ -1988,8 +1988,17 @@ choice). Snippet 91, fika-club.php (new):
   (GET /fika/v1/halloween on:false, no fika-hw on the home page).
 - Journey on 7 devices (desktop, laptop, iPad, iPhone, Instagram, Facebook, small phone): all pass (38-39 checks
   each), no failed requests, no script errors, order request stopped (no orders). 7 saved test bags removed.
-- Speed: theme fonts used at checkout / account (Open Sans, Fira Sans, Roboto: 580 KB .ttf) subset to Latin .woff2
-  (150 KB; wordpress/fonts, media 1181-1183, uploaded through a temporary admin-only woff2 snippet 191, deleted).
-  New fika-speed.php (23) in git: those Latin copies on checkout/cart/account, our Open Sans copy instead of Google's
-  blocking style sheet on the shop pages, and a high-priority preload of each page's top photo. Being A/B tested,
-  NOT live yet.
+- Speed, snippet 23 (fika-speed.php) LIVE:
+  - Theme fonts at checkout / cart / account (Open Sans, Fira Sans, Roboto: up to 580 KB .ttf) replaced by Latin
+    .woff2 copies of the same files (Open Sans at normal width only): media 1181 (Fira Sans 32 KB), 1183 (Roboto 25 KB),
+    1184 (Open Sans 54 KB); sources in wordpress/fonts. The theme's rules for those three are left out (else the full
+    files were still fetched for a ✓ or an emoji); other theme fonts unchanged. Uploaded through temporary admin-only
+    woff2 snippets 191 and 192 (both deleted); an earlier 94 KB Open Sans (media 1182) was deleted.
+  - Shop pages: the Open Sans copy replaces Google's Open Sans style sheet (it held up the first paint).
+  - Each shop page's top photo (.fika-photo) is preloaded at high priority, read from the page's own styles (home:
+    phone or computer copy by width; placed after the viewport tag, else phones took the computer photo too).
+  - A/B in the test browser (same page copy, 4 runs, median, first visit), main picture (LCP), phone 4G / computer:
+    home 1.25 -> 1.12 s / 0.61 -> 0.64 s; Mix your own 1.12 -> 0.84 / 0.69 -> 0.59; Ready Mix 0.98 -> 0.80 /
+    0.66 -> 0.63; About 1.21 -> 0.88 / 1.08 -> 0.71. Photo request starts at ~0.07 s instead of ~0.7 s.
+    Phone home first text +0.13 s (the photo now shares the start). Checkout fonts on a phone 250 KB -> 32 KB.
+  - Checkout and account screenshots pixel-identical before / after (phone and computer).
