@@ -9,8 +9,9 @@
  *   message; sweet and sour candies (or the Sweet & Sour Mix) -> "loved both the sweet and the sour".
  * - The Wild Berry message is left out while BUBS Wild Berry Pomegranate is out of stock, and comes back with it.
  * - "N orders delivered since August": Completed orders, counted live (cached 6 hours).
- * - Plays only while on screen; a mouse over it or keyboard focus pauses it; tap or the arrow for the next one.
- *   With reduced motion: no typing and no auto-play.
+ * - Plays by itself from the moment it is on screen: the next customer's messages start 1 second after the heart has
+ *   popped in. Tap or the arrow skips ahead; keyboard focus on it pauses it. With reduced motion: no typing or movement,
+ *   a new message every 4 seconds.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-checkout-texts.php
  */
 
@@ -136,7 +137,7 @@ add_action( 'wp_footer', function () {
 	var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
 	var FISH = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M62 38 L90 22 C85 40 85 62 90 79 L62 64 Z" fill="#e3241f" stroke="#a3160f" stroke-width="3" stroke-linejoin="round"/><path d="M8 52 C16 32 44 25 66 38 C70 46 70 58 66 64 C44 78 16 72 8 52 Z" fill="#ff6a3d" stroke="#a3160f" stroke-width="3" stroke-linejoin="round"/><circle cx="24" cy="46" r="5.2" fill="#fff"/><circle cx="22.5" cy="46.5" r="2.8" fill="#1b2a4a"/></svg>';
 	var SUB = 'Real texts from customers';
-	var box, body, thread, sub, count, cur = -1, timer = null, step = 0, hold = false, seen = false, busy = false;
+	var box, body, thread, sub, count, cur = -1, timer = null, step = 0, hold = false, seen = false;
 
 	function el(tag, cls, text) { var e = document.createElement(tag); if (cls) { e.className = cls; } if (text != null) { e.textContent = text; } return e; }
 	function later(fn, ms) { clearTimeout(timer); timer = setTimeout(fn, ms); }
@@ -178,8 +179,6 @@ add_action( 'wp_footer', function () {
 		nx.addEventListener('click', function () { next(true); });
 		body.addEventListener('click', function () { next(true); });
 		body.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); next(true); } });
-		box.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { hold = true; } });
-		box.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { hold = false; if (!busy) { later(next, 2500); } } });
 		box.addEventListener('focusin', function (e) { try { hold = e.target.matches(':focus-visible'); } catch (x) { hold = false; } });
 		box.addEventListener('focusout', function () { hold = false; });
 		if ('IntersectionObserver' in window) {
@@ -189,7 +188,7 @@ add_action( 'wp_footer', function () {
 
 	// one customer's messages: typing, then each bubble, then the heart
 	function show(g, manual) {
-		busy = true; step++;
+		step++;
 		var my = step;
 		count.textContent = (cur + 1) + '/' + D.groups.length;
 		thread.innerHTML = '';
@@ -208,12 +207,12 @@ add_action( 'wp_footer', function () {
 				if (my !== step) { return; }
 				thread.appendChild(el('span', 'ft-heart ft-in', '💗'));
 				sub.textContent = SUB; sub.className = '';
-				fit(); busy = false;
-				var chars = g.m.reduce(function (n, x) { return n + x[0].length; }, 0);
-				if (!reduce) { later(next, Math.min(9000, 2600 + chars * 28)); }
+				fit();
+				// the next customer 1 second after the heart has popped in (its animation takes .32 s)
+				later(next, reduce ? 4000 : 1320);
 			}, reduce ? 0 : 420);
 		}
-		if (reduce || manual) { bubble(); return; }
+		if (reduce || manual) { sub.textContent = SUB; sub.className = ''; bubble(); return; }
 		sub.textContent = 'a customer is typing…'; sub.className = 'is-typing';
 		var d = el('div', 'ft-dots ft-in'); d.innerHTML = '<i></i><i></i><i></i>'; thread.appendChild(d); fit();
 		setTimeout(bubble, 1100);

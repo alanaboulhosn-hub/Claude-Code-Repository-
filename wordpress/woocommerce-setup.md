@@ -1960,3 +1960,8 @@ choice). Snippet 91, fika-club.php (new):
 - "N orders delivered since August" = wc_orders_count('completed'), cached 6 h (488 on 2026-10-24).
 - Halloween look: avatar fish becomes the spider by itself; fika-halloween.css tints the card's blue to the
   checkout's purple (in git, goes into snippet 184 with its next update).
+- 2026-10-24 owner: switch to the next chat automatically, 1 second after each chat's animation ends. Now: next
+  customer 1.32 s after the heart is added (its pop takes .32 s) -> measured 1.32 s every time; the mouse-over pause
+  is gone (it made the card look stuck); keyboard focus still pauses; reduced motion: a new message every 4 s.
+  After the arrow, the heading shows "Real texts from customers" again (it kept "typing...").
+- Working checkout copy for the owner: wordpress/checkout-preview (capture-co.js, assemble-co.py).
