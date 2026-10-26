@@ -105,6 +105,17 @@
 		}
 	}
 	mixes();
+
+	// section headings in the spooky font: the home page's READY-MIX heading carries its own font in the page (an
+	// inline !important, which no style sheet can beat), so it is set on the heading itself
+	function heads() {
+		var hs = document.querySelectorAll('.mx-h1[style*="font-family"]');
+		for (var i = 0; i < hs.length; i++) {
+			hs[i].style.setProperty('font-family', "'Creepster', 'NF Le Petit Cochon', cursive", 'important');
+			hs[i].style.setProperty('letter-spacing', '.03em', 'important');
+		}
+	}
+	heads();
 	new MutationObserver(function () { clearTimeout(st); st = setTimeout(function () { spiders(); mixes(); }, 120); }).observe(document.body, { childList: true, subtree: true });
 
 	// a row of skulls in the footer
