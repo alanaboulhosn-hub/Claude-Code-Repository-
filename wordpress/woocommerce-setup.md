@@ -2043,3 +2043,10 @@ choice). Snippet 91, fika-club.php (new):
 - To go live: two products (Ready Mix category, 500 g, $14) for the bags, the Add to bag hand-off to the Fika bag,
   product 108 back in stock, the Diamond product + photo.
 - Preview: https://claude.ai/artifact/FtuVBAcKfELbevxULmaetB (wordpress/drops-preview).
+- Owner (26 Oct): Halloween themed, realistic pictures with the skulls (and the pomegranate drop) coming out of the
+  bag. Redone: the popup shows only while the Halloween look is on (fika_hw_on(); managers: ?fika_drops=preview),
+  night card with cobweb and bats, Creepster title, the arched Halloween photo frames, orange buttons; phones get the
+  two offers side by side (fits 360-430 px phones and a 1280x720 laptop without scrolling). Pictures: real photo
+  composites (wordpress/images/drops): the Fika bag from the Sweet Mix photo recoloured black (Skull Mix, bone skull
+  sticker) and night purple (Limited Edition sticker), orange logo, real candy cut-outs inside the opening and spilling
+  out. Preview version 2 (Halloween look only).
