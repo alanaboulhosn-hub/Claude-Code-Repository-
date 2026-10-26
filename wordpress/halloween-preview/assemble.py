@@ -68,6 +68,7 @@ for dev, pre in (('desk', ''), ('phone', 'm-')):
         if os.environ.get('HW_CSS'):
             new_css = open(os.environ['HW_CSS']).read()
             h = re.sub(r'<style id="fika-hw">[\s\S]*?</style>', lambda m: '<style id="fika-hw">' + new_css + '</style>', h, count=1)
+            h = h.replace('<span class="hw-spider"><i></i></span>', '<span class="hw-spider"><i></i><b></b></span>')  # the spider's eyes (26 Oct)
         helper = (HELPER.replace('__PHONE__', 'true' if dev == 'phone' else 'false')
                   .replace('__OTHER__', other_pre + name).replace('__OTHERNAME__', 'computer view' if dev == 'phone' else 'phone view')
                   .replace('__CHECKOUT__', pre + 'checkout.html'))
