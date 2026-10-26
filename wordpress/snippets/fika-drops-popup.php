@@ -1,22 +1,29 @@
 <?php
 /**
- * Fika: "Two new drops" Halloween popup when a visitor arrives (owner, 26 Oct 2026). NOT LIVE: preview only.
+ * Fika: "Two new drops" Halloween popup when a visitor arrives (owner, 26 Oct 2026). Installed, hidden (FIKA_DROPS_LIVE false).
  * - Offer 1, Limited Edition Drop (sweet & sour, 500 g, $14): the new BUBS Sour Strawberry Vanilla Diamond with
  *   BUBS Wild Berry Pomegranate Ovals (product 108) back for a short while, limited supply.
  * - Offer 2, Skull Mix (500 g, $14): the five BUBS skulls of the shop (products 120 Bubblegum, 124 Cola, 122 Lemon
  *   Raspberry, 118 Fruity Lemon Mix (Mini), 107 Raspberry Salty Licorice).
  * - Halloween: it drops with the Halloween look and shows only while the look is on (fika_hw_on(), snippet 184, which
- *   also clears the page cache when switched). Night card, Creepster title, the shop's arched Halloween photo frames.
- *   Shop managers can see it any time with ?fika_drops=preview.
+ *   also clears the page cache when switched), once FIKA_DROPS_LIVE is true. Night card, Creepster title, the shop's
+ *   arched Halloween photo frames. Before that only the preview link shows it: the Halloween look's private link
+ *   (?fika_preview=<key>, snippet 184), or ?fika_drops=preview for a signed-in shop manager.
  * - When: right on arrival (0.4 s after the page shows), once per visit (sessionStorage fika_drops_seen), on our shop
  *   pages only (home, Mix your own, Ready Mix, About), never on the checkout or My account, and not right after an
  *   order (the "Order confirmed" popup). Closes with x, "Keep browsing", a tap outside or Esc.
- * - The pictures (fika-drop-skull-mix.webp, fika-drop-limited-edition.webp in uploads/2026/10) are made from the
+ * - The pictures (media 1195 fika-drop-skull-mix.webp, 1196 fika-drop-limited-edition.webp) are made from the
  *   shop's own photos: the Fika bag from the Sweet Mix photo, recoloured, with a sticker, and the real candies cut
  *   out of the product photos coming out of it (wordpress/images/drops/compose.py). The Strawberry Vanilla Diamond
  *   has no photo yet: it is the real Tutti Frutti Diamond, recoloured strawberry and vanilla.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-drops-popup.php
  */
+
+if ( ! defined( 'FIKA_DROPS_LIVE' ) ) {
+	// false: customers never see it, also with the Halloween look on (the two bags are not products yet, so "Add to
+	// bag" cannot work); only the preview link shows it. true: it drops with the Halloween look.
+	define( 'FIKA_DROPS_LIVE', false );
+}
 
 function fika_drops_img( $name ) {
 	return esc_url( content_url( '/uploads/2026/10/' . $name ) );
@@ -68,9 +75,11 @@ add_action( 'wp_footer', function () {
 	if ( is_admin() || ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) ) ) {
 		return;
 	}
-	$preview = isset( $_GET['fika_drops'] ) && 'preview' === $_GET['fika_drops'] && current_user_can( 'manage_woocommerce' ); // phpcs:ignore WordPress.Security.NonceVerification
-	if ( ! $preview && ! ( function_exists( 'fika_hw_on' ) && fika_hw_on() ) ) {
-		return; // it drops with the Halloween look
+	// the private Halloween preview link (snippet 184, ?fika_preview=<key>), or a shop manager with ?fika_drops=preview
+	$preview = ( function_exists( 'fika_hw_preview' ) && fika_hw_preview() )
+		|| ( isset( $_GET['fika_drops'] ) && 'preview' === $_GET['fika_drops'] && current_user_can( 'manage_woocommerce' ) ); // phpcs:ignore WordPress.Security.NonceVerification
+	if ( ! $preview && ! ( FIKA_DROPS_LIVE && function_exists( 'fika_hw_on' ) && fika_hw_on() ) ) {
+		return; // it drops with the Halloween look, once FIKA_DROPS_LIVE is true
 	}
 	?>
 <style id="fika-drops-css">
