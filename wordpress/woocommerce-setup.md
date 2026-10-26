@@ -2060,3 +2060,17 @@ choice). Snippet 91, fika-club.php (new):
   preview link = look + popup + both photos, next page keeps the look, popup not repeated; no script errors.
 - Going live with the drops: create the two 500 g products (Ready Mix), connect Add to bag, stock for product 108,
   then set FIKA_DROPS_LIVE to true in snippet 193.
+- Owner (26 Oct): the drop is the classic Sweet & Sour Mix with the limited candies in the bag; the Skull Mix label is
+  "Halloween offer"; both bags in the Ready Mix tab, 500 g, $14 like the other Ready Mixes.
+  - Products 1200 Limited Edition Drop (menu order -2) and 1201 Skull Mix (-1): simple, $14, Ready Mix, Gelatin Free,
+    "One 500 g bag: ...", photos 1204 / 1205; published but catalog visibility HIDDEN, so customers' Ready Mix tab
+    still shows the 3 mixes (checked: Store API catalog list and the in-page product list).
+  - New drop picture from the real Sweet & Sour Mix photo (classic candies kept, limited candies mixed in), popup
+    media 1199; earlier media 1196, 1197, 1198, 1202, 1203 (my own uploads, unused) deleted.
+  - Snippet 193: copy "Our classic Sweet & Sour Mix with this season's limited candies in the bag: the NEW ... and
+    BACK ...", sub "Sweet & sour mix, 500 g"; Skull Mix badge "Halloween offer"; Add to bag puts rw1200 / rw1201
+    (500 g) in the Fika bag like the Ready Mix tab, "See my bag" opens the bag; in the preview the tab lists the two
+    bags first with "Limited edition" / "Halloween offer" labels.
+  - Tested on the live site through the preview link, phone + computer: popup -> bag (both $14) -> checkout (both
+    bags, $28; the order request was stopped, nothing ordered); normal visit unchanged; no script errors.
+  - Going live: catalog visibility of 1200 / 1201 to visible, FIKA_DROPS_LIVE true (snippet 193), stock for 108.

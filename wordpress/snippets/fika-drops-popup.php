@@ -12,10 +12,12 @@
  * - When: right on arrival (0.4 s after the page shows), once per visit (sessionStorage fika_drops_seen), on our shop
  *   pages only (home, Mix your own, Ready Mix, About), never on the checkout or My account, and not right after an
  *   order (the "Order confirmed" popup). Closes with x, "Keep browsing", a tap outside or Esc.
- * - The pictures (media 1195 fika-drop-skull-mix.webp, 1196 fika-drop-limited-edition.webp) are made from the
- *   shop's own photos: the Fika bag from the Sweet Mix photo, recoloured, with a sticker, and the real candies cut
- *   out of the product photos coming out of it (wordpress/images/drops/compose.py). The Strawberry Vanilla Diamond
- *   has no photo yet: it is the real Tutti Frutti Diamond, recoloured strawberry and vanilla.
+ * - The two bags are Ready Mix products, 1200 Limited Edition Drop (the classic Sweet & Sour Mix with the limited
+ *   candies) and 1201 Skull Mix, $14 for 500 g, published but hidden from the shop until they go live; "Add to bag"
+ *   puts the 500 g bag in the Fika bag like the Ready Mix tab. In the preview the tab lists them first.
+ * - Pictures from the shop's own photos (wordpress/images/drops): popup media 1195 (Skull Mix) and 1199 (Limited
+ *   Edition: the real Sweet & Sour Mix photo, recoloured bag, limited candies mixed in); product photos 1204, 1205 (pure white table, like the other Ready Mix photos).
+ *   The Strawberry Vanilla Diamond has no photo yet: it is the real Tutti Frutti Diamond, recoloured.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-drops-popup.php
  */
 
@@ -23,6 +25,11 @@ if ( ! defined( 'FIKA_DROPS_LIVE' ) ) {
 	// false: customers never see it, also with the Halloween look on (the two bags are not products yet, so "Add to
 	// bag" cannot work); only the preview link shows it. true: it drops with the Halloween look.
 	define( 'FIKA_DROPS_LIVE', false );
+}
+
+if ( ! defined( 'FIKA_DROPS_DROP_ID' ) ) {
+	define( 'FIKA_DROPS_DROP_ID', 1200 );   // Limited Edition Drop, Ready Mix, $14, 500 g
+	define( 'FIKA_DROPS_SKULL_ID', 1201 );  // Skull Mix, Ready Mix, $14, 500 g
 }
 
 function fika_drops_img( $name ) {
@@ -43,24 +50,24 @@ function fika_drops_markup() {
 
       <article class="fkd-offer">
         <div class="fkd-pic">
-          <img src="<?php echo fika_drops_img( 'fika-drop-limited-edition.webp' ); ?>" width="720" height="745" alt="A purple Fika bag with a Limited Edition sticker, Strawberry Vanilla Diamonds and Pomegranate Ovals spilling out" decoding="async">
+          <img src="<?php echo fika_drops_img( 'fika-drop-limited-edition-mix.webp' ); ?>" width="720" height="745" alt="A purple Fika bag with a Limited Edition sticker, the Sweet &amp; Sour Mix spilling out with Strawberry Vanilla Diamonds and Pomegranate Ovals in it" decoding="async">
           <span class="fkd-badge">Limited edition</span>
         </div>
         <h3 class="fkd-name">Limited Edition Drop</h3>
-        <p class="fkd-sub">Sweet &amp; sour, 500 g</p>
-        <p class="fkd-what"><b class="fkd-new">New</b> BUBS Sour Strawberry Vanilla Diamond, with <b class="fkd-back">Back</b> BUBS Wild Berry Pomegranate Ovals for a short while. Limited supply.</p>
-        <div class="fkd-buy"><span class="fkd-price">$14</span><button type="button" class="fkd-add" data-offer="drop">Add to bag</button></div>
+        <p class="fkd-sub">Sweet &amp; sour mix, 500 g</p>
+        <p class="fkd-what">Our classic Sweet &amp; Sour Mix with this season&rsquo;s limited candies in the bag: the <b class="fkd-new">New</b> BUBS Sour Strawberry Vanilla Diamond and <b class="fkd-back">Back</b> BUBS Wild Berry Pomegranate Ovals.</p>
+        <div class="fkd-buy"><span class="fkd-price">$14</span><button type="button" class="fkd-add" data-id="<?php echo (int) FIKA_DROPS_DROP_ID; ?>" data-name="Limited Edition Drop">Add to bag</button></div>
       </article>
 
       <article class="fkd-offer">
         <div class="fkd-pic">
           <img src="<?php echo fika_drops_img( 'fika-drop-skull-mix.webp' ); ?>" width="720" height="745" alt="A black Fika bag with a Skull Mix sticker, the five BUBS skulls pouring out" decoding="async">
-          <span class="fkd-badge fkd-badge-new">New</span>
+          <span class="fkd-badge fkd-badge-new">Halloween offer</span>
         </div>
         <h3 class="fkd-name">Skull Mix</h3>
         <p class="fkd-sub">Five BUBS skulls, 500 g</p>
         <p class="fkd-what">Bubblegum, Cola, Lemon Raspberry, Fruity Lemon Mix and Raspberry Salty Licorice: every BUBS skull in one bag.</p>
-        <div class="fkd-buy"><span class="fkd-price">$14</span><button type="button" class="fkd-add" data-offer="skull">Add to bag</button></div>
+        <div class="fkd-buy"><span class="fkd-price">$14</span><button type="button" class="fkd-add" data-id="<?php echo (int) FIKA_DROPS_SKULL_ID; ?>" data-name="Skull Mix">Add to bag</button></div>
       </article>
 
     </div>
@@ -71,15 +78,40 @@ function fika_drops_markup() {
 	return ob_get_clean();
 }
 
-add_action( 'wp_footer', function () {
+function fika_drops_show() {
 	if ( is_admin() || ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) ) ) {
-		return;
+		return false;
 	}
 	// the private Halloween preview link (snippet 184, ?fika_preview=<key>), or a shop manager with ?fika_drops=preview
 	$preview = ( function_exists( 'fika_hw_preview' ) && fika_hw_preview() )
 		|| ( isset( $_GET['fika_drops'] ) && 'preview' === $_GET['fika_drops'] && current_user_can( 'manage_woocommerce' ) ); // phpcs:ignore WordPress.Security.NonceVerification
-	if ( ! $preview && ! ( FIKA_DROPS_LIVE && function_exists( 'fika_hw_on' ) && fika_hw_on() ) ) {
-		return; // it drops with the Halloween look, once FIKA_DROPS_LIVE is true
+	return $preview || ( FIKA_DROPS_LIVE && function_exists( 'fika_hw_on' ) && fika_hw_on() );
+}
+
+// the Ready Mix tab: while the two bags are still hidden from the shop, the preview lists them first, as they will be
+add_action( 'wp_head', function () {
+	if ( ! fika_drops_show() || ! function_exists( 'wc_get_product' ) ) {
+		return;
+	}
+	$extra = array();
+	foreach ( array( FIKA_DROPS_DROP_ID, FIKA_DROPS_SKULL_ID ) as $id ) {
+		$p = wc_get_product( $id );
+		if ( ! $p || 'publish' !== $p->get_status() || 'hidden' !== $p->get_catalog_visibility() ) {
+			continue; // visible products are in the list already
+		}
+		$res = rest_do_request( new WP_REST_Request( 'GET', '/wc/store/v1/products/' . $id ) );
+		if ( ! $res->is_error() && 200 === $res->get_status() ) {
+			$extra[] = rest_get_server()->response_to_data( $res, false );
+		}
+	}
+	if ( $extra ) {
+		echo '<script>window.fikaProductsData=' . wp_json_encode( $extra, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '.concat(window.fikaProductsData||[]);</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+}, 2 );
+
+add_action( 'wp_footer', function () {
+	if ( ! fika_drops_show() ) {
+		return;
 	}
 	?>
 <style id="fika-drops-css">
@@ -156,6 +188,11 @@ add_action( 'wp_footer', function () {
   .fkd-add { padding: 11px 10px; font-size: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .fkd-veil, .fkd-card { transition: none; } .fkd-bat { animation: none; } }
+/* the Ready Mix tab: the two Halloween bags carry their label like in the popup */
+.mx-card[data-id="rw<?php echo (int) FIKA_DROPS_DROP_ID; ?>"] .mx-img::after, .mx-card[data-id="rw<?php echo (int) FIKA_DROPS_SKULL_ID; ?>"] .mx-img::after {
+  content: 'Limited edition'; position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 2; white-space: nowrap; padding: 4px 10px; border-radius: 999px;
+  background: #ff7b1c; color: #1b0d00; font: 700 11px/1.2 'Outfit', Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; box-shadow: 0 0 14px rgba(255, 123, 28, .5); pointer-events: none; }
+.mx-card[data-id="rw<?php echo (int) FIKA_DROPS_SKULL_ID; ?>"] .mx-img::after { content: 'Halloween offer'; background: #a6e35b; color: #102000; box-shadow: 0 0 14px rgba(166, 227, 91, .45); }
 </style>
 	<?php
 	echo fika_drops_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -180,11 +217,26 @@ add_action( 'wp_footer', function () {
   }
   veil.addEventListener('click', function (e) { if (e.target === veil || e.target.closest('.fkd-x, .fkd-later')) close(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !veil.hidden) close(); });
+  // Add to bag: the same 500 g bag the Ready Mix tab puts in the Fika bag (localStorage fika_bag_v1, id rw<product>)
+  var later = veil.querySelector('.fkd-later');
   [].forEach.call(veil.querySelectorAll('.fkd-add'), function (b) {
     b.addEventListener('click', function () {
-      // going live: adds the offer's 500 g bag (a Ready Mix product) to the Fika bag; here it only says so
-      b.textContent = 'Added ✓'; setTimeout(close, 700);
+      var pid = b.getAttribute('data-id'), name = b.getAttribute('data-name'), id = 'rw' + pid, st = null;
+      try { st = JSON.parse(localStorage.getItem('fika_bag_v1') || 'null'); } catch (e) {}
+      st = st || {}; st.bag = st.bag || {}; st.meta = st.meta || {};
+      st.bag[id] = (st.bag[id] || 0) + 500; st.meta[id] = { name: name, price: 14 / 5 };
+      try { localStorage.setItem('fika_bag_v1', JSON.stringify(st)); } catch (e) {}
+      try { window.dispatchEvent(new CustomEvent('fikabag', { detail: 'drops' })); } catch (e) {}
+      try { var ev = { value: 14, currency: 'USD', content_name: name, content_ids: [String(pid)] }; if (typeof window.fikaTrack === 'function') window.fikaTrack('AddToCart', ev); else if (typeof window.fbq === 'function') window.fbq('track', 'AddToCart', ev); } catch (e) {}
+      var n = Math.round(st.bag[id] / 500);
+      b.textContent = n > 1 ? n + ' in your bag ✓' : 'In your bag ✓';
+      later.textContent = 'See my bag'; later.setAttribute('data-bag', '1');
     });
+  });
+  // after adding: "See my bag" closes the popup and opens the bag (the bag icon in the header)
+  later.addEventListener('click', function () {
+    if (!later.getAttribute('data-bag')) return;
+    setTimeout(function () { var c = document.querySelector('.fika-cart'); if (c) c.click(); }, 320);
   });
   function go() { setTimeout(open, 400); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();

@@ -62,7 +62,11 @@ paper = paper * (1 - logo_a[..., None]) + (ink * (0.78 + 0.22 * Ln[..., None])) 
 # ---------- the table ----------
 yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
 r = np.sqrt(((xx - W * 0.58) / (W * 0.9)) ** 2 + ((yy - H * 0.62) / (H * 0.85)) ** 2)
-table = ramp(np.clip(1 - r, 0, 1), [(0, (205, 192, 168)), (0.5, (232, 222, 200)), (1.0, (248, 242, 228))])
+import os
+if os.environ.get('TABLE') == 'white':                       # product photos: the white table of the Ready Mix photos
+    table = np.full((H, W, 3), 255, np.float32)            # pure white, like the Ready Mix photos (shadows stay)
+else:
+    table = ramp(np.clip(1 - r, 0, 1), [(0, (205, 192, 168)), (0.5, (232, 222, 200)), (1.0, (248, 242, 228))])
 img = table.copy()
 
 def mul(base, shade):                                       # multiply a shade map (1 = no change) onto the picture
@@ -166,6 +170,7 @@ for n, x, y, rot, fl in spill[:9] + sorted(spill[9:], key=lambda t: t[2]):
 rng = np.random.default_rng(3)
 img = img + rng.normal(0, 2.2, img.shape).astype(np.float32)
 out = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
+out.save(OUT.replace('.jpg', '-full.jpg'), quality=92)          # the whole photo, 1024 x 1280 like the Ready Mix photos
 out = out.crop((0, 120, 1024, 1180))
 out.save(OUT, quality=90)
 print('saved', OUT, out.size)
