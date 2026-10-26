@@ -28,9 +28,12 @@ body.fika-hw .fika-banner { background: #0b0714 !important; color: var(--hw-oran
 body.fika-hw .fika-banner a { color: var(--hw-orange) !important; }
 body.fika-hw .hw-sk { display: inline-block; width: 1.05em; height: 1.05em; margin: 0 .55em; vertical-align: -.17em; background: var(--hw-bone);
   -webkit-mask: var(--hw-skull) center / contain no-repeat; mask: var(--hw-skull) center / contain no-repeat; }
-body.fika-hw .fika-header.fika-scrolled, body.fika-hw .fika-header:not(.fika-top) { background: rgba(20, 14, 34, .9) !important; box-shadow: 0 4px 22px rgba(0, 0, 0, .5) !important; }
+body.fika-hw .fika-header.fika-scrolled, body.fika-hw .fika-header:not(.fika-top) { background: rgba(17, 11, 30, .985) !important; box-shadow: 0 4px 22px rgba(0, 0, 0, .5) !important; }
 body.fika-hw .fika-logo { color: var(--hw-orange) !important; text-shadow: 0 0 18px rgba(255, 123, 28, .55), 0 2px 0 #6b2a00; }
 body.fika-hw .fika-nav a, body.fika-hw .fika-nav .fika-menu-btn, body.fika-hw .fika-cart { color: var(--hw-bone) !important; }
+/* the account icon like the bag icon (orange on the pink photo at the top was hard to see); orange on hover */
+body.fika-hw .fika-acct .fa-btn { color: var(--hw-bone) !important; }
+body.fika-hw .fika-acct .fa-btn:hover { color: var(--hw-orange) !important; }
 body.fika-hw .fika-nav a:hover, body.fika-hw .fika-nav a.on { border-bottom-color: var(--hw-orange) !important; color: var(--hw-orange) !important; }
 @media (max-width: 760px) {
   body.fika-hw .fika-nav .fika-nav-links { background: var(--hw-deep) !important; border: 1px solid var(--hw-line); }
@@ -132,7 +135,12 @@ body.fika-hw .fika-faq .fika-answer, body.fika-hw .fika-faq .fika-answer p { col
 body.fika-hw .fika-faq .fika-answer a { color: var(--hw-orange) !important; }
 body.fika-hw .fk-rev, body.fika-hw .fk-vr { color: var(--hw-bone); }
 body.fika-hw .fk-vr-sub { color: var(--hw-muted) !important; }
-body.fika-hw .fk-vr-arrow { background: var(--hw-plum) !important; color: var(--hw-bone) !important; }
+body.fika-hw .fk-vr-arrow { background: var(--hw-orange) !important; box-shadow: 0 0 18px rgba(255, 123, 28, .4) !important; }
+body.fika-hw .fk-vr-arrow svg { stroke: #1b0d00 !important; }
+body.fika-hw .fk-vr-arrow:hover { background: var(--hw-orange-d) !important; }
+body.fika-hw .fk-vr-dots button { background: rgba(244, 236, 220, .3) !important; }
+body.fika-hw .fk-vr-dots button.on { background: var(--hw-orange) !important; }
+body.fika-hw .fk-vr-sound { background: rgba(11, 7, 20, .8) !important; color: var(--hw-orange) !important; }
 
 /* ---------- footer ---------- */
 body.fika-hw .fika-footer.fika-sec { background: var(--hw-night) !important; }
@@ -152,7 +160,7 @@ body.fika-hw .hw-skulls i:nth-child(even) { background: var(--hw-bone); transfor
   /* the hero photo at night: a moon glow top right, darker towards the words */
   background:
     radial-gradient(ellipse 38% 46% at 84% 22%, rgba(255, 190, 90, .26), transparent 70%),
-    linear-gradient(180deg, rgba(20, 14, 34, .7) 0%, rgba(43, 28, 71, .5) 45%, rgba(20, 14, 34, .9) 100%); }
+    linear-gradient(180deg, rgba(14, 9, 26, .78) 0, rgba(20, 14, 34, .5) 90px, rgba(43, 28, 71, .14) 230px, rgba(43, 28, 71, .18) 62%, rgba(20, 14, 34, .78) 100%); }
 .hw-bat { position: absolute; left: -110px; width: 84px; height: 42px; background: #0a0612; filter: drop-shadow(0 0 5px rgba(255, 140, 50, .85));
   -webkit-mask: var(--hw-bat) center / contain no-repeat; mask: var(--hw-bat) center / contain no-repeat;
   animation: hwFly var(--t, 16s) linear var(--d, 0s) infinite; }
@@ -168,10 +176,12 @@ body.fika-hw .hw-skulls i:nth-child(even) { background: var(--hw-bone); transfor
   70% { transform: translate(84vw, -10px) scale(var(--s, 1)) scaleY(.55); }
   80%, 100% { transform: translate(calc(100vw + 160px), 0) scale(var(--s, 1)) scaleY(1); }
 }
-.hw-web { position: absolute; top: 0; width: min(30vw, 260px); height: min(30vw, 260px); opacity: .5; }
+/* the webs hang in the photo's top corners just under the header, clear of the logo and the bag / account icons */
+.hw-web { position: absolute; top: 96px; width: min(16vw, 190px); height: min(16vw, 190px); opacity: .4; }
 .hw-web.l { left: 0; }
 .hw-web.r { right: 0; transform: scaleX(-1); }
-.hw-spider { position: absolute; top: 0; right: 31%; width: 2px; height: 120px; background: linear-gradient(rgba(244, 236, 220, .6), rgba(244, 236, 220, .25));
+/* the spider drops from the empty stretch of the header between the logo and the menu */
+.hw-spider { position: absolute; top: 0; left: 26%; width: 2px; height: 120px; background: linear-gradient(rgba(244, 236, 220, .6), rgba(244, 236, 220, .25));
   transform-origin: top; animation: hwDangle 5.5s ease-in-out infinite; }
 .hw-spider i { position: absolute; bottom: -14px; left: -10px; width: 22px; height: 18px; border-radius: 50%; background: #07040d;
   box-shadow: 0 0 0 1px rgba(244, 236, 220, .25); }
@@ -179,7 +189,7 @@ body.fika-hw .hw-skulls i:nth-child(even) { background: var(--hw-bone); transfor
   border: 2px solid #07040d; border-bottom: 0; border-radius: 50% 50% 0 0; }
 .hw-spider i::after { top: 9px; }
 @keyframes hwDangle { 0%, 100% { height: 110px; transform: rotate(2deg); } 50% { height: 170px; transform: rotate(-2deg); } }
-@media (max-width: 700px) { .hw-spider { right: 22%; } .hw-bat { width: 52px; height: 26px; } }
+@media (max-width: 700px) { .hw-bat { width: 52px; height: 26px; } }
 @media (prefers-reduced-motion: reduce) { .hw-bat, .hw-spider { animation: none; } .hw-bat { display: none; } }
 
 /* ---------- About page ---------- */
@@ -261,7 +271,7 @@ body.fika-hw .fika-footer .fika-foot-bottom, body.fika-hw .fika-footer .fika-foo
 /* ---------- phones: lighter decorations so the menu and the bag icon stay clear ---------- */
 @media (max-width: 760px) {
   .hw-web { display: none; } /* under the fixed header on a small screen they read as patches */
-  .hw-spider { right: auto; left: 58%; height: 70px; animation-name: hwDanglePhone; }
+  .hw-spider { left: 31%; height: 70px; animation-name: hwDanglePhone; }
   .hw-spider i { width: 16px; height: 13px; left: -7px; bottom: -11px; }
   .hw-spider i::before, .hw-spider i::after { width: 26px; height: 6px; left: -5px; top: 4px; }
   .hw-spider i::after { top: 7px; }
@@ -272,3 +282,10 @@ body.fika-hw .fika-footer .fika-foot-bottom, body.fika-hw .fika-footer .fika-foo
 
 /* ---------- the Fika inbox card at checkout (fika-checkout-texts.php): the checkout's Halloween purple ---------- */
 body.fika-hw .fika-texts .ft-who b, body.fika-hw .fika-texts .ft-foot b, body.fika-hw .fika-texts .ft-next { color: #5b2fa3 !important; }
+/* the card sits on the checkout's white panels: pale lilac chat instead of the pink, a night-purple avatar */
+body.fika-hw .fika-texts { background: #f1eafb !important; border-color: #dfd2f3 !important; }
+body.fika-hw .fika-texts .ft-head, body.fika-hw .fika-texts .ft-foot { border-color: #dfd2f3 !important; }
+body.fika-hw .fika-texts .ft-av { background: var(--hw-plum) !important; }
+body.fika-hw .fika-texts .ft-next { border-color: #dfd2f3 !important; }
+body.fika-hw .fika-texts .ft-next:hover { background: #f1eafb !important; }
+body.fika-hw .fika-texts.ft-side { box-shadow: 0 8px 24px rgba(43, 28, 71, .14) !important; }
