@@ -1,0 +1,21 @@
+<script>
+(function () {
+  // the still photo layer: same place and size as its hero at the top of the page
+  function size() {
+    [].slice.call(document.querySelectorAll('.fika-hero')).forEach(function (h) {
+      var p = h.querySelector('.fika-photo');
+      if (!p) return;
+      var top = h.getBoundingClientRect().top + (window.pageYOffset || 0);
+      h.style.setProperty('--fika-photo-top', Math.round(top) + 'px');
+      h.style.setProperty('--fika-photo-h', h.offsetHeight + 'px');
+    });
+  }
+  function init() {
+    size();
+    if (window.ResizeObserver) [].slice.call(document.querySelectorAll('.fika-hero')).forEach(function (h) { new ResizeObserver(size).observe(h); });
+    window.addEventListener('resize', size); window.addEventListener('load', size);
+    setTimeout(size, 400); setTimeout(size, 1500);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>

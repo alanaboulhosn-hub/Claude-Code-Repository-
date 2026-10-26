@@ -1,0 +1,17 @@
+<script>
+(function () {
+  // the shop stretches the hero, its sections and the shop grids edge to edge for each screen (header part script);
+  // the captured copy holds the capture window's width, so the preview does the same again for this screen
+  function fitX(el) {
+    el.style.setProperty('margin-left', '0px', 'important');
+    el.style.setProperty('margin-right', '0px', 'important');
+    el.style.setProperty('max-width', 'none', 'important');
+    el.style.setProperty('width', document.documentElement.clientWidth + 'px', 'important');
+    el.style.setProperty('margin-left', (-el.getBoundingClientRect().left) + 'px', 'important');
+  }
+  function fit() { [].slice.call(document.querySelectorAll('.fika-hero, .fika-sec, .mx-page')).forEach(fitX); }
+  fit();
+  window.addEventListener('resize', fit); window.addEventListener('load', fit);
+  setTimeout(fit, 400); setTimeout(fit, 1500);
+})();
+</script>

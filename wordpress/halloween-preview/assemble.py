@@ -68,7 +68,7 @@ for dev, pre in (('desk', ''), ('phone', 'm-')):
                   .replace('__OTHER__', other_pre + name).replace('__OTHERNAME__', 'computer view' if dev == 'phone' else 'phone view')
                   .replace('__CHECKOUT__', pre + 'checkout.html'))
         # the site's own scripts that size the top photo and place the googly eyes for this screen
-        keep = open(site.parent / 'keep-photo.js.html').read()
+        keep = open(site.parent / 'keep-fit.js.html').read() + open(site.parent / 'keep-photo.js.html').read()
         if name == 'index.html':
             keep += open(site.parent / 'keep-eyes.js.html').read()
         if name == 'checkout.html':

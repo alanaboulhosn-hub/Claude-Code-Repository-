@@ -33,7 +33,7 @@
 		var fx = document.createElement('div');
 		fx.className = 'hw-fx';
 		fx.setAttribute('aria-hidden', 'true');
-		var bats = [[18, 14, 0, 1], [30, 19, 5, .7], [12, 23, 9, .55], [24, 17, 13, .85]];
+		var bats = [[24, 14, 0, 1], [36, 19, 5, .7], [20, 23, 9, .55], [30, 17, 13, .85]]; // below the header row
 		var html = web().replace('hw-web', 'hw-web l') + web().replace('hw-web', 'hw-web r') + '<span class="hw-spider"><i></i></span>';
 		for (var k = 0; k < bats.length; k++) {
 			html += '<i class="hw-bat" style="top:' + bats[k][0] + '%;--t:' + bats[k][1] + 's;--d:-' + bats[k][2] + 's;--s:' + bats[k][3] + '"></i>';
