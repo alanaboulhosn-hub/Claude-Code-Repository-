@@ -15,7 +15,7 @@
 
 if ( ! defined( 'FIKA_HW_END' ) ) {
 	define( 'FIKA_HW_END', '2026-11-01 00:00' ); // Beirut time
-	define( 'FIKA_HW_VERSION', '40b30791b6' );
+	define( 'FIKA_HW_VERSION', 'd67ff4b827' );
 }
 
 if ( ! function_exists( 'fika_hw_on' ) ) {
@@ -398,6 +398,17 @@ body.fika-hw .fika-texts .ft-av { background: var(--hw-plum) !important; }
 body.fika-hw .fika-texts .ft-next { border-color: #dfd2f3 !important; }
 body.fika-hw .fika-texts .ft-next:hover { background: #f1eafb !important; }
 body.fika-hw .fika-texts.ft-side { box-shadow: 0 8px 24px rgba(43, 28, 71, .14) !important; }
+
+/* ---------- a click with the pumpkin cursor: a soft glow ring and embers drifting up (fika-halloween.js) ---------- */
+.hw-boo { position: fixed; width: 0; height: 0; pointer-events: none; z-index: 2147483646; }
+.hw-boo::before { content: ''; position: absolute; left: -16px; top: -16px; width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid rgba(255, 123, 28, .75); box-shadow: 0 0 14px rgba(255, 123, 28, .55), inset 0 0 10px rgba(255, 123, 28, .35);
+  animation: hwBooRing .55s ease-out forwards; }
+.hw-boo i { position: absolute; left: -2.5px; top: -2.5px; width: 5px; height: 5px; border-radius: 50%; background: #ffb347;
+  box-shadow: 0 0 6px 1px rgba(255, 123, 28, .8); opacity: 0; animation: hwBooEmber .75s ease-out var(--d, 0ms) forwards; }
+.hw-boo i:nth-child(even) { background: #b8f06a; box-shadow: 0 0 6px 1px rgba(166, 227, 91, .7); }
+@keyframes hwBooRing { from { transform: scale(.35); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
+@keyframes hwBooEmber { 0% { transform: translate(0, 0) scale(1); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(.4); opacity: 0; } }
 FIKA_HW_CSS
 	. "\n</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 }, 99 );
@@ -525,6 +536,28 @@ add_action( 'wp_footer', function () {
 		row.innerHTML = new Array(8).join('<i></i>');
 		fb.insertBefore(row, fb.firstChild);
 	}
+
+	/* boo:start - each mouse click, the pumpkin glows: a soft orange ring and a few embers drifting up */
+	(function () {
+		if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
+		document.addEventListener('pointerdown', function (e) {
+			if (e.pointerType !== 'mouse' || e.button !== 0) { return; }
+			var b = document.createElement('span');
+			b.className = 'hw-boo';
+			b.setAttribute('aria-hidden', 'true');
+			// the cursor's point is the stem (3, 2): the glow comes from the middle of the pumpkin
+			b.style.left = (e.clientX + 17) + 'px';
+			b.style.top = (e.clientY + 20) + 'px';
+			var html = '';
+			for (var k = 0; k < 4; k++) {
+				html += '<i style="--x:' + Math.round(Math.random() * 36 - 18) + 'px;--y:' + Math.round(-26 - Math.random() * 20) + 'px;--d:' + (k * 45) + 'ms"></i>';
+			}
+			b.innerHTML = html;
+			document.body.appendChild(b);
+			setTimeout(function () { if (b.parentNode) { b.parentNode.removeChild(b); } }, 900);
+		}, { passive: true });
+	})();
+	/* boo:end */
 })();
 FIKA_HW_JS
 	. "\n</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput

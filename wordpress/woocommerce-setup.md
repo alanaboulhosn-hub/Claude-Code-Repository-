@@ -2025,3 +2025,7 @@ choice). Snippet 91, fika-club.php (new):
 - Owner's notes (26 Oct): the hanging spider has googly eyes (own layer <b> above the legs); the webs sit right in the
   photo's top corners again (top 0); room under the "All pick & mix" squiggle (#shop .mx-head margin 18 px: 12-13 px
   clear of the arched cards on computer, 10-42 px on phones). Preview version 7. Snippet 184 not yet updated.
+- Pumpkin click (owner, 26 Oct): each left mouse click with the look on shows a soft orange glow ring from the middle
+  of the pumpkin cursor and four embers (orange / slime green) drifting up, ~0.55-0.75 s, then removed. Mouse only
+  (not touch), none with reduced motion, pointer-events none (links and buttons unaffected; tested). Preview
+  version 8 (assemble.py HW_JS adds the boo:start..boo:end part of hw.js). Snippet 184 not yet updated.
