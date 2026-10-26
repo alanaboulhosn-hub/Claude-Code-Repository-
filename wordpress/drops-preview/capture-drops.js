@@ -1,5 +1,5 @@
 // the live home page with the drops popup open (injected in the test browser only), frozen to HTML:
-// normal + Halloween look, computer + phone. node capture-drops.js <out>
+// the Halloween look (the popup drops with it), computer + phone. node capture-drops.js <out>
 const { chromium } = require('playwright'); const fs = require('fs'), path = require('path'), crypto = require('crypto');
 const out = process.argv[2];
 const inj = fs.readFileSync('inject.html', 'utf8');
@@ -17,7 +17,8 @@ fs.mkdirSync(path.join(out, 'a'), { recursive: true });
       if (hw) h = h.replace(/<body([^>]*?)class="/, '<body$1class="fika-hw ').replace('</head>', '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&display=swap"><style id="fika-hw">' + css + '</style></head>').replace(/<\/body>(?![\s\S]*<\/body>)/, '<script>' + js + '</script></body>');
       h = h.replace(/<\/body>(?![\s\S]*<\/body>)/, inj + '</body>'); r.fulfill({ response: res, body: h }); });
     await p.goto('https://swedishfikalb.com/', { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(12000);
-    for (const look of ['normal', 'hw']) {
+    await p.route(/fika-drop-(skull-mix|limited-edition)\.webp/, r => r.fulfill({ status: 200, contentType: 'image/webp', body: fs.readFileSync('../drops2/web/' + r.request().url().split('/').pop()) }));
+    for (const look of ['hw']) {
       hw = look === 'hw';
       await p.evaluate(() => { try { sessionStorage.clear(); } catch (e) {} });
       await p.goto('https://swedishfikalb.com/?nc=' + Date.now(), { waitUntil: 'networkidle' }); await p.waitForTimeout(2500);
