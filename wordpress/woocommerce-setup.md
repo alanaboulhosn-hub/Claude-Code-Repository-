@@ -2022,3 +2022,6 @@ choice). Snippet 91, fika-club.php (new):
   top of the page); keep-fit.js.html now keeps it 1 px under the menu as you scroll, like the shop. Search
   magnifier and focus ring orange in the look. assemble.py takes HW_CSS=<hw.css> to apply a CSS-only change without
   a new capture. Preview version 6.
+- Owner's notes (26 Oct): the hanging spider has googly eyes (own layer <b> above the legs); the webs sit right in the
+  photo's top corners again (top 0); room under the "All pick & mix" squiggle (#shop .mx-head margin 18 px: 12-13 px
+  clear of the arched cards on computer, 10-42 px on phones). Preview version 7. Snippet 184 not yet updated.

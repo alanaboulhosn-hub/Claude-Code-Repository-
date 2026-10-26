@@ -15,7 +15,7 @@
 
 if ( ! defined( 'FIKA_HW_END' ) ) {
 	define( 'FIKA_HW_END', '2026-11-01 00:00' ); // Beirut time
-	define( 'FIKA_HW_VERSION', '182d46bfe5' );
+	define( 'FIKA_HW_VERSION', '40b30791b6' );
 }
 
 if ( ! function_exists( 'fika_hw_on' ) ) {
@@ -193,6 +193,8 @@ body.fika-hw .mx-loading .mx-card .mx-img { background: linear-gradient(100deg, 
 
 /* home: the hand-drawn "All pick & mix" link */
 body.fika-hw #shop .fk-allpm { color: var(--hw-slime) !important; }
+/* room under the squiggle: the arched cards reach higher than the normal square ones */
+body.fika-hw #shop .mx-head { margin-bottom: 18px; }
 body.fika-hw #shop .fk-allpm b { color: var(--hw-orange) !important; }
 body.fika-hw #shop .fk-allpm .sq { stroke: rgba(166, 227, 91, .6) !important; }
 body.fika-hw #shop .fk-allpm:hover { color: var(--hw-orange) !important; }
@@ -274,15 +276,21 @@ body.fika-hw .hw-skulls i:nth-child(even) { background: var(--hw-bone); transfor
   70% { transform: translate(84vw, -10px) scale(var(--s, 1)) scaleY(.55); }
   80%, 100% { transform: translate(calc(100vw + 160px), 0) scale(var(--s, 1)) scaleY(1); }
 }
-/* the webs hang in the photo's top corners just under the header, clear of the logo and the bag / account icons */
-.hw-web { position: absolute; top: 96px; width: min(16vw, 190px); height: min(16vw, 190px); opacity: .4; }
+/* the webs sit right in the photo's top corners */
+.hw-web { position: absolute; top: 0; width: min(16vw, 190px); height: min(16vw, 190px); opacity: .4; }
 .hw-web.l { left: 0; }
 .hw-web.r { right: 0; transform: scaleX(-1); }
 /* the spider drops from the empty stretch of the header between the logo and the menu */
 .hw-spider { position: absolute; top: 0; left: 26%; width: 2px; height: 120px; background: linear-gradient(rgba(244, 236, 220, .6), rgba(244, 236, 220, .25));
   transform-origin: top; animation: hwDangle 5.5s ease-in-out infinite; }
+/* the body with two glowing googly eyes, like the candies' */
 .hw-spider i { position: absolute; bottom: -14px; left: -10px; width: 22px; height: 18px; border-radius: 50%; background: #07040d;
-  box-shadow: 0 0 0 1px rgba(244, 236, 220, .25); }
+  box-shadow: 0 0 0 1px rgba(244, 236, 220, .25), 0 0 8px rgba(166, 227, 91, .45); }
+/* its eyes on their own layer, above the legs */
+.hw-spider b { position: absolute; bottom: -14px; left: -10px; width: 22px; height: 18px; pointer-events: none;
+  background:
+    radial-gradient(circle at 31% 50%, #07040d 0 1.5px, #fff 1.8px 4px, transparent 4.4px),
+    radial-gradient(circle at 69% 50%, #07040d 0 1.5px, #fff 1.8px 4px, transparent 4.4px); }
 .hw-spider i::before, .hw-spider i::after { content: ''; position: absolute; top: 5px; width: 34px; height: 8px; left: -6px;
   border: 2px solid #07040d; border-bottom: 0; border-radius: 50% 50% 0 0; }
 .hw-spider i::after { top: 9px; }
@@ -370,7 +378,10 @@ body.fika-hw .fika-footer .fika-foot-bottom, body.fika-hw .fika-footer .fika-foo
 @media (max-width: 760px) {
   .hw-web { display: none; } /* under the fixed header on a small screen they read as patches */
   .hw-spider { left: 31%; height: 70px; animation-name: hwDanglePhone; }
-  .hw-spider i { width: 16px; height: 13px; left: -7px; bottom: -11px; }
+  .hw-spider i, .hw-spider b { width: 16px; height: 13px; left: -7px; bottom: -11px; }
+  .hw-spider b { background:
+      radial-gradient(circle at 30% 50%, #07040d 0 1.1px, #fff 1.4px 3px, transparent 3.3px),
+      radial-gradient(circle at 70% 50%, #07040d 0 1.1px, #fff 1.4px 3px, transparent 3.3px); }
   .hw-spider i::before, .hw-spider i::after { width: 26px; height: 6px; left: -5px; top: 4px; }
   .hw-spider i::after { top: 7px; }
   .hw-bat:nth-of-type(n+3) { display: none; }
@@ -432,7 +443,7 @@ add_action( 'wp_footer', function () {
 		fx.className = 'hw-fx';
 		fx.setAttribute('aria-hidden', 'true');
 		var bats = [[24, 14, 0, 1], [36, 19, 5, .7], [20, 23, 9, .55], [30, 17, 13, .85]]; // below the header row
-		var html = web().replace('hw-web', 'hw-web l') + web().replace('hw-web', 'hw-web r') + '<span class="hw-spider"><i></i></span>';
+		var html = web().replace('hw-web', 'hw-web l') + web().replace('hw-web', 'hw-web r') + '<span class="hw-spider"><i></i><b></b></span>';
 		for (var k = 0; k < bats.length; k++) {
 			html += '<i class="hw-bat" style="top:' + bats[k][0] + '%;--t:' + bats[k][1] + 's;--d:-' + bats[k][2] + 's;--s:' + bats[k][3] + '"></i>';
 		}
