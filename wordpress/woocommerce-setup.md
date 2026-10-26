@@ -2017,3 +2017,8 @@ choice). Snippet 91, fika-club.php (new):
   checkout pale lilac with a night-purple avatar.
 - Preview republished (version 5) from a fresh capture; checked every screen on computer and phone side by side
   with the normal site; no errors, no broken images, no sideways scroll.
+- Owner saw a gap between the menu and the stuck filter bar on Mix your own (preview only: the shop and the live
+  look have 0 px at 1280, 1440, 1920 and phone). The capture froze the bar's top (130 px, from the taller menu at the
+  top of the page); keep-fit.js.html now keeps it 1 px under the menu as you scroll, like the shop. Search
+  magnifier and focus ring orange in the look. assemble.py takes HW_CSS=<hw.css> to apply a CSS-only change without
+  a new capture. Preview version 6.

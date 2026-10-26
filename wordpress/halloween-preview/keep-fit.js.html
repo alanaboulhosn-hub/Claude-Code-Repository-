@@ -10,8 +10,15 @@
     el.style.setProperty('margin-left', (-el.getBoundingClientRect().left) + 'px', 'important');
   }
   function fit() { [].slice.call(document.querySelectorAll('.fika-hero, .fika-sec, .mx-page')).forEach(fitX); }
-  fit();
-  window.addEventListener('resize', fit); window.addEventListener('load', fit);
+  // the shop's filter bar (Mix your own) sticks right under the header, whose height changes as you scroll
+  function stick() {
+    var h = document.querySelector('.fika-header'); if (!h) return;
+    var t = Math.round(h.getBoundingClientRect().bottom) - 1;
+    [].slice.call(document.querySelectorAll('.fs-bar')).forEach(function (b) { b.style.setProperty('top', t + 'px', 'important'); });
+  }
+  fit(); stick();
+  window.addEventListener('scroll', stick, { passive: true });
+  window.addEventListener('resize', function () { fit(); stick(); }); window.addEventListener('load', stick);
   setTimeout(fit, 400); setTimeout(fit, 1500);
 })();
 </script>

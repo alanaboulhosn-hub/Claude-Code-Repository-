@@ -1,5 +1,5 @@
 """Turns the captured pages into a browsable preview: local assets, links between preview pages, a small helper script."""
-import json, re, sys, pathlib
+import json, os, re, sys, pathlib
 site = pathlib.Path(sys.argv[1])
 # the checkout's customer texts card: its script, from the snippet's output (optional 2nd argument), plays again
 card_js = ''
@@ -64,6 +64,10 @@ for dev, pre in (('desk', ''), ('phone', 'm-')):
             return m.group(1) + (pre + pages[p] if p in pages else '#hwp-off') + '"'
         h = re.sub(r'(href=")([^"]*)"', link, h)
         h = re.sub(r'\saction="[^"]*"', '', h)
+        # a newer Halloween style sheet than the capture's (HW_CSS=<hw.css>): CSS-only changes without a new capture
+        if os.environ.get('HW_CSS'):
+            new_css = open(os.environ['HW_CSS']).read()
+            h = re.sub(r'<style id="fika-hw">[\s\S]*?</style>', lambda m: '<style id="fika-hw">' + new_css + '</style>', h, count=1)
         helper = (HELPER.replace('__PHONE__', 'true' if dev == 'phone' else 'false')
                   .replace('__OTHER__', other_pre + name).replace('__OTHERNAME__', 'computer view' if dev == 'phone' else 'phone view')
                   .replace('__CHECKOUT__', pre + 'checkout.html'))
