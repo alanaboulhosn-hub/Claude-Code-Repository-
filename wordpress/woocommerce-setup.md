@@ -2106,3 +2106,10 @@ choice). Snippet 91, fika-club.php (new):
   pupils with a pale highlight (fika-halloween.css, rebuilt snippet 184; live copy matched git first, POST). Only with
   the Halloween look; the normal site keeps its white googly eyes. Checked live on phone and computer (cached pages
   carry it too).
+- Owner (27 Oct): the home page's READY-MIX heading kept the normal font in the Halloween look. Its font is written
+  on the heading in the page (inline font-family !important, which no style sheet can beat). Halloween snippet 184
+  now sets Creepster on that heading itself while the look is on (fika-halloween.js heads(); the page is not
+  touched, the normal site unchanged). Live copy matched git first, POST. Checked live, phone + computer: all four
+  home section headings (Mix your own, READY-MIX, Loved across Lebanon, FAQ) in Creepster, no script errors.
+- Fan Favourites picture: owner said do not put the redesigns live (v2 and v3 stay in git only); the live picture
+  is still the one from 26 Oct.
