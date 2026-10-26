@@ -2029,3 +2029,17 @@ choice). Snippet 91, fika-club.php (new):
   of the pumpkin cursor and four embers (orange / slime green) drifting up, ~0.55-0.75 s, then removed. Mouse only
   (not touch), none with reduced motion, pointer-events none (links and buttons unaffected; tested). Preview
   version 8 (assemble.py HW_JS adds the boo:start..boo:end part of hw.js). Snippet 184 not yet updated.
+
+## 2026-10-26: "Two new drops" arrival popup (preview, NOT live)
+
+- Owner: a popup on arrival with two offers, both 500 g and $14: (1) Limited Edition Drop, sweet & sour bundle: the new
+  BUBS Sour Strawberry Vanilla Diamond (not in the shop yet, no photo: drawn stand-in) with BUBS Wild Berry Pomegranate
+  Ovals (product 108, now out of stock) back with limited supply; (2) Skull Mix: the 5 BUBS skulls (120 Bubblegum,
+  124 Cola, 122 Lemon Raspberry, 118 Fruity Lemon Mix (Mini), 107 Raspberry Salty Licorice) in a skull-shaped bag.
+- wordpress/snippets/fika-drops-popup.php: shows 0.4 s after arrival, once per visit (sessionStorage fika_drops_seen),
+  home / Mix your own / Ready Mix / About only, never right after an order (?fika_order, the Order confirmed popup);
+  closes with x, Keep browsing, tap outside, Esc. Bag illustrations drawn in SVG with the shop's cut-out candy photos.
+  Night colours under the Halloween look. "Add to bag" only says Added in the preview.
+- To go live: two products (Ready Mix category, 500 g, $14) for the bags, the Add to bag hand-off to the Fika bag,
+  product 108 back in stock, the Diamond product + photo.
+- Preview: https://claude.ai/artifact/FtuVBAcKfELbevxULmaetB (wordpress/drops-preview).
