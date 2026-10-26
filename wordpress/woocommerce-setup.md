@@ -2074,3 +2074,12 @@ choice). Snippet 91, fika-club.php (new):
   - Tested on the live site through the preview link, phone + computer: popup -> bag (both $14) -> checkout (both
     bags, $28; the order request was stopped, nothing ordered); normal visit unchanged; no script errors.
   - Going live: catalog visibility of 1200 / 1201 to visible, FIKA_DROPS_LIVE true (snippet 193), stock for 108.
+- Owner (26 Oct): one click on the Halloween switch should bring the updated version. Snippet 193 now has
+  FIKA_DROPS_LIVE true and follows the switch: popup with the look; products 1200 / 1201 visible in the Ready Mix tab
+  while the look is on (option fika_hw_on and before 1 Nov), hidden again when it is switched off or ends (checked
+  on init, changed only when the switch moved, then product list + page cache cleared; option fika_drops_visibility).
+  Logic tested offline (off / on / off / on / ended). Snippet 184 already held all of today's Halloween fixes.
+- At install the switch was already ON (/fika/v1/halloween on:true, switched from the admin bar), so it went live at
+  once: checked as a customer, phone + computer: look, popup on arrival (not again on the next page), both bags first
+  in the Ready Mix tab with labels, Add to bag -> bag -> checkout $28 (order request stopped, nothing ordered), no
+  script errors.
