@@ -1,6 +1,10 @@
 """Turns the captured pages into a browsable preview: local assets, links between preview pages, a small helper script."""
 import json, re, sys, pathlib
 site = pathlib.Path(sys.argv[1])
+# the checkout's customer texts card: its script, from the snippet's output (optional 2nd argument), plays again
+card_js = ''
+if len(sys.argv) > 2:
+    card_js = re.search(r'<script id="fika-texts-js">[\s\S]*?</script>', pathlib.Path(sys.argv[2]).read_text()).group(0)
 HELPER = r"""
 <style>
 .hwp-chip{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:2147483000;display:flex;gap:8px;align-items:center;
@@ -30,6 +34,7 @@ HELPER = r"""
   document.addEventListener('click', function (e) {
     var a = e.target.closest('a,button,[role=button]');
     if (!a) return;
+    if (a.closest('.fika-texts')) return; // the customer texts card works as on the shop
     if (a.closest('.fika-cart')) { e.preventDefault(); location.href = '__CHECKOUT__'; return; }
     if (a.matches('.mx-add,.mx-qb,.mx-pill button,.mx-go,.mx-fab')) { e.preventDefault(); toast('The bag is only a picture in this preview. Checkout shows a bag with two sweets.'); return; }
     if (a.getAttribute('href') === '#hwp-off') { e.preventDefault(); toast('That page is not part of the preview.'); return; }
@@ -66,7 +71,9 @@ for dev, pre in (('desk', ''), ('phone', 'm-')):
         keep = open(site.parent / 'keep-photo.js.html').read()
         if name == 'index.html':
             keep += open(site.parent / 'keep-eyes.js.html').read()
-        h = re.sub(r'</body>(?![\s\S]*</body>)', keep + helper + '</body>', h)
+        if name == 'checkout.html':
+            keep += card_js
+        h = re.sub(r'</body>(?![\s\S]*</body>)', lambda m: keep + helper + '</body>', h)  # as plain text: scripts have backslashes
         left = set(re.findall(r'https://swedishfikalb\.com/wp-content/[^\s"\'()<>]+', h))
         (site / (pre + name)).write_text(h)
         print(dev, name, round(len(h) / 1024), 'KB', 'unreplaced site files:', len(left))
