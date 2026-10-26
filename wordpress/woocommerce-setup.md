@@ -2002,3 +2002,18 @@ choice). Snippet 91, fika-club.php (new):
     0.66 -> 0.63; About 1.21 -> 0.88 / 1.08 -> 0.71. Photo request starts at ~0.07 s instead of ~0.7 s.
     Phone home first text +0.13 s (the photo now shares the start). Checkout fonts on a phone 250 KB -> 32 KB.
   - Checkout and account screenshots pixel-identical before / after (phone and computer).
+
+## 2026-10-26: Halloween look, quality pass (owner: "below par, keep the normal site's standards")
+
+- Eyes off in the preview on computers: the captured copy kept the capture window's width (1400 px) on the hero,
+  sections and shop grids, so on any other screen the photo filled the window but the eyes were laid out for 1400 px
+  (20 px off at 1440). The preview now re-fits them per screen (wordpress/halloween-preview/keep-fit.js.html, the
+  shop's own fitX); eyes match the shop to 0.0 px at 1280, 1366, 1536, 1920 and phones 360, 390, 430. On the live
+  site the eyes were already right.
+- Look fixes (fika-halloween.css/.js, in git, NOT yet in snippet 184; look still off): photos no longer washed out
+  (dark band only behind the header, night fade at the bottom); webs smaller and under the header (not over the
+  logo / icons); spider drops between logo and menu; bats fly below the menu; scrolled header solid (no blurred
+  buttons behind it); account icon bone like the bag; video slider arrows / dots / Sound in orange; reviews card at
+  checkout pale lilac with a night-purple avatar.
+- Preview republished (version 5) from a fresh capture; checked every screen on computer and phone side by side
+  with the normal site; no errors, no broken images, no sideways scroll.
