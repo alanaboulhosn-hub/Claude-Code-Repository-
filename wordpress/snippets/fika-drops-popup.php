@@ -1,14 +1,15 @@
 <?php
 /**
- * Fika: "Two new drops" Halloween popup when a visitor arrives (owner, 26 Oct 2026). Installed, hidden (FIKA_DROPS_LIVE false).
+ * Fika: "Two new drops" Halloween popup when a visitor arrives (owner, 26 Oct 2026). Switches on and off with the Halloween look.
  * - Offer 1, Limited Edition Drop (sweet & sour, 500 g, $14): the new BUBS Sour Strawberry Vanilla Diamond with
  *   BUBS Wild Berry Pomegranate Ovals (product 108) back for a short while, limited supply.
  * - Offer 2, Skull Mix (500 g, $14): the five BUBS skulls of the shop (products 120 Bubblegum, 124 Cola, 122 Lemon
  *   Raspberry, 118 Fruity Lemon Mix (Mini), 107 Raspberry Salty Licorice).
  * - Halloween: it drops with the Halloween look and shows only while the look is on (fika_hw_on(), snippet 184, which
- *   also clears the page cache when switched), once FIKA_DROPS_LIVE is true. Night card, Creepster title, the shop's
- *   arched Halloween photo frames. Before that only the preview link shows it: the Halloween look's private link
- *   (?fika_preview=<key>, snippet 184), or ?fika_drops=preview for a signed-in shop manager.
+ *   also clears the page cache when switched). The two bags (1200, 1201) are in the Ready Mix tab only while the look
+ *   is on (catalog visibility set on the first request after the switch moves). Night card, Creepster title, the
+ *   shop's arched Halloween photo frames. While it is off the preview link still shows it all: ?fika_preview=<key>
+ *   (snippet 184), or ?fika_drops=preview for a signed-in shop manager.
  * - When: right on arrival (0.4 s after the page shows), once per visit (sessionStorage fika_drops_seen), on our shop
  *   pages only (home, Mix your own, Ready Mix, About), never on the checkout or My account, and not right after an
  *   order (the "Order confirmed" popup). Closes with x, "Keep browsing", a tap outside or Esc.
@@ -22,9 +23,8 @@
  */
 
 if ( ! defined( 'FIKA_DROPS_LIVE' ) ) {
-	// false: customers never see it, also with the Halloween look on (the two bags are not products yet, so "Add to
-	// bag" cannot work); only the preview link shows it. true: it drops with the Halloween look.
-	define( 'FIKA_DROPS_LIVE', false );
+	// true: it drops with the Halloween look (the admin-bar switch, snippet 184). false: only the preview link shows it.
+	define( 'FIKA_DROPS_LIVE', true );
 }
 
 if ( ! defined( 'FIKA_DROPS_DROP_ID' ) ) {
@@ -77,6 +77,31 @@ function fika_drops_markup() {
 	<?php
 	return ob_get_clean();
 }
+
+// the two bags follow the Halloween switch: in the Ready Mix tab while the look is on, hidden again when it is
+// switched off or ends (1 Nov). Checked on each request, changed only when the switch moved.
+add_action( 'init', function () {
+	if ( ! FIKA_DROPS_LIVE || ! function_exists( 'fika_hw_end_ts' ) || ! function_exists( 'wc_get_product' ) ) {
+		return;
+	}
+	$want = ( get_option( 'fika_hw_on' ) && time() < fika_hw_end_ts() ) ? 'visible' : 'hidden';
+	if ( get_option( 'fika_drops_visibility' ) === $want ) {
+		return;
+	}
+	foreach ( array( FIKA_DROPS_DROP_ID, FIKA_DROPS_SKULL_ID ) as $id ) {
+		$p = wc_get_product( $id );
+		if ( $p && $p->get_catalog_visibility() !== $want ) {
+			$p->set_catalog_visibility( $want );
+			$p->save();
+		}
+	}
+	update_option( 'fika_drops_visibility', $want, false );
+	if ( function_exists( 'fika_pi_clear' ) ) {
+		fika_pi_clear(); // the in-page product list and the page cache
+	} else {
+		do_action( 'litespeed_purge_all' );
+	}
+}, 20 );
 
 function fika_drops_show() {
 	if ( is_admin() || ! ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) ) ) {
