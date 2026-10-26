@@ -78,6 +78,11 @@ for dev, pre in (('desk', ''), ('phone', 'm-')):
             keep += open(site.parent / 'keep-eyes.js.html').read()
         if name == 'checkout.html':
             keep += card_js
+        # the pumpkin's click glow from the look's own script (HW_JS=<hw.js>, the part between boo:start and boo:end)
+        if os.environ.get('HW_JS'):
+            m = re.search(r'/\* boo:start[\s\S]*?/\* boo:end \*/', open(os.environ['HW_JS']).read())
+            if m:
+                keep += '<script>' + m.group(0) + '</script>'
         h = re.sub(r'</body>(?![\s\S]*</body>)', lambda m: keep + helper + '</body>', h)  # as plain text: scripts have backslashes
         left = set(re.findall(r'https://swedishfikalb\.com/wp-content/[^\s"\'()<>]+', h))
         (site / (pre + name)).write_text(h)

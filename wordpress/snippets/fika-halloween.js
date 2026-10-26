@@ -116,4 +116,26 @@
 		row.innerHTML = new Array(8).join('<i></i>');
 		fb.insertBefore(row, fb.firstChild);
 	}
+
+	/* boo:start - each mouse click, the pumpkin glows: a soft orange ring and a few embers drifting up */
+	(function () {
+		if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
+		document.addEventListener('pointerdown', function (e) {
+			if (e.pointerType !== 'mouse' || e.button !== 0) { return; }
+			var b = document.createElement('span');
+			b.className = 'hw-boo';
+			b.setAttribute('aria-hidden', 'true');
+			// the cursor's point is the stem (3, 2): the glow comes from the middle of the pumpkin
+			b.style.left = (e.clientX + 17) + 'px';
+			b.style.top = (e.clientY + 20) + 'px';
+			var html = '';
+			for (var k = 0; k < 4; k++) {
+				html += '<i style="--x:' + Math.round(Math.random() * 36 - 18) + 'px;--y:' + Math.round(-26 - Math.random() * 20) + 'px;--d:' + (k * 45) + 'ms"></i>';
+			}
+			b.innerHTML = html;
+			document.body.appendChild(b);
+			setTimeout(function () { if (b.parentNode) { b.parentNode.removeChild(b); } }, 900);
+		}, { passive: true });
+	})();
+	/* boo:end */
 })();
