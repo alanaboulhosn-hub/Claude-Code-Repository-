@@ -1,7 +1,7 @@
 <?php
 /**
  * Fika: "Two new drops" Halloween popup when a visitor arrives (owner, 26 Oct 2026). Switches on and off with the Halloween look.
- * - Offer 1, Limited Edition Drop (sweet & sour, 500 g, $14): the new BUBS Sour Strawberry Vanilla Diamond with
+ * - Offer 1, Fan Favourites Mix (named by the owner 26 Oct; sweet & sour, 500 g, $14): the new BUBS Sour Strawberry Vanilla Diamond with
  *   BUBS Wild Berry Pomegranate Ovals (product 108) back for a short while, limited supply.
  * - Offer 2, Skull Mix (500 g, $14): the five BUBS skulls of the shop (products 120 Bubblegum, 124 Cola, 122 Lemon
  *   Raspberry, 118 Fruity Lemon Mix (Mini), 107 Raspberry Salty Licorice).
@@ -13,11 +13,11 @@
  * - When: right on arrival (0.4 s after the page shows), once per visit (sessionStorage fika_drops_seen), on our shop
  *   pages only (home, Mix your own, Ready Mix, About), never on the checkout or My account, and not right after an
  *   order (the "Order confirmed" popup). Closes with x, "Keep browsing", a tap outside or Esc.
- * - The two bags are Ready Mix products, 1200 Limited Edition Drop (the classic Sweet & Sour Mix with the limited
+ * - The two bags are Ready Mix products, 1200 Fan Favourites Mix (the classic Sweet & Sour Mix with the limited
  *   candies) and 1201 Skull Mix, $14 for 500 g, published but hidden from the shop until they go live; "Add to bag"
  *   puts the 500 g bag in the Fika bag like the Ready Mix tab. In the preview the tab lists them first.
- * - Pictures from the shop's own photos (wordpress/images/drops): popup media 1195 (Skull Mix) and 1199 (Limited
- *   Edition: the real Sweet & Sour Mix photo, recoloured bag, limited candies mixed in); product photos 1204, 1205 (pure white table, like the other Ready Mix photos).
+ * - Pictures from the shop's own photos (wordpress/images/drops): popup media 1195 (Skull Mix) and 1206 (Fan
+ *   Favourites: the real Sweet & Sour Mix photo, recoloured bag, packed with the limited candies); product photos 1207, 1205 (pure white table, like the other Ready Mix photos).
  *   The Strawberry Vanilla Diamond has no photo yet: it is the real Tutti Frutti Diamond, recoloured.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-drops-popup.php
  */
@@ -28,7 +28,7 @@ if ( ! defined( 'FIKA_DROPS_LIVE' ) ) {
 }
 
 if ( ! defined( 'FIKA_DROPS_DROP_ID' ) ) {
-	define( 'FIKA_DROPS_DROP_ID', 1200 );   // Limited Edition Drop, Ready Mix, $14, 500 g
+	define( 'FIKA_DROPS_DROP_ID', 1200 );   // Fan Favourites Mix, Ready Mix, $14, 500 g
 	define( 'FIKA_DROPS_SKULL_ID', 1201 );  // Skull Mix, Ready Mix, $14, 500 g
 }
 
@@ -50,13 +50,13 @@ function fika_drops_markup() {
 
       <article class="fkd-offer">
         <div class="fkd-pic">
-          <img src="<?php echo fika_drops_img( 'fika-drop-limited-edition-mix.webp' ); ?>" width="720" height="745" alt="A purple Fika bag with a Limited Edition sticker, the Sweet &amp; Sour Mix spilling out with Strawberry Vanilla Diamonds and Pomegranate Ovals in it" decoding="async">
+          <img src="<?php echo fika_drops_img( 'fika-drop-fan-favourites.webp' ); ?>" width="720" height="745" alt="A purple Fika bag with a Fan Favourites sticker, the Sweet &amp; Sour Mix spilling out full of Strawberry Vanilla Diamonds and Pomegranate Ovals" decoding="async">
           <span class="fkd-badge">Limited edition</span>
         </div>
-        <h3 class="fkd-name">Limited Edition Drop</h3>
+        <h3 class="fkd-name">Fan Favourites Mix</h3>
         <p class="fkd-sub">Sweet &amp; sour mix, 500 g</p>
         <p class="fkd-what">Our classic Sweet &amp; Sour Mix with this season&rsquo;s limited candies in the bag: the <b class="fkd-new">New</b> BUBS Sour Strawberry Vanilla Diamond and <b class="fkd-back">Back</b> BUBS Wild Berry Pomegranate Ovals.</p>
-        <div class="fkd-buy"><span class="fkd-price">$14</span><button type="button" class="fkd-add" data-id="<?php echo (int) FIKA_DROPS_DROP_ID; ?>" data-name="Limited Edition Drop">Add to bag</button></div>
+        <div class="fkd-buy"><span class="fkd-price">$14</span><button type="button" class="fkd-add" data-id="<?php echo (int) FIKA_DROPS_DROP_ID; ?>" data-name="Fan Favourites Mix">Add to bag</button></div>
       </article>
 
       <article class="fkd-offer">
