@@ -17,7 +17,7 @@
 
 if ( ! defined( 'FIKA_HW_END' ) ) {
 	define( 'FIKA_HW_END', '2026-11-01 00:00' ); // Beirut time
-	define( 'FIKA_HW_VERSION', 'd67ff4b827' );
+	define( 'FIKA_HW_VERSION', 'eb6982b376' );
 }
 
 if ( ! defined( 'FIKA_HW_PREVIEW_KEY' ) ) {
@@ -165,8 +165,10 @@ body.fika-hw .fika-hero .fika-title, body.fika-hw .fika-hero .fsh-title {
 body.fika-hw .fika-hero .fika-text, body.fika-hw .fika-hero .fsh-text { color: var(--hw-bone) !important; text-shadow: 0 2px 10px rgba(0, 0, 0, .8) !important; }
 body.fika-hw .fika-btn { background: var(--hw-orange) !important; color: #1b0d00 !important; box-shadow: 0 0 22px rgba(255, 123, 28, .45); }
 body.fika-hw .fika-btn:hover { background: var(--hw-orange-d) !important; }
-/* the googly eyes glow a little */
-body.fika-hw .fika-eye { box-shadow: 0 0 10px rgba(166, 227, 91, .75), 0 0 0 1px rgba(0, 0, 0, .5) !important; }
+/* the googly eyes glow blood red, black pupils (owner, 26 Oct: "red, to resemble Halloween") */
+body.fika-hw .fika-eye { background: radial-gradient(circle at 50% 40%, #ff4a3a 0 40%, #c00010 80%, #7a0008 100%) !important;
+  box-shadow: 0 0 12px rgba(255, 30, 20, .9), 0 0 0 1px rgba(0, 0, 0, .55) !important; }
+body.fika-hw .fika-pupil { background: radial-gradient(circle at 34% 30%, #ffd9d4 0 13%, #120000 17% 100%) !important; }
 
 /* the bag weight next to the bag icon */
 body.fika-hw .fika-cart .fk-count { background: var(--hw-orange) !important; color: #1b0d00 !important; border-color: #1b0d00 !important; }

@@ -2101,3 +2101,8 @@ choice). Snippet 91, fika-club.php (new):
   stop); My account login; 404 page with the shop header; no sideways scroll, no broken pictures, no script errors.
   Noted: one stray 404 for "/ready-mix/url(https:/fonts.googleap..." once on the phone, not seen again in 5 more
   visits, page unaffected; the checkout takes ~5 s to price delivery after the area is chosen (button works after).
+- Owner (26 Oct): the candies' eyes red "to resemble Halloween". Previewed two options on the live home page (red iris
+  on white / fully glowing red); owner chose the glowing red: .fika-eye blood-red gradient with a red glow, black
+  pupils with a pale highlight (fika-halloween.css, rebuilt snippet 184; live copy matched git first, POST). Only with
+  the Halloween look; the normal site keeps its white googly eyes. Checked live on phone and computer (cached pages
+  carry it too).
