@@ -9,6 +9,8 @@
  * - Every fish (rewards lane, sign-up card, Fika Club card and pop-up) is drawn as a spider, and the fish cursor is a
  *   jack-o'-lantern (wordpress/cursor/halloween), lit and tilted over links and buttons.
  * - The page cache (LiteSpeed) is cleared at each click and when it ends, so no visitor gets a stale look.
+ * - Private preview while it is off: any shop page with ?fika_preview=<FIKA_HW_PREVIEW_KEY> shows the look to whoever
+ *   opens that link (no login needed), nobody else; links on the page keep the key, a small note says it is a preview.
  * - Built from wordpress/snippets/fika-halloween.css and fika-halloween.js by build-halloween.py (edit those, rebuild).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-halloween.php
  */
@@ -18,14 +20,33 @@ if ( ! defined( 'FIKA_HW_END' ) ) {
 	define( 'FIKA_HW_VERSION', 'd67ff4b827' );
 }
 
+if ( ! defined( 'FIKA_HW_PREVIEW_KEY' ) ) {
+	define( 'FIKA_HW_PREVIEW_KEY', '5d13fcd594' ); // ?fika_preview=<key>: the look for whoever opens that link only
+}
+
 if ( ! function_exists( 'fika_hw_on' ) ) {
 	function fika_hw_end_ts() {
 		return ( new DateTime( FIKA_HW_END, new DateTimeZone( 'Asia/Beirut' ) ) )->getTimestamp();
 	}
+	// the private preview link: the look on that page for whoever opens it (links on the page keep the key)
+	function fika_hw_preview() {
+		return time() < fika_hw_end_ts() && ! is_admin() && isset( $_GET['fika_preview'] ) && is_string( $_GET['fika_preview'] ) && hash_equals( FIKA_HW_PREVIEW_KEY, $_GET['fika_preview'] ); // phpcs:ignore WordPress.Security.NonceVerification
+	}
 	function fika_hw_on() {
-		return time() < fika_hw_end_ts() && ! is_admin() && get_option( 'fika_hw_on' );
+		return time() < fika_hw_end_ts() && ! is_admin() && ( get_option( 'fika_hw_on' ) || fika_hw_preview() );
 	}
 }
+
+// the preview link: links on the page keep the key, and a small note says it is a preview
+add_action( 'wp_footer', function () {
+	if ( ! fika_hw_preview() || get_option( 'fika_hw_on' ) ) {
+		return;
+	}
+	echo '<script>(function () { var k = ' . wp_json_encode( FIKA_HW_PREVIEW_KEY ) . '; document.addEventListener("click", function (e) { var a = e.target.closest ? e.target.closest("a[href]") : null; if (!a || a.host !== location.host || /\/wp-(admin|login)/.test(a.pathname)) return; try { var u = new URL(a.href); if (u.searchParams.get("fika_preview") !== k) { u.searchParams.set("fika_preview", k); a.href = u.toString(); } } catch (x) {} }, true); })();</script>' . "
+";
+	echo '<div style="position:fixed;left:50%;top:8px;transform:translateX(-50%);white-space:nowrap;z-index:2147483000;background:#0b0714;color:#f4ecdc;border:1px solid #ff7b1c;border-radius:999px;padding:6px 12px;font:600 12px/1.2 Outfit,Arial,sans-serif;pointer-events:none">Preview of the Halloween look: only this link shows it</div>' . "
+";
+}, 99 );
 
 // the switch in the admin top bar (shop admins only, until the end date)
 add_action( 'admin_bar_menu', function ( $bar ) {

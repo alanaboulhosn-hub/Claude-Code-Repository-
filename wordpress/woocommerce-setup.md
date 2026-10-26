@@ -2050,3 +2050,13 @@ choice). Snippet 91, fika-club.php (new):
   composites (wordpress/images/drops): the Fika bag from the Sweet Mix photo recoloured black (Skull Mix, bone skull
   sticker) and night purple (Limited Edition sticker), orange logo, real candy cut-outs inside the opening and spilling
   out. Preview version 2 (Halloween look only).
+- Preview on the real site (owner, 26 Oct): snippet 193 "Fika: Halloween drops popup (hidden until FIKA_DROPS_LIVE)"
+  installed with FIKA_DROPS_LIVE false: customers never see it, also when the Halloween look is switched on; photos
+  media 1195 (Skull Mix) and 1196 (Limited Edition Drop). Snippet 184 updated with all the Halloween fixes since 24 Oct
+  (live copy matched git first; the look stays off: /fika/v1/halloween on:false) and a private preview link:
+  https://swedishfikalb.com/?fika_preview=5d13fcd594 shows the Halloween look (and the drops popup, once per visit)
+  to whoever opens it, no login needed; links on the page keep the key; a note at the top says it is a preview.
+  Checked on the live site, phone and computer: normal visit = normal shop, no popup; wrong key = normal shop;
+  preview link = look + popup + both photos, next page keeps the look, popup not repeated; no script errors.
+- Going live with the drops: create the two 500 g products (Ready Mix), connect Add to bag, stock for product 108,
+  then set FIKA_DROPS_LIVE to true in snippet 193.
