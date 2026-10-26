@@ -15,7 +15,7 @@
 
 if ( ! defined( 'FIKA_HW_END' ) ) {
 	define( 'FIKA_HW_END', '2026-11-01 00:00' ); // Beirut time
-	define( 'FIKA_HW_VERSION', '78246211b2' );
+	define( 'FIKA_HW_VERSION', '182d46bfe5' );
 }
 
 if ( ! function_exists( 'fika_hw_on' ) ) {
@@ -203,6 +203,8 @@ body.fika-hw .fs-chip { background: transparent !important; color: var(--hw-bone
 body.fika-hw .fs-chip.on { background: var(--hw-orange) !important; color: #1b0d00 !important; }
 body.fika-hw .fs-search { background: transparent !important; }
 body.fika-hw .fs-search input { background: var(--hw-deep) !important; color: var(--hw-bone) !important; border-color: var(--hw-line) !important; }
+body.fika-hw .fs-search input:focus { border-color: var(--hw-orange) !important; }
+body.fika-hw .fs-search svg { stroke: var(--hw-orange) !important; }
 
 /* ---------- the bag (drawer) and its button ---------- */
 body.fika-hw .mx-fab { background: var(--hw-orange) !important; color: #1b0d00 !important; box-shadow: 0 0 24px rgba(255, 123, 28, .5) !important; }
