@@ -1,5 +1,5 @@
-# The Limited Edition Drop picture: the shop's real Sweet & Sour Mix photo (its classic candies spilling out of the bag
-# stay exactly as photographed), the bag recoloured night purple with the orange logo and the Limited Edition
+# The Fan Favourites Mix picture: the shop's real Sweet & Sour Mix photo (its classic candies spilling out of the bag
+# stay exactly as photographed), the bag recoloured night purple with the orange logo and the Fan Favourites
 # sticker, the white table warmed to the bone table of the Skull Mix picture, and the limited candies (BUBS
 # Strawberry Vanilla Diamonds and Wild Berry Pomegranate Ovals, real cut-outs) mixed into the spill with shadows.
 # python3 compose2.py [full.jpg] [crop.jpg]
@@ -97,9 +97,14 @@ def place(canvas, name, cx, cy, rot, scale, flip=False):
 
 random.seed(11)
 S = {'pome': 0.39, 'strawvan': 0.36}
-pieces = [('strawvan', 604, 612, 24, False), ('pome', 470, 700, -16, True), ('strawvan', 700, 735, -38, False),
-          ('pome', 566, 830, 30, False), ('strawvan', 410, 885, 52, True), ('pome', 712, 935, -8, False),
-          ('strawvan', 528, 1016, -24, False), ('pome', 846, 862, 64, True)]
+# the new releases fill the spill: Pomegranate Ovals and Strawberry Vanilla Diamonds, with the classic mix between them
+pieces = [('pome', 520, 600, -20, False), ('strawvan', 640, 590, 26, True), ('strawvan', 410, 668, -34, False),
+          ('pome', 590, 668, 14, True), ('strawvan', 735, 662, -44, False), ('pome', 470, 752, 36, False),
+          ('strawvan', 640, 750, 8, False), ('pome', 795, 750, -58, True), ('strawvan', 360, 790, 48, True),
+          ('pome', 560, 820, -12, False), ('strawvan', 712, 830, 30, True), ('pome', 430, 875, 22, True),
+          ('strawvan', 545, 905, -28, False), ('pome', 660, 915, 62, False), ('strawvan', 830, 880, -16, False),
+          ('pome', 470, 985, -40, False), ('strawvan', 610, 1000, 18, True), ('pome', 740, 1005, -6, True),
+          ('strawvan', 885, 980, 40, False), ('pome', 560, 1085, 28, False), ('strawvan', 700, 1095, -30, False)]
 bagd = ndi.binary_dilation(bag, iterations=6)
 for n, x, y, rot, fl in pieces:
     for _ in range(12):                                   # never on the bag: move down the spill until clear

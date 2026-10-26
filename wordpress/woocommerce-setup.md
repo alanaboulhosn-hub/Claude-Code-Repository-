@@ -2083,3 +2083,21 @@ choice). Snippet 91, fika-club.php (new):
   once: checked as a customer, phone + computer: look, popup on arrival (not again on the next page), both bags first
   in the Ready Mix tab with labels, Add to bag -> bag -> checkout $28 (order request stopped, nothing ordered), no
   script errors.
+- Owner (26 Oct): the drop picture "more concentrated with the new releases", and the name "Fan Favourites Mix".
+  - Picture: 21 Pomegranate Ovals / Strawberry Vanilla Diamonds packed into the spill (was a handful), sticker now
+    "FAN FAVOURITES · LIMITED EDITION · 500 G" (images/drops/compose2.py, stickers.html). Popup media 1206
+    (fika-drop-fan-favourites.webp), product photo 1207 (fika-ready-fan-favourites-mix.jpg, pure white); the old
+    1199 and 1204 deleted (nothing used them any more).
+  - Product 1200 renamed "Fan Favourites Mix", slug ready-fan-favourites-mix (product pages send customers to the
+    Ready Mix tab anyway, old and new link alike); short description "...packed with this season's limited fan
+    favourites...". The "Limited edition" badge and the grid label stay.
+  - Snippet 193: card title, Add to bag name, picture and alt text (live copy matched git first; POST).
+- Customer journey on the live site, Halloween look on, phone (390 px iPhone) + computer (1440 px), no orders
+  (tools/journey: journey-halloween.js, checkout-place.js): home with the look (eyes, header, pumpkin click), popup on
+  arrival with both new pictures, closes, not again in the visit; Mix your own + / -; Ready Mix: Fan Favourites Mix and
+  Skull Mix first with their labels and the new photo, Add to bag 500 g; About us; bag drawer (3 lines, remove one,
+  totals update); checkout: same lines and total as the bag, Inside Beirut delivery $5 priced in ~5 s, form filled,
+  Place order sent the order request (stopped in the browser: the "something went wrong" message after it is the
+  stop); My account login; 404 page with the shop header; no sideways scroll, no broken pictures, no script errors.
+  Noted: one stray 404 for "/ready-mix/url(https:/fonts.googleap..." once on the phone, not seen again in 5 more
+  visits, page unaffected; the checkout takes ~5 s to price delivery after the area is chosen (button works after).
