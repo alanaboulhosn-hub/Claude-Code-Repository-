@@ -9,3 +9,8 @@ as a reference, enhance the candy shapes, make the diamonds exactly half vanilla
 - python3 buildref.py owner-reference.webp final-a.jpg 4
 Tried and dropped: re-colouring the reference's own wedges in place (painted-looking bands), modelled diamonds
 pasted over the reference (flat tiles, dark holes).
+- 27 Oct, real look (from the BUBS bag and shop photos, found with Firecrawl; those photos are not kept here):
+  dia5.py models the real candy: a plump, slanted rounded diamond, BUBS raised on top (letters.html: Titan One as a
+  stand-in for the BUBS logo -> bubs.png), creamy vanilla and pastel strawberry split straight across into exactly
+  equal halves, fine sour sugar (d5-1..4.png). buildref5.py = buildref.py with these diamonds:
+  python3 buildref5.py owner-reference.webp final-b.jpg 4
