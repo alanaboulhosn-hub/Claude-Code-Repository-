@@ -2113,3 +2113,13 @@ choice). Snippet 91, fika-club.php (new):
   home section headings (Mix your own, READY-MIX, Loved across Lebanon, FAQ) in Creepster, no script errors.
 - Fan Favourites picture: owner said do not put the redesigns live (v2 and v3 stay in git only); the live picture
   is still the one from 26 Oct.
+
+### Customer note envelope in Orders (27 Oct 2026)
+- Snippet 194 "Fika: customer note envelope in Orders" (fika-order-note-icon.php, admin only): in WooCommerce >
+  Orders a small golden envelope next to the customer's name when the order has a customer note (the note typed at
+  checkout); hovering it shows the note. Printed in a narrow column after Order, then moved next to the name by a few
+  lines of script (WooCommerce's Order cell takes no extra HTML); without script it stays in that column. Orders are
+  only read. Works for the HPOS orders page and the old posts page.
+- Checked on the real orders list (rendered through a temporary admin-only route, snippet 195, deleted): 20 rows,
+  envelopes on exactly the 2 orders with a note, none on the others. The first version of that temporary route hit a
+  PHP error inside its own request (shop unaffected); WordPress may have emailed the site admin address about it.
