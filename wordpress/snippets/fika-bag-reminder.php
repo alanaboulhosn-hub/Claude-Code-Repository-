@@ -14,7 +14,7 @@
  * - The reminder is marked as sent before it goes out: a failed or cut-off send is never sent again.
  * - Halloween (owner, 27 Oct 2026): while the Halloween look is on (snippet 184's switch, until it ends by itself) and
  *   FIKA_BAG_HW_LIVE is true, the reminder wears the Halloween look: night purple and orange, the logo with bats and
- *   a cobweb, Creepster headings as pictures (media 1214-1223, wordpress/email-assets/halloween), "Something sweet is
+ *   a cobweb, Creepster headings as pictures (media 1214, 1220-1223, footer 1229-1233 fika-email-hw2-foot-*; wordpress/email-assets/halloween), "Something sweet is
  *   still lurking in your bag", an orange button, the two Halloween bags (Fan Favourites Mix, Skull Mix) under the
  *   bag, each with "Add to bag" (the saved bag back with that bag added, then the checkout), subject "Your Fika bag is waiting… 🎃". Afterwards it is the normal reminder again.
  *   Preview (shop managers, never sent): GET /wp-json/fika/v1/saved-bags/sample?hw=1 (or hw=0).
@@ -106,7 +106,7 @@ add_filter( 'woocommerce_email_footer_text', function ( $html ) {
 	if ( empty( $GLOBALS['fika_mail_hw'] ) ) {
 		return $html;
 	}
-	return str_replace( array( 'fika-email-foot-', 'bgcolor="#ffffff"', 'background:#ffffff;' ), array( 'fika-email-hw-foot-', 'bgcolor="#1c1430"', 'background:#1c1430;' ), $html );
+	return str_replace( array( 'fika-email-foot-', 'bgcolor="#ffffff"', 'background:#ffffff;' ), array( 'fika-email-hw2-foot-', 'bgcolor="#1c1430"', 'background:#1c1430;' ), $html );
 }, 40 );
 
 // ---------- storage: option fika_saved_bags = token => record ----------

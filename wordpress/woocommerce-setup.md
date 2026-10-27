@@ -2154,3 +2154,7 @@ choice). Snippet 91, fika-club.php (new):
   (ordered, too old), the Halloween bag is added to the cart as it is and the checkout opens. Price and button on
   their own row, so both buttons sit level. Still preview only (snippet 25 not installed); the link itself can be
   tested only once installed (plan: a saved test bag @example.com, no order).
+- Owner (27 Oct): footer text orange. Footer pictures redone: all text orange (Fika wordmark, tagline, WhatsApp /
+  Email us / Instagram, bottom line), icon badges bone. New names fika-email-hw2-foot-top/wa/mail/ig/bottom.png,
+  media 1229-1233 (the server kept serving a cached bone copy under the old name); old 1215-1219 and 1224-1228
+  deleted. Code: the footer swap now points at hw2. Still preview only.
