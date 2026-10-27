@@ -23,3 +23,9 @@ pasted over the reference (flat tiles, dark holes).
     a dark tint (which turned vanilla grey); diamond sides keep their colour (dia4.py).
     python3 buildref5.py ref-fan.png final-c.jpg 4
   - Note: the bottom line on the owner's sticker reads "NIᖷ.I" (garbled), not "NR. 1"; left as is for now.
+- 27 Oct (owner): more of the classic candies, naturally mixed, the new candies still the most prominent.
+  buildref6.py: ten classic pieces from the shop's own mix photos (cut5.py: peach, a second blue fizzy, red fizzy
+  and the rainbow wheel from the Sour Mix photo, with the licorice wheel, blue fizzy, two fish, red twist and green
+  gummy); about a third of the pieces inside the opening and behind; nine in the middle layer, showing in the gaps
+  under the front pieces; four at the heap's edge. The front layer stays Strawberry Vanilla Diamonds and
+  Pomegranate Ovals.  python3 buildref6.py ref-fan.png final-d.jpg 4
