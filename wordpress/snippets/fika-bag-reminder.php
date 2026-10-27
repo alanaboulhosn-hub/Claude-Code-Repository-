@@ -11,12 +11,99 @@
  *   orders that followed a reminder.
  * - Sent with WooCommerce's own email layout and sender (Fika <hello@swedishfikalb.com>), from the site's mailer.
  *   Timing uses WooCommerce's scheduler (runs when the site gets visits; a server cron can make it exact).
+ * - The reminder is marked as sent before it goes out: a failed or cut-off send is never sent again.
+ * - Halloween (owner, 27 Oct 2026): while the Halloween look is on (snippet 184's switch, until it ends by itself) and
+ *   FIKA_BAG_HW_LIVE is true, the reminder wears the Halloween look: night purple and orange, the logo with bats and
+ *   a cobweb, Creepster headings as pictures (media 1214-1223, wordpress/email-assets/halloween), "Something sweet is
+ *   still lurking in your bag", an orange button, the two Halloween bags (Fan Favourites Mix, Skull Mix) under the
+ *   bag, subject "Your Fika bag is waiting… 🎃". Afterwards it is the normal reminder again.
+ *   Preview (shop managers, never sent): GET /wp-json/fika/v1/saved-bags/sample?hw=1 (or hw=0).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-bag-reminder.php
  */
 
 if ( ! defined( 'FIKA_BAG_DELAY' ) ) {
 	define( 'FIKA_BAG_DELAY', HOUR_IN_SECONDS );
 }
+if ( ! defined( 'FIKA_BAG_HW_LIVE' ) ) {
+	define( 'FIKA_BAG_HW_LIVE', false ); // the Halloween reminder for real shoppers (preview only while false)
+}
+
+// ---------- Halloween look of the reminder ----------
+if ( ! function_exists( 'fika_bag_hw' ) ) {
+	// is the Halloween look on? (snippet 184's switch, until it ends by itself) $GLOBALS['fika_bag_hw_force'] for previews
+	function fika_bag_hw() {
+		if ( isset( $GLOBALS['fika_bag_hw_force'] ) ) {
+			return (bool) $GLOBALS['fika_bag_hw_force'];
+		}
+		return FIKA_BAG_HW_LIVE && get_option( 'fika_hw_on' ) && function_exists( 'fika_hw_end_ts' ) && time() < fika_hw_end_ts();
+	}
+	function fika_bag_hw_img( $f, $w, $h, $alt, $style = '' ) {
+		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/' . $f ) ) . '" width="' . (int) $w . '" height="' . (int) $h . '" alt="' . esc_attr( $alt ) . '" style="display:block;border:0;outline:none;max-width:100%;height:auto;' . $style . '">';
+	}
+	// the two Halloween bags, under the shopper's bag (only those still on sale)
+	function fika_bag_hw_drops() {
+		$cards = '';
+		$list  = array(
+			array( defined( 'FIKA_DROPS_DROP_ID' ) ? FIKA_DROPS_DROP_ID : 1200, 'Strawberry Vanilla Diamonds and Pomegranate Ovals in our classic Sweet &amp; Sour Mix' ),
+			array( defined( 'FIKA_DROPS_SKULL_ID' ) ? FIKA_DROPS_SKULL_ID : 1201, 'All five BUBS skulls in one spooky bag' ),
+		);
+		foreach ( $list as $it ) {
+			$p = wc_get_product( $it[0] );
+			if ( ! $p || ! $p->is_purchasable() || ! $p->is_in_stock() || 'publish' !== $p->get_status() ) {
+				continue;
+			}
+			$img = $p->get_image_id() ? wp_get_attachment_image_url( $p->get_image_id(), 'medium' ) : '';
+			$cards .= ( $cards ? '<td width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) . '<td width="48%" valign="top" style="width:48%;vertical-align:top;">' .
+				'<a href="' . esc_url( home_url( '/ready-mix/' ) ) . '" style="display:block;text-decoration:none;">' .
+				( $img ? '<img src="' . esc_url( $img ) . '" width="240" alt="' . esc_attr( $p->get_name() ) . '" style="display:block;width:100%;max-width:240px;height:auto;border:0;border-radius:16px;background:#f4ecdc;">' : '' ) .
+				'<span class="fika-pname" style="display:block;margin-top:10px;font-weight:600;">' . esc_html( $p->get_name() ) . '</span></a>' .
+				'<span style="display:block;font-size:13px;line-height:1.45;color:#c3b6dc;margin-top:2px;">' . $it[1] . '</span>' .
+				'<span style="display:block;font-weight:600;margin-top:6px;">' . wp_kses_post( wc_price( wc_get_price_to_display( $p ) ) ) . ' &middot; 500 g</span></td>';
+		}
+		if ( ! $cards ) {
+			return '';
+		}
+		return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:4px 0 18px;"><tr><td class="fika-mail-box">' .
+			fika_bag_hw_img( 'fika-email-hw-h-new-this-halloween.png', 271, 50, 'New this Halloween', 'margin:0 0 2px -10px;' ) .
+			'<p style="margin:0 0 14px !important;">Two new 500 g bags, only for Halloween. Add one to your order:</p>' .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr>' . $cards . '</tr></table></td></tr></table>';
+	}
+}
+// the night colours, the Halloween logo and footer, only while a Halloween reminder is being built and sent
+add_filter( 'woocommerce_email_styles', function ( $css ) {
+	if ( empty( $GLOBALS['fika_mail_hw'] ) ) {
+		return $css;
+	}
+	return $css . "
+body, #outer_wrapper, #wrapper { background-color: #140e22 !important; background-image: linear-gradient(#140e22, #140e22) !important; }
+#template_container, #template_header, #body_content { background-color: #1c1430 !important; }
+#header_wrapper h1, h1 { color: #ff7b1c !important; }
+#body_content_inner, #body_content_inner p, #body_content_inner td, #body_content_inner th, .td, address, .font-family { color: #f4ecdc !important; }
+h2, .email-order-detail-heading { color: #ff7b1c !important; }
+h2 span, .email-order-detail-heading span { color: #c3b6dc !important; }
+a { color: #ff7b1c !important; }
+.email-order-details .order_item td, .email-order-details th, .email-order-details td { border-color: #3a2a5c !important; }
+.email-order-item-thumbnail img { background: #f4ecdc !important; }
+.order-item-data, .order_item td { color: #f4ecdc !important; }
+.email-order-item-meta, .wc-item-meta, .wc-item-meta li, .wc-item-meta p { color: #c3b6dc !important; }
+.order-totals td, .order-totals th { color: #f4ecdc !important; }
+.order-totals-total td, .order-totals-total th { color: #ff7b1c !important; }
+.fika-mail-box { background: #2b1c47 !important; }
+.fika-mail-box p, .fika-mail-box address, .fika-mail-box td { color: #f4ecdc !important; }
+#body_content_inner .fika-mail-box td.k, #body_content_inner .fika-pname { color: #ff7b1c !important; }
+.fika-mail-btn { background: #ff7b1c !important; color: #1b0d00 !important; }
+#credit { color: #140e22 !important; }
+";
+}, 40 );
+add_filter( 'pre_option_woocommerce_email_header_image', function ( $pre ) {
+	return empty( $GLOBALS['fika_mail_hw'] ) ? $pre : home_url( '/wp-content/uploads/2026/10/fika-email-hw-logo.png' );
+}, 30 );
+add_filter( 'woocommerce_email_footer_text', function ( $html ) {
+	if ( empty( $GLOBALS['fika_mail_hw'] ) ) {
+		return $html;
+	}
+	return str_replace( array( 'fika-email-foot-', 'bgcolor="#ffffff"', 'background:#ffffff;' ), array( 'fika-email-hw-foot-', 'bgcolor="#1c1430"', 'background:#1c1430;' ), $html );
+}, 40 );
 
 // ---------- storage: option fika_saved_bags = token => record ----------
 if ( ! function_exists( 'fika_bags' ) ) {
@@ -128,23 +215,31 @@ if ( ! function_exists( 'fika_bags' ) ) {
 			return '';
 		}
 		$weight = $grams >= 1000 ? rtrim( rtrim( number_format( $grams / 1000, 1, '.', '' ), '0' ), '.' ) . ' kg' : $grams . ' g';
+		$hw     = fika_bag_hw();
 		$body   = '<div class="email-introduction"><p>' . ( $r['name'] ? 'Hi ' . esc_html( $r['name'] ) . ',' : 'Hi there,' ) . '</p>' .
-			'<p>You left some Swedish sweets in your bag. We saved it for you, so you can finish your order in one click.</p></div>' .
-			'<h2 class="email-order-detail-heading">Your bag<br><span>' . esc_html( $weight ) . ' of pick-and-mix</span></h2>' .
+			( $hw ? '<p>Something sweet is still lurking in your bag&hellip; We saved it for you, so you can finish your order in one click.</p></div>' .
+				'<h2 class="email-order-detail-heading">' . fika_bag_hw_img( 'fika-email-hw-h-your-bag.png', 134, 50, 'Your bag', 'margin:0 0 0 -13px;' ) . '<span>' . esc_html( $weight ) . ' of pick-and-mix</span></h2>'
+			: '<p>You left some Swedish sweets in your bag. We saved it for you, so you can finish your order in one click.</p></div>' .
+				'<h2 class="email-order-detail-heading">Your bag<br><span>' . esc_html( $weight ) . ' of pick-and-mix</span></h2>' ) .
 			'<table class="td font-family email-order-details" role="presentation" cellspacing="0" cellpadding="6" border="0" width="100%" style="width:100%;">' .
 			'<thead><tr><th class="td text-align-left" scope="col" colspan="2" style="padding-left:0;">Product</th><th class="td text-align-right" scope="col">Quantity</th><th class="td text-align-right" scope="col" style="padding-right:0;">Price</th></tr></thead>' .
 			'<tbody>' . $rows . '</tbody>' .
 			'<tfoot><tr class="order-totals order-totals-total"><th class="td text-align-left" scope="row" colspan="3" style="padding-left:0;">Candies:</th><td class="td text-align-right" style="padding-right:0;">' . wc_price( $total ) . '</td></tr></tfoot></table>' .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td align="center" style="text-align:center;padding:30px 0 26px;">' .
-			'<a class="fika-mail-btn" href="' . esc_url( fika_bag_link( $token ) ) . '" style="display:inline-block;padding:14px 32px;border-radius:999px;background:#004aad;color:#ffffff;text-decoration:none;font-weight:600;">Finish my order</a></td></tr></table>' .
+			'<a class="fika-mail-btn" href="' . esc_url( fika_bag_link( $token ) ) . '" style="display:inline-block;padding:14px 32px;border-radius:999px;background:' . ( $hw ? '#ff7b1c;color:#1b0d00' : '#004aad;color:#ffffff' ) . ';text-decoration:none;font-weight:600;">Finish my order</a></td></tr></table>' .
+			( $hw ? fika_bag_hw_drops() : '' ) .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:6px 0 6px;"><tr><td class="fika-mail-box">' .
-			'<h2>Delivery</h2><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' .
+			( $hw ? fika_bag_hw_img( 'fika-email-hw-h-delivery.png', 131, 50, 'Delivery', 'margin:0 0 4px -13px;' ) : '<h2>Delivery</h2>' ) . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' .
 			'<tr><td class="k">Inside Beirut:</td><td>1&ndash;2 business days</td></tr>' .
 			'<tr><td class="k">Outside Beirut:</td><td>2&ndash;3 business days</td></tr>' .
 			'<tr><td class="k">Payment:</td><td>Cash on delivery</td></tr>' .
 			'</table></td></tr></table>' .
-			'<p style="margin-top:22px !important;text-align:center;color:#6c7b9c !important;font-size:13px !important;">This is the only reminder we send for this bag. <a href="' . esc_url( fika_bag_link( $token, 'fika_bag_stop' ) ) . '" style="color:#6c7b9c !important;">No more reminders</a>.</p>';
-		return WC()->mailer()->wrap_message( 'Your bag is waiting', $body );
+			'<p style="margin-top:22px !important;text-align:center;color:' . ( $hw ? '#c3b6dc' : '#6c7b9c' ) . ' !important;font-size:13px !important;">This is the only reminder we send for this bag. <a href="' . esc_url( fika_bag_link( $token, 'fika_bag_stop' ) ) . '" style="color:' . ( $hw ? '#c3b6dc' : '#6c7b9c' ) . ' !important;">No more reminders</a>.</p>';
+		$html = WC()->mailer()->wrap_message( 'Your bag is waiting', $body );
+		if ( $hw ) { // the title in the spooky font, as a picture (the words stay as its alt text)
+			$html = preg_replace( '#(<h1[^>]*>)\s*Your bag is waiting\s*(</h1>)#', '$1' . fika_bag_hw_img( 'fika-email-hw-h-your-bag-is-waiting.png', 388, 64, 'Your bag is waiting', 'margin:0 auto;' ) . '$2', $html, 1 );
+		}
+		return $html;
 	}
 	// has this email placed an order since the time given?
 	function fika_bag_ordered_since( $email, $since ) {
@@ -254,13 +349,19 @@ add_action( 'fika_bag_reminder', function ( $token ) {
 			return;
 		}
 	}
+	$hw = fika_bag_hw();
+	$GLOBALS['fika_mail_hw'] = $hw;
 	$html = $r['items'] ? fika_bag_email_html( $token, $r ) : '';
 	if ( ! $html ) {
+		unset( $GLOBALS['fika_mail_hw'] );
 		fika_bag_set( $token, array( 'status' => 'emptied' ) );
 		return;
 	}
-	$ok = WC()->mailer()->send( $r['email'], 'Your Fika bag is waiting', $html );
-	fika_bag_set( $token, array( 'status' => 'reminded', 'sent' => time(), 'mail_ok' => $ok ? 1 : 0 ) );
+	// marked as sent first: if the send fails or is cut off, this bag is never reminded again
+	fika_bag_set( $token, array( 'status' => 'reminded', 'sent' => time(), 'mail_ok' => 0 ) );
+	$ok = WC()->mailer()->send( $r['email'], $hw ? 'Your Fika bag is waiting… 🎃' : 'Your Fika bag is waiting', $html );
+	unset( $GLOBALS['fika_mail_hw'] );
+	fika_bag_set( $token, array( 'mail_ok' => $ok ? 1 : 0 ) );
 } );
 
 // ---------- links in the email ----------
@@ -377,11 +478,33 @@ add_action( 'rest_api_init', function () {
 			return new WP_Error( 'fika_bag', 'Not found', array( 'status' => 404 ) );
 		}
 		if ( $req->get_param( 'preview' ) ) {
-			return array( 'html' => fika_bag_email_html( $t, $all[ $t ] ) );
+			$GLOBALS['fika_mail_hw'] = fika_bag_hw();
+			$html = fika_bag_email_html( $t, $all[ $t ] );
+			unset( $GLOBALS['fika_mail_hw'] );
+			return array( 'html' => $html );
 		}
 		do_action( 'fika_bag_reminder', $t );
 		$all = fika_bags();
 		return $all[ $t ];
+	} ) );
+	// the reminder for a sample bag, as the shopper's email app shows it (styles applied); never sent, nothing saved.
+	// ?hw=1 Halloween look, ?hw=0 the normal look, no hw = as it would go out now
+	register_rest_route( 'fika/v1', '/saved-bags/sample', array( 'methods' => 'GET', 'permission_callback' => $can, 'callback' => function ( $req ) {
+		$hwp = $req->get_param( 'hw' );
+		if ( null !== $hwp ) {
+			$GLOBALS['fika_bag_hw_force'] = (bool) (int) $hwp;
+		}
+		$hw = fika_bag_hw();
+		$GLOBALS['fika_mail_hw'] = $hw;
+		$r = array( 'name' => 'Sara', 'email' => 'sara@example.com', 'items' => array(
+			array( 'id' => 1200, 'var' => 0, 'qty' => 1 ), array( 'id' => 120, 'var' => 0, 'qty' => 2 ), array( 'id' => 116, 'var' => 0, 'qty' => 1 ),
+		) );
+		$html = fika_bag_email_html( 'SAMPLE', $r );
+		$e = new WC_Email();
+		$html = $e->style_inline( $html );
+		$html = apply_filters( 'woocommerce_mail_content', $html );
+		unset( $GLOBALS['fika_mail_hw'], $GLOBALS['fika_bag_hw_force'] );
+		return array( 'subject' => $hw ? 'Your Fika bag is waiting… 🎃' : 'Your Fika bag is waiting', 'html' => $html );
 	} ) );
 	// remove saved bags (and "no more reminders" entries) of test addresses (@example.com / .org / .net)
 	register_rest_route( 'fika/v1', '/saved-bags/test', array( 'methods' => 'DELETE', 'permission_callback' => $can, 'callback' => function () {
