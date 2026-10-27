@@ -16,7 +16,7 @@
  *   FIKA_BAG_HW_LIVE is true, the reminder wears the Halloween look: night purple and orange, the logo with bats and
  *   a cobweb, Creepster headings as pictures (media 1214-1223, wordpress/email-assets/halloween), "Something sweet is
  *   still lurking in your bag", an orange button, the two Halloween bags (Fan Favourites Mix, Skull Mix) under the
- *   bag, subject "Your Fika bag is waiting… 🎃". Afterwards it is the normal reminder again.
+ *   bag, each with "Add to bag" (the saved bag back with that bag added, then the checkout), subject "Your Fika bag is waiting… 🎃". Afterwards it is the normal reminder again.
  *   Preview (shop managers, never sent): GET /wp-json/fika/v1/saved-bags/sample?hw=1 (or hw=0).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-bag-reminder.php
  */
@@ -41,32 +41,36 @@ if ( ! function_exists( 'fika_bag_hw' ) ) {
 		return '<img src="' . esc_url( home_url( '/wp-content/uploads/2026/10/' . $f ) ) . '" width="' . (int) $w . '" height="' . (int) $h . '" alt="' . esc_attr( $alt ) . '" style="display:block;border:0;outline:none;max-width:100%;height:auto;' . $style . '">';
 	}
 	// the two Halloween bags, under the shopper's bag (only those still on sale)
-	function fika_bag_hw_drops() {
-		$cards = '';
+	function fika_bag_hw_drops( $token ) {
+		$top = $low = '';
 		$list  = array(
 			array( defined( 'FIKA_DROPS_DROP_ID' ) ? FIKA_DROPS_DROP_ID : 1200, 'Strawberry Vanilla Diamonds and Pomegranate Ovals in our classic Sweet &amp; Sour Mix' ),
 			array( defined( 'FIKA_DROPS_SKULL_ID' ) ? FIKA_DROPS_SKULL_ID : 1201, 'All five BUBS skulls in one spooky bag' ),
 		);
+		$gap = '<td width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td>';
 		foreach ( $list as $it ) {
 			$p = wc_get_product( $it[0] );
 			if ( ! $p || ! $p->is_purchasable() || ! $p->is_in_stock() || 'publish' !== $p->get_status() ) {
 				continue;
 			}
 			$img = $p->get_image_id() ? wp_get_attachment_image_url( $p->get_image_id(), 'medium' ) : '';
-			$cards .= ( $cards ? '<td width="16" style="width:16px;font-size:0;line-height:0;">&nbsp;</td>' : '' ) . '<td width="48%" valign="top" style="width:48%;vertical-align:top;">' .
+			// picture, name and words on one row, price and "Add to bag" on the next: the buttons sit level
+			$top .= ( $top ? $gap : '' ) . '<td width="48%" valign="top" style="width:48%;vertical-align:top;">' .
 				'<a href="' . esc_url( home_url( '/ready-mix/' ) ) . '" style="display:block;text-decoration:none;">' .
 				( $img ? '<img src="' . esc_url( $img ) . '" width="240" alt="' . esc_attr( $p->get_name() ) . '" style="display:block;width:100%;max-width:240px;height:auto;border:0;border-radius:16px;background:#f4ecdc;">' : '' ) .
 				'<span class="fika-pname" style="display:block;margin-top:10px;font-weight:600;">' . esc_html( $p->get_name() ) . '</span></a>' .
-				'<span style="display:block;font-size:13px;line-height:1.45;color:#c3b6dc;margin-top:2px;">' . $it[1] . '</span>' .
-				'<span style="display:block;font-weight:600;margin-top:6px;">' . wp_kses_post( wc_price( wc_get_price_to_display( $p ) ) ) . ' &middot; 500 g</span></td>';
+				'<span style="display:block;font-size:13px;line-height:1.45;color:#c3b6dc;margin-top:2px;">' . $it[1] . '</span></td>';
+			$low .= ( $low ? $gap : '' ) . '<td width="48%" valign="bottom" style="width:48%;vertical-align:bottom;">' .
+				'<span style="display:block;font-weight:600;margin-top:6px;">' . wp_kses_post( wc_price( wc_get_price_to_display( $p ) ) ) . ' &middot; 500 g</span>' .
+				'<a class="fika-mail-btn" href="' . esc_url( add_query_arg( 'fika_add', (int) $it[0], fika_bag_link( $token ) ) ) . '" style="display:inline-block;margin-top:12px;padding:10px 20px;border-radius:999px;background:#ff7b1c;color:#1b0d00;text-decoration:none;font-weight:600;font-size:14px;">Add to bag</a></td>';
 		}
-		if ( ! $cards ) {
+		if ( ! $top ) {
 			return '';
 		}
 		return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:4px 0 18px;"><tr><td class="fika-mail-box">' .
 			fika_bag_hw_img( 'fika-email-hw-h-new-this-halloween.png', 271, 50, 'New this Halloween', 'margin:0 0 2px -10px;' ) .
 			'<p style="margin:0 0 14px !important;">Two new 500 g bags, only for Halloween. Add one to your order:</p>' .
-			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr>' . $cards . '</tr></table></td></tr></table>';
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr>' . $top . '</tr><tr>' . $low . '</tr></table></td></tr></table>';
 	}
 }
 // the night colours, the Halloween logo and footer, only while a Halloween reminder is being built and sent
@@ -227,7 +231,7 @@ if ( ! function_exists( 'fika_bags' ) ) {
 			'<tfoot><tr class="order-totals order-totals-total"><th class="td text-align-left" scope="row" colspan="3" style="padding-left:0;">Candies:</th><td class="td text-align-right" style="padding-right:0;">' . wc_price( $total ) . '</td></tr></tfoot></table>' .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td align="center" style="text-align:center;padding:30px 0 26px;">' .
 			'<a class="fika-mail-btn" href="' . esc_url( fika_bag_link( $token ) ) . '" style="display:inline-block;padding:14px 32px;border-radius:999px;background:' . ( $hw ? '#ff7b1c;color:#1b0d00' : '#004aad;color:#ffffff' ) . ';text-decoration:none;font-weight:600;">Finish my order</a></td></tr></table>' .
-			( $hw ? fika_bag_hw_drops() : '' ) .
+			( $hw ? fika_bag_hw_drops( $token ) : '' ) .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:6px 0 6px;"><tr><td class="fika-mail-box">' .
 			( $hw ? fika_bag_hw_img( 'fika-email-hw-h-delivery.png', 131, 50, 'Delivery', 'margin:0 0 4px -13px;' ) : '<h2>Delivery</h2>' ) . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' .
 			'<tr><td class="k">Inside Beirut:</td><td>1&ndash;2 business days</td></tr>' .
@@ -366,12 +370,31 @@ add_action( 'fika_bag_reminder', function ( $token ) {
 
 // ---------- links in the email ----------
 add_action( 'template_redirect', function () {
-	// "Finish my order": refill the bag and open the checkout
+	// "Finish my order": refill the bag and open the checkout. "Add to bag" under a Halloween bag (&fika_add=ID): the
+	// same, with that bag added (one more if it is already there); only the two Halloween bags, only while on sale
 	if ( isset( $_GET['fika_bag'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		$token = sanitize_text_field( wp_unslash( $_GET['fika_bag'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		$all   = fika_bags();
+		$add   = isset( $_GET['fika_add'] ) ? absint( $_GET['fika_add'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
+		$ok_add = array( defined( 'FIKA_DROPS_DROP_ID' ) ? FIKA_DROPS_DROP_ID : 1200, defined( 'FIKA_DROPS_SKULL_ID' ) ? FIKA_DROPS_SKULL_ID : 1201 );
+		$addp  = $add && in_array( $add, $ok_add, true ) ? wc_get_product( $add ) : null;
+		if ( $addp && ( ! $addp->is_purchasable() || ! $addp->is_in_stock() || 'publish' !== $addp->get_status() ) ) {
+			$addp = null;
+		}
 		if ( isset( $all[ $token ] ) ? in_array( $all[ $token ]['status'], array( 'waiting', 'reminded' ), true ) : false ) {
 			$r = $all[ $token ];
+			if ( $addp ) {
+				$found = false;
+				foreach ( $r['items'] as $i => $it ) {
+					if ( (int) $it['id'] === $add ) {
+						$r['items'][ $i ]['qty']++;
+						$found = true;
+					}
+				}
+				if ( ! $found ) {
+					$r['items'][] = array( 'id' => $add, 'var' => 0, 'qty' => 1 );
+				}
+			}
 			WC()->cart->empty_cart();
 			foreach ( $r['items'] as $it ) {
 				WC()->cart->add_to_cart( $it['id'], $it['qty'], $it['var'] );
@@ -388,6 +411,12 @@ add_action( 'template_redirect', function () {
 			}
 			$to = wc_get_checkout_url();
 			echo '<!doctype html><meta charset="utf-8"><title>Fika</title><script>try{var k="fika_bag_v1",s=JSON.parse(localStorage.getItem(k)||"null")||{bag:{},meta:{}};s.bag=' . wp_json_encode( $bag ) . ';localStorage.setItem(k,JSON.stringify(s));}catch(e){}location.replace(' . wp_json_encode( $to ) . ');</script><a href="' . esc_url( $to ) . '">Continue to checkout</a>';
+			exit;
+		}
+		if ( $addp ) { // the bag link no longer works: the Halloween bag goes into the cart as it is now, then the checkout
+			WC()->cart->add_to_cart( $add, 1 );
+			$to = wc_get_checkout_url();
+			echo '<!doctype html><meta charset="utf-8"><title>Fika</title><script>try{var k="fika_bag_v1",s=JSON.parse(localStorage.getItem(k)||"null")||{bag:{},meta:{}};s.bag=s.bag||{};s.bag["rw' . (int) $add . '"]=(s.bag["rw' . (int) $add . '"]||0)+500;localStorage.setItem(k,JSON.stringify(s));}catch(e){}location.replace(' . wp_json_encode( $to ) . ');</script><a href="' . esc_url( $to ) . '">Continue to checkout</a>';
 			exit;
 		}
 		wp_safe_redirect( home_url( '/mix-your-own/' ) );
