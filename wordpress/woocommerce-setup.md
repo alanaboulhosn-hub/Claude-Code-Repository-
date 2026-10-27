@@ -2123,3 +2123,9 @@ choice). Snippet 91, fika-club.php (new):
 - Checked on the real orders list (rendered through a temporary admin-only route, snippet 195, deleted): 20 rows,
   envelopes on exactly the 2 orders with a note, none on the others. The first version of that temporary route hit a
   PHP error inside its own request (shop unaffected); WordPress may have emailed the site admin address about it.
+- 27 Oct (owner: "send this one live"): the Fan Favourites picture from the owner's reference (images/drops/v3,
+  final-d: their bag, sticker FAN FAVOURITES, real-look Strawberry Vanilla Diamonds and Pomegranate Ovals in front,
+  classics mixed in). Product photo media 1213 (fika-ready-fan-favourites-mix-v3.jpg, 1024x1280, white); popup
+  media 1212 (fika-drop-fan-favourites-v3.webp, 720x745, on the popup's bone table). Product 1200 image and snippet
+  193 (picture + alt; live copy matched git first, POST) updated; old media 1206, 1207 deleted (nothing used them).
+  Checked live, phone + computer: popup and Ready Mix card show the new picture, no script errors.

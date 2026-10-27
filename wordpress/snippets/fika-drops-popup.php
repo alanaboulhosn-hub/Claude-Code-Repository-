@@ -16,9 +16,9 @@
  * - The two bags are Ready Mix products, 1200 Fan Favourites Mix (the classic Sweet & Sour Mix with the limited
  *   candies) and 1201 Skull Mix, $14 for 500 g, published but hidden from the shop until they go live; "Add to bag"
  *   puts the 500 g bag in the Fika bag like the Ready Mix tab. In the preview the tab lists them first.
- * - Pictures from the shop's own photos (wordpress/images/drops): popup media 1195 (Skull Mix) and 1206 (Fan
- *   Favourites: the real Sweet & Sour Mix photo, recoloured bag, packed with the limited candies); product photos 1207, 1205 (pure white table, like the other Ready Mix photos).
- *   The Strawberry Vanilla Diamond has no photo yet: it is the real Tutti Frutti Diamond, recoloured.
+ * - Pictures (wordpress/images/drops): popup media 1195 (Skull Mix) and 1212 (Fan Favourites, 27 Oct: the owner's
+ *   bag picture, the limited candies in front, classics mixed in, images/drops/v3); product photos 1213, 1205 (white,
+ *   like the other Ready Mix photos). The Strawberry Vanilla Diamond is modelled on the real candy (BUBS photos).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-drops-popup.php
  */
 
@@ -50,7 +50,7 @@ function fika_drops_markup() {
 
       <article class="fkd-offer">
         <div class="fkd-pic">
-          <img src="<?php echo fika_drops_img( 'fika-drop-fan-favourites.webp' ); ?>" width="720" height="745" alt="A purple Fika bag with a Fan Favourites sticker, the Sweet &amp; Sour Mix spilling out full of Strawberry Vanilla Diamonds and Pomegranate Ovals" decoding="async">
+          <img src="<?php echo fika_drops_img( 'fika-drop-fan-favourites-v3.webp' ); ?>" width="720" height="745" alt="A purple Fika bag with a Fan Favourites sticker, spilling Strawberry Vanilla Diamonds and Pomegranate Ovals mixed with classic sweet and sour candies" decoding="async">
           <span class="fkd-badge">Limited edition</span>
         </div>
         <h3 class="fkd-name">Fan Favourites Mix</h3>
