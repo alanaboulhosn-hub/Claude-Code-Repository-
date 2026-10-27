@@ -22,9 +22,8 @@ def diamond(top, vanilla_dir, width, tilt=0.80, thick=0.11, seed=0):
     # the side: the outline pushed down step by step (furthest first), darker and duller than the top
     for k in range(th, 0, -1):
         lay = np.zeros_like(out); lay[k:k + a.shape[0]] = a_side
-        f = 0.66 + 0.16 * (1 - k / th)
+        f = 0.80 + 0.12 * (1 - k / th)                          # the side in soft shade, keeping its colour
         col = lay[..., :3] * f
-        g = col.mean(axis=2, keepdims=True); col = col * 0.85 + g * 0.15
         al = lay[..., 3:4] / 255
         out[..., :3] = out[..., :3] * (1 - al) + col * al
         out[..., 3:4] = np.maximum(out[..., 3:4], al)

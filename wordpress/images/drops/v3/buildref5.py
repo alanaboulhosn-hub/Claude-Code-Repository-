@@ -117,7 +117,7 @@ for i in range(40):
     if k < 0.45: p = oval(i, 150, 92, rr.uniform(-40, 40))
     elif k < 0.9: p = dia(rr.uniform(0, 360), rr.uniform(130, 165), rr.random() < 0.5)
     else: p = WHEEL.resize((140, 130)).rotate(rr.uniform(0, 360), resample=Image.BICUBIC, expand=True)
-    img = put(img, p, x, y, dim=np.array([0.70, 0.62, 0.66]), shadow=0.5)
+    img = put(img, p, x, y, dim=0.88, shadow=0.5)          # further back: their own colours, a gentle shade
 # 1b. candies right at the opening, their tops under the paper's edge (the bag goes back over them at the end)
 EXTRA = [Image.open(f'cut/{n}-d.png').convert('RGBA') for n in ('redtube', 'redfish', 'bear')]
 lp = []
@@ -133,7 +133,7 @@ for i, (x, y) in enumerate(lp):
     elif k < 0.76: p = dia(rr.uniform(0, 360), rr.uniform(125, 150), rr.random() < 0.5)
     else:
         e = EXTRA[i % 3]; p = e.rotate(rr.uniform(-60, 60), resample=Image.BICUBIC, expand=True)
-    img = put(img, p, x, y, dim=0.78, shadow=0.7)
+    img = put(img, p, x, y, dim=0.90, shadow=0.7)
 # 2. the pile as in the reference, back to front
 ORDER = ['O1', 'T1', 'O3', 'O2', 'O4', 'T5', 'WHEEL', 'T2', 'T3', 'T4', 'O5', 'T6', 'BLUE', 'O6', 'T7', 'T9', 'T8', 'FISH', 'T10', 'T11', 'O7']
 io = 0

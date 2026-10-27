@@ -14,3 +14,12 @@ pasted over the reference (flat tiles, dark holes).
   stand-in for the BUBS logo -> bubs.png), creamy vanilla and pastel strawberry split straight across into exactly
   equal halves, fine sour sugar (d5-1..4.png). buildref5.py = buildref.py with these diamonds:
   python3 buildref5.py owner-reference.webp final-b.jpg 4
+- 27 Oct (owner): sticker name FAN FAVOURITES, and no grey pieces behind the front layer.
+  - stickerswap.py: the sticker re-rendered (stickers2.html: fanref = the owner's wording, to fit; fan2 = FAN
+    FAVOURITES), fitted by pixel matching (stk-fit.txt: match 0.907, 243 px, 13 deg, centre 560.5, 518.5); only the
+    top arc (the name) replaced, heart, rings and bottom line kept, colour matched to the sticker's paper.
+    python3 stickerswap.py owner-reference.webp ref-fan.png
+  - Back layer and the pieces at the opening drawn in their own colours with a gentle shade (0.88 / 0.90) instead of
+    a dark tint (which turned vanilla grey); diamond sides keep their colour (dia4.py).
+    python3 buildref5.py ref-fan.png final-c.jpg 4
+  - Note: the bottom line on the owner's sticker reads "NIᖷ.I" (garbled), not "NR. 1"; left as is for now.
