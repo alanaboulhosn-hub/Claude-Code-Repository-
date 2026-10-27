@@ -2129,3 +2129,22 @@ choice). Snippet 91, fika-club.php (new):
   media 1212 (fika-drop-fan-favourites-v3.webp, 720x745, on the popup's bone table). Product 1200 image and snippet
   193 (picture + alt; live copy matched git first, POST) updated; old media 1206, 1207 deleted (nothing used them).
   Checked live, phone + computer: popup and Ready Mix card show the new picture, no script errors.
+
+### 2026-10-27 – Bag reminder: Halloween version (PREVIEW, NOT LIVE)
+- Owner: all the Halloween ideas for the "Your bag is waiting" reminder, preview first.
+- wordpress/snippets/fika-bag-reminder.php (git) now holds the Halloween version, switched off by FIKA_BAG_HW_LIVE
+  false; it is NOT installed yet: live snippet 25 is still the previous version (git differs from live until the
+  owner approves; installing was held back as a change to live sending code without approval).
+  - While FIKA_BAG_HW_LIVE is true, the Halloween look is on (option fika_hw_on) and before 1 Nov: night purple and
+    orange, the logo with bats and a cobweb, Creepster headings as pictures, "Something sweet is still lurking in
+    your bag...", orange button, "New this Halloween" panel with Fan Favourites Mix and Skull Mix (only those on
+    sale), subject "Your Fika bag is waiting... 🎃". Otherwise the normal reminder (rendered pixel-identical).
+  - Also in that version: the reminder is marked as sent before it goes out (CLAUDE.md rule; today it is marked
+    after the send).
+  - Preview route in that version: GET /fika/v1/saved-bags/sample?hw=1|0 (never sends).
+- Pictures uploaded (unused until it goes live): media 1214 fika-email-hw-logo.png, 1215-1219
+  fika-email-hw-foot-top/wa/mail/ig/bottom.png, 1220-1223 fika-email-hw-h-your-bag-is-waiting / your-bag / delivery /
+  new-this-halloween.png (sources and tools: wordpress/email-assets/halloween).
+- Preview rendered from the new code through temporary admin-only snippets 196-198 (each deleted; no sending, no
+  saving), shown on the "Fika Win-back Email" artifact (now "Fika emails": Halloween + normal bag reminder, then the
+  win-back customers).
