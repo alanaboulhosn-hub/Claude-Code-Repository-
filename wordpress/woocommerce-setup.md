@@ -2158,3 +2158,5 @@ choice). Snippet 91, fika-club.php (new):
   Email us / Instagram, bottom line), icon badges bone. New names fika-email-hw2-foot-top/wa/mail/ig/bottom.png,
   media 1229-1233 (the server kept serving a cached bone copy under the old name); old 1215-1219 and 1224-1228
   deleted. Code: the footer swap now points at hw2. Still preview only.
+- Owner (27 Oct): orange icon badges in the footer too (icons dark on orange): media 1234-1236
+  fika-email-hw3-foot-wa / mail / ig.png; the bone-badge versions 1230-1232 deleted. Still preview only.
