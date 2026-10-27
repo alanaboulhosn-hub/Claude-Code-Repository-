@@ -2148,3 +2148,9 @@ choice). Snippet 91, fika-club.php (new):
 - Preview rendered from the new code through temporary admin-only snippets 196-198 (each deleted; no sending, no
   saving), shown on the "Fika Win-back Email" artifact (now "Fika emails": Halloween + normal bag reminder, then the
   win-back customers).
+- Owner (27 Oct): "Add to bag" under each Halloween bag in the email. The link is the bag's own link plus
+  &fika_add=<product>: the saved bag comes back with that Halloween bag added (one more if already there), then the
+  checkout opens with the email filled in. Only 1200 / 1201, only while on sale. If the bag link no longer works
+  (ordered, too old), the Halloween bag is added to the cart as it is and the checkout opens. Price and button on
+  their own row, so both buttons sit level. Still preview only (snippet 25 not installed); the link itself can be
+  tested only once installed (plan: a saved test bag @example.com, no order).
