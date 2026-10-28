@@ -148,5 +148,5 @@
 			setTimeout(function () { if (b.parentNode) { b.parentNode.removeChild(b); } }, 900);
 		}, { passive: true });
 	})();
-	/* boo:end */
+	// end of the pumpkin click glow
 })();
