@@ -4,8 +4,9 @@
  * - Reads WooCommerce's own order attribution (it records the link's utm codes on every order). Meta adds
  *   utm_medium=paid and the campaign / ad set / ad numbers to every ad click, so ad orders are told apart from the
  *   Instagram bio link (utm_medium=social, link_in_bio).
- * - A "Source" column after Order: a badge per order (Meta ad · campaign name, Instagram, Facebook, Google, Direct,
- *   Other). Campaign numbers get a name in FIKA_SRC_CAMPAIGNS (else the number is shown).
+ * - No column of its own (owner: WooCommerce's Origin column already shows the source): orders from a Meta ad get a
+ *   "Meta ad · campaign" tag under their Origin (which says "Ig" for the ad and the bio link alike). Campaign
+ *   numbers get a name in FIKA_SRC_CAMPAIGNS (else the number is shown).
  * - Above the list: a box with the Meta ad results: orders and sales (cancelled / failed / refunded left out), today
  *   and in total, per campaign.
  * - Admin only, orders only read.
@@ -54,31 +55,24 @@ if ( ! function_exists( 'fika_src_of' ) ) {
 	}
 }
 
-foreach ( array( 'manage_woocommerce_page_wc-orders_columns', 'manage_edit-shop_order_columns' ) as $fika_hook ) {
-	add_filter( $fika_hook, function ( $cols ) {
-		$out = array();
-		foreach ( $cols as $k => $v ) {
-			$out[ $k ] = $v;
-			if ( 'fika_note' === $k || ( 'order_number' === $k && ! isset( $cols['fika_note'] ) ) ) {
-				$out['fika_src'] = 'Source';
-			}
-		}
-		if ( ! isset( $out['fika_src'] ) ) {
-			$out['fika_src'] = 'Source';
-		}
-		return $out;
-	}, 60 );
-}
+// no column of its own: WooCommerce's "Origin" column already names the source; it shows "Ig" for the ad and the
+// bio link alike, so orders from a Meta ad get a small tag under it (priority 20: after WooCommerce's own text)
 add_action( 'manage_woocommerce_page_wc-orders_custom_column', function ( $col, $order ) {
-	if ( 'fika_src' === $col ) {
-		fika_src_cell( $order );
+	if ( 'origin' === $col && $order instanceof WC_Order ) {
+		list( $k, $label ) = fika_src_of( $order );
+		if ( 'ad' === $k ) {
+			echo '<br><span class="fika-src fika-src-ad">' . esc_html( $label ) . '</span>';
+		}
 	}
-}, 10, 2 );
+}, 20, 2 );
 add_action( 'manage_shop_order_posts_custom_column', function ( $col, $post_id ) {
-	if ( 'fika_src' === $col ) {
-		fika_src_cell( wc_get_order( $post_id ) );
+	if ( 'origin' === $col && ( $o = wc_get_order( $post_id ) ) ) {
+		list( $k, $label ) = fika_src_of( $o );
+		if ( 'ad' === $k ) {
+			echo '<br><span class="fika-src fika-src-ad">' . esc_html( $label ) . '</span>';
+		}
 	}
-}, 10, 2 );
+}, 20, 2 );
 
 // the Meta ad results, above the orders list
 add_action( 'admin_notices', function () {
@@ -144,7 +138,7 @@ add_action( 'admin_footer', function () {
 	}
 	?>
 	<style>
-		.column-fika_src { width: 150px; }
+		.column-origin .fika-src { margin-top: 4px; }
 		.fika-src { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1.5; white-space: nowrap; background: #f0f0f1; color: #50575e; }
 		.fika-src-ad { background: #ffe6d1; color: #a34400; border: 1px solid #ffb27a; }
 		.fika-src-ig { background: #fbe3f0; color: #9b1f62; }
