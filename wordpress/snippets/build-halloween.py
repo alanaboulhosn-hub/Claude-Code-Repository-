@@ -17,7 +17,8 @@ php = """<?php
  * Fika: Halloween week look. Colours and decorations only: night colours, pumpkin orange, skulls, bats, cobwebs and
  * a spider over the normal site. Every page, button and checkout step works exactly as before.
  * - Installed switched off. One click on "Halloween look" in the WP admin top bar switches it on (option fika_hw_on),
- *   another click switches it off again. It also goes off by itself at FIKA_HW_END (1 November 2026, 00:00 Beirut).
+ *   another click switches it off again. No end date (owner, 28 Oct 2026: on until the button turns it off);
+ *   FIKA_HW_END is a far-off date only so the code that asks for an end keeps working.
  *   Deactivating the snippet removes it completely; the normal site underneath is never changed.
  * - GET /wp-json/fika/v1/halloween (shop admins): whether it is on, the end date and the version installed.
  * - Every fish (rewards lane, sign-up card, Fika Club card and pop-up) is drawn as a spider, and the fish cursor is a
@@ -30,7 +31,7 @@ php = """<?php
  */
 
 if ( ! defined( 'FIKA_HW_END' ) ) {
-	define( 'FIKA_HW_END', '2026-11-01 00:00' ); // Beirut time
+	define( 'FIKA_HW_END', '2099-12-31 00:00' ); // no real end: on until the admin-bar button turns it off
 	define( 'FIKA_HW_VERSION', '%s' );
 }
 

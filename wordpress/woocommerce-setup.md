@@ -2202,3 +2202,16 @@ choice). Snippet 91, fika-club.php (new):
   bags stayed in the Ready Mix tab and kept selling. Rule: never write `/* name:end */` style comments in snippets.
 - Temporary diagnostic snippets 207, 208 and the bisect copies deleted; earlier temp snippets 195-206 are in the
   Code Snippets trash, inactive.
+- Owner (28 Oct): "never again; Halloween stays until I click the button".
+  - No end date: FIKA_HW_END 2099-12-31 (build-halloween.py); /fika/v1/halloween shows ends 2099. The look, the
+    drops popup, the two bags in the Ready Mix tab (193) and the Halloween bag reminder (25) all follow the admin-bar
+    switch only. Snippet 184 reinstalled (live == git first).
+  - Snippet 221 "Fika: snippet guard" (fika-guard.php, global, priority 99, runs after the others): watches
+    184 fika_hw_on, 193 fika_drops_img, 25 fika_bags, 43 fika_meta_send, 11 fika_swim_totals. If a watched snippet is
+    active but its function is missing (the plugin skipped it), the guard runs its code from the snippets table
+    (rescue), logs it (option fika_guard_log) and emails the admin address (at most once per 6 h, marked before
+    sending). Hourly cron (fika_guard_hourly) compares every active snippet's saved code with what the plugin loads;
+    differences logged + emailed. Status: GET /wp-json/fika/v1/guard (?scan=1 for a fresh scan).
+  - Proven: a throwaway active snippet with `/* boo:end */` (blanked by the plugin, so it never ran) ran via the
+    guard as soon as it was watched (option fika_guard_test, test ids never alert). Test snippets 222, 223 trashed
+    (inactive), option removed; scan clean, log empty, no email sent.
