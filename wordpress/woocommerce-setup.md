@@ -2180,3 +2180,6 @@ choice). Snippet 91, fika-club.php (new):
   FIKA_SRC_CAMPAIGNS: 120250075140790390 = Halloween, 120249990307440473 = Launch (10-14 Oct).
 - Checked on the real list (temporary admin-only route 204, deleted): Halloween ad 2 orders $90.40 today (#1569,
   #1571), launch campaign 13 orders $573.20 (#1460-#1522, one failed not counted).
+- Same day (owner: WooCommerce's Origin column already shows the source): the Source column is removed; orders from
+  a Meta ad get a "Meta ad · campaign" tag under their Origin (Origin says "Ig" for the ad and the bio link alike).
+  The Meta ads box above the list stays. Checked: #1569 and #1571 tagged, #1568 / #1570 / #1572 not.
