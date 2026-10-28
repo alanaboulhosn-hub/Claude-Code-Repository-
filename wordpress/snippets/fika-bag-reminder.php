@@ -25,7 +25,7 @@ if ( ! defined( 'FIKA_BAG_DELAY' ) ) {
 	define( 'FIKA_BAG_DELAY', HOUR_IN_SECONDS );
 }
 if ( ! defined( 'FIKA_BAG_HW_LIVE' ) ) {
-	define( 'FIKA_BAG_HW_LIVE', false ); // the Halloween reminder for real shoppers (preview only while false)
+	define( 'FIKA_BAG_HW_LIVE', true ); // the Halloween reminder for real shoppers (preview only while false)
 }
 
 // ---------- Halloween look of the reminder ----------
