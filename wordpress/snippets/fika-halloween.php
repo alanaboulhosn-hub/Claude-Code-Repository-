@@ -17,7 +17,7 @@
 
 if ( ! defined( 'FIKA_HW_END' ) ) {
 	define( 'FIKA_HW_END', '2026-11-01 00:00' ); // Beirut time
-	define( 'FIKA_HW_VERSION', '35669db92d' );
+	define( 'FIKA_HW_VERSION', '59257bc078' );
 }
 
 if ( ! defined( 'FIKA_HW_PREVIEW_KEY' ) ) {
@@ -591,7 +591,7 @@ add_action( 'wp_footer', function () {
 			setTimeout(function () { if (b.parentNode) { b.parentNode.removeChild(b); } }, 900);
 		}, { passive: true });
 	})();
-	/* boo:end */
+	// end of the pumpkin click glow
 })();
 FIKA_HW_JS
 	. "\n</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput

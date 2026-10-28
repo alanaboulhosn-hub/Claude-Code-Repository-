@@ -2183,3 +2183,22 @@ choice). Snippet 91, fika-club.php (new):
 - Same day (owner: WooCommerce's Origin column already shows the source): the Source column is removed; orders from
   a Meta ad get a "Meta ad · campaign" tag under their Origin (Origin says "Ig" for the ad and the bio link alike).
   The Meta ads box above the list stays. Checked: #1569 and #1571 tagged, #1568 / #1570 / #1572 not.
+
+### 2026-10-28 – Meta pixel / Conversions API check; Halloween look found switched off by Code Snippets
+- Pixel + CAPI (snippet 43, live == git): Meta accepted every server event 21-28 Oct, none refused (28 Oct: 790,
+  about double a normal day = the ad). Every order 26-28 Oct has "Meta: purchase sent to the Conversions API",
+  including the two ad orders #1569 / #1571. Ad-visitor journey (phone + computer, Meta requests stopped so nothing
+  reached Meta): pixel 2660128037781548 inits; PageView, ViewContent, AddToCart, InitiateCheckout fire in the browser
+  and each has its server copy with the same event ID (dedup); _fbp, _fbc (from fbclid) and fika_vid set. Halloween
+  popup "Add to bag": AddToCart $14, content_ids 1200, browser + server, same ID.
+- Found while testing: the Halloween look, the drops popup and GET /fika/v1/halloween were gone from the live site.
+  Snippet 184 active and its code intact in the database (72,860 bytes, == git), but Code Snippets 3.10.2 loaded it
+  as EMPTY (get_snippet code ''), so it never ran. Bisected with inactive copies: the comment line `/* boo:end */`
+  alone makes the plugin blank a snippet (the plugin must have changed: the line had been there since 26 Oct). No other
+  active snippet affected (all checked: database length == loaded length). Fix: comment reworded in
+  fika-halloween.js ("// end of the pumpkin click glow"), rebuilt (version 59257bc078), POST to 184: loads 72,877
+  bytes, /fika/v1/halloween on:true, look + popup back on home / Ready Mix / ad links (LiteSpeed purged by the new
+  version). Down for part of 28 Oct (after ~00:40 UTC, when it was last seen working, until 18:40 UTC); the Halloween
+  bags stayed in the Ready Mix tab and kept selling. Rule: never write `/* name:end */` style comments in snippets.
+- Temporary diagnostic snippets 207, 208 and the bisect copies deleted; earlier temp snippets 195-206 are in the
+  Code Snippets trash, inactive.
