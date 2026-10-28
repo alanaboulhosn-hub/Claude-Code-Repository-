@@ -2160,3 +2160,11 @@ choice). Snippet 91, fika-club.php (new):
   deleted. Code: the footer swap now points at hw2. Still preview only.
 - Owner (27 Oct): orange icon badges in the footer too (icons dark on orange): media 1234-1236
   fika-email-hw3-foot-wa / mail / ig.png; the bone-badge versions 1230-1232 deleted. Still preview only.
+- 28 Oct (owner: "send it live"): snippet 25 installed with FIKA_BAG_HW_LIVE true (live copy matched the previous
+  git version first; POST). Halloween look is on (until 1 Nov 00:00 Beirut), so reminders now go out in the
+  Halloween look, marked as sent before the send. Checked: sample = Halloween subject, logo, 2 Add to bag buttons,
+  orange icons; home / Mix your own / checkout respond normally.
+  End-to-end test (claude.bagtest@example.com, no order): checkout email typed -> bag saved (2 x Bubblegum Skull);
+  the email's "Add to bag" links opened in fresh browsers: phone -> checkout with Bubblegum Skull + Fan Favourites
+  Mix, $19.60, email filled in; computer (Skull Mix link) -> + Skull Mix, $33.60; the shop's bag matched. Test bags
+  removed (DELETE /fika/v1/saved-bags/test: 7 removed, none left), so no reminder goes to the test address.
