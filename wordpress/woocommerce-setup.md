@@ -2215,3 +2215,12 @@ choice). Snippet 91, fika-club.php (new):
   - Proven: a throwaway active snippet with `/* boo:end */` (blanked by the plugin, so it never ran) ran via the
     guard as soon as it was watched (option fika_guard_test, test ids never alert). Test snippets 222, 223 trashed
     (inactive), option removed; scan clean, log empty, no email sent.
+- 28 Oct 2026: RT export of 28 Oct 22:19 (537 parcels) applied the same way (fika_rtd_apply, RT column + order note,
+  no emails; temporary admin-only endpoint, snippet 224, trashed after). Live snippet 94 checked against git first;
+  each order was re-checked against the dry run (status, RT step, tracking) before it was changed: all 53 unchanged.
+  All matched by tracking number. 35 status changes: 32 -> completed (#1507, #1522, #1531, #1533-#1540,
+  #1542-#1544, #1546-#1548, #1550-#1558, #1560, #1561, #1563, #1564, #1566, and #1529 from failed; completed time =
+  export time), #1468, #1532, #1541 -> failed (RT: return received by merchant). RT step only on 18 (#1343, #1461,
+  #1473 stay failed, Cancel -> return received; 8 pending #1569-#1575, #1577; pickup #1545, #1559, #1568; back to
+  warehouse #1549, #1562, #1565; at warehouse #1567). Flagged to the owner: RT cash $0 on #1533 and #1543, $26.16 vs
+  $23.64 on #1574, 2 returned parcels with no website order. Parcels not from the website ignored.
