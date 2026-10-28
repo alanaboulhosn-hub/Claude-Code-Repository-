@@ -2168,3 +2168,15 @@ choice). Snippet 91, fika-club.php (new):
   the email's "Add to bag" links opened in fresh browsers: phone -> checkout with Bubblegum Skull + Fan Favourites
   Mix, $19.60, email filled in; computer (Skull Mix link) -> + Skull Mix, $33.60; the shop's bag matched. Test bags
   removed (DELETE /fika/v1/saved-bags/test: 7 removed, none left), so no reminder goes to the test address.
+
+### Order source and Meta ad results in Orders (28 Oct 2026)
+- Snippet 203 "Fika: order source in Orders (Meta ad badge)" (fika-order-source.php, admin only, orders only read):
+  a "Source" column after Order (Meta ad · campaign / Instagram / Facebook / Google / Direct / Other), from
+  WooCommerce's own order attribution (_wc_order_attribution_*: on all orders, the script loads on every page).
+  Meta ad = utm_source ig / fb / facebook / instagram + utm_medium paid (Meta adds these with campaign / ad set /
+  ad numbers to every ad click); the Instagram bio link is utm_medium=social, link_in_bio.
+- Box above the list: Meta ad orders and sales, today and in total, per campaign (processing, completed, on hold,
+  pending; cancelled / failed / refunded not counted; cached 5 min, transient fika_src_ads2). Campaign names in
+  FIKA_SRC_CAMPAIGNS: 120250075140790390 = Halloween, 120249990307440473 = Launch (10-14 Oct).
+- Checked on the real list (temporary admin-only route 204, deleted): Halloween ad 2 orders $90.40 today (#1569,
+  #1571), launch campaign 13 orders $573.20 (#1460-#1522, one failed not counted).
