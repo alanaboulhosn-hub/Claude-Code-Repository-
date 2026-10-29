@@ -2241,3 +2241,13 @@ choice). Snippet 91, fika-club.php (new):
   trashed): only 3 lines differed, all added by edits (#1574 Bubblegum Skull, #1580 Sour Cherries and Sour
   Watermelon Pacifier); those labels were saved (labels only, no totals, no emails). #1574's total is now $26.16,
   the amount RT has.
+
+## Gluten-free filter on Mix your own (2026-10-29)
+- Owner: a Gluten-free filter on the shop page. Page 40 (Mix your own) filter bar (mix_bar in
+  wordpress/pages/build-shop-pages.py, same text in mix-your-own-40.raw.html) has a "Gluten-free" chip after
+  Gelatin-free: candies with the product tag gluten-free, read from the product list the page already has
+  (window.fikaProducts, no extra request). The chip hides itself while no shown candy has the tag. The shared pattern
+  241 is unchanged.
+- Preview first (live page in a test browser with only the bar swapped), then sent live at the owner's word; live
+  page checked against git before and after. Checked live on computer (1440) and phone (390): no errors, the chip
+  shows 18 (the owner tagged 4 more meanwhile: Sugared Strawberries, Swedish Fish, Forest Berries, Sour Swedish Fish).
