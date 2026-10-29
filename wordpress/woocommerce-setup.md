@@ -2234,3 +2234,10 @@ choice). Snippet 91, fika-club.php (new):
 - Checked without changing any order (temporary admin-only route, snippet 226, trashed): the saved code loads
   (2205 bytes), 3 Processing orders editable after (not before), a Completed order still locked. Shop pages and the
   guard (all watched snippets running, scan clean) fine.
+- Owner (screenshot of #1574): products added in the order screen had no "Weight" label (it is only added at
+  checkout). Snippet 225 now gives added products the checkout's label (fika_weight_label) on
+  woocommerce_ajax_order_items_added, and refreshes it on woocommerce_saved_order_items (quantity changes) for
+  editable orders; mystery-taste items are skipped. Dry run over all Processing orders (temporary route, snippet 227,
+  trashed): only 3 lines differed, all added by edits (#1574 Bubblegum Skull, #1580 Sour Cherries and Sour
+  Watermelon Pacifier); those labels were saved (labels only, no totals, no emails). #1574's total is now $26.16,
+  the amount RT has.
