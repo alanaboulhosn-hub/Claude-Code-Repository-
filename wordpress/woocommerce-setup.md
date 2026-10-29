@@ -2224,3 +2224,13 @@ choice). Snippet 91, fika-club.php (new):
   #1473 stay failed, Cancel -> return received; 8 pending #1569-#1575, #1577; pickup #1545, #1559, #1568; back to
   warehouse #1549, #1562, #1565; at warehouse #1567). Flagged to the owner: RT cash $0 on #1533 and #1543, $26.16 vs
   $23.64 on #1574, 2 returned parcels with no website order. Parcels not from the website ignored.
+
+## Editing Processing orders (2026-10-29)
+- Owner: customers ask to change their order. WooCommerce locks the products of Processing orders (every
+  cash-on-delivery order); new snippet 225 "Fika: Processing orders editable" (admin only,
+  wordpress/snippets/fika-order-edit.php) adds Processing to wc_order_is_editable. Completed / failed / cancelled /
+  refunded stay locked. Editing sends no email. Stock is adjusted by WooCommerce; Fika Club grams follow the
+  products. Orders already created in RT get a notice: RT keeps the old cash amount, change it in the RT dashboard.
+- Checked without changing any order (temporary admin-only route, snippet 226, trashed): the saved code loads
+  (2205 bytes), 3 Processing orders editable after (not before), a Completed order still locked. Shop pages and the
+  guard (all watched snippets running, scan clean) fine.
