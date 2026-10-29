@@ -538,7 +538,7 @@ html.fika-shop-page .fk-anchor { display: none; }
 </style>"""
 
 # ---------- Mix your own: the candies with filters and search (no Ready Mix) ----------
-mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin-free) and search over the candies (shop order).
+mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin-free / Gluten-free) and search over the candies (shop order).
      Written without the logical-and operator and the less-than sign: WordPress rewrites them. -->
 <div class="fika-sec fs-bar" id="fsBar">
   <div class="fs-chips" role="tablist" aria-label="Show">
@@ -546,6 +546,7 @@ mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin
     <button type="button" class="fs-chip" data-f="sweet">Sweet <small></small></button>
     <button type="button" class="fs-chip" data-f="sour">Sour <small></small></button>
     <button type="button" class="fs-chip" data-f="gf">Gelatin-free <small></small></button>
+    <button type="button" class="fs-chip" data-f="gl" hidden>Gluten-free <small></small></button>
   </div>
   <label class="fs-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
     <input type="search" id="fsQ" placeholder="Search sweets" aria-label="Search sweets"></label>
@@ -579,6 +580,8 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
 (function () {
   document.documentElement.classList.add('fika-shop-page', 'fika-mix-page');
   var st = { f: 'all', q: '' };
+  // gluten-free = the product carries the tag gluten-free (read from the product list the page already has)
+  var glu = {};
   window.fikaMxTitle = 'Mix your own';
   function norm(s) { return String(s || '').toLowerCase(); }
   function isCat(p, c) { return (p.cats || []).indexOf(c) !== -1; }
@@ -587,6 +590,7 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
     if (st.f === 'sweet') return isCat(p, 'sweet');
     if (st.f === 'sour') return isCat(p, 'sour');
     if (st.f === 'gf') return !p.gelatin;
+    if (st.f === 'gl') return glu[p.id] === 1;
     return true;
   }
   window.fikaMxView = function (list) {
@@ -605,9 +609,11 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
   function counts(list) {
     var bar = document.getElementById('fsBar');
     if (!bar) return;
-    var n = { all: list.length, sweet: 0, sour: 0, gf: 0 };
-    list.forEach(function (p) { if (isCat(p, 'sweet')) n.sweet++; if (isCat(p, 'sour')) n.sour++; if (!p.gelatin) n.gf++; });
+    var n = { all: list.length, sweet: 0, sour: 0, gf: 0, gl: 0 };
+    list.forEach(function (p) { if (isCat(p, 'sweet')) n.sweet++; if (isCat(p, 'sour')) n.sour++; if (!p.gelatin) n.gf++; if (glu[p.id] === 1) n.gl++; });
     [].slice.call(bar.querySelectorAll('.fs-chip')).forEach(function (b) { b.querySelector('small').textContent = n[b.getAttribute('data-f')]; });
+    var gb = bar.querySelector('[data-f="gl"]');
+    if (gb) gb.hidden = !n.gl;
   }
   function update(scroll) {
     if (window.fikaFadeReset) window.fikaFadeReset();
@@ -642,6 +648,12 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
     function later() { top(); clearTimeout(again); again = setTimeout(top, 420); }
     var hd = document.querySelector('.fika-header');
     if (hd) hd.addEventListener('transitionend', top);
+    if (window.fikaProducts) {
+      window.fikaProducts().then(function (r) { return r.json(); }).then(function (l) {
+        (l || []).forEach(function (w) { if ((w.tags || []).some(function (t) { return t.slug === 'gluten-free'; })) glu['w' + w.id] = 1; });
+        if (window.fikaMxRender) window.fikaMxRender();
+      }).catch(function () {});
+    }
     top(); window.addEventListener('resize', later); window.addEventListener('scroll', later, { passive: true }); setTimeout(top, 600);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
