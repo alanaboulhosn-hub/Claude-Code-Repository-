@@ -2251,3 +2251,13 @@ choice). Snippet 91, fika-club.php (new):
 - Preview first (live page in a test browser with only the bar swapped), then sent live at the owner's word; live
   page checked against git before and after. Checked live on computer (1440) and phone (390): no errors, the chip
   shows 18 (the owner tagged 4 more meanwhile: Sugared Strawberries, Swedish Fish, Forest Berries, Sour Swedish Fish).
+
+## Pork gelatin labels back (2026-11-01)
+- Owner: the gelatin candies had lost their "Pork Gelatin" label. Cause: the shop cards (pattern 241,
+  wordpress/pages/parts/mix.html) joined all tag and category names of a candy into one line and treated any
+  "free ... gelatin" in it as gelatin-free. Once Raspberry Bites, Fizzy Pop, Loose Teeth and Fizzy Cola were also
+  tagged gluten-free, their line read "gluten-free pork gelatin" -> "free pork gelatin" -> no label, and Gelatin-free
+  counted every candy (27 = All; visible in the 29 Oct gluten-free preview and missed then). Now each tag / category
+  is checked on its own (pick & mix and Ready Mix cards). Tested on the live page with only that code swapped, then
+  pattern 241 updated (live checked against git before and after). Live: Pork Gelatin on the 4 tagged candies,
+  Gelatin-free 24 of 27, Gluten-free 18, no errors.

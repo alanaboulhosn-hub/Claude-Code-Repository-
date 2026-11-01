@@ -428,9 +428,11 @@
         var items = list.filter(function (w) { return !(w.categories || []).some(function (c) { return /ready/i.test(c.slug + ' ' + c.name); }); }).map(function (w) {
           var minor = (w.prices && w.prices.currency_minor_unit != null) ? w.prices.currency_minor_unit : 2;
           var price = w.prices ? parseInt(w.prices.price, 10) / Math.pow(10, minor) : PRICE_100G;
-          var labels = (w.tags || []).concat(w.categories || []).map(function (t) { return (t.name + ' ' + t.slug).toLowerCase(); }).join(' ');
-          var neg = /(no|free|without|non)[ -]*(pork)?[ -]*gelatin|gelatin[ -]*(free|less)/.test(labels);
-          return { id: 'w' + w.id, name: dec(w.name), gelatin: labels.indexOf(GELATIN_WORD) !== -1 && !neg,
+          // gelatin: one tag or category says gelatin and is not itself a "gelatin-free" one (each checked on its own:
+          // read as one line, "gluten-free" + "pork gelatin" looked like "free pork gelatin")
+          var gel = (w.tags || []).concat(w.categories || []).some(function (t) { var l = (t.name + ' ' + t.slug).toLowerCase();
+            return l.indexOf(GELATIN_WORD) !== -1 ? !/(no|free|without|non)[ -]*(pork)?[ -]*gelatin|gelatin[ -]*(free|less)/.test(l) : false; });
+          return { id: 'w' + w.id, name: dec(w.name), gelatin: gel,
                    img: w.images && w.images[0] ? w.images[0].src : '', srcset: w.images ? (w.images[0] ? (w.images[0].srcset || '') : '') : '', price: price || PRICE_100G, hue: (w.id * 47) % 360,
                    cats: (w.categories || []).map(function (c) { return c.slug; }) };
         });
@@ -661,9 +663,11 @@
         var ta = document.createElement('textarea'), dec = function (t) { ta.innerHTML = t || ''; return ta.value; };
         var items = list.filter(function (w) { return (w.categories || []).some(function (c) { return /ready/i.test(c.slug + ' ' + c.name); }); }).map(function (w, i) {
           var minor = (w.prices && w.prices.currency_minor_unit != null) ? w.prices.currency_minor_unit : 2;
-          var labels = (w.tags || []).concat(w.categories || []).map(function (t) { return (t.name + ' ' + t.slug).toLowerCase(); }).join(' ');
-          var neg = /(no|free|without|non)[ -]*(pork)?[ -]*gelatin|gelatin[ -]*(free|less)/.test(labels);
-          return { id: 'rw' + w.id, name: dec(w.name), gelatin: labels.indexOf('gelatin') !== -1 && !neg,
+          // gelatin: one tag or category says gelatin and is not itself a "gelatin-free" one (each checked on its own:
+          // read as one line, "gluten-free" + "pork gelatin" looked like "free pork gelatin")
+          var gel = (w.tags || []).concat(w.categories || []).some(function (t) { var l = (t.name + ' ' + t.slug).toLowerCase();
+            return l.indexOf('gelatin') !== -1 ? !/(no|free|without|non)[ -]*(pork)?[ -]*gelatin|gelatin[ -]*(free|less)/.test(l) : false; });
+          return { id: 'rw' + w.id, name: dec(w.name), gelatin: gel,
                    img: w.images && w.images[0] ? w.images[0].src : '', srcset: w.images ? (w.images[0] ? (w.images[0].srcset || '') : '') : '', price: (w.prices ? parseInt(w.prices.price, 10) / Math.pow(10, minor) : 14) || 14, hue: (w.id * 61) % 360 };
         });
         if (!items.length) { ready(); return; }
