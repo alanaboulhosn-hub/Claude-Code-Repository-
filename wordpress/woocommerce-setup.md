@@ -2283,3 +2283,5 @@ choice). Snippet 91, fika-club.php (new):
   (Limited edition) / Sweet Mix / Sour Mix; bag -> Checkout shows Fan Favourites "Amount: 1 bag (500 g)" and a candy
   "Weight: 100 g" (no order placed); reminder sample: normal look with the Limited edition box; guard scan clean.
 - To end the limited edition: FIKA_DROPS_MODE 'off' (no popup, no box, 1200 hidden, 94 back).
+- Same day: product 1200's short description (checkout summary) now says "our top-selling Sweet & Sour Mix" instead
+  of "our classic" (owner). Only that text changed; visibility, price and stock unchanged.
