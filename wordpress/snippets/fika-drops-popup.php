@@ -130,7 +130,7 @@ function fika_drops_markup_limited() {
         <p class="fkd-sub">Sweet &amp; sour mix, 500 g</p>
         <p class="fkd-what">Our classic Sweet &amp; Sour Mix with this season&rsquo;s limited candies in the bag: the <b class="fkd-new">New</b> BUBS Sour Strawberry Vanilla Diamond and <b class="fkd-back">Back</b> BUBS Wild Berry Pomegranate Ovals.</p>
         <p class="fkd-note">Only while supplies last.</p>
-        <div class="fkd-buy"><span class="fkd-price">$14</span><button type="button" class="fkd-add" data-id="<?php echo (int) FIKA_DROPS_DROP_ID; ?>" data-name="Fan Favourites Mix">Add to bag</button></div>
+        <div class="fkd-buy"><button type="button" class="fkd-add" data-id="<?php echo (int) FIKA_DROPS_DROP_ID; ?>" data-name="Fan Favourites Mix">Add to bag &middot; $14</button></div>
       </div>
     </div>
     <button type="button" class="fkd-later">Keep browsing</button>
@@ -169,9 +169,8 @@ function fika_drops_limited_css() {
 .fkd-new { background: #004aad; color: #fff; }
 .fkd-back { background: #fdeaf2; color: #c0335f; }
 .fkd-note { margin: 0 0 16px; font-size: 13px; color: #6c7b9c; }
-.fkd-buy { display: flex; align-items: center; gap: 16px; }
-.fkd-price { font-family: 'Bebas Neue', Impact, sans-serif; font-size: 34px; line-height: 1; color: #004aad; }
-.fkd-add { flex: 1; padding: 14px 22px; border: 0; border-radius: 999px; background: #004aad; color: #fff; font: 700 15px 'Outfit', Arial, sans-serif; letter-spacing: .03em; cursor: pointer; transition: transform .15s ease, background .15s ease; }
+.fkd-buy { display: block; }
+.fkd-add { display: block; width: 100%; padding: 15px 22px; border: 0; border-radius: 999px; background: #004aad; color: #fff; font: 700 15px 'Outfit', Arial, sans-serif; letter-spacing: .03em; cursor: pointer; transition: transform .15s ease, background .15s ease; }
 .fkd-add:hover { transform: translateY(-2px); background: #003a8a; }
 .fkd-later { margin: 14px auto 0; display: block; padding: 6px 12px; border: 0; background: none; color: #6c7b9c; font: 500 14px 'Outfit', Arial, sans-serif; text-decoration: underline; cursor: pointer; }
 @media (min-width: 641px) and (max-height: 760px) {
@@ -189,9 +188,7 @@ function fika_drops_limited_css() {
   .fkd-sub { font-size: 16px; margin: 2px 0 6px; }
   .fkd-what { font-size: 13.5px; line-height: 1.45; }
   .fkd-note { margin-bottom: 12px; }
-  .fkd-buy { gap: 12px; }
-  .fkd-price { font-size: 30px; }
-  .fkd-add { padding: 13px 16px; }
+  .fkd-add { padding: 14px 16px; }
 }
 @media (prefers-reduced-motion: reduce) { .fkd-veil, .fkd-card { transition: none; } }
 /* the Ready Mix tab: the Fan Favourites Mix carries its label like in the popup */
