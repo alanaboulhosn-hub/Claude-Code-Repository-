@@ -2290,3 +2290,12 @@ choice). Snippet 91, fika-club.php (new):
   from its picture into the header bag, which wobbles and shows the new weight, like the + on a candy card. Tested
   with the popup swapped into the live page first, then snippet 193 updated (saved with active:false, then
   activated, so the plugin's code check cannot leave it off unnoticed); checked live on computer and phone.
+
+## Mix your own: filters combine (2026-11-02)
+- Owner: e.g. Sour + Gelatin-free together. Page 40's filter bar (mix_bar in build-shop-pages.py, same text in
+  mix-your-own-40.raw.html): the chips toggle on and off; Sweet / Sour are tastes (either), Gelatin-free /
+  Gluten-free must all hold; All clears them. Each number = candies that chip gives together with the other filters
+  as they are now. Chips are buttons with aria-pressed (was a tablist). Search still narrows on top.
+- Tested on the live page with only the bar swapped, then page 40 updated (live = git before and after). Live,
+  computer and phone: All 27 / Sweet 14 / Sour 13 / Gelatin-free 24 / Gluten-free 18; Sour -> 13; Sour +
+  Gelatin-free -> 12 (no Fizzy Cola); + Gluten-free -> 7; All -> 27; no errors.
