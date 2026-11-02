@@ -26,6 +26,8 @@
  *   normal Sweet & Sour Mix (product 94, hidden from the shop; bags that already hold it still check out).
  *   'off' (when the limited edition is over): no popup, both drop bags hidden, the Sweet & Sour Mix back in the shop.
  *   'halloween' is the Halloween version above.
+ *   "Add to bag" closes the popup at once and sends cartoon candies of that bag flying into the header bag (owner,
+ *   2 Nov 2026), like the + on a candy card.
  *   Preview while it is 'halloween': ?fika_ff=<FIKA_DROPS_FF_KEY> on a shop page shows that page as it will be (the
  *   Halloween look off, the 'limited' popup, no Skull Mix) to whoever opens the link; the page is not cached.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-drops-popup.php
@@ -397,10 +399,48 @@ add_action( 'wp_footer', function () {
   }
   veil.addEventListener('click', function (e) { if (e.target === veil || e.target.closest('.fkd-x, .fkd-later')) close(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !veil.hidden) close(); });
-  // Add to bag: the same 500 g bag the Ready Mix tab puts in the Fika bag (localStorage fika_bag_v1, id rw<product>)
+  // after "Add to bag": cartoon candies of the bag fly from its picture into the header bag, like the + on a candy
+  // card (the drawings and the .fk-fly style come from the cartoons snippet; without them, no animation)
+  var FLY = { <?php echo (int) FIKA_DROPS_DROP_ID; ?>: ['bubs-wild-berry-pomegranate-oval', 'bubs-tutti-frutti-diamond', 'sour-swedish-fish', 'bubs-wild-berry-pomegranate-oval'],
+              <?php echo (int) FIKA_DROPS_SKULL_ID; ?>: ['bubs-bubblegum-skull', 'bubs-cola-skull', 'bubs-lemon-raspberry-skull', 'bubs-raspberry-salty-licorice-skulls'] };
+  function flyToBag(pid, from) {
+    if (!window.FIKA_CARTOON || !from) return;
+    try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
+    var cart = document.querySelector('.fika-cart svg') || document.querySelector('.fika-cart');
+    if (!cart) return;
+    var c = cart.getBoundingClientRect(), ex = c.left + c.width / 2, ey = c.top + c.height / 2;
+    if (!c.width) { ex = window.innerWidth - 40; ey = 40; }
+    var list = (FLY[pid] || []).filter(function (s) { return window.FIKA_CARTOON(s); });
+    list.forEach(function (slug, i) {
+      var el = document.createElement('div');
+      el.className = 'fk-fly'; el.innerHTML = window.FIKA_CARTOON(slug);
+      document.body.appendChild(el);
+      var sx = from.left + from.width * (0.3 + Math.random() * 0.4), sy = from.top + from.height * (0.35 + Math.random() * 0.3);
+      var cx = (sx + ex) / 2 + (Math.random() - 0.5) * 80, cy = Math.min(sy, ey) - 110 - Math.random() * 60;
+      var spin = (Math.random() > 0.5 ? 1 : -1) * (300 + Math.random() * 240), frames = [], N = 14;
+      for (var k = 0; k <= N; k++) {
+        var t = k / N, u = 1 - t;
+        var x = u * u * sx + 2 * u * t * cx + t * t * ex - 21, y = u * u * sy + 2 * u * t * cy + t * t * ey - 21;
+        var sc = t < 0.15 ? 0.6 + t / 0.15 * 0.6 : 1.2 - (t - 0.15) / 0.85 * 0.85;
+        frames.push({ transform: 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + (spin * t).toFixed(0) + 'deg) scale(' + sc.toFixed(2) + ')', opacity: t > 0.92 ? (1 - t) / 0.08 : 1 });
+      }
+      var an = el.animate(frames, { duration: 820 + Math.random() * 160, delay: 120 + i * 110, easing: 'cubic-bezier(.45,.05,.55,.95)', fill: 'both' });
+      an.onfinish = function () {
+        if (el.parentNode) el.parentNode.removeChild(el);
+        if (i === list.length - 1) {
+          document.querySelectorAll('.fika-cart').forEach(function (cc) { cc.classList.remove('fk-catch'); void cc.offsetWidth; cc.classList.add('fk-catch'); });
+          var bd = document.querySelector('.fika-cart .fk-count');
+          if (bd) { bd.classList.remove('pop'); void bd.offsetWidth; bd.classList.add('pop'); }
+        }
+      };
+    });
+  }
+  // Add to bag: the same 500 g bag the Ready Mix tab puts in the Fika bag (localStorage fika_bag_v1, id rw<product>);
+  // the popup closes at once and the candies fly into the bag
   var later = veil.querySelector('.fkd-later');
   [].forEach.call(veil.querySelectorAll('.fkd-add'), function (b) {
     b.addEventListener('click', function () {
+      var pic = b.closest('.fkd-offer, .fkd-one'), from = pic ? (pic.querySelector('.fkd-pic') || pic).getBoundingClientRect() : null;
       var pid = b.getAttribute('data-id'), name = b.getAttribute('data-name'), id = 'rw' + pid, st = null;
       try { st = JSON.parse(localStorage.getItem('fika_bag_v1') || 'null'); } catch (e) {}
       st = st || {}; st.bag = st.bag || {}; st.meta = st.meta || {};
@@ -408,9 +448,8 @@ add_action( 'wp_footer', function () {
       try { localStorage.setItem('fika_bag_v1', JSON.stringify(st)); } catch (e) {}
       try { window.dispatchEvent(new CustomEvent('fikabag', { detail: 'drops' })); } catch (e) {}
       try { var ev = { value: 14, currency: 'USD', content_name: name, content_ids: [String(pid)] }; if (typeof window.fikaTrack === 'function') window.fikaTrack('AddToCart', ev); else if (typeof window.fbq === 'function') window.fbq('track', 'AddToCart', ev); } catch (e) {}
-      var n = Math.round(st.bag[id] / 500);
-      b.textContent = n > 1 ? n + ' in your bag ✓' : 'In your bag ✓';
-      later.textContent = 'See my bag'; later.setAttribute('data-bag', '1');
+      close();
+      flyToBag(pid, from);
     });
   });
   // after adding: "See my bag" closes the popup and opens the bag (the bag icon in the header)
