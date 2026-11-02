@@ -19,6 +19,12 @@
  * - Pictures (wordpress/images/drops): popup media 1195 (Skull Mix) and 1212 (Fan Favourites, 27 Oct: the owner's
  *   bag picture, the limited candies in front, classics mixed in, images/drops/v3); product photos 1213, 1205 (white,
  *   like the other Ready Mix photos). The Strawberry Vanilla Diamond is modelled on the real candy (BUBS photos).
+ * - After Halloween (owner, 2 Nov 2026: back to the normal site, keep the Fan Favourites offer): FIKA_DROPS_MODE
+ *   'limited' shows only the Fan Favourites Mix, in the shop's own colours (white card, Fika blue and pink), on our
+ *   shop pages whatever the Halloween switch says; the Fan Favourites Mix stays in the Ready Mix tab with a
+ *   "Limited edition" label and the Skull Mix is hidden. 'halloween' is the Halloween version above.
+ *   Preview while it is 'halloween': ?fika_ff=<FIKA_DROPS_FF_KEY> on a shop page shows that page as it will be (the
+ *   Halloween look off, the 'limited' popup, no Skull Mix) to whoever opens the link; the page is not cached.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-drops-popup.php
  */
 
@@ -27,10 +33,38 @@ if ( ! defined( 'FIKA_DROPS_LIVE' ) ) {
 	define( 'FIKA_DROPS_LIVE', true );
 }
 
+if ( ! defined( 'FIKA_DROPS_MODE' ) ) {
+	// 'halloween': both bags, with the Halloween switch. 'limited': only the Fan Favourites Mix, normal look, always on
+	define( 'FIKA_DROPS_MODE', 'halloween' );
+	define( 'FIKA_DROPS_FF_KEY', 'a504403931' ); // ?fika_ff=<key>: the 'limited' version for whoever opens that link
+}
+
 if ( ! defined( 'FIKA_DROPS_DROP_ID' ) ) {
 	define( 'FIKA_DROPS_DROP_ID', 1200 );   // Fan Favourites Mix, Ready Mix, $14, 500 g
 	define( 'FIKA_DROPS_SKULL_ID', 1201 );  // Skull Mix, Ready Mix, $14, 500 g
 }
+
+// the private preview link of the 'limited' version
+function fika_drops_ff_preview() {
+	return ! is_admin() && isset( $_GET['fika_ff'] ) && is_string( $_GET['fika_ff'] ) && hash_equals( FIKA_DROPS_FF_KEY, $_GET['fika_ff'] ); // phpcs:ignore WordPress.Security.NonceVerification
+}
+function fika_drops_limited() {
+	return 'limited' === FIKA_DROPS_MODE || fika_drops_ff_preview();
+}
+
+// the preview link: that page without the Halloween look (for this request only, after the visibility check on init,
+// so nothing is saved), and never cached
+add_action( 'template_redirect', function () {
+	if ( ! fika_drops_ff_preview() ) {
+		return;
+	}
+	add_filter( 'pre_option_fika_hw_on', function () { return 0; } );
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+		define( 'DONOTCACHEPAGE', true );
+	}
+	do_action( 'litespeed_control_set_nocache', 'fika ff preview' );
+	nocache_headers();
+}, 0 );
 
 function fika_drops_img( $name ) {
 	return esc_url( content_url( '/uploads/2026/10/' . $name ) );
@@ -78,24 +112,122 @@ function fika_drops_markup() {
 	return ob_get_clean();
 }
 
+// after Halloween: the Fan Favourites Mix alone, in the shop's own colours (same ids and classes, so the script is shared)
+function fika_drops_markup_limited() {
+	ob_start();
+	?>
+<div class="fkd-veil fkd-ltd" id="fkdVeil" hidden>
+  <div class="fkd-card" role="dialog" aria-modal="true" aria-labelledby="fkdTitle" tabindex="-1">
+    <button type="button" class="fkd-x" aria-label="Close">&times;</button>
+    <div class="fkd-one">
+      <div class="fkd-pic">
+        <img src="<?php echo fika_drops_img( 'fika-drop-fan-favourites-v3.webp' ); ?>" width="720" height="745" alt="A purple Fika bag with a Fan Favourites sticker, spilling Strawberry Vanilla Diamonds and Pomegranate Ovals mixed with classic sweet and sour candies" decoding="async">
+        <span class="fkd-badge">Limited edition</span>
+      </div>
+      <div class="fkd-txt">
+        <p class="fkd-kicker">New drop</p>
+        <h2 class="fkd-title" id="fkdTitle">Fan Favourites Mix</h2>
+        <p class="fkd-sub">Sweet &amp; sour mix, 500 g</p>
+        <p class="fkd-what">Our classic Sweet &amp; Sour Mix with this season&rsquo;s limited candies in the bag: the <b class="fkd-new">New</b> BUBS Sour Strawberry Vanilla Diamond and <b class="fkd-back">Back</b> BUBS Wild Berry Pomegranate Ovals.</p>
+        <p class="fkd-note">Only while supplies last.</p>
+        <div class="fkd-buy"><span class="fkd-price">$14</span><button type="button" class="fkd-add" data-id="<?php echo (int) FIKA_DROPS_DROP_ID; ?>" data-name="Fan Favourites Mix">Add to bag</button></div>
+      </div>
+    </div>
+    <button type="button" class="fkd-later">Keep browsing</button>
+  </div>
+</div>
+	<?php
+	return ob_get_clean();
+}
+function fika_drops_limited_css() {
+	ob_start();
+	?>
+<style id="fika-drops-css">
+.fkd-veil { position: fixed; inset: 0; z-index: 99990; display: flex; align-items: center; justify-content: center; padding: 18px;
+  background: rgba(0, 30, 80, .45); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); opacity: 0; transition: opacity .3s ease; }
+.fkd-veil[hidden] { display: none; }
+.fkd-veil.on { opacity: 1; }
+.fkd-card { position: relative; width: 100%; max-width: 760px; max-height: calc(100vh - 36px); overflow: auto; overscroll-behavior: contain; box-sizing: border-box;
+  background: #fff; border-radius: 26px; box-shadow: 0 0 0 6px rgba(253, 234, 242, .7), 0 26px 70px rgba(0, 40, 100, .35);
+  padding: 26px 28px 16px; font-family: 'Outfit', Arial, sans-serif; color: #1b2a4a;
+  transform: translateY(14px) scale(.97); transition: transform .35s cubic-bezier(.2, 1.2, .4, 1); }
+.fkd-veil.on .fkd-card { transform: none; }
+.fkd-card:focus { outline: 0; }
+.fkd-x { position: absolute; top: 12px; right: 12px; z-index: 2; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #fdeaf2; color: #004aad; font-size: 22px; line-height: 1; cursor: pointer; }
+.fkd-x:hover { background: #fbd6e6; }
+.fkd-x:focus-visible, .fkd-add:focus-visible, .fkd-later:focus-visible { outline: 2px solid #004aad; outline-offset: 2px; }
+.fkd-one { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 26px; align-items: center; }
+.fkd-pic { position: relative; aspect-ratio: 720 / 745; overflow: hidden; background: #efe6d2; border-radius: 50% 50% 16px 16px / 30% 30% 16px 16px; }
+.fkd-pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.fkd-badge { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); white-space: nowrap; padding: 5px 12px; border-radius: 999px;
+  background: #004aad; color: #fff; font: 700 12px/1.2 'Outfit', Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+.fkd-kicker { margin: 0 0 2px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: 19px; letter-spacing: .04em; color: #c0335f; }
+.fkd-title { margin: 0; font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-weight: 400; font-size: 38px; line-height: 1.05; color: #004aad; }
+.fkd-sub { margin: 4px 0 10px; font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: 18px; color: #6c7b9c; }
+.fkd-what { margin: 0 0 8px; font-size: 15px; line-height: 1.5; }
+.fkd-what b { display: inline-block; margin-right: 3px; padding: 0 6px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; line-height: 18px; vertical-align: 1px; }
+.fkd-new { background: #004aad; color: #fff; }
+.fkd-back { background: #fdeaf2; color: #c0335f; }
+.fkd-note { margin: 0 0 16px; font-size: 13px; color: #6c7b9c; }
+.fkd-buy { display: flex; align-items: center; gap: 16px; }
+.fkd-price { font-family: 'Bebas Neue', Impact, sans-serif; font-size: 34px; line-height: 1; color: #004aad; }
+.fkd-add { flex: 1; padding: 14px 22px; border: 0; border-radius: 999px; background: #004aad; color: #fff; font: 700 15px 'Outfit', Arial, sans-serif; letter-spacing: .03em; cursor: pointer; transition: transform .15s ease, background .15s ease; }
+.fkd-add:hover { transform: translateY(-2px); background: #003a8a; }
+.fkd-later { margin: 14px auto 0; display: block; padding: 6px 12px; border: 0; background: none; color: #6c7b9c; font: 500 14px 'Outfit', Arial, sans-serif; text-decoration: underline; cursor: pointer; }
+@media (min-width: 641px) and (max-height: 760px) {
+  .fkd-pic { aspect-ratio: auto; height: max(240px, calc(100vh - 220px)); }
+}
+@media (max-width: 640px) {
+  .fkd-veil { align-items: flex-end; padding: 0; }
+  .fkd-card { max-height: 94vh; border-radius: 24px 24px 0 0; padding: 16px 16px calc(10px + env(safe-area-inset-bottom, 0px)); transform: translateY(40px); }
+  .fkd-one { grid-template-columns: 1fr; gap: 12px; }
+  .fkd-pic { aspect-ratio: auto; height: min(38vh, 300px); }
+  .fkd-pic img { object-position: 50% 45%; }
+  .fkd-txt { text-align: center; }
+  .fkd-kicker { font-size: 16px; }
+  .fkd-title { font-size: 30px; }
+  .fkd-sub { font-size: 16px; margin: 2px 0 6px; }
+  .fkd-what { font-size: 13.5px; line-height: 1.45; }
+  .fkd-note { margin-bottom: 12px; }
+  .fkd-buy { gap: 12px; }
+  .fkd-price { font-size: 30px; }
+  .fkd-add { padding: 13px 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .fkd-veil, .fkd-card { transition: none; } }
+/* the Ready Mix tab: the Fan Favourites Mix carries its label like in the popup */
+.mx-card[data-id="rw<?php echo (int) FIKA_DROPS_DROP_ID; ?>"] .mx-img::after {
+  content: 'Limited edition'; position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 2; white-space: nowrap; padding: 4px 10px; border-radius: 999px;
+  background: #004aad; color: #fff; font: 700 11px/1.2 'Outfit', Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; pointer-events: none; }
+</style>
+	<?php
+	return ob_get_clean();
+}
+
 // the two bags follow the Halloween switch: in the Ready Mix tab while the look is on, hidden again when it is
 // switched off or ends (1 Nov). Checked on each request, changed only when the switch moved.
 add_action( 'init', function () {
 	if ( ! FIKA_DROPS_LIVE || ! function_exists( 'fika_hw_end_ts' ) || ! function_exists( 'wc_get_product' ) ) {
 		return;
 	}
-	$want = ( get_option( 'fika_hw_on' ) && time() < fika_hw_end_ts() ) ? 'visible' : 'hidden';
-	if ( get_option( 'fika_drops_visibility' ) === $want ) {
+	if ( 'limited' === FIKA_DROPS_MODE ) {
+		// after Halloween: the Fan Favourites Mix stays in the shop, the Skull Mix goes
+		$key  = 'limited';
+		$want = array( FIKA_DROPS_DROP_ID => 'visible', FIKA_DROPS_SKULL_ID => 'hidden' );
+	} else {
+		$key  = ( get_option( 'fika_hw_on' ) && time() < fika_hw_end_ts() ) ? 'visible' : 'hidden';
+		$want = array( FIKA_DROPS_DROP_ID => $key, FIKA_DROPS_SKULL_ID => $key );
+	}
+	if ( get_option( 'fika_drops_visibility' ) === $key ) {
 		return;
 	}
-	foreach ( array( FIKA_DROPS_DROP_ID, FIKA_DROPS_SKULL_ID ) as $id ) {
+	foreach ( $want as $id => $vis ) {
 		$p = wc_get_product( $id );
-		if ( $p && $p->get_catalog_visibility() !== $want ) {
-			$p->set_catalog_visibility( $want );
+		if ( $p && $p->get_catalog_visibility() !== $vis ) {
+			$p->set_catalog_visibility( $vis );
 			$p->save();
 		}
 	}
-	update_option( 'fika_drops_visibility', $want, false );
+	update_option( 'fika_drops_visibility', $key, false );
 	if ( function_exists( 'fika_pi_clear' ) ) {
 		fika_pi_clear(); // the in-page product list and the page cache
 	} else {
@@ -110,6 +242,9 @@ function fika_drops_show() {
 	// the private Halloween preview link (snippet 184, ?fika_preview=<key>), or a shop manager with ?fika_drops=preview
 	$preview = ( function_exists( 'fika_hw_preview' ) && fika_hw_preview() )
 		|| ( isset( $_GET['fika_drops'] ) && 'preview' === $_GET['fika_drops'] && current_user_can( 'manage_woocommerce' ) ); // phpcs:ignore WordPress.Security.NonceVerification
+	if ( fika_drops_limited() ) {
+		return true;
+	}
 	return $preview || ( FIKA_DROPS_LIVE && function_exists( 'fika_hw_on' ) && fika_hw_on() );
 }
 
@@ -119,7 +254,7 @@ add_action( 'wp_head', function () {
 		return;
 	}
 	$extra = array();
-	foreach ( array( FIKA_DROPS_DROP_ID, FIKA_DROPS_SKULL_ID ) as $id ) {
+	foreach ( fika_drops_limited() ? array( FIKA_DROPS_DROP_ID ) : array( FIKA_DROPS_DROP_ID, FIKA_DROPS_SKULL_ID ) as $id ) {
 		$p = wc_get_product( $id );
 		if ( ! $p || 'publish' !== $p->get_status() || 'hidden' !== $p->get_catalog_visibility() ) {
 			continue; // visible products are in the list already
@@ -132,12 +267,21 @@ add_action( 'wp_head', function () {
 	if ( $extra ) {
 		echo '<script>window.fikaProductsData=' . wp_json_encode( $extra, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '.concat(window.fikaProductsData||[]);</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
+	// the preview link while the Skull Mix is still in the shop: leave it out, as it will be
+	if ( fika_drops_ff_preview() && 'limited' !== FIKA_DROPS_MODE ) {
+		echo '<script>window.fikaProductsData=(window.fikaProductsData||[]).filter(function (p) { return p.id !== ' . (int) FIKA_DROPS_SKULL_ID . '; });</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
+	}
 }, 2 );
 
 add_action( 'wp_footer', function () {
 	if ( ! fika_drops_show() ) {
 		return;
 	}
+	$ltd = fika_drops_limited();
+	if ( $ltd ) {
+		echo fika_drops_limited_css(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo fika_drops_markup_limited(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	} else {
 	?>
 <style id="fika-drops-css">
 .fkd-veil { position: fixed; inset: 0; z-index: 99990; display: flex; align-items: center; justify-content: center; padding: 16px;
@@ -221,19 +365,21 @@ add_action( 'wp_footer', function () {
 </style>
 	<?php
 	echo fika_drops_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
 	?>
 <script id="fika-drops-js">
 (function () {
   var veil = document.getElementById('fkdVeil'); if (!veil) return;
-  var preview = /fika_drops=preview/.test(location.search);
-  try { if (sessionStorage.getItem('fika_drops_seen') === '1' && !preview) return; } catch (e) {}
+  var preview = /fika_drops=preview|fika_ff=/.test(location.search);
+  var SEEN = <?php echo $ltd ? "'fika_ff_seen'" : "'fika_drops_seen'"; ?>; // the Fan Favourites popup is new: shown once more
+  try { if (sessionStorage.getItem(SEEN) === '1' && !preview) return; } catch (e) {}
   var last = null, afterOrder = /[?&]fika_order=/.test(location.search); // just ordered: the "Order confirmed" popup's turn
   function open() {
     if (afterOrder || document.querySelector('.fkoc-veil')) return;
     last = document.activeElement;
     veil.hidden = false; requestAnimationFrame(function () { veil.classList.add('on'); });
     document.documentElement.style.overflow = 'hidden';
-    try { sessionStorage.setItem('fika_drops_seen', '1'); } catch (e) {}
+    try { sessionStorage.setItem(SEEN, '1'); } catch (e) {}
     veil.querySelector('.fkd-card').focus({ preventScroll: true }); // the dialog itself, so no ring shows on the x
   }
   function close() {
