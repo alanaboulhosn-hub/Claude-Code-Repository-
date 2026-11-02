@@ -2305,3 +2305,9 @@ choice). Snippet 91, fika-club.php (new):
 - Same day (owner): Vegan filter on Mix your own (candies with the product tag vegan; combines like the other diet
   filters; hides itself if no candy shown has the tag). Tested swapped, then page 40 updated (live = git before and
   after). Live, computer and phone: Vegan 16, Vegan + Sour 10, + Gluten-free 6, All 27, no errors.
+- Same day (owner): Sweet Mix / Sour Mix photos without the grey studio background, white like the Fan Favourites
+  photo (wordpress/images/ready-mix-white). New media 1338 / 1339 (and 1340 for the hidden Sweet & Sour Mix, ready for
+  its return) set as product images of 96 / 95 / 94; old media 155-157 kept. Previewed in the test browser first.
+  Changing only a product's image through the REST API does not fire save_post_product, so the in-page product list
+  (fika_pi) kept the old photos until fika_pi_clear() was run once (temporary route 233, trashed). Checked live on
+  computer and phone: Ready Mix, home and Mix your own use the new photos.
