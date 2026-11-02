@@ -538,9 +538,9 @@ html.fika-shop-page .fk-anchor { display: none; }
 </style>"""
 
 # ---------- Mix your own: the candies with filters and search (no Ready Mix) ----------
-mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin-free / Gluten-free) and search over the candies (shop order).
+mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin-free / Gluten-free / Vegan) and search over the candies (shop order).
      Filters combine (owner, 2 Nov 2026): Sweet or Sour (one at a time: picking one switches the other off), plus
-     Gelatin-free and / or Gluten-free (all must hold); All clears them. Each number is how many candies that button gives with the other kind of filter as it is now.
+     Gelatin-free, Gluten-free and / or Vegan (all must hold); All clears them. Each number is how many candies that button gives with the other kind of filter as it is now.
      Written without the logical-and operator and the less-than sign: WordPress rewrites them. -->
 <div class="fika-sec fs-bar" id="fsBar">
   <div class="fs-chips" role="group" aria-label="Show">
@@ -549,6 +549,7 @@ mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin
     <button type="button" class="fs-chip" data-f="sour" aria-pressed="false">Sour <small></small></button>
     <button type="button" class="fs-chip" data-f="gf" aria-pressed="false">Gelatin-free <small></small></button>
     <button type="button" class="fs-chip" data-f="gl" aria-pressed="false" hidden>Gluten-free <small></small></button>
+    <button type="button" class="fs-chip" data-f="vg" aria-pressed="false" hidden>Vegan <small></small></button>
   </div>
   <label class="fs-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
     <input type="search" id="fsQ" placeholder="Search sweets" aria-label="Search sweets"></label>
@@ -582,8 +583,8 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
 (function () {
   document.documentElement.classList.add('fika-shop-page', 'fika-mix-page');
   var st = { f: {}, q: '' }; // f: the filters switched on (sweet, sour, gf, gl); none = All
-  // gluten-free = the product carries the tag gluten-free (read from the product list the page already has)
-  var glu = {};
+  // gluten-free / vegan = the product carries the tag gluten-free / vegan (read from the product list the page already has)
+  var glu = {}, veg = {};
   window.fikaMxTitle = 'Mix your own';
   function norm(s) { return String(s || '').toLowerCase(); }
   function isCat(p, c) { return (p.cats || []).indexOf(c) !== -1; }
@@ -592,12 +593,13 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
     if (f === 'sour') return isCat(p, 'sour');
     if (f === 'gf') return !p.gelatin;
     if (f === 'gl') return glu[p.id] === 1;
+    if (f === 'vg') return veg[p.id] === 1;
     return true;
   }
   // tastes: any of the tastes switched on (none = every taste); diets: every diet switched on
   function tasteOk(p, tastes) { return tastes.length ? tastes.some(function (f) { return has(p, f); }) : true; }
   function dietOk(p, diets) { return diets.every(function (f) { return has(p, f); }); }
-  function on(kind) { return (kind === 'taste' ? ['sweet', 'sour'] : ['gf', 'gl']).filter(function (f) { return st.f[f] === 1; }); }
+  function on(kind) { return (kind === 'taste' ? ['sweet', 'sour'] : ['gf', 'gl', 'vg']).filter(function (f) { return st.f[f] === 1; }); }
   function keep(p) {
     if (st.q) { if (norm(p.name).indexOf(st.q) === -1) return false; }
     return tasteOk(p, on('taste')) ? dietOk(p, on('diet')) : false;
@@ -619,18 +621,22 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
     var bar = document.getElementById('fsBar');
     if (!bar) return;
     // each button: the candies it gives together with the filters of the other kind (and the other diet) as they are now
-    var n = { all: list.length, sweet: 0, sour: 0, gf: 0, gl: 0 }, tastes = on('taste'), diets = on('diet'), gl = 0;
+    var n = { all: list.length, sweet: 0, sour: 0, gf: 0, gl: 0, vg: 0 }, tastes = on('taste'), diets = on('diet'), gl = 0, vg = 0;
     list.forEach(function (p) {
       if (glu[p.id] === 1) gl++;
+      if (veg[p.id] === 1) vg++;
       if (dietOk(p, diets)) { if (has(p, 'sweet')) n.sweet++; if (has(p, 'sour')) n.sour++; }
       if (tasteOk(p, tastes)) {
-        if (has(p, 'gf') ? dietOk(p, diets.filter(function (f) { return f !== 'gf'; })) : false) n.gf++;
-        if (has(p, 'gl') ? dietOk(p, diets.filter(function (f) { return f !== 'gl'; })) : false) n.gl++;
+        ['gf', 'gl', 'vg'].forEach(function (d) {
+          if (has(p, d) ? dietOk(p, diets.filter(function (f) { return f !== d; })) : false) n[d]++;
+        });
       }
     });
     [].slice.call(bar.querySelectorAll('.fs-chip')).forEach(function (b) { b.querySelector('small').textContent = n[b.getAttribute('data-f')]; });
     var gb = bar.querySelector('[data-f="gl"]');
     if (gb) gb.hidden = !gl;
+    var vb = bar.querySelector('[data-f="vg"]');
+    if (vb) vb.hidden = !vg;
   }
   function update(scroll) {
     if (window.fikaFadeReset) window.fikaFadeReset();
@@ -650,7 +656,7 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
       if (f === 'all') st.f = {}; else st.f[f] = st.f[f] === 1 ? 0 : 1;
       if (f === 'sweet') { if (st.f.sweet === 1) st.f.sour = 0; } // Sweet and Sour never together
       if (f === 'sour') { if (st.f.sour === 1) st.f.sweet = 0; }
-      var any = ['sweet', 'sour', 'gf', 'gl'].some(function (k) { return st.f[k] === 1; });
+      var any = ['sweet', 'sour', 'gf', 'gl', 'vg'].some(function (k) { return st.f[k] === 1; });
       [].slice.call(bar.querySelectorAll('.fs-chip')).forEach(function (x) {
         var k = x.getAttribute('data-f'), sel = k === 'all' ? !any : st.f[k] === 1;
         x.classList.toggle('on', sel); x.setAttribute('aria-pressed', sel ? 'true' : 'false');
@@ -674,7 +680,10 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
     if (hd) hd.addEventListener('transitionend', top);
     if (window.fikaProducts) {
       window.fikaProducts().then(function (r) { return r.json(); }).then(function (l) {
-        (l || []).forEach(function (w) { if ((w.tags || []).some(function (t) { return t.slug === 'gluten-free'; })) glu['w' + w.id] = 1; });
+        (l || []).forEach(function (w) {
+          if ((w.tags || []).some(function (t) { return t.slug === 'gluten-free'; })) glu['w' + w.id] = 1;
+          if ((w.tags || []).some(function (t) { return t.slug === 'vegan'; })) veg['w' + w.id] = 1;
+        });
         if (window.fikaMxRender) window.fikaMxRender();
       }).catch(function () {});
     }
