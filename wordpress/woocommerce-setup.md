@@ -2285,3 +2285,8 @@ choice). Snippet 91, fika-club.php (new):
 - To end the limited edition: FIKA_DROPS_MODE 'off' (no popup, no box, 1200 hidden, 94 back).
 - Same day: product 1200's short description (checkout summary) now says "our top-selling Sweet & Sour Mix" instead
   of "our classic" (owner). Only that text changed; visibility, price and stock unchanged.
+- Same day (owner): the popup's "Add to bag" now closes the popup at once and sends cartoon candies of the bag
+  (Pomegranate Ovals, a BUBS diamond, a Sour Swedish Fish; FIKA_CARTOON drawings from the cartoons snippet) flying
+  from its picture into the header bag, which wobbles and shows the new weight, like the + on a candy card. Tested
+  with the popup swapped into the live page first, then snippet 193 updated (saved with active:false, then
+  activated, so the plugin's code check cannot leave it off unnoticed); checked live on computer and phone.
