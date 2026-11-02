@@ -22,7 +22,10 @@
  * - After Halloween (owner, 2 Nov 2026: back to the normal site, keep the Fan Favourites offer): FIKA_DROPS_MODE
  *   'limited' shows only the Fan Favourites Mix, in the shop's own colours (white card, Fika blue and pink), on our
  *   shop pages whatever the Halloween switch says; the Fan Favourites Mix stays in the Ready Mix tab with a
- *   "Limited edition" label and the Skull Mix is hidden. 'halloween' is the Halloween version above.
+ *   "Limited edition" label and the Skull Mix is hidden. While it runs, the Fan Favourites Mix takes the place of the
+ *   normal Sweet & Sour Mix (product 94, hidden from the shop; bags that already hold it still check out).
+ *   'off' (when the limited edition is over): no popup, both drop bags hidden, the Sweet & Sour Mix back in the shop.
+ *   'halloween' is the Halloween version above.
  *   Preview while it is 'halloween': ?fika_ff=<FIKA_DROPS_FF_KEY> on a shop page shows that page as it will be (the
  *   Halloween look off, the 'limited' popup, no Skull Mix) to whoever opens the link; the page is not cached.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-drops-popup.php
@@ -34,7 +37,8 @@ if ( ! defined( 'FIKA_DROPS_LIVE' ) ) {
 }
 
 if ( ! defined( 'FIKA_DROPS_MODE' ) ) {
-	// 'halloween': both bags, with the Halloween switch. 'limited': only the Fan Favourites Mix, normal look, always on
+	// 'halloween': both bags, with the Halloween switch. 'limited': only the Fan Favourites Mix, normal look, always on,
+	// in place of the Sweet & Sour Mix. 'off': the offer is over, the Sweet & Sour Mix is back
 	define( 'FIKA_DROPS_MODE', 'halloween' );
 	define( 'FIKA_DROPS_FF_KEY', 'a504403931' ); // ?fika_ff=<key>: the 'limited' version for whoever opens that link
 }
@@ -42,6 +46,7 @@ if ( ! defined( 'FIKA_DROPS_MODE' ) ) {
 if ( ! defined( 'FIKA_DROPS_DROP_ID' ) ) {
 	define( 'FIKA_DROPS_DROP_ID', 1200 );   // Fan Favourites Mix, Ready Mix, $14, 500 g
 	define( 'FIKA_DROPS_SKULL_ID', 1201 );  // Skull Mix, Ready Mix, $14, 500 g
+	define( 'FIKA_DROPS_CLASSIC_ID', 94 );  // the normal Sweet & Sour Mix, hidden while the Fan Favourites Mix is on
 }
 
 // the private preview link of the 'limited' version
@@ -128,7 +133,7 @@ function fika_drops_markup_limited() {
         <p class="fkd-kicker">New drop</p>
         <h2 class="fkd-title" id="fkdTitle">Fan Favourites Mix</h2>
         <p class="fkd-sub">Sweet &amp; sour mix, 500 g</p>
-        <p class="fkd-what">Our classic Sweet &amp; Sour Mix with this season&rsquo;s limited candies in the bag: the <b class="fkd-new">New</b> BUBS Sour Strawberry Vanilla Diamond and <b class="fkd-back">Back</b> BUBS Wild Berry Pomegranate Ovals.</p>
+        <p class="fkd-what">Our top-selling Sweet &amp; Sour Mix with this season&rsquo;s limited candies in the bag: the <b class="fkd-new">New</b> BUBS Sour Strawberry Vanilla Diamond and <b class="fkd-back">Back</b> BUBS Wild Berry Pomegranate Ovals.</p>
         <p class="fkd-note">Only while supplies last.</p>
         <div class="fkd-buy"><button type="button" class="fkd-add" data-id="<?php echo (int) FIKA_DROPS_DROP_ID; ?>" data-name="Fan Favourites Mix">Add to bag &middot; $14</button></div>
       </div>
@@ -207,9 +212,13 @@ add_action( 'init', function () {
 		return;
 	}
 	if ( 'limited' === FIKA_DROPS_MODE ) {
-		// after Halloween: the Fan Favourites Mix stays in the shop, the Skull Mix goes
+		// after Halloween: the Fan Favourites Mix stays in the shop in place of the Sweet & Sour Mix, the Skull Mix goes
 		$key  = 'limited';
-		$want = array( FIKA_DROPS_DROP_ID => 'visible', FIKA_DROPS_SKULL_ID => 'hidden' );
+		$want = array( FIKA_DROPS_DROP_ID => 'visible', FIKA_DROPS_SKULL_ID => 'hidden', FIKA_DROPS_CLASSIC_ID => 'hidden' );
+	} elseif ( 'off' === FIKA_DROPS_MODE ) {
+		// the limited edition is over: the Sweet & Sour Mix is back
+		$key  = 'off';
+		$want = array( FIKA_DROPS_DROP_ID => 'hidden', FIKA_DROPS_SKULL_ID => 'hidden', FIKA_DROPS_CLASSIC_ID => 'visible' );
 	} else {
 		$key  = ( get_option( 'fika_hw_on' ) && time() < fika_hw_end_ts() ) ? 'visible' : 'hidden';
 		$want = array( FIKA_DROPS_DROP_ID => $key, FIKA_DROPS_SKULL_ID => $key );
@@ -242,6 +251,9 @@ function fika_drops_show() {
 	if ( fika_drops_limited() ) {
 		return true;
 	}
+	if ( 'off' === FIKA_DROPS_MODE ) {
+		return $preview;
+	}
 	return $preview || ( FIKA_DROPS_LIVE && function_exists( 'fika_hw_on' ) && fika_hw_on() );
 }
 
@@ -264,9 +276,9 @@ add_action( 'wp_head', function () {
 	if ( $extra ) {
 		echo '<script>window.fikaProductsData=' . wp_json_encode( $extra, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '.concat(window.fikaProductsData||[]);</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
-	// the preview link while the Skull Mix is still in the shop: leave it out, as it will be
+	// the preview link while the Skull Mix and the Sweet & Sour Mix are still in the shop: leave them out, as it will be
 	if ( fika_drops_ff_preview() && 'limited' !== FIKA_DROPS_MODE ) {
-		echo '<script>window.fikaProductsData=(window.fikaProductsData||[]).filter(function (p) { return p.id !== ' . (int) FIKA_DROPS_SKULL_ID . '; });</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
+		echo '<script>window.fikaProductsData=(window.fikaProductsData||[]).filter(function (p) { return p.id !== ' . (int) FIKA_DROPS_SKULL_ID . ' ? p.id !== ' . (int) FIKA_DROPS_CLASSIC_ID . ' : false; });</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 }, 2 );
 
