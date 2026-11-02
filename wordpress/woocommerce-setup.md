@@ -2261,3 +2261,25 @@ choice). Snippet 91, fika-club.php (new):
   is checked on its own (pick & mix and Ready Mix cards). Tested on the live page with only that code swapped, then
   pattern 241 updated (live checked against git before and after). Live: Pork Gelatin on the 4 tagged candies,
   Gelatin-free 24 of 27, Gluten-free 18, no errors.
+
+## Halloween off, Fan Favourites limited edition live (2026-11-02)
+- Owner: back to the pre-Halloween site, keep only the Fan Favourites offer; Skull Mix removed; the normal
+  Sweet & Sour Mix replaced by the Fan Favourites Mix until the limited edition ends; bag reminder normal + a
+  Fan Favourites box. Previewed first in a test browser (live pages with the Halloween layer stripped on our side) and
+  the email in the "Fika emails" artifact (rendered by the shop's email code through a temporary route, 229-231, trashed).
+- Live: snippet 193 FIKA_DROPS_MODE 'limited' (popup in shop colours, Fan Favourites only, "Add to bag · $14";
+  product 1200 visible, 1201 Skull Mix and 94 Sweet & Sour Mix hidden from the shop, still purchasable from saved
+  bags); snippet 25 with fika_bag_ff_box (normal reminder) and old Halloween "Add to bag" links limited to bags
+  still in the shop; Halloween switch off (option fika_hw_on 0 + LiteSpeed purge, temporary route 232, trashed).
+  Snippet 184 stays installed, off (the admin-bar button still works).
+- Incident: updating 25 and 193 by POST made Code Snippets test-run the new code in a request where the old copy was
+  already loaded ("Cannot redeclare function"), and it deactivated both. Re-activated at once (POST .../activate)
+  with the new code; the guard (221) ran both from the saved code in the meantime (its log: "rescued ... 25", "193",
+  so it may have emailed the admin address). No saved bag was waiting then (no reminder lost). Next time: update
+  these two with active:false then activate, or check the response's active flag straight away.
+- Checked live, computer and phone: no Halloween CSS/JS/font/body class on home, Mix your own, Ready Mix, About us;
+  new popup opens, Add to bag works; Mix your own 27 candies, Sweet 14, Sour 13, Gelatin-free 24, Gluten-free 18,
+  Pork Gelatin on Raspberry Bites, Loose Teeth, Fizzy Cola (same as before the switch); Ready Mix: Fan Favourites
+  (Limited edition) / Sweet Mix / Sour Mix; bag -> Checkout shows Fan Favourites "Amount: 1 bag (500 g)" and a candy
+  "Weight: 100 g" (no order placed); reminder sample: normal look with the Limited edition box; guard scan clean.
+- To end the limited edition: FIKA_DROPS_MODE 'off' (no popup, no box, 1200 hidden, 94 back).
