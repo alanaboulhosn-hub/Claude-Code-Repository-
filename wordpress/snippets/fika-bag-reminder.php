@@ -18,6 +18,10 @@
  *   still lurking in your bag", an orange button, the two Halloween bags (Fan Favourites Mix, Skull Mix) under the
  *   bag, each with "Add to bag" (the saved bag back with that bag added, then the checkout), subject "Your Fika bag is waiting… 🎃". Afterwards it is the normal reminder again.
  *   Preview (shop managers, never sent): GET /wp-json/fika/v1/saved-bags/sample?hw=1 (or hw=0).
+ * - Fan Favourites (owner, 2 Nov 2026): after Halloween, while the drops snippet runs the limited edition
+ *   (FIKA_DROPS_MODE 'limited', snippet 193), the normal reminder shows a "Limited edition" box under the bag with the
+ *   Fan Favourites Mix and an "Add to bag" button (the saved bag back with that bag added, then the checkout).
+ *   Old Halloween reminders: their "Add to bag" links only add a bag that is still in the shop.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-bag-reminder.php
  */
 
@@ -71,6 +75,27 @@ if ( ! function_exists( 'fika_bag_hw' ) ) {
 			fika_bag_hw_img( 'fika-email-hw-h-new-this-halloween.png', 271, 50, 'New this Halloween', 'margin:0 0 2px -10px;' ) .
 			'<p style="margin:0 0 14px !important;">Two new 500 g bags, only for Halloween. Add one to your order:</p>' .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr>' . $top . '</tr><tr>' . $low . '</tr></table></td></tr></table>';
+	}
+	// the Fan Favourites Mix under the bag in the normal reminder, while the limited edition runs (snippet 193)
+	function fika_bag_ff_box( $token ) {
+		if ( ! defined( 'FIKA_DROPS_MODE' ) || 'limited' !== FIKA_DROPS_MODE ) {
+			return '';
+		}
+		$p = wc_get_product( FIKA_DROPS_DROP_ID );
+		if ( ! $p || ! $p->is_purchasable() || ! $p->is_in_stock() || 'publish' !== $p->get_status() ) {
+			return '';
+		}
+		$img = $p->get_image_id() ? wp_get_attachment_image_url( $p->get_image_id(), 'medium' ) : '';
+		return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 18px;"><tr><td class="fika-mail-box">' .
+			'<h2>Limited edition</h2>' .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr>' .
+			( $img ? '<td width="130" valign="top" style="width:130px;vertical-align:top;padding-right:16px !important;"><a href="' . esc_url( home_url( '/ready-mix/' ) ) . '" style="display:block;"><img src="' . esc_url( $img ) . '" width="130" alt="' . esc_attr( $p->get_name() ) . '" style="display:block;width:130px;max-width:130px;height:auto;border:0;border-radius:14px;background:#ffffff;"></a></td>' : '' ) .
+			'<td valign="top" style="vertical-align:top;">' .
+			'<span class="fika-pname" style="display:block;font-weight:600;font-size:17px;color:#004aad;">' . esc_html( $p->get_name() ) . '</span>' .
+			'<span style="display:block;font-size:14px;line-height:1.5;margin-top:4px;">Our top-selling Sweet &amp; Sour Mix with the new BUBS Strawberry Vanilla Diamond and the Pomegranate Ovals back, only for a short while.</span>' .
+			'<span style="display:block;font-weight:600;margin-top:8px;">' . wp_kses_post( wc_price( wc_get_price_to_display( $p ) ) ) . ' &middot; 500 g</span>' .
+			'<a class="fika-mail-btn" href="' . esc_url( add_query_arg( 'fika_add', (int) FIKA_DROPS_DROP_ID, fika_bag_link( $token ) ) ) . '" style="display:inline-block;margin-top:12px;padding:10px 22px;border-radius:999px;background:#004aad;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Add to bag</a>' .
+			'</td></tr></table></td></tr></table>';
 	}
 }
 // the night colours, the Halloween logo and footer, only while a Halloween reminder is being built and sent
@@ -232,7 +257,7 @@ if ( ! function_exists( 'fika_bags' ) ) {
 			'<tfoot><tr class="order-totals order-totals-total"><th class="td text-align-left" scope="row" colspan="3" style="padding-left:0;">Candies:</th><td class="td text-align-right" style="padding-right:0;">' . wc_price( $total ) . '</td></tr></tfoot></table>' .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td align="center" style="text-align:center;padding:30px 0 26px;">' .
 			'<a class="fika-mail-btn" href="' . esc_url( fika_bag_link( $token ) ) . '" style="display:inline-block;padding:14px 32px;border-radius:999px;background:' . ( $hw ? '#ff7b1c;color:#1b0d00' : '#004aad;color:#ffffff' ) . ';text-decoration:none;font-weight:600;">Finish my order</a></td></tr></table>' .
-			( $hw ? fika_bag_hw_drops( $token ) : '' ) .
+			( $hw ? fika_bag_hw_drops( $token ) : fika_bag_ff_box( $token ) ) .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:6px 0 6px;"><tr><td class="fika-mail-box">' .
 			( $hw ? fika_bag_hw_img( 'fika-email-hw-h-delivery.png', 131, 50, 'Delivery', 'margin:0 0 4px -13px;' ) : '<h2>Delivery</h2>' ) . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' .
 			'<tr><td class="k">Inside Beirut:</td><td>1&ndash;2 business days</td></tr>' .
@@ -378,6 +403,10 @@ add_action( 'template_redirect', function () {
 		$all   = fika_bags();
 		$add   = isset( $_GET['fika_add'] ) ? absint( $_GET['fika_add'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
 		$ok_add = array( defined( 'FIKA_DROPS_DROP_ID' ) ? FIKA_DROPS_DROP_ID : 1200, defined( 'FIKA_DROPS_SKULL_ID' ) ? FIKA_DROPS_SKULL_ID : 1201 );
+		if ( defined( 'FIKA_DROPS_MODE' ) && 'halloween' !== FIKA_DROPS_MODE ) {
+			// after Halloween: only a bag that is still in the shop (the Fan Favourites Mix while the limited edition runs)
+			$ok_add = 'limited' === FIKA_DROPS_MODE ? array( FIKA_DROPS_DROP_ID ) : array();
+		}
 		$addp  = $add && in_array( $add, $ok_add, true ) ? wc_get_product( $add ) : null;
 		if ( $addp && ( ! $addp->is_purchasable() || ! $addp->is_in_stock() || 'publish' !== $addp->get_status() ) ) {
 			$addp = null;
