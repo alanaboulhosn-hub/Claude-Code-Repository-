@@ -2311,3 +2311,11 @@ choice). Snippet 91, fika-club.php (new):
   Changing only a product's image through the REST API does not fire save_post_product, so the in-page product list
   (fika_pi) kept the old photos until fika_pi_clear() was run once (temporary route 233, trashed). Checked live on
   computer and phone: Ready Mix, home and Mix your own use the new photos.
+- 2 Nov 2026: RT export of 2 Nov 23:23 (617 parcels) applied the same way (fika_rtd_apply: RT column + order note, no
+  emails; temporary admin-only endpoint, snippet 234, trashed). Live snippet 94 = git; every order re-checked against
+  the dry run first (93/93 unchanged). All matched by tracking. 59 status changes: 55 processing -> completed
+  (completed time = export time), #1545, #1549, #1559, #1575 -> failed (RT: return received by merchant). RT step
+  only on 34 open orders (21 at warehouse, 8 return to warehouse, 4 parcel created, 1 picked up by driver).
+  Left alone: #1589 (cancelled on the website, RT: collected by pickup) - flagged. Flagged: RT cash below the order on
+  #1562 ($17.68 / $28.68), #1568 ($0 / $36.80), #1570 ($3 / $20), #1640 ($0 / $39.60); the same 2 parcels with no
+  website order as on 28 Oct; parcels not from the website ignored.
