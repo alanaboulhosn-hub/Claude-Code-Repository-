@@ -2319,3 +2319,22 @@ choice). Snippet 91, fika-club.php (new):
   Left alone: #1589 (cancelled on the website, RT: collected by pickup) - flagged. Flagged: RT cash below the order on
   #1562 ($17.68 / $28.68), #1568 ($0 / $36.80), #1570 ($3 / $20), #1640 ($0 / $39.60); the same 2 parcels with no
   website order as on 28 Oct; parcels not from the website ignored.
+
+## Full customer test (2026-11-02, after Halloween)
+- Owner: test every feature as a customer, as before Halloween, without breaking snippets. Live site, test browser,
+  computer (1440) and phone (390), Meta beacons blocked, no order placed.
+- Passed: home (banner, no Halloween, Fan Favourites popup + Keep browsing, cards, footer WhatsApp/email/Instagram);
+  Mix your own (filters 27/14/13/24/18/16, combinations, Sweet/Sour exclusive, search, Pork Gelatin on 3, + flies
+  cartoon candies, cap 100 g on Forest Berry Ovals with "Max 100 g" note); Ready Mix (3 bags, add 500 g); About us;
+  product pages closed to customers (-> Mix your own, by design); category -> Mix your own; /shop/; ?s= -> search
+  filled; ?f= -> filter on; 404 page; bag drawer -> Checkout with weight labels; checkout: Inside Beirut $5 / Outside
+  $6 (about 3.7 s to update), expected delivery dates, no postcode/country, Nabatieh notice, Fika inbox, bag
+  illustration, Fika Club box (code), before-you-go popup (closed without a reason, nothing counted); sign-up (first
+  name + phone, confirm-email message, log in refused before confirming), log in -> home with the rewards lane (by
+  design), My account pages, phone view, log out; bag reminder sample (normal + Fan Favourites box); win-back preview
+  (Fredagsmys, no Halloween); guard scan clean; RT webhook refuses calls without the secret; no page errors.
+- Notes: the very first request of an automated browser gets Hostinger CDN's "Checking your browser" page (403, then
+  the real page); the Fika Club invite popup has been off since 9 Oct (owner).
+- Not tested (would place a real order): placing an order, the Order confirmed popup, order emails, order numbers.
+- Clean-up: test account (@example.com, id 226) deleted; test saved bags removed; all 82 snippets unchanged (code
+  fingerprints before and after).
