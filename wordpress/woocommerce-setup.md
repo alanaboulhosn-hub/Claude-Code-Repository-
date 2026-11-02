@@ -2302,3 +2302,6 @@ choice). Snippet 91, fika-club.php (new):
 - Same day (owner): Sweet and Sour can no longer be on together; picking one switches the other off. Gelatin-free and
   Gluten-free still combine with either. Tested swapped, then page 40 updated (live = git before and after); live on
   computer and phone: Sour + Gelatin-free 12, then Sweet -> Sour off, Sweet + both diets 8, All 27, no errors.
+- Same day (owner): Vegan filter on Mix your own (candies with the product tag vegan; combines like the other diet
+  filters; hides itself if no candy shown has the tag). Tested swapped, then page 40 updated (live = git before and
+  after). Live, computer and phone: Vegan 16, Vegan + Sour 10, + Gluten-free 6, All 27, no errors.
