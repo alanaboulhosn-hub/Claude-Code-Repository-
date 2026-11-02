@@ -2299,3 +2299,6 @@ choice). Snippet 91, fika-club.php (new):
 - Tested on the live page with only the bar swapped, then page 40 updated (live = git before and after). Live,
   computer and phone: All 27 / Sweet 14 / Sour 13 / Gelatin-free 24 / Gluten-free 18; Sour -> 13; Sour +
   Gelatin-free -> 12 (no Fizzy Cola); + Gluten-free -> 7; All -> 27; no errors.
+- Same day (owner): Sweet and Sour can no longer be on together; picking one switches the other off. Gelatin-free and
+  Gluten-free still combine with either. Tested swapped, then page 40 updated (live = git before and after); live on
+  computer and phone: Sour + Gelatin-free 12, then Sweet -> Sour off, Sweet + both diets 8, All 27, no errors.

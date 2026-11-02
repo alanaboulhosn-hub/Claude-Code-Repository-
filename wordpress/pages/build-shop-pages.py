@@ -539,8 +539,8 @@ html.fika-shop-page .fk-anchor { display: none; }
 
 # ---------- Mix your own: the candies with filters and search (no Ready Mix) ----------
 mix_bar = r"""<!-- FIKA Mix your own page: filters (All / Sweet / Sour / Gelatin-free / Gluten-free) and search over the candies (shop order).
-     Filters combine (owner, 2 Nov 2026): Sweet and Sour are tastes (either one), Gelatin-free and Gluten-free must all hold;
-     All clears them. Each number is how many candies that button gives with the other kind of filter as it is now.
+     Filters combine (owner, 2 Nov 2026): Sweet or Sour (one at a time: picking one switches the other off), plus
+     Gelatin-free and / or Gluten-free (all must hold); All clears them. Each number is how many candies that button gives with the other kind of filter as it is now.
      Written without the logical-and operator and the less-than sign: WordPress rewrites them. -->
 <div class="fika-sec fs-bar" id="fsBar">
   <div class="fs-chips" role="group" aria-label="Show">
@@ -648,6 +648,8 @@ html.fika-shop-page .fs-bar.fs-off { transform: translateY(-110%); opacity: 0; p
       if (!b) return;
       var f = b.getAttribute('data-f');
       if (f === 'all') st.f = {}; else st.f[f] = st.f[f] === 1 ? 0 : 1;
+      if (f === 'sweet') { if (st.f.sweet === 1) st.f.sour = 0; } // Sweet and Sour never together
+      if (f === 'sour') { if (st.f.sour === 1) st.f.sweet = 0; }
       var any = ['sweet', 'sour', 'gf', 'gl'].some(function (k) { return st.f[k] === 1; });
       [].slice.call(bar.querySelectorAll('.fs-chip')).forEach(function (x) {
         var k = x.getAttribute('data-f'), sel = k === 'all' ? !any : st.f[k] === 1;
