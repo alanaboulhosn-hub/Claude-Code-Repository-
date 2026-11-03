@@ -2402,3 +2402,14 @@ choice). Snippet 91, fika-club.php (new):
   account" + "Create your free account when you order (10 seconds at checkout)" or, for members, "Log in when you
   order". Preview rebuilt (temporary route 244, trashed). Still open: the minimum (1 kg now; $15 floor or none
   suggested) and the voucher's "on your next kilogram" wording that goes with it.
+
+### Win-back email 2: member / guest claim (3 Nov 2026, git only, not live yet)
+- Email 2 is now "we owe you $5" in **store credit** (voucher image fika-email-owe-voucher2.png, "I.O.U. / Fika owes you
+  / $5 / in store credit"). The $5 needs a Fika Club account.
+- Customers with an account: "It is in your Fika Club account as store credit" and the button **"Claim my $5 store
+  credit"**. Customers without one: "It becomes your store credit the moment you join Fika Club: free, 10 seconds, right
+  at checkout" and the button **"Join free & claim my $5"** (top, in the "Already earned" box, bottom). The hidden
+  preheader also differs.
+- Minimum: $15 of sweets (about 550 g), setting `owe_min` (can be set to 0 in the admin).
+- Rollout still to do: upload voucher2.png to /2026/11/, update snippets 25 / 203 / 35 (save inactive, then activate),
+  live test with an @example.com test coupon (no order), then switch email 2 on with the owner's go.

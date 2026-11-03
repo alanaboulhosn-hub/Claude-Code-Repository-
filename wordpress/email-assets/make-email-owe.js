@@ -42,7 +42,7 @@ const out = process.argv[2];
     // the voucher
     const hero = document.createElement('div'); hero.className = 'art'; hero.id = 'hero';
     hero.innerHTML = '<div class="tk"><i class="notch n1"></i><i class="notch n2"></i><div class="in">' +
-      '<div class="iou">I.O.U.</div><div class="owes">Fika owes you</div><div class="amt">$5</div><div class="next">on your <b>next kilogram</b></div></div></div>' +
+      '<div class="iou">I.O.U.</div><div class="owes">Fika owes you</div><div class="amt">$5</div><div class="next">in <b>store credit</b></div></div></div>' +
       // the stamp: a ring of words around a heart, in the shop's pink
       '<svg class="stamp" viewBox="0 0 120 120"><defs><path id="ring" d="M60,60 m-41,0 a41,41 0 1,1 82,0 a41,41 0 1,1 -82,0"/></defs>' +
       '<circle cx="60" cy="60" r="56" fill="none" stroke="#d35d93" stroke-width="3.5"/><circle cx="60" cy="60" r="31" fill="none" stroke="#d35d93" stroke-width="2" stroke-dasharray="3 4"/>' +
@@ -59,7 +59,7 @@ const out = process.argv[2];
     document.body.appendChild(kg);
   });
   await p.waitForTimeout(1500);
-  await (await p.$('#hero')).screenshot({ path: out + '/fika-email-owe-voucher.png' });
+  await (await p.$('#hero')).screenshot({ path: out + '/fika-email-owe-voucher2.png' }); // v2: "in store credit" (was "on your next kilogram")
   await p.evaluate(() => { document.documentElement.style.background = 'transparent'; document.body.style.background = 'transparent'; });
   await (await p.$('#kg')).screenshot({ path: out + '/fika-email-owe-kilo.png', omitBackground: true }); // see-through: it sits on the light-blue box
   await b.close();
