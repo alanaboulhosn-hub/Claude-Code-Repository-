@@ -5,16 +5,16 @@
  *   "It's been a while": what's new (products added in the last 45 days, or the favourites), a news box written
  *   in WP Admin, and a "Pick your mix" button.
  * - Email 2, 14 days later if they still have not ordered: "We owe you $5" (owner, 3 Nov 2026): an IOU for $5 off
- *   their next kilogram (a personal code: $5 off an order of at least $28 of sweets, i.e. 1 kg; one use, only for
+ *   store credit (a personal code: $5 off an order of at least $15 of sweets; one use, only for
  *   their email, valid 14 days). Top to bottom: the IOU voucher (picture), "Name, we put $5 aside for you", the
- *   deadline, "Claim my $5", the kilograms they already have with Fika and the
+ *   deadline, "Claim my $5 store credit" (members) or "Join free & claim my $5" (no account), the kilograms they already have with Fika and the
  *   reward that unlocks with an account (fika_wb_claim), the limited edition bag while it is on, a real customer's
  *   message. Its button opens the shop and the code applies at checkout. Pictures: wordpress/email-assets/make-email-owe.js.
- * - The $5 waits for 1 kg (owner, 3 Nov 2026): the code's minimum is ours (coupon meta _fika_owe_min, $28), not
+ * - The $5 waits for the minimum (owner, 3 Nov 2026): the code's minimum is ours (coupon meta _fika_owe_min, $15), not
  *   WooCommerce's minimum spend. The "Claim my $5" link remembers the code (cookie fika_coupon, 14 days); it goes on
  *   by itself once the cart reaches $28, comes off quietly below it, and is forgotten once an order uses it or it has
  *   expired or been used (fika_wb_sync_code). The bag shows "We owe you $5: add 300 g more" (or "comes off at
- *   checkout"), the checkout the same while under 1 kg. A code typed in by hand below 1 kg is refused with a clear message.
+ *   checkout"), the checkout the same while under it. A code typed in by hand below it is refused with a clear message.
  * - The $5 is for Fika Club members (owner, 3 Nov 2026): it goes on only when the customer is signed in (joining at
  *   checkout with the emailed 6-digit code signs them in, fika-club.php); until then the bag and checkout say "it is
  *   waiting in your Fika Club account: join (free, 10 seconds) or log in". The email says the same to guests.
@@ -38,8 +38,8 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'test_emails' => 'alan.aboulhosn@gmail.com',
 			'news_title'  => 'Fredagsmys is here',
 			'news_text'   => 'Make Friday night the sweetest night of the week: let everyone pick a few favourites, pour them into one big bowl and gather the family around it.',
-			'owe'         => 5,  // email 2: dollars off the next kilogram
-			'owe_min'     => 28, // ... on an order of at least this much sweets (1 kg at $2.80 per 100 g, or 2 Ready Mix bags)
+			'owe'         => 5,  // email 2: dollars of store credit
+			'owe_min'     => 15, // ... as store credit on an order of at least this much sweets ($15: about 550 g, or one Ready Mix bag)
 			'valid_days'  => 14,
 			'first_days'  => 30,
 			'second_days' => 14,
@@ -541,7 +541,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	// email 2, under the code (owner, 3 Nov 2026): the kilograms this customer already has with Fika and the reward
 	// they unlock, with "Create my account" (no account yet: earlier orders count once they join with this email) or
 	// "See my rewards" (members). Nothing when they have no delivered order.
-	function fika_wb_claim( $email, $name ) {
+	function fika_wb_claim( $email, $name, $btn = null ) {
 		$f      = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
 		$h      = 'display:block;font-variant:small-caps;font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-weight:400;color:#004aad;';
 		$user   = get_user_by( 'email', $email );
@@ -582,7 +582,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td class="fika-mail-box">' .
 			'<p style="' . $f . 'padding-bottom:10px;color:#1b2a4a;font-size:14px;">' . ( $name ? esc_html( $name ) . ', you' : 'You' ) . ' already have<br><span style="' . $h . 'font-variant:normal;font-size:40px;line-height:1.1;">' . $kg( $g ) . '</span> <span style="color:#6c7b9c;">with Fika</span></p>' .
 			$pic . '<p style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;padding-top:12px;">' . $text . '</p></td></tr></table>' .
-			fika_wb_button( $link, $member ? 'See my rewards' : 'Create my account' );
+			( $btn ? fika_wb_button( $btn[0], $btn[1] ) : fika_wb_button( $link, $member ? 'See my rewards' : 'Create my account' ) );
 	}
 	// email 2's offer: [ dollars we owe, minimum order of sweets ]
 	function fika_wb_owe() {
@@ -635,7 +635,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$u = get_user_by( 'email', $email );
 		return $u && ! user_can( $u, 'manage_woocommerce' );
 	}
-	// email 2: "We owe you $5" on the next kilogram
+	// email 2: "We owe you $5" in store credit (members claim it, everyone else joins Fika Club to claim it)
 	function fika_wb_email2( $email, $p, $code, $expires ) {
 		list( $amount, $min ) = fika_wb_owe();
 		$f     = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
@@ -644,23 +644,26 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$owe   = fika_wb_money( $amount );
 		$until = wp_date( 'l j F', $expires );
 		$link  = add_query_arg( 'fika_coupon', rawurlencode( $code ), home_url( '/mix-your-own/' ) );
+		// members claim it straight away; everyone else joins Fika Club at checkout (free, 10 seconds) and claims it there
+		$member = fika_wb_is_member( $email );
+		$claim  = $member ? 'Claim my ' . $owe . ' store credit' : 'Join free & claim my ' . $owe;
 		$body  =
 			// the personal line right under the IOU (the voucher picture is the heading)
 			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:27px;line-height:1.15;margin:2px 0 10px;">' . ( $name ? esc_html( $name ) . ', we put ' : 'We put ' ) . $owe . ' aside for you</div>' .
-			'<p style="text-align:center;">We miss you, so there is ' . $owe . ' waiting in your Fika Club account, on us. ' . ( fika_wb_is_member( $email )
-				? 'Log in when you order and it comes off by itself.'
-				: 'Create your free account when you order (it takes 10 seconds at checkout) and it comes off by itself.' ) . '</p>' .
+			'<p style="text-align:center;">' . ( $member
+				? 'It is in your Fika Club account as store credit, on us. Spend it on anything you like.'
+				: 'It becomes your store credit the moment you join Fika Club: free, 10 seconds, right at checkout. Your earlier orders join too.' ) . '</p>' .
 			'<p style="text-align:center;margin:0 !important;"><span style="' . $f . 'display:inline-block;padding:7px 16px;border-radius:999px;background:#fff4d9;border:1px solid #f2b84b;color:#8a5a00;font-size:14px;font-weight:600;">Yours until ' . esc_html( $until ) . '</span></p>' .
-			fika_wb_button( $link, 'Claim my ' . $owe ) .
-			fika_wb_claim( $email, $name ) .
+			fika_wb_button( $link, $claim ) .
+			fika_wb_claim( $email, $name, $member ? null : array( $link, $claim ) ) .
 			fika_wb_ff_box( $link ) .
 			fika_wb_quote() .
-			fika_wb_button( $link, 'Claim my ' . $owe ) .
+			fika_wb_button( $link, $claim ) .
 			fika_wb_small( $email );
 		$html = WC()->mailer()->wrap_message( 'We owe you ' . $owe, $body );
 		// the IOU voucher is the heading
-		$html = str_replace( '>We owe you ' . $owe . '</h1>', '><img src="' . esc_url( home_url( '/wp-content/uploads/2026/11/fika-email-owe-voucher.png' ) ) . '" width="480" alt="I.O.U. Fika owes you ' . esc_attr( $owe ) . ' on your next kilogram" class="fika-t" style="display:block;width:100%;max-width:480px;height:auto;margin:0 auto;border:0;"></h1>', $html );
-		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( 'It is yours on your next kilogram of Swedish sweets, until ' . $until . '.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
+		$html = str_replace( '>We owe you ' . $owe . '</h1>', '><img src="' . esc_url( home_url( '/wp-content/uploads/2026/11/fika-email-owe-voucher2.png' ) ) . '" width="480" alt="I.O.U. Fika owes you ' . esc_attr( $owe ) . ' in store credit" class="fika-t" style="display:block;width:100%;max-width:480px;height:auto;margin:0 auto;border:0;"></h1>', $html );
+		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( ( $member ? 'Your store credit is waiting in your Fika Club account' : 'Join Fika Club for free and it is your store credit' ) . ', until ' . $until . '.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
 		$html = preg_replace( '/(<body\b[^>]*>)/i', '$1' . $pre, $html, 1 );
 		return array( ( $name ? $name . ', we owe you ' : 'We owe you ' ) . $owe . ' 🍬', $html );
 	}
@@ -673,7 +676,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$c->set_code( $code );
 		$c->set_discount_type( 'fixed_cart' );
 		$c->set_amount( $amount );
-		// the 1 kg minimum is ours, not WooCommerce's minimum spend: the code waits until the bag reaches it
+		// the minimum is ours, not WooCommerce's minimum spend: the code waits until the bag reaches it
 		// (fika_wb_sync_code) instead of failing with an error and being lost
 		$c->update_meta_data( '_fika_owe_min', $min );
 		$c->set_individual_use( true );
@@ -743,7 +746,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		wc_setcookie( 'fika_coupon', '', time() - HOUR_IN_SECONDS );
 		unset( $_COOKIE['fika_coupon'] );
 	}
-	// what the sweets in the cart cost (the code's minimum is in dollars: $28 = 1 kg)
+	// what the sweets in the cart cost (the code's minimum is in dollars: $2.80 per 100 g)
 	function fika_wb_cart_value( $cart = null ) {
 		$cart = $cart ? $cart : ( function_exists( 'WC' ) ? WC()->cart : null );
 		$v    = 0.0;
@@ -757,7 +760,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	function fika_wb_member_ok( $c ) {
 		return ! (float) $c->get_meta( '_fika_owe_min' ) || is_user_logged_in();
 	}
-	// the remembered code goes on once the bag reaches the code's minimum (email 2: $28, 1 kg), comes off again
+	// the remembered code goes on once the bag reaches the code's minimum (email 2: $15), comes off again
 	// (quietly) if the bag drops below it, and stays remembered until an order uses it or it cannot be used any more
 	function fika_wb_sync_code() {
 		$code = fika_wb_pending_code();
@@ -1187,7 +1190,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 					?><select name="products[]" style="margin:0 6px 6px 0;max-width:260px"><option value="">(automatic)</option><?php foreach ( $all as $pr ) : ?><option value="<?php echo (int) $pr->get_id(); ?>"<?php selected( isset( $chosen[ $i ] ) ? $chosen[ $i ] : 0, $pr->get_id() ); ?>><?php echo esc_html( $pr->get_name() ); ?></option><?php endforeach; ?></select><?php
 				endfor; ?>
 				<p class="description">The four candies in the &ldquo;New drops&rdquo; grid. All left on (automatic): candies added in the last 45 days, otherwise your favourites. Sold-out candies are skipped.</p></td></tr>
-			<tr><th>Email 2: we owe you</th><td>$ <input type="number" name="owe" min="1" max="50" value="<?php echo (int) $set['owe']; ?>" style="width:70px"> off an order of at least $ <input type="number" name="owe_min" min="0" value="<?php echo (int) $set['owe_min']; ?>" style="width:70px"> of sweets (1 kg = $28), valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
+			<tr><th>Email 2: we owe you</th><td>$ <input type="number" name="owe" min="1" max="50" value="<?php echo (int) $set['owe']; ?>" style="width:70px"> off an order of at least $ <input type="number" name="owe_min" min="0" value="<?php echo (int) $set['owe_min']; ?>" style="width:70px"> of sweets ($15 = about 550 g; 1 kg = $28), valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
 			<tr><th>Timing</th><td>Email 1 after <input type="number" name="first_days" min="1" value="<?php echo (int) $set['first_days']; ?>" style="width:70px"> days without an order, email 2 <input type="number" name="second_days" min="1" value="<?php echo (int) $set['second_days']; ?>" style="width:70px"> days after email 1</td></tr>
 			<tr><th>Send a preview</th><td><input type="email" name="preview_to" class="regular-text" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>"> <input type="text" name="preview_name" placeholder="Name to greet (optional)"><br>
 				<input type="email" name="preview_as" class="regular-text" placeholder="Show it as this customer (their email, optional)" style="margin-top:6px">
