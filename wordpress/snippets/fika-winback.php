@@ -4,10 +4,12 @@
  * - Email 1, 30 days after a customer's last order (or after they created an account, if they never ordered):
  *   "It's been a while": what's new (products added in the last 45 days, or the favourites), a news box written
  *   in WP Admin, and a "Pick your mix" button.
- * - Email 2, 14 days later if they still have not ordered: a personal discount code (default 10% off the candies,
- *   one use, only for their email, valid 14 days). Its button opens the shop and the code applies at checkout.
- *   Under it (3 Nov 2026): the kilograms they already have with Fika and the reward that unlocks when they create
- *   their account with that email (members: their next reward), fika_wb_claim().
+ * - Email 2, 14 days later if they still have not ordered: "We owe you $5" (owner, 3 Nov 2026): an IOU for $5 off
+ *   their next kilogram (a personal code: $5 off an order of at least $28 of sweets, i.e. 1 kg; one use, only for
+ *   their email, valid 14 days). Top to bottom: the IOU voucher (picture), "Name, we put $5 aside for you", the
+ *   deadline, "Claim my $5", "A kilogram is easy" ($28 -> $23), the kilograms they already have with Fika and the
+ *   reward that unlocks with an account (fika_wb_claim), the limited edition bag while it is on, a real customer's
+ *   message. Its button opens the shop and the code applies at checkout. Pictures: wordpress/email-assets/make-email-owe.js.
  * - Ordering again starts the cycle over. Every email has an unsubscribe link, and unsubscribed addresses never get
  *   these emails again. Shop staff accounts and test addresses (@example.com/.org/.net) are left out.
  * - Sends in small batches (10 emails, a few seconds apart, one batch an hour, 10:00-20:00 Beirut, at most 50 in any
@@ -26,7 +28,8 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'test_emails' => 'alan.aboulhosn@gmail.com',
 			'news_title'  => 'Fredagsmys is here',
 			'news_text'   => 'Make Friday night the sweetest night of the week: let everyone pick a few favourites, pour them into one big bowl and gather the family around it.',
-			'discount'    => 10,
+			'owe'         => 5,  // email 2: dollars off the next kilogram
+			'owe_min'     => 28, // ... on an order of at least this much sweets (1 kg at $2.80 per 100 g, or 2 Ready Mix bags)
 			'valid_days'  => 14,
 			'first_days'  => 30,
 			'second_days' => 14,
@@ -571,32 +574,100 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			$pic . '<p style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;padding-top:12px;">' . $text . '</p></td></tr></table>' .
 			fika_wb_button( $link, $member ? 'See my rewards' : 'Create my account' );
 	}
-	// email 2: a personal discount code
+	// email 2's offer: [ dollars we owe, minimum order of sweets ]
+	function fika_wb_owe() {
+		$set = fika_wb_settings();
+		return array( (float) $set['owe'], (float) $set['owe_min'] );
+	}
+	function fika_wb_money( $x ) {
+		return '$' . rtrim( rtrim( number_format( (float) $x, 2, '.', '' ), '0' ), '.' );
+	}
+	// email 2: the limited edition bag, while it is on (snippet 193, FIKA_DROPS_MODE 'limited') and in stock
+	function fika_wb_ff_box( $link ) {
+		if ( ! defined( 'FIKA_DROPS_MODE' ) || 'limited' !== FIKA_DROPS_MODE ) {
+			return '';
+		}
+		$p = wc_get_product( FIKA_DROPS_DROP_ID );
+		if ( ! $p || ! $p->is_purchasable() || ! $p->is_in_stock() || 'publish' !== $p->get_status() ) {
+			return '';
+		}
+		$f   = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
+		$img = $p->get_image_id() ? fika_wb_photo( $p->get_image_id() ) : '';
+		return fika_wb_divider( 'ff', 'Our pick for you' ) .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td align="center" style="text-align:center;padding:0;">' .
+			( $img ? '<a href="' . esc_url( $link ) . '" style="display:block;"><img src="' . esc_url( $img ) . '" width="230" alt="' . esc_attr( $p->get_name() ) . '" style="display:block;width:230px;max-width:100%;height:auto;margin:0 auto;border:0;border-radius:18px;"></a>' : '' ) .
+			'<div style="' . $f . 'display:inline-block;margin-top:10px;padding:3px 10px;border-radius:999px;background:#004aad;color:#ffffff;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Limited edition</div>' .
+			'<div style="' . $f . 'margin:8px 0 4px;color:#004aad;font-size:20px;font-weight:600;line-height:1.25;">' . esc_html( $p->get_name() ) . '</div>' .
+			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;">Our top-selling Sweet &amp; Sour Mix with the new BUBS Strawberry Vanilla Diamond and the Pomegranate Ovals back.<br><b>Two bags make your kilogram.</b></div>' .
+			'<div style="' . $f . 'margin-top:6px;color:#6c7b9c;font-size:13.5px;">' . wp_strip_all_tags( wc_price( wc_get_price_to_display( $p ) ) ) . ' per 500 g bag, while it lasts</div>' .
+			'</td></tr></table>';
+	}
+	// email 2: a real message a customer sent after a delivery (fika-checkout-texts.php), as chat bubbles
+	function fika_wb_quote() {
+		if ( ! function_exists( 'fika_ct_messages' ) ) {
+			return '';
+		}
+		$all = fika_ct_messages();
+		if ( empty( $all['sleep'] ) ) {
+			return '';
+		}
+		$f    = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
+		$rows = '';
+		foreach ( $all['sleep'] as $m ) {
+			$rows .= '<tr><td style="padding:0 0 6px;"><div style="' . $f . 'display:inline-block;max-width:86%;padding:9px 14px;border-radius:18px 18px 18px 6px;background:#fdeaf2;color:#1b2a4a;font-size:15px;line-height:1.45;">' . esc_html( $m[0] ) .
+				' <span style="color:#a7b0c6;font-size:11px;white-space:nowrap;">' . esc_html( $m[1] ) . '</span></div></td></tr>';
+		}
+		$n = function_exists( 'fika_ct_delivered' ) ? (int) fika_ct_delivered() : 0;
+		return fika_wb_divider( 'q', 'From our inbox' ) .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;">' . $rows .
+			'<tr><td style="padding:2px 0 0;"><div style="' . $f . 'color:#d35d93;font-size:20px;line-height:1;">&#9829;</div></td></tr></table>' .
+			'<div style="' . $f . 'margin:10px 0 0;color:#6c7b9c;font-size:13.5px;line-height:1.5;">A customer, the day after her delivery' . ( $n > 0 ? '. One of ' . number_format( $n ) . ' orders delivered since August.' : '.' ) . '</div>';
+	}
+	// email 2: "We owe you $5" on the next kilogram
 	function fika_wb_email2( $email, $p, $code, $expires ) {
-		$set  = fika_wb_settings();
-		$pct  = (int) $set['discount'];
-		$hi   = $p['name'] ? 'Hi ' . esc_html( $p['name'] ) . ',' : 'Hi there,';
-		$body = '<div class="email-introduction"><p>' . $hi . '</p><p>We would love to see you back, so here is a little treat for your next bag.</p></div>' .
-			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:22px 0 4px;"><tr><td class="fika-mail-box" style="text-align:center;">' .
-			'<h2 style="text-align:center;">' . $pct . '% off your candies</h2>' .
-			'<p style="text-align:center;">Your personal code</p>' .
-			'<p style="text-align:center;margin:10px 0 !important;"><span style="display:inline-block;padding:10px 22px;border:2px dashed #004aad;border-radius:14px;background:#ffffff;color:#004aad;font-size:22px;font-weight:700;letter-spacing:.08em;">' . esc_html( $code ) . '</span></p>' .
-			'<p style="text-align:center;color:#6c7b9c !important;font-size:13.5px !important;">Valid until ' . esc_html( wp_date( 'j F Y', $expires ) ) . ', once, for ' . esc_html( $email ) . '.</p>' .
+		list( $amount, $min ) = fika_wb_owe();
+		$f     = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
+		$serif = 'font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-variant:small-caps;font-weight:400;';
+		$name  = $p['name'];
+		$owe   = fika_wb_money( $amount );
+		$until = wp_date( 'l j F', $expires );
+		$link  = add_query_arg( 'fika_coupon', rawurlencode( $code ), home_url( '/mix-your-own/' ) );
+		$body  =
+			// the personal line right under the IOU (the voucher picture is the heading)
+			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:27px;line-height:1.15;margin:2px 0 10px;">' . ( $name ? esc_html( $name ) . ', we put ' : 'We put ' ) . $owe . ' aside for you</div>' .
+			'<p style="text-align:center;">We miss you, so your next kilogram of Swedish sweets is ' . $owe . ' lighter, on us. Pick-and-mix or Ready Mix, any mix you like.</p>' .
+			'<p style="text-align:center;margin:0 !important;"><span style="' . $f . 'display:inline-block;padding:7px 16px;border-radius:999px;background:#fff4d9;border:1px solid #f2b84b;color:#8a5a00;font-size:14px;font-weight:600;">Yours until ' . esc_html( $until ) . '</span></p>' .
+			fika_wb_button( $link, 'Claim my ' . $owe ) .
+			// a kilogram is easy: ten scoops, and the price with the $5
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td class="fika-mail-box" style="background:#eaf2ff;text-align:center;">' .
+			'<div style="' . $serif . 'color:#004aad;font-size:24px;line-height:1.2;margin:0 0 6px;">A kilogram is easy</div>' .
+			'<img src="' . esc_url( home_url( '/wp-content/uploads/2026/11/fika-email-owe-kilo.png' ) ) . '" width="440" alt="Ten scoops of sweets" class="fika-t" style="display:block;width:100%;max-width:440px;height:auto;margin:0 auto;border:0;">' .
+			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;margin:6px 0 10px;">Ten scoops of 100 g, or two Ready Mix bags.</div>' .
+			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.3;">Your next kilogram&nbsp; <span style="color:#8a96b3;font-size:20px;text-decoration:line-through;">' . fika_wb_money( $min ) . '</span>&nbsp; <span style="color:#004aad;font-size:30px;font-weight:700;">' . fika_wb_money( max( 0, $min - $amount ) ) . '</span></div>' .
 			'</td></tr></table>' .
-			fika_wb_button( add_query_arg( 'fika_coupon', rawurlencode( $code ), home_url( '/mix-your-own/' ) ), 'Use my ' . $pct . '%' ) .
-			'<p style="text-align:center;">Fill your bag and the code is added at checkout. You can also type it in yourself.</p>' .
-			fika_wb_claim( $email, $p['name'] ) .
+			'<p style="text-align:center;margin:14px 0 0 !important;color:#6c7b9c !important;font-size:13.5px !important;line-height:1.5 !important;">Fill your bag with 1 kg or more and your ' . $owe . ' comes off at checkout, all by itself. Your code ' . esc_html( $code ) . ' works once, for ' . esc_html( $email ) . ', and not together with other codes.</p>' .
+			fika_wb_claim( $email, $name ) .
+			fika_wb_ff_box( $link ) .
+			fika_wb_quote() .
+			fika_wb_button( $link, 'Claim my ' . $owe ) .
 			fika_wb_small( $email );
-		return array( 'A little treat to welcome you back: ' . $pct . '% off', WC()->mailer()->wrap_message( 'Here’s ' . $pct . '% off your next bag', $body ) );
+		$html = WC()->mailer()->wrap_message( 'We owe you ' . $owe, $body );
+		// the IOU voucher is the heading
+		$html = str_replace( '>We owe you ' . $owe . '</h1>', '><img src="' . esc_url( home_url( '/wp-content/uploads/2026/11/fika-email-owe-voucher.png' ) ) . '" width="480" alt="I.O.U. Fika owes you ' . esc_attr( $owe ) . ' on your next kilogram" class="fika-t" style="display:block;width:100%;max-width:480px;height:auto;margin:0 auto;border:0;"></h1>', $html );
+		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( 'It is yours on your next kilogram of Swedish sweets, until ' . $until . '.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
+		$html = preg_replace( '/(<body\b[^>]*>)/i', '$1' . $pre, $html, 1 );
+		return array( ( $name ? $name . ', we owe you ' : 'We owe you ' ) . $owe . ' 🍬', $html );
 	}
 	function fika_wb_coupon( $email, $note = 'Win-back email 2' ) {
-		$set     = fika_wb_settings();
-		$code    = 'COMEBACK-' . strtoupper( wp_generate_password( 6, false, false ) );
-		$expires = time() + (int) $set['valid_days'] * DAY_IN_SECONDS;
-		$c       = new WC_Coupon();
+		$set                  = fika_wb_settings();
+		list( $amount, $min ) = fika_wb_owe();
+		$code                 = 'IOU' . (int) $amount . '-' . strtoupper( wp_generate_password( 6, false, false ) );
+		$expires              = time() + (int) $set['valid_days'] * DAY_IN_SECONDS;
+		$c                    = new WC_Coupon();
 		$c->set_code( $code );
-		$c->set_discount_type( 'percent' );
-		$c->set_amount( (int) $set['discount'] );
+		$c->set_discount_type( 'fixed_cart' );
+		$c->set_amount( $amount );
+		$c->set_minimum_amount( $min );
 		$c->set_individual_use( true );
 		$c->set_usage_limit( 1 );
 		$c->set_usage_limit_per_user( 1 );
@@ -878,7 +949,8 @@ add_action( 'admin_post_fika_wb_save', function () {
 	$set['test_emails'] = sanitize_textarea_field( isset( $in['test_emails'] ) ? $in['test_emails'] : '' );
 	$set['news_title']  = sanitize_text_field( isset( $in['news_title'] ) ? $in['news_title'] : '' );
 	$set['news_text']   = sanitize_textarea_field( isset( $in['news_text'] ) ? $in['news_text'] : '' );
-	$set['discount']    = max( 1, min( 100, absint( isset( $in['discount'] ) ? $in['discount'] : 10 ) ) );
+	$set['owe']         = max( 1, min( 50, absint( isset( $in['owe'] ) ? $in['owe'] : 5 ) ) );
+	$set['owe_min']     = max( 0, absint( isset( $in['owe_min'] ) ? $in['owe_min'] : 28 ) );
 	$set['valid_days']  = max( 1, absint( isset( $in['valid_days'] ) ? $in['valid_days'] : 14 ) );
 	$set['first_days']  = max( 1, absint( isset( $in['first_days'] ) ? $in['first_days'] : 30 ) );
 	$set['second_days'] = max( 1, absint( isset( $in['second_days'] ) ? $in['second_days'] : 14 ) );
@@ -950,7 +1022,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 <div class="wrap">
 	<h1>Win-back emails</h1>
 	<p style="max-width:760px">Customers who haven&rsquo;t ordered for <?php echo (int) $set['first_days']; ?> days get <strong>email 1</strong> (what&rsquo;s new, your news, &ldquo;Pick your mix&rdquo;).
-	<?php echo (int) $set['second_days']; ?> days later, if they still haven&rsquo;t ordered, <strong>email 2</strong> brings a personal <?php echo (int) $set['discount']; ?>% code, valid <?php echo (int) $set['valid_days']; ?> days.
+	<?php echo (int) $set['second_days']; ?> days later, if they still haven&rsquo;t ordered, <strong>email 2</strong> says &ldquo;We owe you <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?>&rdquo;: a personal code for <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?> off an order of <?php echo esc_html( fika_wb_money( $set['owe_min'] ) ); ?> or more, valid <?php echo (int) $set['valid_days']; ?> days.
 	Ordering again starts over. Sent once a day, around 10:00. Orders came back after these emails: <strong><?php echo (int) get_option( 'fika_winback_won', 0 ); ?></strong>.</p>
 	<?php if ( 'saved' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved.</p></div><?php endif; ?>
 	<?php if ( 'preview' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved, and the preview is on its way.</p></div><?php endif; ?>
@@ -975,7 +1047,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 					?><select name="products[]" style="margin:0 6px 6px 0;max-width:260px"><option value="">(automatic)</option><?php foreach ( $all as $pr ) : ?><option value="<?php echo (int) $pr->get_id(); ?>"<?php selected( isset( $chosen[ $i ] ) ? $chosen[ $i ] : 0, $pr->get_id() ); ?>><?php echo esc_html( $pr->get_name() ); ?></option><?php endforeach; ?></select><?php
 				endfor; ?>
 				<p class="description">The four candies in the &ldquo;New drops&rdquo; grid. All left on (automatic): candies added in the last 45 days, otherwise your favourites. Sold-out candies are skipped.</p></td></tr>
-			<tr><th>Discount (email 2)</th><td><input type="number" name="discount" min="1" max="100" value="<?php echo (int) $set['discount']; ?>" style="width:80px"> % off the candies, valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
+			<tr><th>Email 2: we owe you</th><td>$ <input type="number" name="owe" min="1" max="50" value="<?php echo (int) $set['owe']; ?>" style="width:70px"> off an order of at least $ <input type="number" name="owe_min" min="0" value="<?php echo (int) $set['owe_min']; ?>" style="width:70px"> of sweets (1 kg = $28), valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
 			<tr><th>Timing</th><td>Email 1 after <input type="number" name="first_days" min="1" value="<?php echo (int) $set['first_days']; ?>" style="width:70px"> days without an order, email 2 <input type="number" name="second_days" min="1" value="<?php echo (int) $set['second_days']; ?>" style="width:70px"> days after email 1</td></tr>
 			<tr><th>Send a preview</th><td><input type="email" name="preview_to" class="regular-text" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>"> <input type="text" name="preview_name" placeholder="Name to greet (optional)"><br>
 				<input type="email" name="preview_as" class="regular-text" placeholder="Show it as this customer (their email, optional)" style="margin-top:6px">
@@ -1004,7 +1076,7 @@ add_action( 'rest_api_init', function () {
 		$p = array( 'name' => 'Sara', 'last' => $req['never'] ? 0 : time() - 40 * DAY_IN_SECONDS, 'since' => time() - 40 * DAY_IN_SECONDS );
 		$e = new WC_Email();
 		if ( '2' === $req['n'] ) {
-			list( $subject, $html ) = fika_wb_email2( 'sara@example.com', $p, 'COMEBACK-PREVIEW', time() + 14 * DAY_IN_SECONDS );
+			list( $subject, $html ) = fika_wb_email2( 'sara@example.com', $p, 'IOU5-PREVIEW', time() + 14 * DAY_IN_SECONDS );
 		} else {
 			list( $subject, $html ) = fika_wb_email1( 'sara@example.com', $p );
 		}

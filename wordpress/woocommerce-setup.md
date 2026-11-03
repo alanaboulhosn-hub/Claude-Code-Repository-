@@ -2351,3 +2351,14 @@ choice). Snippet 91, fika-club.php (new):
   (members: next reward, "See my rewards"); nothing when no delivered order. Shown on the "Fika emails" artifact for
   6 real customers (temporary route 236 with a renamed copy of the new code and a dummy code COMEBACK-PREVIEW, no
   coupon created, trashed). Temporary read-only route 235 (win-back state) trashed.
+- Owner: email 2 as "We owe you $5 on your next kilogram" instead of a 10% code, eye-catching, shop colours. Prepared
+  (snippet 35 NOT updated, pictures NOT uploaded yet): settings owe 5 / owe_min 28 (1 kg); coupon IOU5-XXXXXX,
+  fixed_cart $5, minimum $28, individual use, once, email-restricted, 14 days. Email: the IOU voucher picture as the
+  heading (wordpress/email-assets/owe, make-email-owe.js: site fonts + cartoon candies), "Name, we put $5 aside for
+  you", deadline pill, "Claim my $5", "A kilogram is easy" (ten scoops, $28 -> $23), fine print, Already earned
+  (fika_wb_claim), the Fan Favourites card while the limited edition runs (fika_wb_ff_box), the "sleep" customer
+  messages from the checkout inbox (fika_wb_quote), "Claim my $5" again. Subject "Name, we owe you $5 🍬".
+  Preview: temporary routes 237-238 (renamed copy, dummy code IOU5-PREVIEW, no coupon), trashed; shown on the
+  "Fika emails" artifact for 6 real customers. Phone overflow found and fixed (a section label too long to fit).
+- Before going live: the code is applied when the bag reaches the checkout; with a 1 kg minimum a smaller bag would
+  get WooCommerce's minimum-spend error and lose the code, so it must wait until the bag holds 1 kg (with a nudge).
