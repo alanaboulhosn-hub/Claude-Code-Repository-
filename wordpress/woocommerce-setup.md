@@ -2392,3 +2392,6 @@ choice). Snippet 91, fika-club.php (new):
   210 frames); the tracking snippet installed as 242 (active; inert until a tagged link is clicked); shop pages and
   the guard fine. Updating 25 / 203 / 35 (checked: live = 8387e60 / 51cc0a3 / 6a8292a) was held at the permission
   prompt: not changed. Win-back email 2 still off (email2 0).
+- Owner: remove "A kilogram is easy" from email 2. Removed (the ten scoops, $28 -> $23); the email now goes from
+  "Claim my $5" to "Already earned". Rebuilt for the 6 preview customers (temporary route 243, trashed) and shown on
+  the "Fika emails" artifact. Media 1344 (the ten scoops picture) is no longer used by any email.
