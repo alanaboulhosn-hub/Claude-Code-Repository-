@@ -2395,3 +2395,10 @@ choice). Snippet 91, fika-club.php (new):
 - Owner: remove "A kilogram is easy" from email 2. Removed (the ten scoops, $28 -> $23); the email now goes from
   "Claim my $5" to "Already earned". Rebuilt for the 6 preview customers (temporary route 243, trashed) and shown on
   the "Fika emails" artifact. Media 1344 (the ten scoops picture) is no longer used by any email.
+- Owner: to claim the $5 they need an account. fika_wb_member_ok: the code goes on only for a signed-in customer
+  (joining at checkout with the 6-digit code signs them in); validity check refuses it for guests with "Your $5 is
+  waiting in your Fika Club account: log in, or join for free at checkout"; bag/checkout strip tells guests to join
+  (checkout: "tick Create a Fika Club account below") or log in. Email copy: "there is $5 waiting in your Fika Club
+  account" + "Create your free account when you order (10 seconds at checkout)" or, for members, "Log in when you
+  order". Preview rebuilt (temporary route 244, trashed). Still open: the minimum (1 kg now; $15 floor or none
+  suggested) and the voucher's "on your next kilogram" wording that goes with it.
