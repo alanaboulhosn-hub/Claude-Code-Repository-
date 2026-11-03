@@ -2376,3 +2376,9 @@ choice). Snippet 91, fika-club.php (new):
 - Tested on the live site with a temporary route (240, trashed): tagging of the real email 1 and bag reminder
   previews (16 and 8 links, right ones tagged), carry, id check. Installing the snippet live was held for the
   owner's go (permission prompt).
+- Owner: animate "From our inbox". Email 2 now shows the checkout's Fika inbox card as a looping GIF
+  (wordpress/email-assets/owe/fika-email-owe-inbox.gif, 124 KB, 663 x 389, 7.3 s; make-email-inbox.js draws the
+  frames with the checkout CSS and fish avatar, make-email-inbox.py joins them with one palette): typing dots, the
+  three "sleep" messages popping in, the pink heart. It starts on the finished chat (Outlook on Windows shows only
+  the first frame). Alt text has the messages. Not live yet (with the rest of email 2; picture to be uploaded to
+  /2026/11/).

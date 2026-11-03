@@ -604,7 +604,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<div style="' . $f . 'margin-top:6px;color:#6c7b9c;font-size:13.5px;">' . wp_strip_all_tags( wc_price( wc_get_price_to_display( $p ) ) ) . ' per 500 g bag, while it lasts</div>' .
 			'</td></tr></table>';
 	}
-	// email 2: a real message a customer sent after a delivery (fika-checkout-texts.php), as chat bubbles
+	// email 2: a real message a customer sent after a delivery (fika-checkout-texts.php), as the checkout's Fika inbox
+	// played as a short animation (a GIF: typing, the messages popping in, the pink heart), made by
+	// wordpress/email-assets/make-email-inbox.js + .py; it starts on the finished chat for apps that show one frame
 	function fika_wb_quote() {
 		if ( ! function_exists( 'fika_ct_messages' ) ) {
 			return '';
@@ -613,17 +615,12 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		if ( empty( $all['sleep'] ) ) {
 			return '';
 		}
-		$f    = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
-		$rows = '';
-		foreach ( $all['sleep'] as $m ) {
-			$rows .= '<tr><td style="padding:0 0 6px;"><div style="' . $f . 'display:inline-block;max-width:86%;padding:9px 14px;border-radius:18px 18px 18px 6px;background:#fdeaf2;color:#1b2a4a;font-size:15px;line-height:1.45;">' . esc_html( $m[0] ) .
-				' <span style="color:#a7b0c6;font-size:11px;white-space:nowrap;">' . esc_html( $m[1] ) . '</span></div></td></tr>';
-		}
-		$n = function_exists( 'fika_ct_delivered' ) ? (int) fika_ct_delivered() : 0;
+		$f   = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
+		$alt = 'A customer wrote: ' . implode( ' / ', wp_list_pluck( $all['sleep'], 0 ) );
+		$n   = function_exists( 'fika_ct_delivered' ) ? (int) fika_ct_delivered() : 0;
 		return fika_wb_divider( 'q', 'From our inbox' ) .
-			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;">' . $rows .
-			'<tr><td style="padding:2px 0 0;"><div style="' . $f . 'color:#d35d93;font-size:20px;line-height:1;">&#9829;</div></td></tr></table>' .
-			'<div style="' . $f . 'margin:10px 0 0;color:#6c7b9c;font-size:13.5px;line-height:1.5;">A customer, the day after her delivery' . ( $n > 0 ? '. One of ' . number_format( $n ) . ' orders delivered since August.' : '.' ) . '</div>';
+			'<img src="' . esc_url( home_url( '/wp-content/uploads/2026/11/fika-email-owe-inbox.gif' ) ) . '" width="440" alt="' . esc_attr( $alt ) . '" class="fika-t" style="display:block;width:100%;max-width:440px;height:auto;margin:14px auto 0;border:0;border-radius:18px;">' .
+			'<div style="' . $f . 'margin:10px 0 0;text-align:center;color:#6c7b9c;font-size:13.5px;line-height:1.5;">A customer, the day after her delivery' . ( $n > 0 ? '. One of ' . number_format( $n ) . ' orders delivered since August.' : '.' ) . '</div>';
 	}
 	// email 2: "We owe you $5" on the next kilogram
 	function fika_wb_email2( $email, $p, $code, $expires ) {
