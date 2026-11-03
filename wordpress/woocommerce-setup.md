@@ -2413,3 +2413,9 @@ choice). Snippet 91, fika-club.php (new):
 - Minimum: $15 of sweets (about 550 g), setting `owe_min` (can be set to 0 in the admin).
 - Rollout still to do: upload voucher2.png to /2026/11/, update snippets 25 / 203 / 35 (save inactive, then activate),
   live test with an @example.com test coupon (no order), then switch email 2 on with the owner's go.
+
+### BUBS Forest Berry Ovals (Mini) hidden (3 Nov 2026, out of stock)
+- Product 121 kept as published in WP Admin, set to catalog visibility "Hidden" and "Out of stock" (same as Fizzy Pop).
+  Checked live on phone and desktop: gone from Mix your own (All 26, was 27), home and search; Forest Berries (106)
+  still shown; old product URL redirects to Mix your own; no page errors. To bring it back: Stock status "In stock" and
+  Catalog visibility "Shop and search results".
