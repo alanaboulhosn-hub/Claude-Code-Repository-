@@ -2419,3 +2419,6 @@ choice). Snippet 91, fika-club.php (new):
   Checked live on phone and desktop: gone from Mix your own (All 26, was 27), home and search; Forest Berries (106)
   still shown; old product URL redirects to Mix your own; no page errors. To bring it back: Stock status "In stock" and
   Catalog visibility "Shop and search results".
+- 3 Nov, later: email 2 codes last **2 days** (setting valid_days, default 2, was 14), until 11:59 pm Beirut time on the
+  last day. The pill reads "Only 2 days left · ends Thursday"; the preheader "…, only until Thursday 5 November."
+  Rollout: the live settings may still hold 14 days; set it to 2 in the Win-back settings.
