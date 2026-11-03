@@ -7,7 +7,7 @@
  * - Email 2, 14 days later if they still have not ordered: "We owe you $5" (owner, 3 Nov 2026): an IOU for $5 off
  *   their next kilogram (a personal code: $5 off an order of at least $28 of sweets, i.e. 1 kg; one use, only for
  *   their email, valid 14 days). Top to bottom: the IOU voucher (picture), "Name, we put $5 aside for you", the
- *   deadline, "Claim my $5", "A kilogram is easy" ($28 -> $23), the kilograms they already have with Fika and the
+ *   deadline, "Claim my $5", the kilograms they already have with Fika and the
  *   reward that unlocks with an account (fika_wb_claim), the limited edition bag while it is on, a real customer's
  *   message. Its button opens the shop and the code applies at checkout. Pictures: wordpress/email-assets/make-email-owe.js.
  * - The $5 waits for 1 kg (owner, 3 Nov 2026): the code's minimum is ours (coupon meta _fika_owe_min, $28), not
@@ -642,13 +642,6 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<p style="text-align:center;">We miss you, so your next kilogram of Swedish sweets is ' . $owe . ' lighter, on us. Pick-and-mix or Ready Mix, any mix you like.</p>' .
 			'<p style="text-align:center;margin:0 !important;"><span style="' . $f . 'display:inline-block;padding:7px 16px;border-radius:999px;background:#fff4d9;border:1px solid #f2b84b;color:#8a5a00;font-size:14px;font-weight:600;">Yours until ' . esc_html( $until ) . '</span></p>' .
 			fika_wb_button( $link, 'Claim my ' . $owe ) .
-			// a kilogram is easy: ten scoops, and the price with the $5
-			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td class="fika-mail-box" style="background:#eaf2ff;text-align:center;">' .
-			'<div style="' . $serif . 'color:#004aad;font-size:24px;line-height:1.2;margin:0 0 6px;">A kilogram is easy</div>' .
-			'<img src="' . esc_url( home_url( '/wp-content/uploads/2026/11/fika-email-owe-kilo.png' ) ) . '" width="440" alt="Ten scoops of sweets" class="fika-t" style="display:block;width:100%;max-width:440px;height:auto;margin:0 auto;border:0;">' .
-			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;margin:6px 0 10px;">Ten scoops of 100 g, or two Ready Mix bags.</div>' .
-			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.3;">Your next kilogram&nbsp; <span style="color:#8a96b3;font-size:20px;text-decoration:line-through;">' . fika_wb_money( $min ) . '</span>&nbsp; <span style="color:#004aad;font-size:30px;font-weight:700;">' . fika_wb_money( max( 0, $min - $amount ) ) . '</span></div>' .
-			'</td></tr></table>' .
 			fika_wb_claim( $email, $name ) .
 			fika_wb_ff_box( $link ) .
 			fika_wb_quote() .
