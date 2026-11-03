@@ -2422,3 +2422,13 @@ choice). Snippet 91, fika-club.php (new):
 - 3 Nov, later: email 2 codes last **2 days** (setting valid_days, default 2, was 14), until 11:59 pm Beirut time on the
   last day. The pill reads "Only 2 days left · ends Thursday"; the preheader "…, only until Thursday 5 November."
   Rollout: the live settings may still hold 14 days; set it to 2 in the Win-back settings.
+- 3 Nov, later (git only): non-members' email-2 buttons open the **sign-up page** (/my-account/?fika_coupon=CODE#register):
+  a pink banner at the top of the sign-up form ("We owe you $5. Create your free Fika Club account below…"), their
+  email filled in. After signing up: "Last step for your $5: tap the link we just emailed you". The confirmation link
+  logs them in and opens Mix your own with the bag open and "Welcome to Fika Club! We owe you $5: add … more" (instead
+  of the home page). Logging in with an existing account while a $5 waits also opens Mix your own.
+- The $5 follows the account: option fika_wb_owed (email → code) is filled when the code is made, so a logged-in
+  customer gets their $5 on any phone or computer, with or without the email link's cookie. Removed when used/expired.
+- The bag/checkout strip for non-members: "Create your free account to claim it (your bag stays saved), or log in"
+  (no "tick create account at checkout": that made the account only when the order was placed, too late for the $5).
+- Email text for non-members: "It is free and takes a minute" (signing up includes confirming the email).
