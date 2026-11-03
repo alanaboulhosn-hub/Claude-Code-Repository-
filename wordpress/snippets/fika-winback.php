@@ -630,7 +630,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$n   = function_exists( 'fika_ct_delivered' ) ? (int) fika_ct_delivered() : 0;
 		return fika_wb_divider( 'q', 'From our inbox' ) .
 			'<img src="' . esc_url( home_url( '/wp-content/uploads/2026/11/fika-email-owe-inbox.gif' ) ) . '" width="440" alt="' . esc_attr( $alt ) . '" class="fika-t" style="display:block;width:100%;max-width:440px;height:auto;margin:14px auto 0;border:0;border-radius:18px;">' .
-			'<div style="' . $f . 'margin:10px 0 0;text-align:center;color:#6c7b9c;font-size:13.5px;line-height:1.5;">A customer, the day after her delivery' . ( $n > 0 ? '. One of ' . number_format( $n ) . ' orders delivered since August.' : '.' ) . '</div>';
+			'<div style="' . $f . 'margin:10px 0 0;text-align:center;color:#6c7b9c;font-size:13.5px;line-height:1.5;">Sent to us after their deliveries' . ( $n > 0 ? '. ' . number_format( $n ) . ' orders delivered since August.' : '.' ) . '</div>'; // owner, 3 Nov: the GIF shows several customers now
 	}
 	// has this email a Fika Club account (not shop staff)?
 	function fika_wb_is_member( $email ) {
