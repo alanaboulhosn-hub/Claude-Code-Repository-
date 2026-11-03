@@ -257,12 +257,14 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return '<h2>' . esc_html( $text ) . '</h2>';
 	}
 	// email 1, part 2: what fika means (family time, quality, the warmth of sharing)
+	// labelled divider: the dotted lines are drawn inside the side cells, centred on the label (owner, 3 Nov 2026: they sat
+	// on the top edge, above the text)
 	function fika_wb_divider( $id, $label = '' ) {
 		if ( '' === $label ) {
 			return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:30px 0 6px;" id="' . esc_attr( $id ) . '"><tr><td style="border-top:2px dotted #f3b7cf;font-size:0;line-height:0;">&nbsp;</td></tr></table>';
 		}
 		return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:30px 0 6px;" id="' . esc_attr( $id ) . '"><tr>' .
-			'<td style="border-top:2px dotted #f3b7cf;width:38%;"></td><td align="center" style="font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#d35d93;padding:0 10px;white-space:nowrap;"><span style="color:#d35d93;">' . esc_html( $label ) . '</span></td><td style="border-top:2px dotted #f3b7cf;width:38%;"></td></tr></table>';
+			'<td style="width:38%;padding:0;vertical-align:middle;"><div style="border-top:2px dotted #f3b7cf;height:0;font-size:0;line-height:0;">&nbsp;</div></td><td align="center" style="font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#d35d93;padding:0 10px;white-space:nowrap;vertical-align:middle;line-height:18px;"><span style="color:#d35d93;">' . esc_html( $label ) . '</span></td><td style="width:38%;padding:0;vertical-align:middle;"><div style="border-top:2px dotted #f3b7cf;height:0;font-size:0;line-height:0;">&nbsp;</div></td></tr></table>';
 	}
 	function fika_wb_part2() {
 		$f    = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
