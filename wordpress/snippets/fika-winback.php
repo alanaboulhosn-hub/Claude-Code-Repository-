@@ -15,6 +15,9 @@
  *   by itself once the cart reaches $28, comes off quietly below it, and is forgotten once an order uses it or it has
  *   expired or been used (fika_wb_sync_code). The bag shows "We owe you $5: add 300 g more" (or "comes off at
  *   checkout"), the checkout the same while under 1 kg. A code typed in by hand below 1 kg is refused with a clear message.
+ * - The $5 is for Fika Club members (owner, 3 Nov 2026): it goes on only when the customer is signed in (joining at
+ *   checkout with the emailed 6-digit code signs them in, fika-club.php); until then the bag and checkout say "it is
+ *   waiting in your Fika Club account: join (free, 10 seconds) or log in". The email says the same to guests.
  * - Tracking (fika-email-tracking.php, when installed): each send gets an id, its links get UTM tags, the email 2 code
  *   carries the id, so clicks and orders show per email in WooCommerce > Email results.
  * - Ordering again starts the cycle over. Every email has an unsubscribe link, and unsubscribed addresses never get
@@ -627,6 +630,11 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<img src="' . esc_url( home_url( '/wp-content/uploads/2026/11/fika-email-owe-inbox.gif' ) ) . '" width="440" alt="' . esc_attr( $alt ) . '" class="fika-t" style="display:block;width:100%;max-width:440px;height:auto;margin:14px auto 0;border:0;border-radius:18px;">' .
 			'<div style="' . $f . 'margin:10px 0 0;text-align:center;color:#6c7b9c;font-size:13.5px;line-height:1.5;">A customer, the day after her delivery' . ( $n > 0 ? '. One of ' . number_format( $n ) . ' orders delivered since August.' : '.' ) . '</div>';
 	}
+	// has this email a Fika Club account (not shop staff)?
+	function fika_wb_is_member( $email ) {
+		$u = get_user_by( 'email', $email );
+		return $u && ! user_can( $u, 'manage_woocommerce' );
+	}
 	// email 2: "We owe you $5" on the next kilogram
 	function fika_wb_email2( $email, $p, $code, $expires ) {
 		list( $amount, $min ) = fika_wb_owe();
@@ -639,7 +647,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$body  =
 			// the personal line right under the IOU (the voucher picture is the heading)
 			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:27px;line-height:1.15;margin:2px 0 10px;">' . ( $name ? esc_html( $name ) . ', we put ' : 'We put ' ) . $owe . ' aside for you</div>' .
-			'<p style="text-align:center;">We miss you, so your next kilogram of Swedish sweets is ' . $owe . ' lighter, on us. Pick-and-mix or Ready Mix, any mix you like.</p>' .
+			'<p style="text-align:center;">We miss you, so there is ' . $owe . ' waiting in your Fika Club account, on us. ' . ( fika_wb_is_member( $email )
+				? 'Log in when you order and it comes off by itself.'
+				: 'Create your free account when you order (it takes 10 seconds at checkout) and it comes off by itself.' ) . '</p>' .
 			'<p style="text-align:center;margin:0 !important;"><span style="' . $f . 'display:inline-block;padding:7px 16px;border-radius:999px;background:#fff4d9;border:1px solid #f2b84b;color:#8a5a00;font-size:14px;font-weight:600;">Yours until ' . esc_html( $until ) . '</span></p>' .
 			fika_wb_button( $link, 'Claim my ' . $owe ) .
 			fika_wb_claim( $email, $name ) .
@@ -742,6 +752,11 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		}
 		return $v;
 	}
+	// email 2's $5 is for Fika Club members (owner, 3 Nov 2026: "to claim their store credit they need an account"):
+	// signed in (joining at checkout with the emailed code signs them in). The code's email check stays WooCommerce's.
+	function fika_wb_member_ok( $c ) {
+		return ! (float) $c->get_meta( '_fika_owe_min' ) || is_user_logged_in();
+	}
 	// the remembered code goes on once the bag reaches the code's minimum (email 2: $28, 1 kg), comes off again
 	// (quietly) if the bag drops below it, and stays remembered until an order uses it or it cannot be used any more
 	function fika_wb_sync_code() {
@@ -756,7 +771,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			return;
 		}
 		$on = WC()->cart->has_discount( $code );
-		$ok = ! WC()->cart->is_empty() && fika_wb_cart_value() >= (float) $c->get_meta( '_fika_owe_min' );
+		$ok = ! WC()->cart->is_empty() && fika_wb_cart_value() >= (float) $c->get_meta( '_fika_owe_min' ) && fika_wb_member_ok( $c );
 		if ( $ok && ! $on ) {
 			fika_wb_apply_code( $code );
 		} elseif ( ! $ok && $on ) {
@@ -978,8 +993,11 @@ add_filter( 'woocommerce_coupon_message', function ( $msg, $msg_code, $coupon ) 
 add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon, $discounts ) {
 	$min = $coupon instanceof WC_Coupon ? (float) $coupon->get_meta( '_fika_owe_min' ) : 0;
 	$obj = is_object( $discounts ) && method_exists( $discounts, 'get_object' ) ? $discounts->get_object() : null;
+	if ( $valid && $min > 0 && $obj instanceof WC_Cart && ! is_user_logged_in() ) {
+		throw new Exception( 'Your ' . fika_wb_money( $coupon->get_amount() ) . ' is waiting in your Fika Club account: log in, or join for free at checkout, and it comes off by itself.' );
+	}
 	if ( $valid && $min > 0 && $obj instanceof WC_Cart && fika_wb_cart_value( $obj ) < $min ) {
-		throw new Exception( 'Your ' . fika_wb_money( $coupon->get_amount() ) . ' comes off on ' . fika_wb_money( $min ) . ' of sweets (1 kg) or more: fill your bag and it is added by itself.' );
+		throw new Exception( 'Your ' . fika_wb_money( $coupon->get_amount() ) . ' comes off on ' . fika_wb_money( $min ) . ' of sweets or more: fill your bag and it is added by itself.' );
 	}
 	return $valid;
 }, 10, 3 );
@@ -1006,7 +1024,7 @@ add_action( 'wp_footer', function () {
 	if ( $min <= 0 ) {
 		return;
 	}
-	$d = array( 'amt' => fika_wb_money( $c->get_amount() ), 'min' => (int) round( $min / 0.028 ), 'checkout' => function_exists( 'is_checkout' ) && is_checkout() );
+	$d = array( 'amt' => fika_wb_money( $c->get_amount() ), 'min' => (int) round( $min / 0.028 ), 'checkout' => function_exists( 'is_checkout' ) && is_checkout(), 'member' => is_user_logged_in() );
 	?>
 <style id="fika-owe-css">
 .fk-owe { margin: 0 0 12px; padding: 10px 12px 11px; border-radius: 14px; background: #fdeaf2; border: 1.5px dashed #004aad; font-family: 'Outfit', Arial, sans-serif; color: #004aad; font-size: 14px; line-height: 1.35; text-align: left; }
@@ -1021,24 +1039,29 @@ add_action( 'wp_footer', function () {
 (function () {
   var D = <?php echo wp_json_encode( $d ); ?>;
   function grams() { var g = 0; try { var b = (JSON.parse(localStorage.getItem('fika_bag_v1') || '{}').bag) || {}; Object.keys(b).forEach(function (k) { g += +b[k] || 0; }); } catch (e) {} return g; }
-  function txt(g) { return g >= D.min ? '✓ We owe you ' + D.amt + ': it comes off at checkout.' : 'We owe you <b>' + D.amt + '</b>: add <b>' + (D.min - g >= 1000 ? (Math.round((D.min - g) / 100) / 10) + ' kg' : (Math.ceil((D.min - g) / 100) * 100) + ' g') + '</b> more and it comes off at checkout.'; }
+  function more(g) { return D.min - g >= 1000 ? (Math.round((D.min - g) / 100) / 10) + ' kg' : (Math.ceil((D.min - g) / 100) * 100) + ' g'; }
+  function txt(g) {
+    var join = D.checkout ? 'tick <b>Create a Fika Club account</b> below (free, 10 seconds)' : '<b>join Fika Club</b> at checkout (free, 10 seconds) or <a href="/my-account/">log in</a>';
+    if (!D.member) return 'We owe you <b>' + D.amt + '</b>: it is waiting in your Fika Club account. To claim it, ' + join + (g < D.min ? ', and add <b>' + more(g) + '</b> more.' : '.');
+    return g >= D.min ? '✓ We owe you ' + D.amt + ': it comes off at checkout.' : 'We owe you <b>' + D.amt + '</b>: add <b>' + more(g) + '</b> more and it comes off at checkout.';
+  }
   function draw() {
-    var g = grams(), done = g >= D.min;
+    var g = grams(), done = g >= D.min && D.member;
     // in the bag, above the totals
     var df = document.querySelector('#mxDrawer .mx-df');
     if (df) {
       var el = document.getElementById('fkOwe');
       if (!el) { el = document.createElement('div'); el.id = 'fkOwe'; el.className = 'fk-owe'; df.insertBefore(el, df.firstChild); }
       el.className = 'fk-owe' + (done ? ' done' : '');
-      el.innerHTML = '<div>' + txt(g) + '</div>' + (done ? '' : '<div class="bar"><i style="width:' + Math.min(100, Math.round(g / D.min * 100)) + '%"></i></div>');
+      el.innerHTML = '<div>' + txt(g) + '</div>' + (g < D.min ? '<div class="bar"><i style="width:' + Math.min(100, Math.round(g / D.min * 100)) + '%"></i></div>' : '');
     }
     // at the checkout, while the bag is under the minimum
     if (D.checkout) {
       var co = document.getElementById('fkOweCo'), main = document.querySelector('.wc-block-checkout__main, .wp-block-woocommerce-checkout-fields-block');
-      if (done || !g) { if (co) co.remove(); return; }
+      if (done || (!g && D.member)) { if (co) co.remove(); return; }
       if (main) {
         if (!co) { co = document.createElement('div'); co.id = 'fkOweCo'; co.className = 'fk-owe fk-owe-co'; main.insertBefore(co, main.firstChild); }
-        co.innerHTML = '<div>' + txt(g) + ' <a href="/mix-your-own/?bag=open">Add sweets</a></div><div class="bar"><i style="width:' + Math.min(100, Math.round(g / D.min * 100)) + '%"></i></div>';
+        co.innerHTML = '<div>' + txt(g) + (g < D.min ? ' <a href="/mix-your-own/?bag=open">Add sweets</a>' : '') + '</div>' + (g < D.min ? '<div class="bar"><i style="width:' + Math.min(100, Math.round(g / D.min * 100)) + '%"></i></div>' : '');
       }
     }
   }
