@@ -6,6 +6,8 @@
  *   in WP Admin, and a "Pick your mix" button.
  * - Email 2, 14 days later if they still have not ordered: a personal discount code (default 10% off the candies,
  *   one use, only for their email, valid 14 days). Its button opens the shop and the code applies at checkout.
+ *   Under it (3 Nov 2026): the kilograms they already have with Fika and the reward that unlocks when they create
+ *   their account with that email (members: their next reward), fika_wb_claim().
  * - Ordering again starts the cycle over. Every email has an unsubscribe link, and unsubscribed addresses never get
  *   these emails again. Shop staff accounts and test addresses (@example.com/.org/.net) are left out.
  * - Sends in small batches (10 emails, a few seconds apart, one batch an hour, 10:00-20:00 Beirut, at most 50 in any
@@ -523,6 +525,52 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$html = preg_replace( '/(<body\b[^>]*>)/i', '$1' . $pre, $html, 1 );
 		return array( 'It’s been a while' . ( $p['name'] ? ', ' . $p['name'] : '' ) . ( 'new' === $kind ? '! Here’s what’s new at Fika' : '! A few sweets picked for you' ), $html );
 	}
+	// email 2, under the code (owner, 3 Nov 2026): the kilograms this customer already has with Fika and the reward
+	// they unlock, with "Create my account" (no account yet: earlier orders count once they join with this email) or
+	// "See my rewards" (members). Nothing when they have no delivered order.
+	function fika_wb_claim( $email, $name ) {
+		$f      = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
+		$h      = 'display:block;font-variant:small-caps;font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-weight:400;color:#004aad;';
+		$user   = get_user_by( 'email', $email );
+		$member = $user && ! user_can( $user, 'manage_woocommerce' );
+		$total  = fika_wb_delivered( $email, $member ? $user : null );
+		if ( $total <= 0 ) {
+			return '';
+		}
+		$g    = $total % 15000;
+		$kg   = function ( $x ) {
+			$x = round( $x / 1000, 1 );
+			return ( fmod( $x, 1 ) ? number_format( $x, 1 ) : number_format( $x, 0 ) ) . ' kg';
+		};
+		$togo = function ( $x ) use ( $kg ) {
+			return $x < 1000 ? ( (int) round( $x / 50 ) * 50 ) . ' g' : $kg( $x );
+		};
+		$ladder = array( 1500 => array( 'a free mystery taste', 'a free 50 g surprise' ), 3000 => array( '100 g of free sweets', 'worth $2.80' ), 6000 => array( '200 g of free sweets', 'worth $5.60' ), 10000 => array( '400 g of free sweets', 'worth $11.20' ), 12500 => array( 'a free mystery taste', 'a free 50 g surprise' ), 15000 => array( 'a whole free kilogram', 'worth $28' ) );
+		$got  = null;
+		$next = null;
+		foreach ( $ladder as $at => $r ) {
+			if ( $at <= $g ) {
+				$got = $r;
+			} elseif ( ! $next ) {
+				$next = array( $at, $r );
+			}
+		}
+		$lane = fika_wb_lane_url( $g );
+		$link = $member ? home_url( '/my-account/' ) : home_url( '/my-account/#register' );
+		$pic  = $lane ? '<a href="' . esc_url( $link ) . '" style="display:block;text-decoration:none;"><img src="' . esc_url( $lane ) . '" width="400" alt="Your fish at ' . esc_attr( $kg( $g ) ) . ' on the 15 kg lane" class="fika-t" style="display:block;width:100%;max-width:400px;height:auto;margin:4px auto 0;border:0;"></a>' : '';
+		if ( $member ) {
+			$text = $next ? '<b>' . $togo( $next[0] - $g ) . ' to go</b> until ' . $next[1][0] . ' (' . $next[1][1] . '). Rewards you have reached wait on your account.' : 'Your next order starts a new 15 kg lap.';
+		} elseif ( $got ) {
+			$text = 'That is already <b>' . $got[0] . '</b> (' . $got[1] . '). It is yours as soon as you create your Fika Club account with this email: your earlier orders count straight away.';
+		} else {
+			$text = 'Create your Fika Club account with this email and your earlier orders count straight away: only <b>' . $togo( $next[0] - $g ) . ' to go</b> until ' . $next[1][0] . ' (' . $next[1][1] . ').';
+		}
+		return fika_wb_divider( 'c2', $member ? 'Your Fika Club' : 'Already earned' ) .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td class="fika-mail-box">' .
+			'<p style="' . $f . 'padding-bottom:10px;color:#1b2a4a;font-size:14px;">' . ( $name ? esc_html( $name ) . ', you' : 'You' ) . ' already have<br><span style="' . $h . 'font-variant:normal;font-size:40px;line-height:1.1;">' . $kg( $g ) . '</span> <span style="color:#6c7b9c;">with Fika</span></p>' .
+			$pic . '<p style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;padding-top:12px;">' . $text . '</p></td></tr></table>' .
+			fika_wb_button( $link, $member ? 'See my rewards' : 'Create my account' );
+	}
 	// email 2: a personal discount code
 	function fika_wb_email2( $email, $p, $code, $expires ) {
 		$set  = fika_wb_settings();
@@ -537,6 +585,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'</td></tr></table>' .
 			fika_wb_button( add_query_arg( 'fika_coupon', rawurlencode( $code ), home_url( '/mix-your-own/' ) ), 'Use my ' . $pct . '%' ) .
 			'<p style="text-align:center;">Fill your bag and the code is added at checkout. You can also type it in yourself.</p>' .
+			fika_wb_claim( $email, $p['name'] ) .
 			fika_wb_small( $email );
 		return array( 'A little treat to welcome you back: ' . $pct . '% off', WC()->mailer()->wrap_message( 'Here’s ' . $pct . '% off your next bag', $body ) );
 	}
