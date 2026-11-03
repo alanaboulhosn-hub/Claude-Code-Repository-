@@ -7,7 +7,7 @@
  * - Email 2, 14 days later if they still have not ordered: "We owe you $5" (owner, 3 Nov 2026): an IOU for $5 off
  *   store credit (a personal code: $5 off an order of at least $15 of sweets; one use, only for
  *   their email, valid 14 days). Top to bottom: the IOU voucher (picture), "Name, we put $5 aside for you", the
- *   deadline, "Claim my $5 store credit" (members) or "Join free & claim my $5" (no account), the kilograms they already have with Fika and the
+ *   deadline, "Claim my $5 store credit" (members) or "Join for free & claim my $5" (no account), the kilograms they already have with Fika and the
  *   reward that unlocks with an account (fika_wb_claim), the limited edition bag while it is on, a real customer's
  *   message. Its button opens the shop and the code applies at checkout. Pictures: wordpress/email-assets/make-email-owe.js.
  * - The $5 waits for the minimum (owner, 3 Nov 2026): the code's minimum is ours (coupon meta _fika_owe_min, $15), not
@@ -646,7 +646,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$link  = add_query_arg( 'fika_coupon', rawurlencode( $code ), home_url( '/mix-your-own/' ) );
 		// members claim it straight away; everyone else joins Fika Club at checkout (free, 10 seconds) and claims it there
 		$member = fika_wb_is_member( $email );
-		$claim  = $member ? 'Claim my ' . $owe . ' store credit' : 'Join free & claim my ' . $owe;
+		$claim  = $member ? 'Claim my ' . $owe . ' store credit' : 'Join for free & claim my ' . $owe;
 		$body  =
 			// the personal line right under the IOU (the voucher picture is the heading)
 			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:27px;line-height:1.15;margin:2px 0 10px;">' . ( $name ? esc_html( $name ) . ', we put ' : 'We put ' ) . $owe . ' aside for you</div>' .
