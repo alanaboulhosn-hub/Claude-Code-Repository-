@@ -40,7 +40,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'news_text'   => 'Make Friday night the sweetest night of the week: let everyone pick a few favourites, pour them into one big bowl and gather the family around it.',
 			'owe'         => 5,  // email 2: dollars of store credit
 			'owe_min'     => 15, // ... as store credit on an order of at least this much sweets ($15: about 550 g, or one Ready Mix bag)
-			'valid_days'  => 14,
+			'valid_days'  => 2, // owner, 3 Nov 2026: 2 days, for urgency (was 14)
 			'first_days'  => 30,
 			'second_days' => 14,
 			'email2'      => 0, // 1 = email 2 (the code) is sent too; 0 = only email 1 goes out
@@ -645,6 +645,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$name  = $p['name'];
 		$owe   = fika_wb_money( $amount );
 		$until = wp_date( 'l j F', $expires );
+		// the deadline pill: "Only 2 days left", counted from today to the last day (Beirut dates)
+		$days  = max( 0, (int) round( ( strtotime( wp_date( 'Y-m-d', $expires ) ) - strtotime( wp_date( 'Y-m-d' ) ) ) / DAY_IN_SECONDS ) );
+		$left  = $days > 1 ? 'Only ' . $days . ' days left' : ( 1 === $days ? 'Only 1 day left' : 'Last day' );
 		$link  = add_query_arg( 'fika_coupon', rawurlencode( $code ), home_url( '/mix-your-own/' ) );
 		// members claim it straight away; everyone else joins Fika Club at checkout (free, 10 seconds) and claims it there
 		$member = fika_wb_is_member( $email );
@@ -655,7 +658,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<p style="text-align:center;">' . ( $member
 				? 'It is in your Fika Club account as store credit, on us. Spend it on anything you like.'
 				: 'It becomes your store credit the moment you join Fika Club: free, 10 seconds, right at checkout. Your earlier orders join too.' ) . '</p>' .
-			'<p style="text-align:center;margin:0 !important;"><span style="' . $f . 'display:inline-block;padding:7px 16px;border-radius:999px;background:#fff4d9;border:1px solid #f2b84b;color:#8a5a00;font-size:14px;font-weight:600;">Yours until ' . esc_html( $until ) . '</span></p>' .
+			'<p style="text-align:center;margin:0 !important;"><span style="' . $f . 'display:inline-block;padding:7px 16px;border-radius:999px;background:#fff4d9;border:1px solid #f2b84b;color:#8a5a00;font-size:14px;font-weight:600;">' . esc_html( $left ) . ' · ends ' . esc_html( wp_date( 'l', $expires ) ) . '</span></p>' .
 			fika_wb_button( $link, $claim ) .
 			fika_wb_claim( $email, $name, $member ? null : array( $link, $claim ) ) .
 			fika_wb_ff_box( $link ) .
@@ -665,7 +668,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$html = WC()->mailer()->wrap_message( 'We owe you ' . $owe, $body );
 		// the IOU voucher is the heading
 		$html = str_replace( '>We owe you ' . $owe . '</h1>', '><img src="' . esc_url( home_url( '/wp-content/uploads/2026/11/fika-email-owe-voucher2.png' ) ) . '" width="480" alt="Fika owes you ' . esc_attr( $owe ) . ' in store credit" class="fika-t" style="display:block;width:100%;max-width:480px;height:auto;margin:0 auto;border:0;"></h1>', $html );
-		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( ( $member ? 'Your store credit is waiting in your Fika Club account' : 'Join Fika Club for free and it is your store credit' ) . ', until ' . $until . '.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
+		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( ( $member ? 'Your store credit is waiting in your Fika Club account' : 'Join Fika Club for free and it is your store credit' ) . ', only until ' . $until . '.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
 		$html = preg_replace( '/(<body\b[^>]*>)/i', '$1' . $pre, $html, 1 );
 		return array( ( $name ? $name . ', we owe you ' : 'We owe you ' ) . $owe . ' 🍬', $html );
 	}
@@ -673,7 +676,8 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$set                  = fika_wb_settings();
 		list( $amount, $min ) = fika_wb_owe();
 		$code                 = 'IOU' . (int) $amount . '-' . strtoupper( wp_generate_password( 6, false, false ) );
-		$expires              = time() + (int) $set['valid_days'] * DAY_IN_SECONDS;
+		// the code lasts until 11:59 pm (Beirut) on the last day, so "ends Thursday 5 November" in the email holds all day
+		$expires              = ( new DateTime( '@' . ( time() + (int) $set['valid_days'] * DAY_IN_SECONDS ) ) )->setTimezone( wp_timezone() )->setTime( 23, 59, 59 )->getTimestamp();
 		$c                    = new WC_Coupon();
 		$c->set_code( $code );
 		$c->set_discount_type( 'fixed_cart' );
@@ -1096,7 +1100,7 @@ add_action( 'admin_post_fika_wb_save', function () {
 	$set['news_text']   = sanitize_textarea_field( isset( $in['news_text'] ) ? $in['news_text'] : '' );
 	$set['owe']         = max( 1, min( 50, absint( isset( $in['owe'] ) ? $in['owe'] : 5 ) ) );
 	$set['owe_min']     = max( 0, absint( isset( $in['owe_min'] ) ? $in['owe_min'] : 28 ) );
-	$set['valid_days']  = max( 1, absint( isset( $in['valid_days'] ) ? $in['valid_days'] : 14 ) );
+	$set['valid_days']  = max( 1, absint( isset( $in['valid_days'] ) ? $in['valid_days'] : 2 ) );
 	$set['first_days']  = max( 1, absint( isset( $in['first_days'] ) ? $in['first_days'] : 30 ) );
 	$set['second_days'] = max( 1, absint( isset( $in['second_days'] ) ? $in['second_days'] : 14 ) );
 	$set['email2']      = empty( $in['email2'] ) ? 0 : 1;
@@ -1221,7 +1225,7 @@ add_action( 'rest_api_init', function () {
 		$p = array( 'name' => 'Sara', 'last' => $req['never'] ? 0 : time() - 40 * DAY_IN_SECONDS, 'since' => time() - 40 * DAY_IN_SECONDS );
 		$e = new WC_Email();
 		if ( '2' === $req['n'] ) {
-			list( $subject, $html ) = fika_wb_email2( 'sara@example.com', $p, 'IOU5-PREVIEW', time() + 14 * DAY_IN_SECONDS );
+			list( $subject, $html ) = fika_wb_email2( 'sara@example.com', $p, 'IOU5-PREVIEW', time() + 2 * DAY_IN_SECONDS );
 		} else {
 			list( $subject, $html ) = fika_wb_email1( 'sara@example.com', $p );
 		}
