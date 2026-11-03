@@ -26,8 +26,8 @@ const out = process.argv[2];
       .n1 { left: -17px; } .n2 { right: -17px; }
       .in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-bottom: 6px; }
       .iou { font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: 21px; letter-spacing: .32em; color: #d35d93; margin-left: .32em; }
-      .owes { font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-size: 34px; line-height: 1; color: #004aad; margin-top: 6px; }
-      .amt { font-family: 'NF Le Petit Cochon', cursive; font-size: 138px; line-height: .86; color: #004aad; text-shadow: 6px 6px 0 #f5b3cf; margin: 4px 0 6px; letter-spacing: -.01em; }
+      .owes { font-family: 'NF Le Petit Cochon', cursive; font-variant: small-caps; font-size: 40px; line-height: 1; color: #004aad; }
+      .amt { font-family: 'NF Le Petit Cochon', cursive; font-size: 138px; line-height: .86; color: #004aad; text-shadow: 6px 6px 0 #f5b3cf; margin: 10px 0 -18px; letter-spacing: -.01em; }
       .next { font-family: 'Fanwood Text', Georgia, serif; font-variant: small-caps; font-size: 25px; color: #1b2a4a; }
       .next b { color: #d35d93; font-weight: 400; }
       .stamp { position: absolute; right: 34px; top: 34px; width: 100px; height: 100px; transform: rotate(14deg); opacity: .92; }
@@ -42,7 +42,7 @@ const out = process.argv[2];
     // the voucher
     const hero = document.createElement('div'); hero.className = 'art'; hero.id = 'hero';
     hero.innerHTML = '<div class="tk"><i class="notch n1"></i><i class="notch n2"></i><div class="in">' +
-      '<div class="iou">I.O.U.</div><div class="owes">Fika owes you</div><div class="amt">$5</div><div class="next">in <b>store credit</b></div></div></div>' +
+      '<div class="owes">Fika owes you</div><div class="amt">$5</div><div class="next">in <b>store credit</b></div></div></div>' +
       // the stamp: a ring of words around a heart, in the shop's pink
       '<svg class="stamp" viewBox="0 0 120 120"><defs><path id="ring" d="M60,60 m-41,0 a41,41 0 1,1 82,0 a41,41 0 1,1 -82,0"/></defs>' +
       '<circle cx="60" cy="60" r="56" fill="none" stroke="#d35d93" stroke-width="3.5"/><circle cx="60" cy="60" r="31" fill="none" stroke="#d35d93" stroke-width="2" stroke-dasharray="3 4"/>' +
@@ -59,7 +59,7 @@ const out = process.argv[2];
     document.body.appendChild(kg);
   });
   await p.waitForTimeout(1500);
-  await (await p.$('#hero')).screenshot({ path: out + '/fika-email-owe-voucher2.png' }); // v2: "in store credit" (was "on your next kilogram")
+  await (await p.$('#hero')).screenshot({ path: out + '/fika-email-owe-voucher2.png' }); // v2: "in store credit" (was "on your next kilogram"); no "I.O.U." line (owner, 3 Nov)
   await p.evaluate(() => { document.documentElement.style.background = 'transparent'; document.body.style.background = 'transparent'; });
   await (await p.$('#kg')).screenshot({ path: out + '/fika-email-owe-kilo.png', omitBackground: true }); // see-through: it sits on the light-blue box
   await b.close();
