@@ -2362,3 +2362,17 @@ choice). Snippet 91, fika-club.php (new):
   "Fika emails" artifact for 6 real customers. Phone overflow found and fixed (a section label too long to fit).
 - Before going live: the code is applied when the bag reaches the checkout; with a 1 kg minimum a smaller bag would
   get WooCommerce's minimum-spend error and lose the code, so it must wait until the bag holds 1 kg (with a nudge).
+
+## Email tracking (2026-11-03, prepared, NOT live)
+- Owner: "we definitely need tracking ... the best data base". New wordpress/snippets/fika-email-tracking.php: send ids
+  per email (option fika_et_sends), UTM tags + fika_e on every shop link of win-back 1/2 and the bag reminder
+  (fika_et_tag; unsubscribe/no-more-reminders and WhatsApp/email/Instagram links untouched; link names from the
+  button words or picture alt without numbers), click log (option fika_et_clicks, bots/HEAD skipped, 30-day cookie
+  fika_e, redirect without fika_e), order stamp (_fika_email, _fika_email_send, _fika_email_link,
+  _fika_email_click, _fika_email_how: click / code / click+code; email 2 coupons carry _fika_et_send), results page
+  WooCommerce > Email results and GET /fika/v1/email-stats. Hooks added in fika-winback.php (fika_wb_send,
+  fika_wb_coupon) and fika-bag-reminder.php (send + fika_et_carry for the checkout link); fika-order-source.php
+  shows "Email · ..." under Origin.
+- Tested on the live site with a temporary route (240, trashed): tagging of the real email 1 and bag reminder
+  previews (16 and 8 links, right ones tagged), carry, id check. Installing the snippet live was held for the
+  owner's go (permission prompt).

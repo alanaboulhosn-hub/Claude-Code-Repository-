@@ -7,6 +7,7 @@
  * - No column of its own (owner: WooCommerce's Origin column already shows the source): orders from a Meta ad get a
  *   "Meta ad · campaign" tag under their Origin (which says "Ig" for the ad and the bio link alike). Campaign
  *   numbers get a name in FIKA_SRC_CAMPAIGNS (else the number is shown).
+ * - Orders from our own emails (fika-email-tracking.php) get an "Email · Win-back email 2" (or bag reminder) tag the same way.
  * - Above the list: a box with the Meta ad results: orders and sales (cancelled / failed / refunded left out), today
  *   and in total, per campaign.
  * - Admin only, orders only read.
@@ -23,6 +24,15 @@ if ( ! function_exists( 'fika_src_of' ) ) {
 		$med    = $g( 'utm_medium' );
 		$type   = $g( 'source_type' );
 		$ref    = $g( 'referrer' );
+		// our own emails (fika-email-tracking.php): the order's stamp, or the UTM tags of the email's links
+		$em     = (string) $order->get_meta( '_fika_email' );
+		$emails = array( 'wb1' => 'Win-back email 1', 'wb2' => 'Win-back email 2', 'bag' => 'Bag reminder', 'winback-1' => 'Win-back email 1', 'winback-2' => 'Win-back email 2', 'bag-reminder' => 'Bag reminder' );
+		if ( '' === $em && 'email' === $med && 'fika' === $src ) {
+			$em = $g( 'utm_campaign' );
+		}
+		if ( '' !== $em ) {
+			return array( 'email', 'Email · ' . ( isset( $emails[ $em ] ) ? $emails[ $em ] : $em ), $em );
+		}
 		$meta   = in_array( $src, array( 'ig', 'instagram', 'fb', 'facebook', 'an', 'msg', 'meta' ), true ) || false !== strpos( $ref, 'instagram.' ) || false !== strpos( $ref, 'facebook.' );
 		if ( $meta && in_array( $med, array( 'paid', 'cpc', 'ppc', 'ad', 'ads', 'paid_social' ), true ) ) {
 			$names = json_decode( FIKA_SRC_CAMPAIGNS, true );
@@ -60,16 +70,16 @@ if ( ! function_exists( 'fika_src_of' ) ) {
 add_action( 'manage_woocommerce_page_wc-orders_custom_column', function ( $col, $order ) {
 	if ( 'origin' === $col && $order instanceof WC_Order ) {
 		list( $k, $label ) = fika_src_of( $order );
-		if ( 'ad' === $k ) {
-			echo '<br><span class="fika-src fika-src-ad">' . esc_html( $label ) . '</span>';
+		if ( 'ad' === $k || 'email' === $k ) {
+			echo '<br><span class="fika-src fika-src-' . esc_attr( $k ) . '">' . esc_html( $label ) . '</span>';
 		}
 	}
 }, 20, 2 );
 add_action( 'manage_shop_order_posts_custom_column', function ( $col, $post_id ) {
 	if ( 'origin' === $col && ( $o = wc_get_order( $post_id ) ) ) {
 		list( $k, $label ) = fika_src_of( $o );
-		if ( 'ad' === $k ) {
-			echo '<br><span class="fika-src fika-src-ad">' . esc_html( $label ) . '</span>';
+		if ( 'ad' === $k || 'email' === $k ) {
+			echo '<br><span class="fika-src fika-src-' . esc_attr( $k ) . '">' . esc_html( $label ) . '</span>';
 		}
 	}
 }, 20, 2 );
@@ -141,6 +151,7 @@ add_action( 'admin_footer', function () {
 		.column-origin .fika-src { margin-top: 4px; }
 		.fika-src { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1.5; white-space: nowrap; background: #f0f0f1; color: #50575e; }
 		.fika-src-ad { background: #ffe6d1; color: #a34400; border: 1px solid #ffb27a; }
+		.fika-src-email { background: #fdeaf2; color: #9b1f62; border: 1px solid #f3b7cf; }
 		.fika-src-ig { background: #fbe3f0; color: #9b1f62; }
 		.fika-src-fb { background: #e3ecfb; color: #1d4f9b; }
 		.fika-src-google { background: #e6f4ea; color: #1e6b37; }

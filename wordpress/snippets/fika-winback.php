@@ -10,6 +10,8 @@
  *   deadline, "Claim my $5", "A kilogram is easy" ($28 -> $23), the kilograms they already have with Fika and the
  *   reward that unlocks with an account (fika_wb_claim), the limited edition bag while it is on, a real customer's
  *   message. Its button opens the shop and the code applies at checkout. Pictures: wordpress/email-assets/make-email-owe.js.
+ * - Tracking (fika-email-tracking.php, when installed): each send gets an id, its links get UTM tags, the email 2 code
+ *   carries the id, so clicks and orders show per email in WooCommerce > Email results.
  * - Ordering again starts the cycle over. Every email has an unsubscribe link, and unsubscribed addresses never get
  *   these emails again. Shop staff accounts and test addresses (@example.com/.org/.net) are left out.
  * - Sends in small batches (10 emails, a few seconds apart, one batch an hour, 10:00-20:00 Beirut, at most 50 in any
@@ -657,7 +659,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$html = preg_replace( '/(<body\b[^>]*>)/i', '$1' . $pre, $html, 1 );
 		return array( ( $name ? $name . ', we owe you ' : 'We owe you ' ) . $owe . ' 🍬', $html );
 	}
-	function fika_wb_coupon( $email, $note = 'Win-back email 2' ) {
+	function fika_wb_coupon( $email, $note = 'Win-back email 2', $send = '' ) {
 		$set                  = fika_wb_settings();
 		list( $amount, $min ) = fika_wb_owe();
 		$code                 = 'IOU' . (int) $amount . '-' . strtoupper( wp_generate_password( 6, false, false ) );
@@ -673,15 +675,23 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$c->set_email_restrictions( array( $email ) );
 		$c->set_date_expires( $expires );
 		$c->set_description( $note . ' for ' . $email );
+		if ( $send ) {
+			$c->update_meta_data( '_fika_et_send', $send ); // an order with this code counts for this email (tracking)
+		}
 		$c->save();
 		return array( $code, $expires );
 	}
 	function fika_wb_send( $email, $p, $which ) {
+		// tracking (fika-email-tracking.php): this send's id, put on the code and on the email's links
+		$sid = function_exists( 'fika_et_new_send' ) ? fika_et_new_send( '2' === $which ? 'wb2' : 'wb1', $email ) : '';
 		if ( '2' === $which ) {
-			list( $code, $expires ) = fika_wb_coupon( $email );
+			list( $code, $expires ) = fika_wb_coupon( $email, 'Win-back email 2', $sid );
 			list( $subject, $html ) = fika_wb_email2( $email, $p, $code, $expires );
 		} else {
 			list( $subject, $html ) = fika_wb_email1( $email, $p );
+		}
+		if ( $sid ) {
+			$html = fika_et_tag( $html, $sid );
 		}
 		// a mail server that stops answering fails this email after 30 seconds instead of freezing the whole run:
 		// Timeout covers connecting and each read, Timelimit the wait for an answer (PHPMailer's default is 300 s,

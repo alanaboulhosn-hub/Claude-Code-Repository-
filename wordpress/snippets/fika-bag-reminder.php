@@ -22,6 +22,8 @@
  *   (FIKA_DROPS_MODE 'limited', snippet 193), the normal reminder shows a "Limited edition" box under the bag with the
  *   Fan Favourites Mix and an "Add to bag" button (the saved bag back with that bag added, then the checkout).
  *   Old Halloween reminders: their "Add to bag" links only add a bag that is still in the shop.
+ * - Tracking (fika-email-tracking.php, when installed): the email's links get UTM tags and a send id, carried on to the
+ *   checkout, so clicks and orders show in WooCommerce > Email results.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-bag-reminder.php
  */
 
@@ -389,6 +391,9 @@ add_action( 'fika_bag_reminder', function ( $token ) {
 	}
 	// marked as sent first: if the send fails or is cut off, this bag is never reminded again
 	fika_bag_set( $token, array( 'status' => 'reminded', 'sent' => time(), 'mail_ok' => 0 ) );
+	if ( function_exists( 'fika_et_new_send' ) ) { // tracking (fika-email-tracking.php): the links get UTM tags and this send's id
+		$html = fika_et_tag( $html, fika_et_new_send( 'bag', $r['email'] ) );
+	}
 	$ok = WC()->mailer()->send( $r['email'], $hw ? 'Your Fika bag is waiting… 🎃' : 'Your Fika bag is waiting', $html );
 	unset( $GLOBALS['fika_mail_hw'] );
 	fika_bag_set( $token, array( 'mail_ok' => $ok ? 1 : 0 ) );
@@ -439,13 +444,13 @@ add_action( 'template_redirect', function () {
 			foreach ( $r['items'] as $it ) {
 				$bag[ ( has_term( 'ready-mix', 'product_cat', $it['id'] ) ? 'rw' : 'w' ) . $it['id'] ] = $it['qty'] * ( has_term( 'ready-mix', 'product_cat', $it['id'] ) ? 500 : 100 );
 			}
-			$to = wc_get_checkout_url();
+			$to = function_exists( 'fika_et_carry' ) ? fika_et_carry( wc_get_checkout_url() ) : wc_get_checkout_url(); // UTM tags on to the checkout
 			echo '<!doctype html><meta charset="utf-8"><title>Fika</title><script>try{var k="fika_bag_v1",s=JSON.parse(localStorage.getItem(k)||"null")||{bag:{},meta:{}};s.bag=' . wp_json_encode( $bag ) . ';localStorage.setItem(k,JSON.stringify(s));}catch(e){}location.replace(' . wp_json_encode( $to ) . ');</script><a href="' . esc_url( $to ) . '">Continue to checkout</a>';
 			exit;
 		}
 		if ( $addp ) { // the bag link no longer works: the Halloween bag goes into the cart as it is now, then the checkout
 			WC()->cart->add_to_cart( $add, 1 );
-			$to = wc_get_checkout_url();
+			$to = function_exists( 'fika_et_carry' ) ? fika_et_carry( wc_get_checkout_url() ) : wc_get_checkout_url(); // UTM tags on to the checkout
 			echo '<!doctype html><meta charset="utf-8"><title>Fika</title><script>try{var k="fika_bag_v1",s=JSON.parse(localStorage.getItem(k)||"null")||{bag:{},meta:{}};s.bag=s.bag||{};s.bag["rw' . (int) $add . '"]=(s.bag["rw' . (int) $add . '"]||0)+500;localStorage.setItem(k,JSON.stringify(s));}catch(e){}location.replace(' . wp_json_encode( $to ) . ');</script><a href="' . esc_url( $to ) . '">Continue to checkout</a>';
 			exit;
 		}
