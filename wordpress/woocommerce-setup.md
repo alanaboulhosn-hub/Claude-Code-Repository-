@@ -2388,3 +2388,7 @@ choice). Snippet 91, fika-club.php (new):
   colours pinned; the heart drawn flat pink (the emoji turned muddy in a GIF). Starts on the first customer's
   finished chat. Usage: node make-email-inbox.js <out> <fish.svg> <messages.json> sleep,ten,again,obsessed,loved,themm,delivery
   then python3 make-email-inbox.py <out>.
+- Rollout prep (3 Nov): pictures uploaded (media 1343 voucher, 1344 kilo, 1345 inbox GIF; the GIF checked identical,
+  210 frames); the tracking snippet installed as 242 (active; inert until a tagged link is clicked); shop pages and
+  the guard fine. Updating 25 / 203 / 35 (checked: live = 8387e60 / 51cc0a3 / 6a8292a) was held at the permission
+  prompt: not changed. Win-back email 2 still off (email2 0).
