@@ -10,6 +10,11 @@
  *   deadline, "Claim my $5", "A kilogram is easy" ($28 -> $23), the kilograms they already have with Fika and the
  *   reward that unlocks with an account (fika_wb_claim), the limited edition bag while it is on, a real customer's
  *   message. Its button opens the shop and the code applies at checkout. Pictures: wordpress/email-assets/make-email-owe.js.
+ * - The $5 waits for 1 kg (owner, 3 Nov 2026): the code's minimum is ours (coupon meta _fika_owe_min, $28), not
+ *   WooCommerce's minimum spend. The "Claim my $5" link remembers the code (cookie fika_coupon, 14 days); it goes on
+ *   by itself once the cart reaches $28, comes off quietly below it, and is forgotten once an order uses it or it has
+ *   expired or been used (fika_wb_sync_code). The bag shows "We owe you $5: add 300 g more" (or "comes off at
+ *   checkout"), the checkout the same while under 1 kg. A code typed in by hand below 1 kg is refused with a clear message.
  * - Tracking (fika-email-tracking.php, when installed): each send gets an id, its links get UTM tags, the email 2 code
  *   carries the id, so clicks and orders show per email in WooCommerce > Email results.
  * - Ordering again starts the cycle over. Every email has an unsubscribe link, and unsubscribed addresses never get
@@ -665,7 +670,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$c->set_code( $code );
 		$c->set_discount_type( 'fixed_cart' );
 		$c->set_amount( $amount );
-		$c->set_minimum_amount( $min );
+		// the 1 kg minimum is ours, not WooCommerce's minimum spend: the code waits until the bag reaches it
+		// (fika_wb_sync_code) instead of failing with an error and being lost
+		$c->update_meta_data( '_fika_owe_min', $min );
 		$c->set_individual_use( true );
 		$c->set_usage_limit( 1 );
 		$c->set_usage_limit_per_user( 1 );
@@ -724,6 +731,44 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			WC()->customer->save();
 		}
 		return WC()->cart->apply_coupon( $code );
+	}
+	// a code remembered from an email link (cookie fika_coupon, 14 days)
+	function fika_wb_pending_code() {
+		return isset( $_COOKIE['fika_coupon'] ) ? wc_format_coupon_code( wp_unslash( $_COOKIE['fika_coupon'] ) ) : '';
+	}
+	function fika_wb_forget_code() {
+		wc_setcookie( 'fika_coupon', '', time() - HOUR_IN_SECONDS );
+		unset( $_COOKIE['fika_coupon'] );
+	}
+	// what the sweets in the cart cost (the code's minimum is in dollars: $28 = 1 kg)
+	function fika_wb_cart_value( $cart = null ) {
+		$cart = $cart ? $cart : ( function_exists( 'WC' ) ? WC()->cart : null );
+		$v    = 0.0;
+		foreach ( $cart ? $cart->get_cart() : array() as $it ) {
+			$v += (float) $it['data']->get_price() * (int) $it['quantity'];
+		}
+		return $v;
+	}
+	// the remembered code goes on once the bag reaches the code's minimum (email 2: $28, 1 kg), comes off again
+	// (quietly) if the bag drops below it, and stays remembered until an order uses it or it cannot be used any more
+	function fika_wb_sync_code() {
+		$code = fika_wb_pending_code();
+		if ( ! $code || ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return;
+		}
+		$c   = new WC_Coupon( $code );
+		$exp = $c->get_id() ? $c->get_date_expires() : null;
+		if ( ! $c->get_id() || ( $exp && $exp->getTimestamp() < time() ) || ( $c->get_usage_limit() && $c->get_usage_count() >= $c->get_usage_limit() ) ) {
+			fika_wb_forget_code();
+			return;
+		}
+		$on = WC()->cart->has_discount( $code );
+		$ok = ! WC()->cart->is_empty() && fika_wb_cart_value() >= (float) $c->get_meta( '_fika_owe_min' );
+		if ( $ok && ! $on ) {
+			fika_wb_apply_code( $code );
+		} elseif ( ! $ok && $on ) {
+			WC()->cart->remove_coupon( $code );
+		}
 	}
 	// the daily run
 	function fika_wb_run( $limit = 10 ) {
@@ -895,11 +940,10 @@ add_action( 'template_redirect', function () {
 	if ( isset( $_GET['fika_coupon'] ) && function_exists( 'WC' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		$code = wc_format_coupon_code( wp_unslash( $_GET['fika_coupon'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		if ( $code ) {
-			if ( WC()->cart ? ! WC()->cart->is_empty() : false ) {
-				fika_wb_apply_code( $code );
-			} else {
-				wc_setcookie( 'fika_coupon', $code, time() + 14 * DAY_IN_SECONDS );
-			}
+			// remembered for 14 days; it goes on as soon as the bag is big enough (fika_wb_sync_code)
+			wc_setcookie( 'fika_coupon', $code, time() + 14 * DAY_IN_SECONDS );
+			$_COOKIE['fika_coupon'] = $code;
+			fika_wb_sync_code();
 		}
 		wp_safe_redirect( remove_query_arg( 'fika_coupon' ) );
 		exit;
@@ -927,18 +971,92 @@ add_action( 'template_redirect', function () {
 			' <a href="' . esc_url( home_url( '/' ) ) . '">Back to Fika</a></p>', 'Fika', array( 'response' => 200 ) );
 	}
 }, 6 );
-// the remembered code goes on as soon as there is something in the cart (the shop's Checkout button fills it)
-add_action( 'woocommerce_add_to_cart', function () {
-	if ( ! WC()->cart || empty( $_COOKIE['fika_coupon'] ) ) {
+// the remembered code follows the bag: on when it is big enough, off (quietly) when it is not (the shop's Checkout
+// button empties the cart and fills it again from the bag, and every page load re-checks)
+add_action( 'woocommerce_add_to_cart', 'fika_wb_sync_code', 30 );
+add_action( 'woocommerce_cart_item_removed', 'fika_wb_sync_code', 30 );
+add_action( 'woocommerce_after_cart_item_quantity_update', 'fika_wb_sync_code', 30 );
+add_action( 'woocommerce_cart_loaded_from_session', 'fika_wb_sync_code', 30 );
+// a code with our minimum: no "coupon applied" notice (it goes on by itself), and refused below the minimum with a
+// clear message (only seen if someone types it in with a smaller bag)
+add_filter( 'woocommerce_coupon_message', function ( $msg, $msg_code, $coupon ) {
+	return $coupon instanceof WC_Coupon && (float) $coupon->get_meta( '_fika_owe_min' ) > 0 ? '' : $msg;
+}, 10, 3 );
+add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon, $discounts ) {
+	$min = $coupon instanceof WC_Coupon ? (float) $coupon->get_meta( '_fika_owe_min' ) : 0;
+	$obj = is_object( $discounts ) && method_exists( $discounts, 'get_object' ) ? $discounts->get_object() : null;
+	if ( $valid && $min > 0 && $obj instanceof WC_Cart && fika_wb_cart_value( $obj ) < $min ) {
+		throw new Exception( 'Your ' . fika_wb_money( $coupon->get_amount() ) . ' comes off on ' . fika_wb_money( $min ) . ' of sweets (1 kg) or more: fill your bag and it is added by itself.' );
+	}
+	return $valid;
+}, 10, 3 );
+// an order that used the remembered code: forget it
+foreach ( array( 'woocommerce_store_api_checkout_order_processed', 'woocommerce_checkout_order_processed' ) as $fika_wb_hook ) {
+	add_action( $fika_wb_hook, function ( $order ) {
+		$order = is_numeric( $order ) ? wc_get_order( $order ) : $order;
+		$code  = fika_wb_pending_code();
+		if ( $code && $order instanceof WC_Order && in_array( $code, array_map( 'wc_format_coupon_code', $order->get_coupon_codes() ), true ) ) {
+			fika_wb_forget_code();
+		}
+	}, 30 );
+}
+
+// the waiting $5 (email 2) shown to the customer: in the bag, above the totals ("add 300 g more", a progress bar, or
+// "comes off at checkout"), and at the checkout while the bag is still under the minimum (with a link back to the bag)
+add_action( 'wp_footer', function () {
+	if ( is_admin() || ! function_exists( 'WC' ) ) {
 		return;
 	}
-	$code = wc_format_coupon_code( wp_unslash( $_COOKIE['fika_coupon'] ) );
-	wc_setcookie( 'fika_coupon', '', time() - HOUR_IN_SECONDS );
-	unset( $_COOKIE['fika_coupon'] );
-	if ( $code ? ! WC()->cart->has_discount( $code ) : false ) {
-		fika_wb_apply_code( $code );
+	$code = fika_wb_pending_code();
+	$c    = $code ? new WC_Coupon( $code ) : null;
+	$min  = $c && $c->get_id() ? (float) $c->get_meta( '_fika_owe_min' ) : 0;
+	if ( $min <= 0 ) {
+		return;
 	}
-}, 30 );
+	$d = array( 'amt' => fika_wb_money( $c->get_amount() ), 'min' => (int) round( $min / 0.028 ), 'checkout' => function_exists( 'is_checkout' ) && is_checkout() );
+	?>
+<style id="fika-owe-css">
+.fk-owe { margin: 0 0 12px; padding: 10px 12px 11px; border-radius: 14px; background: #fdeaf2; border: 1.5px dashed #004aad; font-family: 'Outfit', Arial, sans-serif; color: #004aad; font-size: 14px; line-height: 1.35; text-align: left; }
+.fk-owe b { font-weight: 700; }
+.fk-owe .bar { height: 7px; margin-top: 8px; border-radius: 999px; background: #fff; overflow: hidden; }
+.fk-owe .bar i { display: block; height: 100%; border-radius: 999px; background: #004aad; transition: width .35s ease; }
+.fk-owe.done { border-style: solid; background: #eaf7ef; border-color: #1f8a4c; color: #1f6b3d; }
+.fk-owe a { color: #004aad; font-weight: 600; text-decoration: underline; }
+.fk-owe-co { max-width: 680px; margin: 0 0 18px; }
+</style>
+<script id="fika-owe-js">
+(function () {
+  var D = <?php echo wp_json_encode( $d ); ?>;
+  function grams() { var g = 0; try { var b = (JSON.parse(localStorage.getItem('fika_bag_v1') || '{}').bag) || {}; Object.keys(b).forEach(function (k) { g += +b[k] || 0; }); } catch (e) {} return g; }
+  function txt(g) { return g >= D.min ? '✓ We owe you ' + D.amt + ': it comes off at checkout.' : 'We owe you <b>' + D.amt + '</b>: add <b>' + (D.min - g >= 1000 ? (Math.round((D.min - g) / 100) / 10) + ' kg' : (Math.ceil((D.min - g) / 100) * 100) + ' g') + '</b> more and it comes off at checkout.'; }
+  function draw() {
+    var g = grams(), done = g >= D.min;
+    // in the bag, above the totals
+    var df = document.querySelector('#mxDrawer .mx-df');
+    if (df) {
+      var el = document.getElementById('fkOwe');
+      if (!el) { el = document.createElement('div'); el.id = 'fkOwe'; el.className = 'fk-owe'; df.insertBefore(el, df.firstChild); }
+      el.className = 'fk-owe' + (done ? ' done' : '');
+      el.innerHTML = '<div>' + txt(g) + '</div>' + (done ? '' : '<div class="bar"><i style="width:' + Math.min(100, Math.round(g / D.min * 100)) + '%"></i></div>');
+    }
+    // at the checkout, while the bag is under the minimum
+    if (D.checkout) {
+      var co = document.getElementById('fkOweCo'), main = document.querySelector('.wc-block-checkout__main, .wp-block-woocommerce-checkout-fields-block');
+      if (done || !g) { if (co) co.remove(); return; }
+      if (main) {
+        if (!co) { co = document.createElement('div'); co.id = 'fkOweCo'; co.className = 'fk-owe fk-owe-co'; main.insertBefore(co, main.firstChild); }
+        co.innerHTML = '<div>' + txt(g) + ' <a href="/mix-your-own/?bag=open">Add sweets</a></div><div class="bar"><i style="width:' + Math.min(100, Math.round(g / D.min * 100)) + '%"></i></div>';
+      }
+    }
+  }
+  window.addEventListener('fikabag', function () { setTimeout(draw, 0); });
+  window.addEventListener('storage', function (e) { if (e.key === 'fika_bag_v1') draw(); });
+  var tries = 0, t = setInterval(function () { draw(); if (++tries > 20) clearInterval(t); }, 500);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', draw); else draw();
+})();
+</script>
+	<?php
+}, 60 );
 
 // ---------- WP Admin > WooCommerce > Win-back emails ----------
 add_action( 'admin_menu', function () {
