@@ -649,21 +649,23 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$days  = max( 0, (int) round( ( strtotime( wp_date( 'Y-m-d', $expires ) ) - strtotime( wp_date( 'Y-m-d' ) ) ) / DAY_IN_SECONDS ) );
 		$left  = $days > 1 ? 'Only ' . $days . ' days left' : ( 1 === $days ? 'Only 1 day left' : 'Last day' );
 		$link  = add_query_arg( 'fika_coupon', rawurlencode( $code ), home_url( '/mix-your-own/' ) );
-		// members claim it straight away; everyone else joins Fika Club at checkout (free, 10 seconds) and claims it there
+		// members go straight to the shop; everyone else to the sign-up page (owner, 3 Nov 2026), the code remembered on
+		// the way (the ?fika_coupon handler keeps the #register part)
 		$member = fika_wb_is_member( $email );
 		$claim  = $member ? 'Claim my ' . $owe . ' store credit' : 'Join for free & claim my ' . $owe;
+		$go     = $member ? $link : add_query_arg( 'fika_coupon', rawurlencode( $code ), wc_get_page_permalink( 'myaccount' ) ) . '#register';
 		$body  =
 			// the personal line right under the IOU (the voucher picture is the heading)
 			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:27px;line-height:1.15;margin:2px 0 10px;">' . ( $name ? esc_html( $name ) . ', we put ' : 'We put ' ) . $owe . ' aside for you</div>' .
 			'<p style="text-align:center;">' . ( $member
 				? 'It is in your Fika Club account as store credit, on us. Spend it on anything you like.'
-				: 'It becomes your store credit the moment you join Fika Club: free, 10 seconds, right at checkout. Your earlier orders join too.' ) . '</p>' .
+				: 'It becomes your store credit the moment you join Fika Club. It is free and takes a minute, and your earlier orders join too.' ) . '</p>' .
 			'<p style="text-align:center;margin:0 !important;"><span style="' . $f . 'display:inline-block;padding:7px 16px;border-radius:999px;background:#fff4d9;border:1px solid #f2b84b;color:#8a5a00;font-size:14px;font-weight:600;">' . esc_html( $left ) . ' · ends ' . esc_html( wp_date( 'l', $expires ) ) . '</span></p>' .
-			fika_wb_button( $link, $claim ) .
-			fika_wb_claim( $email, $name, $member ? null : array( $link, $claim ) ) .
+			fika_wb_button( $go, $claim ) .
+			fika_wb_claim( $email, $name, $member ? null : array( $go, $claim ) ) .
 			fika_wb_ff_box( $link ) .
 			fika_wb_quote() .
-			fika_wb_button( $link, $claim ) .
+			fika_wb_button( $go, $claim ) .
 			fika_wb_small( $email );
 		$html = WC()->mailer()->wrap_message( 'We owe you ' . $owe, $body );
 		// the IOU voucher is the heading
@@ -691,6 +693,10 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$c->set_email_restrictions( array( $email ) );
 		$c->set_date_expires( $expires );
 		$c->set_description( $note . ' for ' . $email );
+		// the email's $5 also follows the account: once logged in (any phone or computer) it is found by email
+		$owed                         = (array) get_option( 'fika_wb_owed', array() );
+		$owed[ strtolower( $email ) ] = $code;
+		update_option( 'fika_wb_owed', $owed, false );
 		if ( $send ) {
 			$c->update_meta_data( '_fika_et_send', $send ); // an order with this code counts for this email (tracking)
 		}
@@ -744,13 +750,42 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		}
 		return WC()->cart->apply_coupon( $code );
 	}
-	// a code remembered from an email link (cookie fika_coupon, 14 days)
+	// a code remembered from an email link (cookie fika_coupon, 14 days), else the email-2 code owed to the logged-in
+	// customer's email (fika_wb_owed), so the $5 is there after signing up or logging in on another phone
 	function fika_wb_pending_code() {
-		return isset( $_COOKIE['fika_coupon'] ) ? wc_format_coupon_code( wp_unslash( $_COOKIE['fika_coupon'] ) ) : '';
+		if ( isset( $_COOKIE['fika_coupon'] ) && '' !== $_COOKIE['fika_coupon'] ) {
+			return wc_format_coupon_code( wp_unslash( $_COOKIE['fika_coupon'] ) );
+		}
+		if ( is_user_logged_in() ) {
+			$owed = (array) get_option( 'fika_wb_owed', array() );
+			$k    = strtolower( wp_get_current_user()->user_email );
+			return isset( $owed[ $k ] ) ? wc_format_coupon_code( $owed[ $k ] ) : '';
+		}
+		return '';
 	}
 	function fika_wb_forget_code() {
+		$code = fika_wb_pending_code();
 		wc_setcookie( 'fika_coupon', '', time() - HOUR_IN_SECONDS );
 		unset( $_COOKIE['fika_coupon'] );
+		$owed = (array) get_option( 'fika_wb_owed', array() );
+		$left = array_filter( $owed, function ( $c ) use ( $code ) {
+			return wc_format_coupon_code( $c ) !== $code;
+		} );
+		if ( count( $left ) !== count( $owed ) ) {
+			update_option( 'fika_wb_owed', $left, false );
+		}
+	}
+	// an email-2 code that can still be used: [ coupon, minimum ] or null
+	function fika_wb_owe_code( $code ) {
+		$c = $code ? new WC_Coupon( $code ) : null;
+		if ( ! $c || ! $c->get_id() || ! (float) $c->get_meta( '_fika_owe_min' ) ) {
+			return null;
+		}
+		$exp = $c->get_date_expires();
+		if ( ( $exp && $exp->getTimestamp() < time() ) || ( $c->get_usage_limit() && $c->get_usage_count() >= $c->get_usage_limit() ) ) {
+			return null;
+		}
+		return array( $c, (float) $c->get_meta( '_fika_owe_min' ) );
 	}
 	// what the sweets in the cart cost (the code's minimum is in dollars: $2.80 per 100 g)
 	function fika_wb_cart_value( $cart = null ) {
@@ -1027,13 +1062,19 @@ add_action( 'wp_footer', function () {
 	if ( is_admin() || ! function_exists( 'WC' ) ) {
 		return;
 	}
-	$code = fika_wb_pending_code();
-	$c    = $code ? new WC_Coupon( $code ) : null;
-	$min  = $c && $c->get_id() ? (float) $c->get_meta( '_fika_owe_min' ) : 0;
-	if ( $min <= 0 ) {
+	$owe = fika_wb_owe_code( fika_wb_pending_code() );
+	if ( ! $owe || ( function_exists( 'is_account_page' ) && is_account_page() ) ) {
 		return;
 	}
-	$d = array( 'amt' => fika_wb_money( $c->get_amount() ), 'min' => (int) round( $min / 0.028 ), 'checkout' => function_exists( 'is_checkout' ) && is_checkout(), 'member' => is_user_logged_in() );
+	list( $c, $min ) = $owe;
+	$d = array(
+		'amt'      => fika_wb_money( $c->get_amount() ),
+		'min'      => (int) round( $min / 0.028 ),
+		'checkout' => function_exists( 'is_checkout' ) && is_checkout(),
+		'member'   => is_user_logged_in(),
+		'join'     => wc_get_page_permalink( 'myaccount' ) . '#register',
+		'welcome'  => isset( $_GET['fika_owe'] ) && 'welcome' === $_GET['fika_owe'], // phpcs:ignore WordPress.Security.NonceVerification
+	);
 	?>
 <style id="fika-owe-css">
 .fk-owe { margin: 0 0 12px; padding: 10px 12px 11px; border-radius: 14px; background: #fdeaf2; border: 1.5px dashed #004aad; font-family: 'Outfit', Arial, sans-serif; color: #004aad; font-size: 14px; line-height: 1.35; text-align: left; }
@@ -1050,9 +1091,9 @@ add_action( 'wp_footer', function () {
   function grams() { var g = 0; try { var b = (JSON.parse(localStorage.getItem('fika_bag_v1') || '{}').bag) || {}; Object.keys(b).forEach(function (k) { g += +b[k] || 0; }); } catch (e) {} return g; }
   function more(g) { return D.min - g >= 1000 ? (Math.round((D.min - g) / 100) / 10) + ' kg' : (Math.ceil((D.min - g) / 100) * 100) + ' g'; }
   function txt(g) {
-    var join = D.checkout ? 'tick <b>Create a Fika Club account</b> below (free, 10 seconds)' : '<b>join Fika Club</b> at checkout (free, 10 seconds) or <a href="/my-account/">log in</a>';
-    if (!D.member) return 'We owe you <b>' + D.amt + '</b>: it is waiting in your Fika Club account. To claim it, ' + join + (g < D.min ? ', and add <b>' + more(g) + '</b> more.' : '.');
-    return g >= D.min ? '✓ We owe you ' + D.amt + ': it comes off at checkout.' : 'We owe you <b>' + D.amt + '</b>: add <b>' + more(g) + '</b> more and it comes off at checkout.';
+    if (!D.member) return 'We owe you <b>' + D.amt + '</b>: it is waiting for you in Fika Club. <a href="' + D.join + '">Create your free account</a> to claim it (your bag stays saved), or <a href="/my-account/#login">log in</a>.';
+    var hi = D.welcome ? '<b>Welcome to Fika Club!</b> ' : '';
+    return hi + (g >= D.min ? '✓ We owe you ' + D.amt + ': it comes off at checkout.' : 'We owe you <b>' + D.amt + '</b>: add <b>' + more(g) + '</b> more and it comes off at checkout.');
   }
   function draw() {
     var g = grams(), done = g >= D.min && D.member;
@@ -1062,7 +1103,7 @@ add_action( 'wp_footer', function () {
       var el = document.getElementById('fkOwe');
       if (!el) { el = document.createElement('div'); el.id = 'fkOwe'; el.className = 'fk-owe'; df.insertBefore(el, df.firstChild); }
       el.className = 'fk-owe' + (done ? ' done' : '');
-      el.innerHTML = '<div>' + txt(g) + '</div>' + (g < D.min ? '<div class="bar"><i style="width:' + Math.min(100, Math.round(g / D.min * 100)) + '%"></i></div>' : '');
+      el.innerHTML = '<div>' + txt(g) + '</div>' + (D.member && g < D.min ? '<div class="bar"><i style="width:' + Math.min(100, Math.round(g / D.min * 100)) + '%"></i></div>' : '');
     }
     // at the checkout, while the bag is under the minimum
     if (D.checkout) {
@@ -1070,7 +1111,7 @@ add_action( 'wp_footer', function () {
       if (done || (!g && D.member)) { if (co) co.remove(); return; }
       if (main) {
         if (!co) { co = document.createElement('div'); co.id = 'fkOweCo'; co.className = 'fk-owe fk-owe-co'; main.insertBefore(co, main.firstChild); }
-        co.innerHTML = '<div>' + txt(g) + (g < D.min ? ' <a href="/mix-your-own/?bag=open">Add sweets</a>' : '') + '</div>' + (g < D.min ? '<div class="bar"><i style="width:' + Math.min(100, Math.round(g / D.min * 100)) + '%"></i></div>' : '');
+        co.innerHTML = '<div>' + txt(g) + (D.member && g < D.min ? ' <a href="/mix-your-own/?bag=open">Add sweets</a>' : '') + '</div>' + (D.member && g < D.min ? '<div class="bar"><i style="width:' + Math.min(100, Math.round(g / D.min * 100)) + '%"></i></div>' : '');
       }
     }
   }
@@ -1232,3 +1273,66 @@ add_action( 'rest_api_init', function () {
 		return array( 'subject' => $subject, 'html' => apply_filters( 'woocommerce_mail_content', $e->style_inline( $html ) ) );
 	} ) );
 } );
+
+// email 2, people without an account: the button opens the sign-up page (owner, 3 Nov 2026). There: a banner about
+// the $5 and their email already filled in (the code only works for the email we wrote to). Signing up sends the
+// usual "confirm your email" link; tapping it logs them in and opens Mix your own with the bag and the $5 waiting
+// (instead of the home page). Logging in with an existing account goes there too.
+add_action( 'wp_footer', function () {
+	if ( is_user_logged_in() || ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+		return;
+	}
+	$owe = fika_wb_owe_code( fika_wb_pending_code() );
+	if ( ! $owe ) {
+		return;
+	}
+	list( $c ) = $owe;
+	$emails    = $c->get_email_restrictions();
+	$amt       = fika_wb_money( $c->get_amount() );
+	$exp       = $c->get_date_expires();
+	$until     = $exp ? wp_date( 'l', $exp->getTimestamp() ) : '';
+	$sent      = isset( $_GET['fika-check'] ) || isset( $_POST['register'] ); // phpcs:ignore WordPress.Security.NonceVerification
+	$msg       = $sent
+		? '<b>Last step for your ' . $amt . ':</b> tap the link we just emailed you. It logs you in, and your ' . $amt . ' is waiting in your bag.'
+		: '<b>We owe you ' . $amt . '.</b> Create your free Fika Club account below and it is yours' . ( $until ? ', until ' . $until . ' 11:59 pm' : '' ) . '. Your earlier orders join too. Already have one? Log in above.';
+	?>
+<style id="fika-owe-join-css">
+.fk-owe-join { margin: 0 0 18px; padding: 12px 14px; border-radius: 14px; background: #fdeaf2; border: 1.5px dashed #004aad; font-family: 'Outfit', Arial, sans-serif; color: #004aad; font-size: 15px; line-height: 1.4; }
+.fk-owe-join b { font-weight: 700; }
+</style>
+<script id="fika-owe-join-js">
+(function () {
+  var msg = <?php echo wp_json_encode( $msg ); ?>, email = <?php echo wp_json_encode( 1 === count( $emails ) ? $emails[0] : '' ); ?>;
+  function go() {
+    // at the top of the sign-up form (the #register link scrolls to it; on phones it sits below the log-in form)
+    var form = document.querySelector('form.woocommerce-form-register, form.register');
+    if (!form) return;
+    if (!document.getElementById('fkOweJoin')) {
+      var d = document.createElement('div'); d.id = 'fkOweJoin'; d.className = 'fk-owe-join'; d.innerHTML = msg;
+      form.parentNode.insertBefore(d, form);
+    }
+    var r = document.getElementById('reg_email');
+    if (r && !r.value && email) r.value = email;
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+})();
+</script>
+	<?php
+}, 61 );
+// after the "confirm your email" link (fika-accounts.php sends it to the home page with a welcome) and after logging
+// in: to Mix your own with the bag open, when an email-2 $5 is waiting
+add_filter( 'wp_redirect', function ( $to ) {
+	if ( false === strpos( (string) $to, 'fika-welcome=' ) || ! is_user_logged_in() || ! function_exists( 'fika_wb_owe_code' ) ) {
+		return $to;
+	}
+	return fika_wb_owe_code( fika_wb_pending_code() ) ? add_query_arg( array( 'bag' => 'open', 'fika_owe' => 'welcome' ), home_url( '/mix-your-own/' ) ) : $to;
+} );
+add_filter( 'woocommerce_login_redirect', function ( $to, $user ) {
+	if ( ! $user instanceof WP_User || user_can( $user, 'edit_posts' ) || ! function_exists( 'fika_wb_owe_code' ) ) {
+		return $to;
+	}
+	$owed = (array) get_option( 'fika_wb_owed', array() );
+	$k    = strtolower( $user->user_email );
+	$code = isset( $_COOKIE['fika_coupon'] ) && '' !== $_COOKIE['fika_coupon'] ? wc_format_coupon_code( wp_unslash( $_COOKIE['fika_coupon'] ) ) : ( isset( $owed[ $k ] ) ? $owed[ $k ] : '' );
+	return fika_wb_owe_code( $code ) ? add_query_arg( 'bag', 'open', home_url( '/mix-your-own/' ) ) : $to;
+}, 30, 2 );
