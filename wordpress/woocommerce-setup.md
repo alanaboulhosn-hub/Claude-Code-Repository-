@@ -2338,3 +2338,16 @@ choice). Snippet 91, fika-club.php (new):
 - Not tested (would place a real order): placing an order, the Order confirmed popup, order emails, order numbers.
 - Clean-up: test account (@example.com, id 226) deleted; test saved bags removed; all 82 snippets unchanged (code
   fingerprints before and after).
+
+## Retention analysis and win-back email 2 preview (2026-11-03)
+- Numbers (611 valid orders 16 Aug - 3 Nov, customers matched by email or phone, 509 customers): 14.5% ordered
+  twice or more; 29% of orders and 26% of revenue from returning customers; median 30 days from 1st to 2nd order;
+  about 10% reorder within 30 days, about 20% within 60 (August cohort). Old store: 358 customers, 32 came back on the
+  new site; win-back log: 13 old-store customers ordered again after email 1. Fika Club account holders reorder 30%,
+  guests 11%. Of the 326 old-store customers not back: all have email + phone, 312 got email 1, 50 already have
+  1.5-3 kg delivered (mystery taste reached), 5 over 3 kg.
+- Email 2 (personal code) is still off (email2 0). Prepared (snippet 35 NOT updated yet): fika_wb_claim() under the
+  code: "Already earned", the kilograms with Fika, the lane picture, the reward reached or next, "Create my account"
+  (members: next reward, "See my rewards"); nothing when no delivered order. Shown on the "Fika emails" artifact for
+  6 real customers (temporary route 236 with a renamed copy of the new code and a dummy code COMEBACK-PREVIEW, no
+  coupon created, trashed). Temporary read-only route 235 (win-back state) trashed.
