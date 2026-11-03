@@ -2382,3 +2382,9 @@ choice). Snippet 91, fika-club.php (new):
   three "sleep" messages popping in, the pink heart. It starts on the finished chat (Outlook on Windows shows only
   the first frame). Alt text has the messages. Not live yet (with the rest of email 2; picture to be uploaded to
   /2026/11/).
+- Owner: let it flick through the texts like the checkout. The GIF now plays 7 customers one after another (keys
+  sleep, ten, again, obsessed, loved, themm, delivery from fika_ct_messages): typing, messages, heart, a pause, fade,
+  next; n/7 counter; the card keeps the tallest conversation's height. 32 s loop, 505 KB, 64 colours with the brand
+  colours pinned; the heart drawn flat pink (the emoji turned muddy in a GIF). Starts on the first customer's
+  finished chat. Usage: node make-email-inbox.js <out> <fish.svg> <messages.json> sleep,ten,again,obsessed,loved,themm,delivery
+  then python3 make-email-inbox.py <out>.
