@@ -645,7 +645,6 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;margin:6px 0 10px;">Ten scoops of 100 g, or two Ready Mix bags.</div>' .
 			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.3;">Your next kilogram&nbsp; <span style="color:#8a96b3;font-size:20px;text-decoration:line-through;">' . fika_wb_money( $min ) . '</span>&nbsp; <span style="color:#004aad;font-size:30px;font-weight:700;">' . fika_wb_money( max( 0, $min - $amount ) ) . '</span></div>' .
 			'</td></tr></table>' .
-			'<p style="text-align:center;margin:14px 0 0 !important;color:#6c7b9c !important;font-size:13.5px !important;line-height:1.5 !important;">Fill your bag with 1 kg or more and your ' . $owe . ' comes off at checkout, all by itself. Your code ' . esc_html( $code ) . ' works once, for ' . esc_html( $email ) . ', and not together with other codes.</p>' .
 			fika_wb_claim( $email, $name ) .
 			fika_wb_ff_box( $link ) .
 			fika_wb_quote() .
