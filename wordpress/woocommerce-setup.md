@@ -2638,3 +2638,12 @@ choice). Snippet 91, fika-club.php (new):
 - 5 Nov 2026 00:41 Beirut, **live** (owner): Email 0 goes **3 days** after Completed (was 5): setting days 3 (window
   3: until 6 days after), code default and texts 3, snippets 35 and 287 redeployed (= git). Start stays 31 Oct 00:28.
   The 55 orders completed on 2 Nov become due during 5 Nov; batches 10:00-20:00, at most 20 a day. Route 292 trashed.
+- 5 Nov 2026: RT export of 5 Nov 00:46 (630 parcels) applied the same way (fika_rtd_apply: RT column + order note, no
+  emails; temporary admin-only endpoint, snippet 294, trashed). Every order re-checked against the dry run first
+  (46/46 unchanged). All matched by tracking. 29 status changes: 28 processing -> completed (#1587, #1590, #1609,
+  #1613, #1615, #1623, #1624, #1627, #1629, #1631, #1633, #1636, #1639, #1641, #1643, #1644, #1646-#1653, #1655-#1658;
+  completed time = export time), #1565 -> failed (RT: return received by merchant). RT step only on 17 open orders
+  (9 parcel created #1662-#1670, 3 at warehouse #1659-#1661, 3 return to warehouse #1628, #1630, #1654, 2 picked up by
+  driver #1637, #1645). Left alone: #1589 (cancelled on the website, RT: collected by pickup). Flagged: RT cash $22.40
+  vs order $27.40 on #1652; the same 2 parcels with no website order. The 28 newly completed orders get Email 0
+  3 days after this (from 8 Nov), within its daily limit.
