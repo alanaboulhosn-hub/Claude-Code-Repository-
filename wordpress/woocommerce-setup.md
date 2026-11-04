@@ -2447,3 +2447,11 @@ choice). Snippet 91, fika-club.php (new):
   (MutationObserver on #mxSub; Mix your own page itself unchanged). Strip: "✓ Your $5 store credit is taken off your
   total." At the checkout (blocks) the discount line is labelled "Fika store credit" instead of the code
   (registerCheckoutFilters 'coupons'); to check in the live test.
+- 4 Nov 2026, **live**: snippet 35 updated to the git version (owner: "yes, deploy it"; checked = 6a8292a before;
+  saved inactive, then activated; matches git). Media 1349 /2026/11/fika-email-owe-voucher2.png. Settings: valid_days
+  2, owe_min 0; email 2 stays **off** for customers (email2 = 0); mode live (email 1 as before).
+  Test: one email 2 sent to alan.aboulhosn@gmail.com (owner's address; no account, no orders, not in the win-back
+  list), subject "[Test] Alan, we owe you $5 🍬", code IOU5-LAEZ1V (note "TEST (Claude email 2 test) - safe to
+  delete"), tracking send wb2.atsduxhl. Temporary routes 246/247 trashed. Checked live on phone and desktop: no
+  errors; the link opens the sign-up form with the box and the email filled in. To delete after the owner's test:
+  the code, its fika_wb_owed entry, the test send/clicks, option fika_tmp_wb2test_sent (and the account if not kept).
