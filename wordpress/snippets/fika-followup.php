@@ -11,7 +11,7 @@
  *   win-back emails and these together reached 70 in 24 hours (the hello@ mailbox sends about 100 a day, order
  *   emails included).
  * - The email (owner, 4 Nov 2026: no feedback questions, "a very heart warming follow-up, adding value to the
- *   customer"): "Name, we hope your sweets made you smile", a personal note around the Swedish saying "Delad glädje är
+ *   customer"): "Name, we hope your sweets made you smile", a personal note around a Swedish saying, a different one for each of the customer's orders (fika_fu_quotes: "Delad glädje är
  *   dubbel glädje" (shared joy is double joy), "Swedish tips": how to keep the sweets soft and fresh,
  *   and the Swedish tradition lördagsgodis (Saturday sweets), what they picked (photos and weights), a thank-you and the unsubscribe
  *   link (no P.S., owner 4 Nov 2026). Same look as the order and win-back emails. Nothing on the website.
@@ -46,6 +46,26 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 			$n += preg_match( '/^(Sent|Not sent)/', $l['what'] ) ? 1 : 0;
 		}
 		return $n;
+	}
+	// Swedish sayings for the pink box (owner, 4 Nov 2026: a new one for each order of the same customer):
+	// [ Swedish, English ]
+	function fika_fu_quotes() {
+		return array(
+			array( 'Delad glädje är dubbel glädje.', 'Shared joy is double joy.' ),
+			array( 'Den som väntar på något gott väntar aldrig för länge.', 'Whoever waits for something good never waits too long.' ),
+			array( 'Liten men naggande god.', 'Small, but oh so good.' ),
+			array( 'Borta bra men hemma bäst.', 'Away is nice, but home is best.' ),
+			array( 'Lagom är bäst.', 'Just the right amount is best.' ),
+			array( 'Ingen ko på isen.', 'No cow on the ice: nothing to worry about.' ),
+		);
+	}
+	// the saying for this order: the customer's first email 0 gets the first, their next one the next, and so on
+	// (counted from their earlier orders that had email 0; after the last saying it starts again)
+	function fika_fu_quote_for( $order ) {
+		$q    = fika_fu_quotes();
+		$prev = wc_get_orders( array( 'limit' => -1, 'return' => 'ids', 'type' => 'shop_order', 'billing_email' => (string) $order->get_billing_email(), 'meta_query' => array( array( 'key' => '_fika_fu', 'compare' => 'EXISTS' ) ) ) );
+		$n    = count( array_diff( array_map( 'intval', (array) $prev ), array( (int) $order->get_id() ) ) );
+		return $q[ $n % count( $q ) ];
 	}
 	function fika_fu_skip( $email ) {
 		if ( ! is_email( $email ) || preg_match( '/@example\.(com|org|net)$/i', $email ) ) {
@@ -97,6 +117,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 		$email = strtolower( (string) $order->get_billing_email() );
 		$name  = function_exists( 'fika_wb_first_name' ) ? fika_wb_first_name( $order->get_billing_first_name() ) : $order->get_billing_first_name();
 		$strip = home_url( '/wp-content/uploads/2026/11/fika-email-owe-kilo.png' ); // ten cartoon candies, see-through
+		$quote = fika_fu_quote_for( $order );
 		$items = '';
 		foreach ( array_slice( fika_fu_items( $order ), 0, 8 ) as $row ) {
 			$items .= '<tr>' .
@@ -114,8 +135,8 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 			'<p style="text-align:center;">we hope your sweets brought a little extra joy to your week. Maybe they waited in a bowl on the table, maybe they were gone before the bag was even unpacked, or maybe you shared them with the people you love most.</p>' .
 			'<div style="margin:18px 0 18px;padding:18px 16px 16px;border-radius:20px;background:#fdeaf2;text-align:center;">' .
 				'<div style="' . $f . 'color:#d35d93;font-size:12px;letter-spacing:.14em;text-transform:uppercase;">In Sweden we say</div>' .
-				'<div style="font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-style:italic;color:#004aad;font-size:24px;line-height:1.3;margin:8px 0 6px;">&ldquo;Delad glädje är dubbel glädje.&rdquo;</div>' .
-				'<div style="' . $serif . 'color:#1b2a4a;font-size:17px;">Shared joy is double joy.</div>' .
+				'<div style="font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-style:italic;color:#004aad;font-size:24px;line-height:1.3;margin:8px 0 6px;">&ldquo;' . esc_html( $quote[0] ) . '&rdquo;</div>' .
+				'<div style="' . $serif . 'color:#1b2a4a;font-size:17px;">' . esc_html( $quote[1] ) . '</div>' .
 			'</div>' .
 			'<p style="text-align:center;">That is what fika is about: slowing down, and sharing something sweet with the people around you. We hope your bag did just that, and that every piece tasted like a little trip to Sweden.</p>' .
 			// a little something for them (owner, 4 Nov 2026: "adding value to the customer")
@@ -136,7 +157,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:21px;line-height:1.3;margin:10px 0 0;">With love,<br>the Fika family</div>' .
 			( function_exists( 'fika_wb_small' ) ? fika_wb_small( $email ) : '' );
 		$html = WC()->mailer()->wrap_message( $name ? $name . ', we hope your sweets made you smile' : 'We hope your sweets made you smile', $body );
-		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( 'Delad glädje är dubbel glädje: shared joy is double joy. A little note from all of us at Fika.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
+		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( rtrim( $quote[0], '.' ) . ': ' . lcfirst( rtrim( $quote[1], '.' ) ) . '. A little note from all of us at Fika.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
 		$html = preg_replace( '/(<body[^>]*>)/i', '$1' . $pre, $html, 1 );
 		return array( ( $name ? $name . ', we' : 'We' ) . ' hope your sweets made you smile 🍬', $html );
 	}
