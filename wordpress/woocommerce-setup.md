@@ -2619,3 +2619,9 @@ choice). Snippet 91, fika-club.php (new):
   git. Bag reminder preview renders. Note: a check route calling fika_src_of (admin-only) gave a REST "critical
   error" for that request only; route deleted, every snippet still active, site 200. Email results before: wb2 20
   sent, 1 click; wb1 and bag 0 (email 1 tagged since today's deploy, bag from now).
+- 4 Nov (git only): Email 0's saying changes with each order of the same customer (owner): fika_fu_quotes() has six
+  real Swedish sayings (Delad glädje är dubbel glädje / Den som väntar på något gott väntar aldrig för länge / Liten men
+  naggande god / Borta bra men hemma bäst / Lagom är bäst / Ingen ko på isen), each with its English line, same box;
+  fika_fu_quote_for() counts the customer's earlier orders with email 0 (_fika_fu, same billing email, this order left
+  out) and takes the next one, starting again after the sixth. The preheader follows the saying. Six versions in the
+  "Fika emails" artifact (route 286, trashed).
