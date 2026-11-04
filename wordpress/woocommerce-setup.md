@@ -2466,5 +2466,5 @@ choice). Snippet 91, fika-club.php (new):
   credit" / "Join for free & claim my $5". Progress: members "Move my fish forward" (0 kg: "Start my lane"), to the
   shop; non-members "Unlock my free mystery taste" / "Unlock my free sweets" (reward reached), "Save my 0.9 kg & claim
   $5", 0 kg "Start my lane & claim my $5", to the sign-up page. Fan Favourites: "Get it for $9" (members, to Ready Mix
-  with the code) / "Join for free & get it for $9" ($14 bag less the $5). Inbox: "Try them, $5 on us" / "Join & try
+  with the code) / "Join for free & get it for $9" ($14 bag less the $5). Inbox: "Get obsessed too" / "Join & get obsessed too" (was "Try them, $5 on us" / "Join & try
   them, $5 on us". All one line on phones (360/390 px). Previews rendered with temporary route 250 (trashed).
