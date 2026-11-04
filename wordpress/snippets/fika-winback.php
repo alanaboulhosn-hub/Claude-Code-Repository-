@@ -1337,3 +1337,30 @@ add_filter( 'woocommerce_login_redirect', function ( $to, $user ) {
 	$code = isset( $_COOKIE['fika_coupon'] ) && '' !== $_COOKIE['fika_coupon'] ? wc_format_coupon_code( wp_unslash( $_COOKIE['fika_coupon'] ) ) : ( isset( $owed[ $k ] ) ? $owed[ $k ] : '' );
 	return fika_wb_owe_code( $code ) ? add_query_arg( 'bag', 'open', home_url( '/mix-your-own/' ) ) : $to;
 }, 30, 2 );
+// email 2: signing up from the email's button, with the email we wrote to, needs no "confirm your email" step: the
+// link came to that inbox, which is the proof (owner, 4 Nov 2026). The email counts as confirmed (earlier orders
+// join, as with the confirmation link), the customer is logged in and goes straight to Mix your own with the bag and
+// the $5. Anyone else signing up (no email-2 link, or another email) still gets the confirmation email.
+add_action( 'woocommerce_created_customer', function ( $uid ) {
+	if ( ! isset( $_POST['register'] ) || ! function_exists( 'fika_link_past_orders' ) || empty( $_COOKIE['fika_coupon'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		return;
+	}
+	$owe = fika_wb_owe_code( wc_format_coupon_code( wp_unslash( $_COOKIE['fika_coupon'] ) ) );
+	$u   = get_userdata( $uid );
+	if ( ! $owe || ! $u || ! in_array( strtolower( $u->user_email ), array_map( 'strtolower', $owe[0]->get_email_restrictions() ), true ) ) {
+		return;
+	}
+	fika_link_past_orders( $uid ); // marks the email confirmed, joins earlier orders, updates totals and rewards
+	update_user_meta( $uid, 'fika_joined_from', 'winback-2' );
+	$GLOBALS['fika_wb_signed_up'] = (int) $uid;
+}, 25 ); // after the name and phone (20), before the confirmation email (30), which then is not sent
+add_filter( 'woocommerce_registration_auth_new_customer', function ( $auth, $uid ) {
+	return ( ! empty( $GLOBALS['fika_wb_signed_up'] ) && (int) $GLOBALS['fika_wb_signed_up'] === (int) $uid ) ? true : $auth;
+}, 20, 2 );
+add_filter( 'woocommerce_add_success', function ( $msg ) {
+	// no "Almost there! Check your email" for them
+	return ( ! empty( $GLOBALS['fika_wb_signed_up'] ) && preg_match( '/Almost there|account was created/i', wp_strip_all_tags( (string) $msg ) ) ) ? '' : $msg;
+}, 20 );
+add_filter( 'woocommerce_registration_redirect', function ( $to ) {
+	return empty( $GLOBALS['fika_wb_signed_up'] ) ? $to : add_query_arg( array( 'bag' => 'open', 'fika_owe' => 'welcome' ), home_url( '/mix-your-own/' ) );
+}, 99 );
