@@ -1115,6 +1115,8 @@ add_action( 'wp_footer', function () {
 		'min'      => (int) round( $min / 0.028 ),
 		'checkout' => function_exists( 'is_checkout' ) && is_checkout(),
 		'member'   => is_user_logged_in(),
+		// the code's email already has an account (a member who is logged out on this phone): "log in", not "join"
+		'account'  => (bool) array_filter( array_map( function ( $e ) { return get_user_by( 'email', $e ); }, $c->get_email_restrictions() ) ),
 		'join'     => wc_get_page_permalink( 'myaccount' ) . '#register',
 		'welcome'  => isset( $_GET['fika_owe'] ) && 'welcome' === $_GET['fika_owe'], // phpcs:ignore WordPress.Security.NonceVerification
 	);
@@ -1135,6 +1137,7 @@ add_action( 'wp_footer', function () {
   function grams() { var g = 0; try { var b = (JSON.parse(localStorage.getItem('fika_bag_v1') || '{}').bag) || {}; Object.keys(b).forEach(function (k) { g += +b[k] || 0; }); } catch (e) {} return g; }
   function more(g) { return D.min - g >= 1000 ? (Math.round((D.min - g) / 100) / 10) + ' kg' : (Math.ceil((D.min - g) / 100) * 100) + ' g'; }
   function txt(g) {
+    if (!D.member && D.account) return 'We owe you <b>' + D.amt + '</b>: it is waiting in your Fika Club account. <a href="/my-account/#login">Log in</a> to use it (your bag stays saved).';
     if (!D.member) return 'We owe you <b>' + D.amt + '</b>: it is waiting for you in Fika Club. <a href="' + D.join + '">Create your free account</a> to claim it (your bag stays saved), or <a href="/my-account/#login">log in</a>.';
     var hi = D.welcome ? '<b>Welcome to Fika Club!</b> ' : '';
     if (!g) return hi + 'We owe you <b>' + D.amt + '</b>: add any sweets and it comes off at checkout.';
@@ -1184,6 +1187,20 @@ add_action( 'wp_footer', function () {
       } });
     }
   } catch (e) {}
+  // the checkout shows the code ("iou5-k3x9p2") as the discount's name, and the filter above is not always taken up:
+  // the words on the page are changed too (the chip, its screen-reader text, the coupon list), whenever it redraws
+  if (D.checkout && window.MutationObserver) {
+    var fix = function () {
+      [].forEach.call(document.querySelectorAll('.wc-block-components-totals-discount *, .wc-block-components-order-summary *, .wc-block-components-chip *'), function (n) {
+        if (n.children.length) return;
+        var t = n.textContent || '';
+        if (/^\s*iou\d+-[a-z0-9]+\s*$/i.test(t)) n.textContent = 'Fika store credit';
+        else if (/^\s*Coupon: iou\d+-[a-z0-9]+\s*$/i.test(t)) n.textContent = 'Coupon: Fika store credit';
+      });
+    };
+    new MutationObserver(fix).observe(document.body, { childList: true, subtree: true, characterData: true });
+    fix();
+  }
   // the bag rewrites its subtotal on every change (also without a fikabag event): follow it
   (function watch(n) {
     var sub = document.getElementById('mxSub');
