@@ -2511,3 +2511,9 @@ choice). Snippet 91, fika-club.php (new):
     Favourites -> Ready Mix with the bag in, $9.00, checkout Total $9.00, discount labelled "Fika store credit" (fixed:
     it showed the code; the checkout filter was not taken up, the page words are changed now). Clicks recorded per button.
   - Cleaned: 2 test accounts, 2 codes, 27 test clicks, 2 test saved bags; temporary route 261 trashed. Snippet 35 = git.
+- 4 Nov 2026 18:29 Beirut: **email 2 switched on** (owner). Test addresses alan.aboulhosn@gmail.com and
+  alan.aboul@gmail.com unsubscribed (fika_marketing_stop, as the email's link). Leftover test codes IOU5-MN6FTQ and
+  IOU5-IODXFZ (unused) deleted, the others were gone; owner's test sends/clicks (5 sends, 4 clicks) removed from the
+  email results; fika_tmp_* options deleted. Settings: live, email2 1, $5, no minimum, valid 2 days, email 1 after
+  30 days, email 2 7 days after email 1. Due at switch-on: email 1: 3, email 2: 242 (50 a day, 10:00-20:00 Beirut).
+  First batch planned 18:31. Temporary route 262 trashed.
