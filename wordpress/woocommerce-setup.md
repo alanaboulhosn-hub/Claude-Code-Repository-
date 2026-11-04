@@ -2497,3 +2497,17 @@ choice). Snippet 91, fika-club.php (new):
 - 4 Nov, live setting (owner): email 1's four candies (win-back setting "products") now 118 Fruity Lemon Mix Skulls,
   **110 BUBS Banana Toffee Ovals** (was 121 Forest Berry Ovals, out of stock), 120 Bubblegum Skull, 107 Raspberry
   Salty Licorice Skulls. Done with temporary route 260 (trashed); email 1 rendered from the live code to check.
+- 4 Nov 2026, full check before going live (owner: "no mistakes"), live:
+  - Who gets email 2: only people who got email 1 and have not ordered since, **7 days** after email 1 (setting
+    second_days 7, was 14; default 7). Fixed: an order no longer clears the win-back record at checkout (a cancelled or
+    failed order would have made the customer due for email 1 again, the same email twice); the record restarts by
+    itself once an order counts (processing, completed, on hold, undelivered).
+  - At switch-on: 317 people got email 1 and have not ordered; 242 of them are due email 2 at once (50 a day with
+    email 1, so about 5 days).
+  - End-to-end on the live shop with member-e2e@ / guest-e2e@example.com (phone browser, Meta blocked, no order):
+    content per version right; every non-member link -> sign-up form with box and email; sign-up -> logged in at once,
+    confirmed, joined_from winback-2, Mix your own "Welcome to Fika Club!", bag −$5, checkout −$5; member: logged out
+    -> "Log in to use it" (fixed: it said "Create your free account"), log in -> Mix your own, every link right, Fan
+    Favourites -> Ready Mix with the bag in, $9.00, checkout Total $9.00, discount labelled "Fika store credit" (fixed:
+    it showed the code; the checkout filter was not taken up, the page words are changed now). Clicks recorded per button.
+  - Cleaned: 2 test accounts, 2 codes, 27 test clicks, 2 test saved bags; temporary route 261 trashed. Snippet 35 = git.
