@@ -13,8 +13,9 @@
  * - The email: "How were your sweets?", a warm note with the day it arrived, three answers to tap (Loved them /
  *   Pretty good / Not quite), what they picked (photos and weights), a thank-you, a P.S. to pick the next mix,
  *   and the unsubscribe link. Same look as the order and win-back emails (fika-emails.php, fika-winback.php).
- * - The answer: the tap opens the home page with a small Fika card, the answer chosen and a box for a few words
- *   ("Send"). Opening the link saves nothing (mail scanners open links); sending does. The answer goes on the order
+ * - The answer: the tap opens the home page with a Fika card: the answer chosen, then a few quick questions, all optional
+ *   (4 Nov 2026): 1-5 stars for the sweets, delivery, packing and value for money, their favourite candy from that
+ *   order, "Would you order from Fika again?" (yes / maybe / probably not) and a box for a few words ("Send"). Opening the link saves nothing (mail scanners open links); sending does. The answer goes on the order
  *   (meta _fika_fb, an order note) and on WooCommerce > Delivery follow-up. The thank-you card fits the answer:
  *   loved -> Instagram and the next mix, good -> the next mix, not quite -> WhatsApp, to make it right.
  * - Tracking (fika-email-tracking.php, kind "fu"): clicks and orders show in WooCommerce > Email results.
@@ -53,11 +54,36 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 	function fika_fu_sig( $order_id ) {
 		return substr( wp_hash( 'fika-fb|' . (int) $order_id ), 0, 16 );
 	}
-	function fika_fu_link( $order_id, $r ) {
-		return add_query_arg( array( 'fika_fb' => (int) $order_id . '.' . fika_fu_sig( $order_id ), 'r' => (int) $r ), home_url( '/' ) );
+	// $preview: an admin preview's links (the card works, nothing is saved on the order)
+	function fika_fu_link( $order_id, $r, $preview = false ) {
+		return add_query_arg( array_merge( array( 'fika_fb' => (int) $order_id . '.' . fika_fu_sig( $order_id ), 'r' => (int) $r ), $preview ? array( 'fika_fb_test' => 1 ) : array() ), home_url( '/' ) );
 	}
 	function fika_fu_answers() {
 		return array( 3 => array( '😍', 'Loved them' ), 2 => array( '🙂', 'Pretty good' ), 1 => array( '😕', 'Not quite' ) );
+	}
+	// the quick questions on the answer card (owner, 4 Nov 2026: "a more detailed feedback segment"): 1-5 stars each
+	function fika_fu_aspects() {
+		return array(
+			'taste'    => array( 'The sweets', 'taste and freshness' ),
+			'delivery' => array( 'Delivery', 'time and the rider' ),
+			'packing'  => array( 'Packing', 'arrived in good shape' ),
+			'value'    => array( 'Value for money', '' ),
+		);
+	}
+	function fika_fu_again() {
+		return array( 'yes' => 'Yes, for sure', 'maybe' => 'Maybe', 'no' => 'Probably not' );
+	}
+	// the candies of the order, to pick a favourite from (names as on the order, the mystery taste left out)
+	function fika_fu_fav_options( $order ) {
+		$out = array();
+		foreach ( $order->get_items() as $it ) {
+			if ( '' !== (string) $it->get_meta( 'Mystery taste' ) ) {
+				continue;
+			}
+			$n = html_entity_decode( $it->get_name() );
+			$out[ $n ] = $n;
+		}
+		return array_values( $out );
 	}
 	// the order behind a signed answer link, or null
 	function fika_fu_order_from( $raw ) {
@@ -113,7 +139,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 		return $rows;
 	}
 	// the email: [ subject, html ]
-	function fika_fu_email( $order ) {
+	function fika_fu_email( $order, $preview = false ) {
 		$f     = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
 		$serif = 'font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-variant:small-caps;font-weight:400;';
 		$email = strtolower( (string) $order->get_billing_email() );
@@ -123,7 +149,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 		$cells = '';
 		foreach ( fika_fu_answers() as $r => $a ) {
 			$cells .= '<td align="center" width="33%" valign="top" style="padding:0 4px;text-align:center;vertical-align:top;">' .
-				'<a href="' . esc_url( fika_fu_link( $order->get_id(), $r ) ) . '" style="' . $f . 'display:block;height:84px;padding:14px 4px 0;border-radius:20px;background:#fdeaf2;border:2px solid #f3b7cf;color:#004aad;text-decoration:none;">' .
+				'<a href="' . esc_url( fika_fu_link( $order->get_id(), $r, $preview ) ) . '" style="' . $f . 'display:block;height:84px;padding:14px 4px 0;border-radius:20px;background:#fdeaf2;border:2px solid #f3b7cf;color:#004aad;text-decoration:none;">' .
 				'<span style="display:block;font-size:34px;line-height:1.1;">' . $a[0] . '</span>' .
 				'<span style="display:block;margin-top:6px;font-size:13.5px;font-weight:600;line-height:1.25;color:#004aad;white-space:nowrap;">' . esc_html( $a[1] ) . '</span></a></td>';
 		}
@@ -151,7 +177,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 			'<p style="text-align:center;">Every bag is weighed and packed by hand, so it would mean a lot to us to hear how yours was.</p>' .
 			$div( 'fb', 'Tap one' ) .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 4px;"><tr>' . $cells . '</tr></table>' .
-			'<div style="' . $f . 'text-align:center;color:#6c7b9c;font-size:13px;margin:8px 0 0;">One tap, and a few words if you like. We read every answer.</div>' .
+			'<div style="' . $f . 'text-align:center;color:#6c7b9c;font-size:13px;margin:8px 0 0;">One tap, then a few quick questions (about 30 seconds). We read every answer.</div>' .
 			( $items ? $div( 'items', 'What you picked' ) . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:12px 0 0;">' . $items . '</table>' : '' ) .
 			$div( 'thanks', '' ) .
 			'<div style="' . $f . 'text-align:center;color:#1b2a4a;font-size:15.5px;line-height:1.6;margin:6px 0 0;">Thank you for choosing Fika. It truly means the world to us.</div>' .
@@ -253,15 +279,36 @@ add_action( 'template_redirect', function () {
 		wp_safe_redirect( home_url( '/' ) );
 		exit;
 	}
-	$text = isset( $_POST['fika_text'] ) ? sanitize_textarea_field( wp_unslash( $_POST['fika_text'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
-	$text = mb_substr( $text, 0, 1000 );
+	if ( ! empty( $_GET['fika_fb_test'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		// an admin preview: the thank-you card, nothing saved on the (real) order behind the preview
+		wp_safe_redirect( add_query_arg( array( 'fika_fb_done' => $r, 'n' => rawurlencode( 'Preview' ) ), home_url( '/' ) ) );
+		exit;
+	}
+	// phpcs:disable WordPress.Security.NonceVerification
+	$text  = isset( $_POST['fika_text'] ) ? mb_substr( sanitize_textarea_field( wp_unslash( $_POST['fika_text'] ) ), 0, 1000 ) : '';
+	$stars = array();
+	foreach ( fika_fu_aspects() as $k => $x ) {
+		$v = isset( $_POST['fika_s'][ $k ] ) ? absint( $_POST['fika_s'][ $k ] ) : 0;
+		if ( $v >= 1 && $v <= 5 ) {
+			$stars[ $k ] = $v;
+		}
+	}
+	$fav   = isset( $_POST['fika_fav'] ) ? sanitize_text_field( wp_unslash( $_POST['fika_fav'] ) ) : '';
+	$fav   = in_array( $fav, fika_fu_fav_options( $o ), true ) ? $fav : '';
+	$again = isset( $_POST['fika_again'] ) ? sanitize_key( $_POST['fika_again'] ) : '';
+	$again = isset( fika_fu_again()[ $again ] ) ? $again : '';
+	// phpcs:enable
 	$prev = $o->get_meta( '_fika_fb' );
-	$o->update_meta_data( '_fika_fb', array( 'r' => $r, 'text' => $text, 't' => time() ) );
-	$o->add_order_note( 'Customer answer (delivery follow-up): ' . $a[ $r ][0] . ' ' . $a[ $r ][1] . ( '' !== $text ? ' — "' . $text . '"' : '' ) . ( $prev ? ' (changed their answer)' : '' ) );
+	$o->update_meta_data( '_fika_fb', array( 'r' => $r, 's' => $stars, 'fav' => $fav, 'again' => $again, 'text' => $text, 't' => time() ) );
+	$bits = array();
+	foreach ( $stars as $k => $v ) {
+		$bits[] = fika_fu_aspects()[ $k ][0] . ' ' . $v . '/5';
+	}
+	$o->add_order_note( 'Customer answer (delivery follow-up): ' . $a[ $r ][0] . ' ' . $a[ $r ][1] . ( $bits ? '. ' . implode( ', ', $bits ) : '' ) . ( '' !== $fav ? '. Favourite: ' . $fav : '' ) . ( '' !== $again ? '. Order again: ' . fika_fu_again()[ $again ] : '' ) . ( '' !== $text ? '. "' . $text . '"' : '' ) . ( $prev ? ' (changed their answer)' : '' ) );
 	$o->save();
 	$all = (array) get_option( 'fika_fu_feedback', array() );
 	$all = array_values( array_filter( $all, function ( $x ) use ( $o ) { return (int) $x['order'] !== (int) $o->get_id(); } ) );
-	array_unshift( $all, array( 'order' => $o->get_id(), 'num' => $o->get_order_number(), 'name' => $o->get_billing_first_name(), 'r' => $r, 'text' => $text, 't' => time() ) );
+	array_unshift( $all, array( 'order' => $o->get_id(), 'num' => $o->get_order_number(), 'name' => $o->get_billing_first_name(), 'r' => $r, 's' => $stars, 'fav' => $fav, 'again' => $again, 'text' => $text, 't' => time() ) );
 	update_option( 'fika_fu_feedback', array_slice( $all, 0, 500 ), false );
 	$name = function_exists( 'fika_wb_first_name' ) ? fika_wb_first_name( $o->get_billing_first_name() ) : '';
 	wp_safe_redirect( add_query_arg( array( 'fika_fb_done' => $r, 'n' => rawurlencode( $name ) ), home_url( '/' ) ) );
@@ -283,13 +330,34 @@ add_action( 'wp_footer', function () {
 		foreach ( $a as $k => $x ) {
 			$opts .= '<label class="fkf-opt"><input type="radio" name="fika_r" value="' . (int) $k . '"' . checked( $r, $k, false ) . '><span><i>' . $x[0] . '</i>' . esc_html( $x[1] ) . '</span></label>';
 		}
+		// a few quick questions, all optional but the first (owner, 4 Nov 2026)
+		$rows = '';
+		foreach ( fika_fu_aspects() as $k => $x ) {
+			$st = '';
+			for ( $i = 1; $i <= 5; $i++ ) {
+				$st .= '<label class="fkf-star"><input type="radio" name="fika_s[' . esc_attr( $k ) . ']" value="' . $i . '" aria-label="' . esc_attr( $x[0] . ': ' . $i . ' of 5' ) . '"><span>★</span></label>';
+			}
+			$rows .= '<div class="fkf-row"><div class="fkf-lab">' . esc_html( $x[0] ) . ( $x[1] ? '<small>' . esc_html( $x[1] ) . '</small>' : '' ) . '</div><div class="fkf-stars" data-k="' . esc_attr( $k ) . '">' . $st . '</div></div>';
+		}
+		$favs = '';
+		foreach ( fika_fu_fav_options( $ask ) as $n ) {
+			$favs .= '<label class="fkf-chip"><input type="radio" name="fika_fav" value="' . esc_attr( $n ) . '"><span>' . esc_html( $n ) . '</span></label>';
+		}
+		$again = '';
+		foreach ( fika_fu_again() as $k => $x ) {
+			$again .= '<label class="fkf-chip"><input type="radio" name="fika_again" value="' . esc_attr( $k ) . '"><span>' . esc_html( $x ) . '</span></label>';
+		}
 		$card = '<form class="fkf-card" method="post" action="' . esc_url( add_query_arg( null, null ) ) . '">' .
 			'<button class="fkf-x" type="button" aria-label="Close">×</button>' .
 			'<h2 class="fkf-h">' . ( $name ? esc_html( $name ) . ', how were your sweets?' : 'How were your sweets?' ) . '</h2>' .
 			'<div class="fkf-opts">' . $opts . '</div>' .
-			'<textarea name="fika_text" rows="3" maxlength="1000" placeholder="A few words, if you like (what you loved, what we can do better)"></textarea>' .
+			'<div class="fkf-sec">A few quick stars <em>(optional)</em></div>' . $rows .
+			( $favs ? '<div class="fkf-sec">Your favourite this time</div><div class="fkf-chips">' . $favs . '</div>' : '' ) .
+			'<div class="fkf-sec">Would you order from Fika again?</div><div class="fkf-chips">' . $again . '</div>' .
+			'<div class="fkf-sec">Anything else?</div>' .
+			'<textarea name="fika_text" rows="3" maxlength="1000" placeholder="What you loved, what we can do better, a candy you miss…"></textarea>' .
 			'<button class="fkf-go" type="submit">Send</button>' .
-			'<p class="fkf-small">Your answer goes straight to the Fika team.</p></form>';
+			'<p class="fkf-small">' . ( ! empty( $_GET['fika_fb_test'] ) ? 'Preview: nothing you send here is saved.' : 'About 30 seconds. Your answers go straight to the Fika team.' ) . '</p></form>'; // phpcs:ignore WordPress.Security.NonceVerification
 	} else {
 		$wa   = 'https://wa.me/96179411565';
 		$who  = $name ? ', ' . esc_html( $name ) : '';
@@ -318,6 +386,20 @@ add_action( 'wp_footer', function () {
 .fkf-opt span i { display: block; font-style: normal; font-size: 32px; line-height: 1.15; margin-bottom: 4px; }
 .fkf-opt input:checked + span { background: #004aad; border-color: #004aad; color: #fff; transform: translateY(-2px); }
 .fkf-opt input:focus-visible + span { outline: 3px solid #f5b3cf; }
+.fkf-sec { margin: 18px 0 8px; color: #d35d93; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; text-align: left; }
+.fkf-sec em { font-style: normal; color: #6c7b9c; letter-spacing: .04em; text-transform: none; font-weight: 400; }
+.fkf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid #f3dbe6; text-align: left; }
+.fkf-lab { font-size: 15px; font-weight: 600; color: #004aad; line-height: 1.2; }
+.fkf-lab small { display: block; font-size: 12.5px; font-weight: 400; color: #6c7b9c; }
+.fkf-stars { display: flex; flex-shrink: 0; }
+.fkf-star input, .fkf-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.fkf-star span { display: block; padding: 0 2px; font-size: 27px; line-height: 1; color: #e3d5dc; cursor: pointer; transition: transform .12s, color .12s; }
+.fkf-star.on span { color: #f2b84b; }
+.fkf-star input:focus-visible + span { outline: 2px solid #f5b3cf; border-radius: 6px; }
+.fkf-chips { display: flex; flex-wrap: wrap; gap: 7px; text-align: left; }
+.fkf-chip span { display: inline-block; padding: 7px 13px; border: 1.5px solid #c9d5ea; border-radius: 999px; background: #fff; color: #004aad; font-size: 14px; font-weight: 600; cursor: pointer; }
+.fkf-chip input:checked + span { background: #004aad; border-color: #004aad; color: #fff; }
+.fkf-chip input:focus-visible + span { outline: 2px solid #f5b3cf; }
 .fkf-card textarea { width: 100%; min-height: 84px; padding: 12px 14px; border: 1.5px solid #c9d5ea; border-radius: 16px; font: 15px/1.4 'Outfit', Arial, sans-serif; color: #1b2a4a; resize: vertical; margin: 0 0 14px; }
 .fkf-go { display: block; width: 100%; padding: 15px 18px; border: 0; border-radius: 999px; background: #004aad; color: #fff !important; font: 700 16px 'Outfit', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; text-decoration: none; cursor: pointer; }
 .fkf-small { margin: 12px 0 0; color: #6c7b9c; font-size: 13px; }
@@ -328,8 +410,15 @@ add_action( 'wp_footer', function () {
 (function () {
   var v = document.getElementById('fkfVeil');
   if (!v) return;
-  function close() { v.remove(); try { var u = new URL(location.href); ['fika_fb', 'r', 'fika_fb_done', 'n'].forEach(function (k) { u.searchParams.delete(k); }); history.replaceState(null, '', u.toString()); } catch (e) {} }
+  function close() { v.remove(); try { var u = new URL(location.href); ['fika_fb', 'r', 'fika_fb_done', 'n', 'fika_fb_test'].forEach(function (k) { u.searchParams.delete(k); }); history.replaceState(null, '', u.toString()); } catch (e) {} }
   v.addEventListener('click', function (e) { if (e.target === v || (e.target.closest && e.target.closest('.fkf-x'))) close(); });
+  // the stars fill up to the one tapped
+  v.addEventListener('change', function (e) {
+    var row = e.target.closest ? e.target.closest('.fkf-stars') : null;
+    if (!row) return;
+    var n = +e.target.value;
+    [].forEach.call(row.querySelectorAll('.fkf-star'), function (l, i) { l.classList.toggle('on', i < n); });
+  });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
 })();
 </script>
@@ -356,7 +445,7 @@ add_action( 'admin_post_fika_fu_save', function () {
 	if ( ! empty( $in['preview'] ) && is_email( $in['preview_to'] ?? '' ) ) {
 		$last = wc_get_orders( array( 'limit' => 1, 'status' => array( 'wc-completed' ), 'orderby' => 'date', 'order' => 'DESC' ) );
 		if ( $last ) {
-			list( $subject, $html ) = fika_fu_email( $last[0] );
+			list( $subject, $html ) = fika_fu_email( $last[0], true );
 			$msg = WC()->mailer()->send( sanitize_email( $in['preview_to'] ), '[Preview] ' . $subject, $html ) ? 'preview' : 'preview-failed';
 		}
 	}
@@ -370,15 +459,29 @@ if ( ! function_exists( 'fika_fu_admin' ) ) {
 		$log = array_slice( (array) get_option( 'fika_fu_log', array() ), 0, 40 );
 		$a   = fika_fu_answers();
 		$cnt = array( 3 => 0, 2 => 0, 1 => 0 );
+		$sum = array(); $num = array(); $ag = array(); $favs = array();
 		foreach ( $fb as $x ) {
 			$cnt[ (int) $x['r'] ] = ( $cnt[ (int) $x['r'] ] ?? 0 ) + 1;
+			foreach ( (array) ( $x['s'] ?? array() ) as $k => $v ) {
+				$sum[ $k ] = ( $sum[ $k ] ?? 0 ) + (int) $v;
+				$num[ $k ] = ( $num[ $k ] ?? 0 ) + 1;
+			}
+			if ( ! empty( $x['again'] ) ) {
+				$ag[ $x['again'] ] = ( $ag[ $x['again'] ] ?? 0 ) + 1;
+			}
+			if ( ! empty( $x['fav'] ) ) {
+				$favs[ $x['fav'] ] = ( $favs[ $x['fav'] ] ?? 0 ) + 1;
+			}
 		}
+		arsort( $favs );
+		$asp = fika_fu_aspects();
+		$agn = fika_fu_again();
 		$sent = count( array_filter( (array) get_option( 'fika_fu_log', array() ), function ( $l ) { return 0 === strpos( $l['what'], 'Sent' ); } ) );
 		$msg  = sanitize_key( $_GET['msg'] ?? '' ); // phpcs:ignore WordPress.Security.NonceVerification
 		?>
 <div class="wrap">
 	<h1>Delivery follow-up</h1>
-	<p style="max-width:760px"><?php echo (int) $set['days']; ?> days after an order is marked <strong>Completed</strong> (delivered), the customer gets a warm &ldquo;How were your sweets?&rdquo; email with three answers to tap (😍 Loved them, 🙂 Pretty good, 😕 Not quite) and a box for a few words. One email per order, at most one per customer in 14 days, only for orders completed in the last <?php echo (int) ( $set['days'] + $set['window'] ); ?> days. Sent in small batches, 10:00&ndash;20:00 Beirut time.</p>
+	<p style="max-width:760px"><?php echo (int) $set['days']; ?> days after an order is marked <strong>Completed</strong> (delivered), the customer gets a warm &ldquo;How were your sweets?&rdquo; email with three answers to tap (😍 Loved them, 🙂 Pretty good, 😕 Not quite). The tap opens a short card on the site: 1&ndash;5 stars for the sweets, delivery, packing and value for money, their favourite from the order, whether they would order again, and a box for a few words (all optional but the first). One email per order, at most one per customer in 14 days, only for orders completed in the last <?php echo (int) ( $set['days'] + $set['window'] ); ?> days. Sent in small batches, 10:00&ndash;20:00 Beirut time.</p>
 	<?php if ( 'saved' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved.</p></div><?php endif; ?>
 	<?php if ( 'preview' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved, and the preview is on its way (it uses the latest completed order).</p></div><?php endif; ?>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -396,10 +499,17 @@ if ( ! function_exists( 'fika_fu_admin' ) ) {
 	</form>
 	<h2>Answers (<?php echo count( $fb ); ?>) &middot; sent: <?php echo (int) $sent; ?></h2>
 	<p><?php foreach ( $a as $k => $x ) { echo esc_html( $x[0] . ' ' . $x[1] . ': ' . (int) $cnt[ $k ] ) . ' &nbsp; '; } ?></p>
-	<table class="widefat striped" style="max-width:900px"><thead><tr><th style="width:140px">When</th><th style="width:110px">Order</th><th style="width:150px">Answer</th><th>Their words</th></tr></thead><tbody>
-		<?php if ( ! $fb ) : ?><tr><td colspan="4">No answers yet.</td></tr><?php endif; ?>
+	<table class="widefat" style="max-width:900px;margin:0 0 14px"><tbody>
+		<tr><th style="width:220px">Average stars</th><td><?php foreach ( $asp as $k => $x ) { echo '<b>' . esc_html( $x[0] ) . '</b> ' . ( ! empty( $num[ $k ] ) ? esc_html( number_format( $sum[ $k ] / $num[ $k ], 1 ) ) . ' ★ (' . (int) $num[ $k ] . ')' : '–' ) . ' &nbsp; &nbsp; '; } ?></td></tr>
+		<tr><th>Would order again</th><td><?php foreach ( $agn as $k => $x ) { echo esc_html( $x . ': ' . (int) ( $ag[ $k ] ?? 0 ) ) . ' &nbsp; &nbsp; '; } ?></td></tr>
+		<tr><th>Favourites</th><td><?php echo $favs ? esc_html( implode( ', ', array_map( function ( $n, $c ) { return $n . ' (' . $c . ')'; }, array_keys( array_slice( $favs, 0, 8, true ) ), array_slice( $favs, 0, 8, true ) ) ) ) : '–'; ?></td></tr>
+	</tbody></table>
+	<table class="widefat striped" style="max-width:1100px"><thead><tr><th style="width:110px">When</th><th style="width:120px">Order</th><th style="width:130px">Answer</th><th style="width:230px">Stars</th><th style="width:140px">Favourite</th><th style="width:100px">Again?</th><th>Their words</th></tr></thead><tbody>
+		<?php if ( ! $fb ) : ?><tr><td colspan="7">No answers yet.</td></tr><?php endif; ?>
 		<?php foreach ( array_slice( $fb, 0, 100 ) as $x ) : ?>
-		<tr><td><?php echo esc_html( wp_date( 'j M, H:i', $x['t'] ) ); ?></td><td><a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-orders&action=edit&id=' . (int) $x['order'] ) ); ?>">#<?php echo esc_html( $x['num'] ); ?></a> <?php echo esc_html( $x['name'] ); ?></td><td><?php echo esc_html( $a[ (int) $x['r'] ][0] . ' ' . $a[ (int) $x['r'] ][1] ); ?></td><td><?php echo esc_html( $x['text'] ); ?></td></tr>
+		<tr><td><?php echo esc_html( wp_date( 'j M, H:i', $x['t'] ) ); ?></td><td><a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-orders&action=edit&id=' . (int) $x['order'] ) ); ?>">#<?php echo esc_html( $x['num'] ); ?></a> <?php echo esc_html( $x['name'] ); ?></td><td><?php echo esc_html( $a[ (int) $x['r'] ][0] . ' ' . $a[ (int) $x['r'] ][1] ); ?></td>
+			<td><?php echo esc_html( implode( ' · ', array_map( function ( $k, $v ) use ( $asp ) { return ( $asp[ $k ][0] ?? $k ) . ' ' . $v; }, array_keys( (array) ( $x['s'] ?? array() ) ), (array) ( $x['s'] ?? array() ) ) ) ); ?></td>
+			<td><?php echo esc_html( $x['fav'] ?? '' ); ?></td><td><?php echo esc_html( isset( $x['again'] ) && isset( $agn[ $x['again'] ] ) ? $agn[ $x['again'] ] : '' ); ?></td><td><?php echo esc_html( $x['text'] ); ?></td></tr>
 		<?php endforeach; ?>
 	</tbody></table>
 	<h2>Recent activity</h2>

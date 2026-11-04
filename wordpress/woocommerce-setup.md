@@ -2574,3 +2574,10 @@ choice). Snippet 91, fika-club.php (new):
   to your week… shared them with the people you love most", a pink box "In Sweden we say · “Delad glädje är dubbel
   glädje.” · Shared joy is double joy.", "That is what fika is about: slowing down, and sharing something sweet with
   the people around you…", then "Every bag is weighed and packed by hand…". Preheader: the saying. Route 276 trashed.
+- 4 Nov (git only): detailed feedback on the answer card (owner): after the overall answer, all optional: 1-5 stars for
+  The sweets (taste and freshness), Delivery (time and the rider), Packing (arrived in good shape), Value for money;
+  "Your favourite this time" (the candies of that order); "Would you order from Fika again?" (Yes, for sure / Maybe /
+  Probably not); "Anything else?". Saved in _fika_fb {r, s, fav, again, text, t}, the order note and the admin page
+  (average stars, order-again split, favourites, every answer). Email line: "One tap, then a few quick questions
+  (about 30 seconds)". Admin "Send a preview" emails carry fika_fb_test: their card saves nothing on the real order
+  behind the preview. Route 277 trashed.
