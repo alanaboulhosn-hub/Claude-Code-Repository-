@@ -2490,3 +2490,5 @@ choice). Snippet 91, fika-club.php (new):
   Temporary routes 256/257 trashed; option fika_tmp_wb2two_sent to delete in the clean-up. Note: account 232 is now in
   the win-back list (an account that never ordered gets email 1 after 30 days): delete it or unsubscribe it in the
   clean-up so the owner never gets the real emails twice.
+- 4 Nov: trial 3 to alan.aboulhosn@gmail.com (member): code IOU5-IODXFZ, send wb2.e2kchlym, until Fri 6 Nov 23:59;
+  previous code IOU5-GKXZTW (unused) deleted. Temporary route 258 trashed; option fika_tmp_wb2three_sent to delete.
