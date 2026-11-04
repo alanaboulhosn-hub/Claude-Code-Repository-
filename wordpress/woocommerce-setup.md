@@ -2520,3 +2520,13 @@ choice). Snippet 91, fika-club.php (new):
 - 4 Nov 18:32-18:33 Beirut: first email 2 batch sent, 10 emails (8 non-member, 2 member versions), no mail errors;
   each code is for the address it went to, marked _fika_owe, ends Fri 6 Nov 23:59. Next batch 19:32; then from 10:00
   tomorrow (50 a day, email 1 included). Checked with temporary routes 263/264 (trashed).
+- 4 Nov evening, **live** (owner: "yes, deploy it"): email 2's $5 store credit combines with Fika Club rewards (SWIM
+  codes), the one exception to "rewards don't combine with other codes" (fika-loyalty.php, snippet 11) and to the $5
+  code's individual use (fika-winback.php: woocommerce_apply_individual_use_coupon / ..._with_individual_use_coupon
+  keep the SWIM codes). Bag: "Fika store credit −$5.00" comes off what is left after "Fika Club rewards".
+  Bug in that deploy, fixed about 15 minutes later: the bag watcher compared the credit line's markup ("&minus;" reads
+  back as "−"), rewrote it on every change it caused and froze the page, only for a logged-in customer with a $5
+  waiting and sweets in the bag. Now compared as text; checked idle (no runaway), pages load normally.
+  Tested live (combo-e2e@example.com, Store API as the checkout uses it, no order): $14 bag + SWIM3 ($2.80) + $5 ->
+  Discount −$7.80, Total $6.20, the $5 labelled "Fika store credit"; another code refused; reward first then $5 keeps
+  the reward; bag $14 − $5 − $2.80 = $6.20, reward out -> $9.00. Test user, 3 codes, saved bag deleted; route 265 trashed.
