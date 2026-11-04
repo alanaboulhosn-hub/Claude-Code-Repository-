@@ -2492,3 +2492,5 @@ choice). Snippet 91, fika-club.php (new):
   clean-up so the owner never gets the real emails twice.
 - 4 Nov: trial 3 to alan.aboulhosn@gmail.com (member): code IOU5-IODXFZ, send wb2.e2kchlym, until Fri 6 Nov 23:59;
   previous code IOU5-GKXZTW (unused) deleted. Temporary route 258 trashed; option fika_tmp_wb2three_sent to delete.
+- 4 Nov: email 1 preview to alan.aboulhosn@gmail.com ("[Preview] It's been a while, Alan! A few sweets picked for
+  you"), live code, no code or tracking. Temporary route 259 trashed; option fika_tmp_wb1prev_sent to delete.
