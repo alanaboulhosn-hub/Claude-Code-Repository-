@@ -405,7 +405,8 @@ add_action( 'wp_footer', function () {
     var o = window.FIKA_OWE_EXIT || {}, amt = o.amt || '$5';
     card.innerHTML = closeBtn() +
       '<h2 class="fkx-h" id="fkxTitle">You already have ' + amt + ' off</h2>' +
-      '<p class="fkx-p">Your Fika store credit is on this order' + (o.until ? ', and it is yours until ' + o.until : '') + '. Leave now and it is gone.</p>' +
+      // they can leave and come back for it; it only runs out at the end of its last day (owner, 4 Nov 2026)
+      '<p class="fkx-p">Your Fika store credit is on this order. ' + (o.until ? 'It’s yours until ' + o.until + ', then it runs out.' : 'It’s only yours for a short while, then it runs out.') + '</p>' +
       '<div class="fkx-badge fkx-owe" aria-hidden="true"><b>' + amt + '</b><span>OFF</span></div>' +
       '<p class="fkx-code">Already taken off your total ✓</p>' +
       '<button class="fkx-go" type="button" data-fkx="stay">Keep checking out</button>' +
