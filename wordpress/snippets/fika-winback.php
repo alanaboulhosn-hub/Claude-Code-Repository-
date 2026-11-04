@@ -56,6 +56,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'valid_days'  => 2, // owner, 3 Nov 2026: 2 days, for urgency (was 14)
 			'first_days'  => 30,
 			'second_days' => 7, // owner, 4 Nov 2026: email 2 a week after email 1 (was 14)
+			'email1'      => 1, // the On / Off switch of email 1 on the admin page (4 Nov 2026)
 			'email2'      => 0, // 1 = email 2 (the code) is sent too; 0 = only email 1 goes out
 			'products'    => '118,121,120,107', // email 1 candy grid: product IDs, in order; empty = automatic
 		) );
@@ -948,7 +949,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 				unset( $st[ $email ] );
 			}
 			$due = fika_wb_due( $email, $p, $st, $set );
-			if ( ! $due || ( '2' === $due && empty( $set['email2'] ) ) ) {
+			if ( ! $due || ( '1' === $due && empty( $set['email1'] ) ) || ( '2' === $due && empty( $set['email2'] ) ) ) {
 				continue;
 			}
 			// never twice, even at the cost of none: the email is marked as sent (and saved) BEFORE it goes out, so a run
@@ -1319,7 +1320,6 @@ add_action( 'admin_post_fika_wb_save', function () {
 	$set['valid_days']  = max( 1, absint( isset( $in['valid_days'] ) ? $in['valid_days'] : 2 ) );
 	$set['first_days']  = max( 1, absint( isset( $in['first_days'] ) ? $in['first_days'] : 30 ) );
 	$set['second_days'] = max( 1, absint( isset( $in['second_days'] ) ? $in['second_days'] : 7 ) );
-	$set['email2']      = empty( $in['email2'] ) ? 0 : 1;
 	$set['products']    = implode( ',', array_slice( array_filter( array_map( 'absint', isset( $in['products'] ) ? (array) $in['products'] : array() ) ), 0, 4 ) );
 	update_option( 'fika_winback_settings', $set, false );
 	$msg = 'saved';
@@ -1361,37 +1361,119 @@ add_action( 'admin_post_fika_wb_save', function () {
 	wp_safe_redirect( admin_url( 'admin.php?page=fika-winback&msg=' . $msg ) );
 	exit;
 } );
+// the On / Off switch of each email on the admin page: 0 = email 0 (delivery follow-up, fika-followup.php), 1, 2
+add_action( 'admin_post_fika_wb_toggle', function () {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		wp_die( 'Not allowed.' );
+	}
+	check_admin_referer( 'fika_wb_toggle' );
+	$which = isset( $_POST['which'] ) ? absint( $_POST['which'] ) : -1;
+	$on    = ! empty( $_POST['on'] );
+	if ( 0 === $which && function_exists( 'fika_fu_settings' ) ) {
+		$fu         = fika_fu_settings();
+		$fu['mode'] = $on ? 'live' : 'off';
+		update_option( 'fika_fu_settings', $fu, false );
+	} elseif ( 1 === $which || 2 === $which ) {
+		$set                     = fika_wb_settings();
+		$set[ 'email' . $which ] = $on ? 1 : 0;
+		update_option( 'fika_winback_settings', $set, false );
+		fika_wb_log( '-', 'Email ' . $which . ' switched ' . ( $on ? 'on' : 'off' ) );
+	}
+	wp_safe_redirect( admin_url( 'admin.php?page=fika-winback' ) );
+	exit;
+} );
 if ( ! function_exists( 'fika_wb_admin' ) ) {
 	function fika_wb_admin() {
 		fika_wb_owe_backfill();
-		$set   = fika_wb_settings();
-		$st    = fika_wb_state();
-		$aud   = fika_wb_audience();
-		$due1  = 0;
-		$due2  = 0;
-		$rows  = '';
+		$set  = fika_wb_settings();
+		$st   = fika_wb_state();
+		$aud  = fika_wb_audience();
+		$now  = time();
+		$fuon = function_exists( 'fika_fu_settings' );
+		$fu   = $fuon ? fika_fu_settings() : array();
+		// who is due for what, and when: one list (now first, then by date)
+		$list = array();
+		$cnt  = array( 0 => 0, 1 => 0, 2 => 0 );
 		foreach ( $aud as $e => $p ) {
 			if ( fika_wb_stopped( $e ) ) {
 				continue;
 			}
-			$d = fika_wb_due( $e, $p, $st, $set );
-			$due1 += '1' === $d ? 1 : 0;
-			$due2 += '2' === $d ? 1 : 0;
-			$s     = isset( $st[ $e ] ) ? $st[ $e ] : array();
-			$next  = empty( $s['s1'] ) ? $p['since'] + $set['first_days'] * DAY_IN_SECONDS : ( empty( $s['s2'] ) ? $s['s1'] + $set['second_days'] * DAY_IN_SECONDS : 0 );
-			$rows .= '<tr><td>' . esc_html( $e ) . '</td><td>' . ( $p['last'] ? esc_html( wp_date( 'j M Y', $p['last'] ) ) : 'Never (account since ' . esc_html( wp_date( 'j M Y', $p['since'] ) ) . ')' ) . '</td><td>' .
-				( empty( $s['s1'] ) ? 'Email 1' : ( empty( $s['s2'] ) ? 'Email 2' : 'Both sent' ) ) . ( $next ? ' &middot; ' . esc_html( wp_date( 'j M Y', $next ) ) : '' ) . ( $d ? ' <strong>(due now)</strong>' : '' ) . '</td></tr>';
+			$s = isset( $st[ $e ] ) && (int) $st[ $e ]['base'] === (int) $p['last'] ? $st[ $e ] : array();
+			if ( empty( $s['s1'] ) ) {
+				$list[] = array( $e, 1, $p['since'] + (int) $set['first_days'] * DAY_IN_SECONDS );
+			} elseif ( empty( $s['s2'] ) && ! fika_wb_owe_had( $e ) ) {
+				$list[] = array( $e, 2, (int) $s['s1'] + (int) $set['second_days'] * DAY_IN_SECONDS );
+			}
 		}
+		if ( $fuon && function_exists( 'wc_get_orders' ) ) {
+			// email 0: orders completed in the last (days + window) days that have not had it
+			$from = $now - ( (int) $fu['days'] + (int) $fu['window'] ) * DAY_IN_SECONDS;
+			$seen = array();
+			foreach ( wc_get_orders( array( 'limit' => 300, 'type' => 'shop_order', 'status' => array( 'wc-completed' ), 'date_completed' => '>' . $from ) ) as $o ) {
+				$e = strtolower( (string) $o->get_billing_email() );
+				if ( $o->get_meta( '_fika_fu' ) || isset( $seen[ $e ] ) || ( function_exists( 'fika_fu_skip' ) && fika_fu_skip( $e ) ) || ! $o->get_date_completed() ) {
+					continue;
+				}
+				$seen[ $e ] = 1;
+				$list[]     = array( $e, 0, $o->get_date_completed()->getTimestamp() + (int) $fu['days'] * DAY_IN_SECONDS, $o->get_order_number() );
+			}
+		}
+		foreach ( $list as $r ) {
+			$cnt[ $r[1] ] += $r[2] <= $now ? 1 : 0;
+		}
+		usort( $list, function ( $x, $y ) { return $x[2] <=> $y[2]; } );
+		$cards = array(
+			0 => array( 'Email 0', 'We hope your sweets made you smile', 'A warm thank-you ' . ( $fuon ? (int) $fu['days'] : 5 ) . ' days after an order is delivered.', $fuon ? 'live' === $fu['mode'] : false, $fuon ),
+			1 => array( 'Email 1', 'It&rsquo;s been a while', 'What&rsquo;s new, ' . (int) $set['first_days'] . ' days after a customer&rsquo;s last order.', ! empty( $set['email1'] ), true ),
+			2 => array( 'Email 2', 'Don&rsquo;t lose your ' . esc_html( fika_wb_money( $set['owe'] ) ), esc_html( fika_wb_money( $set['owe'] ) ) . ' store credit for ' . (int) $set['valid_days'] . ' days, ' . (int) $set['second_days'] . ' days after email 1. Once per customer, ever.', ! empty( $set['email2'] ), true ),
+		);
 		$log = get_option( 'fika_winback_log', array() );
 		$msg = isset( $_GET['msg'] ) ? sanitize_key( $_GET['msg'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 		?>
+<style>
+.fkw-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; max-width: 1100px; margin: 18px 0 26px; }
+@media (max-width: 960px) { .fkw-cards { grid-template-columns: 1fr; } }
+.fkw-card { background: #fff; border: 1px solid #dcdcde; border-radius: 14px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 6px; }
+.fkw-card.on { border-color: #00a32a; box-shadow: inset 0 3px 0 #00a32a; }
+.fkw-num { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #646970; }
+.fkw-name { font-size: 17px; font-weight: 600; color: #1d2327; line-height: 1.3; }
+.fkw-what { color: #50575e; font-size: 13px; line-height: 1.45; flex: 1; }
+.fkw-due { font-size: 13px; color: #1d2327; }
+.fkw-sw { display: inline-flex; align-items: center; gap: 10px; margin-top: 8px; border: 0; background: none; padding: 0; cursor: pointer; font-size: 14px; font-weight: 600; }
+.fkw-sw i { position: relative; width: 46px; height: 26px; border-radius: 13px; background: #c3c4c7; transition: background .2s; }
+.fkw-sw i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .2s; }
+.fkw-card.on .fkw-sw i { background: #00a32a; } .fkw-card.on .fkw-sw i::after { left: 23px; }
+.fkw-sw[disabled] { cursor: not-allowed; opacity: .55; }
+.fkw-list td, .fkw-list th { padding: 8px 10px; }
+.fkw-now { color: #00a32a; font-weight: 600; }
+.fkw-more { max-width: 1100px; margin-top: 30px; }
+.fkw-more summary { cursor: pointer; font-size: 14px; font-weight: 600; color: #2271b1; }
+</style>
 <div class="wrap">
 	<h1>Win-back emails</h1>
-	<p style="max-width:760px">Customers who haven&rsquo;t ordered for <?php echo (int) $set['first_days']; ?> days get <strong>email 1</strong> (&ldquo;It&rsquo;s been a while&rdquo;: what&rsquo;s new, your news, &ldquo;Pick your mix&rdquo;).
-	<?php echo (int) $set['second_days']; ?> days later, if they still haven&rsquo;t ordered, <strong>email 2</strong>: &ldquo;Fika owes you <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?>&rdquo; in store credit (&ldquo;don&rsquo;t lose your <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?>&rdquo;), on <?php echo $set['owe_min'] > 0 ? 'an order of ' . esc_html( fika_wb_money( $set['owe_min'] ) ) . ' or more' : 'any order'; ?>, for <?php echo (int) $set['valid_days']; ?> days (until 11:59 pm on the last day).
-	The <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?> is for Fika Club members: members&rsquo; buttons open the shop with the <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?> already taken off in the bag; everyone else&rsquo;s open the sign-up page (no confirmation email needed when they come from the email), then the shop.
-	Email 2 also shows their Fika Club progress and the limited edition bag. <strong>Each customer gets email 2 only once, ever</strong>: ordering again starts over with email 1, without a second $5.
-	Sent in small batches, 10:00&ndash;20:00 Beirut time, at most 50 a day. Orders came back after these emails: <strong><?php echo (int) get_option( 'fika_winback_won', 0 ); ?></strong>.</p>
+	<div class="fkw-cards">
+		<?php foreach ( $cards as $k => $c ) : ?>
+		<div class="fkw-card<?php echo $c[3] ? ' on' : ''; ?>">
+			<div class="fkw-num"><?php echo esc_html( $c[0] ); ?></div>
+			<div class="fkw-name"><?php echo $c[1]; // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+			<div class="fkw-what"><?php echo $c[2]; // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+			<div class="fkw-due"><?php echo $c[4] ? 'Due now: <b>' . (int) $cnt[ $k ] . '</b>' : 'Not installed yet'; ?></div>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="fika_wb_toggle"><input type="hidden" name="which" value="<?php echo (int) $k; ?>"><input type="hidden" name="on" value="<?php echo $c[3] ? 0 : 1; ?>"><?php wp_nonce_field( 'fika_wb_toggle' ); ?>
+				<button class="fkw-sw" type="submit"<?php disabled( ! $c[4] ); ?> aria-pressed="<?php echo $c[3] ? 'true' : 'false'; ?>"><i></i><?php echo $c[3] ? 'On' : 'Off'; ?></button>
+			</form>
+		</div>
+		<?php endforeach; ?>
+	</div>
+	<h2>Who is next (<?php echo count( $list ); ?>)</h2>
+	<table class="widefat striped fkw-list" style="max-width:1100px"><thead><tr><th>Email address</th><th style="width:340px">Due for</th><th style="width:180px">When</th></tr></thead><tbody>
+		<?php if ( ! $list ) : ?><tr><td colspan="3">Nobody yet.</td></tr><?php endif; ?>
+		<?php foreach ( $list as $r ) : ?>
+		<tr><td><?php echo esc_html( $r[0] ); ?></td><td><?php echo esc_html( 'Email ' . $r[1] . ' · ' . html_entity_decode( $cards[ $r[1] ][1] ) . ( isset( $r[3] ) ? ' (order #' . $r[3] . ')' : '' ) ); ?><?php echo $cards[ $r[1] ][3] ? '' : ' <span style="color:#646970">(switched off)</span>'; ?></td><td><?php echo $r[2] <= $now ? '<span class="fkw-now">Now</span>' : esc_html( wp_date( 'D j M Y', $r[2] ) ); ?></td></tr>
+		<?php endforeach; ?>
+	</tbody></table>
+	<details class="fkw-more"><summary>More settings, previews and recent activity</summary>
+	<p style="max-width:760px">Emails 1 and 2 are sent in small batches, 10:00&ndash;20:00 Beirut time, at most 50 a day; each email is marked as sent before it goes out, so nobody gets the same email twice. Orders came back after these emails: <strong><?php echo (int) get_option( 'fika_winback_won', 0 ); ?></strong>.</p>
 	<?php if ( 'saved' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved.</p></div><?php endif; ?>
 	<?php if ( 'preview' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved, and the preview is on its way.</p></div><?php endif; ?>
 	<?php if ( 'preview-failed' === $msg ) : ?><div class="notice notice-error is-dismissible"><p>The preview could not be sent.</p></div><?php endif; ?>
@@ -1400,11 +1482,11 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 		<table class="form-table" role="presentation">
 			<tr><th>Sending</th><td>
 				<label><input type="radio" name="mode" value="test" <?php checked( 'test', $set['mode'] ); ?>> <strong>Test</strong>: only to the addresses below</label><br>
-				<label><input type="radio" name="mode" value="live" <?php checked( 'live', $set['mode'] ); ?>> <strong>Live</strong>: to every customer who is due</label><br>
+				<label><input type="radio" name="mode" value="live" <?php checked( 'live', $set['mode'] ); ?>> <strong>Live</strong>: emails 1 and 2 go to every customer who is due (as their switches above say)</label><br>
 				<label><input type="radio" name="mode" value="off" <?php checked( 'off', $set['mode'] ); ?>> Off</label>
 				<?php $golive = function_exists( 'as_next_scheduled_action' ) ? as_next_scheduled_action( 'fika_winback_golive', array(), 'fika' ) : false; ?>
 				<?php if ( $golive ) : ?><p class="description" style="color:#004aad"><strong>Goes Live by itself on <?php echo esc_html( wp_date( 'j F, H:i', $golive, new DateTimeZone( 'Asia/Beirut' ) ) ); ?> Beirut time</strong>, then sends to everyone due in small batches (10 an hour, 10:00-20:00, at most 50 in 24 hours).</p><?php endif; ?></td></tr>
-			<tr><th>Email 2</th><td><label><input type="checkbox" name="email2" value="1" <?php checked( ! empty( $set['email2'] ) ); ?>> Send email 2 (&ldquo;Fika owes you <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?>&rdquo; store credit) as well</label><p class="description">Off: only email 1 goes out, also in Live mode. Customers who got email 1 receive email 2 once this is on and <?php echo (int) $set['second_days']; ?> days have passed. Each email 2 creates its own personal code (one use, only for that customer&rsquo;s email).</p></td></tr>
+
 			<tr><th>Test addresses</th><td><textarea name="test_emails" rows="2" class="large-text"><?php echo esc_textarea( $set['test_emails'] ); ?></textarea><p class="description">Used in Test mode. One or more, separated by commas.</p></td></tr>
 			<tr><th>News (email 1)</th><td><input type="text" name="news_title" class="regular-text" value="<?php echo esc_attr( $set['news_title'] ); ?>" placeholder="Title"><br><br>
 				<textarea name="news_text" rows="3" class="large-text" placeholder="A few words of news"><?php echo esc_textarea( $set['news_text'] ); ?></textarea><p class="description">Shown in a pink box. Leave both empty to leave it out. &ldquo;New drops&rdquo; fill in by themselves: candies added in the last 45 days, otherwise your favourites.</p></td></tr>
@@ -1424,8 +1506,6 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 		</table>
 		<?php submit_button( 'Save' ); ?>
 	</form>
-	<h2>Customers (<?php echo count( $aud ); ?>) &middot; due now: email 1 <?php echo (int) $due1; ?>, email 2 <?php echo (int) $due2; ?></h2>
-	<table class="widefat striped" style="max-width:900px"><thead><tr><th>Email</th><th>Last order</th><th>Next email</th></tr></thead><tbody><?php echo $rows ? $rows : '<tr><td colspan="3">No customers yet.</td></tr>'; // phpcs:ignore WordPress.Security.EscapeOutput ?></tbody></table>
 	<h2>Recent activity</h2>
 	<table class="widefat striped" style="max-width:900px"><thead><tr><th style="width:160px">When</th><th>Email</th><th>What</th></tr></thead><tbody>
 		<?php if ( ! $log ) : ?><tr><td colspan="3">Nothing sent yet.</td></tr><?php endif; ?>
@@ -1433,6 +1513,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 		<tr><td><?php echo esc_html( wp_date( 'j M Y, H:i', $l['t'] ) ); ?></td><td><?php echo esc_html( $l['email'] ); ?></td><td><?php echo esc_html( $l['what'] ); ?></td></tr>
 		<?php endforeach; ?>
 	</tbody></table>
+	</details>
 </div>
 		<?php
 	}
