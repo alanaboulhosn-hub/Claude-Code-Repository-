@@ -457,7 +457,8 @@ if ( ! function_exists( 'fika_free_kg_value' ) ) {
 		return round( $val, 2 );
 	}
 }
-// rewards combine with each other, not with other codes (FIKA10, win-back ...)
+// rewards combine with each other, not with other codes (FIKA10, win-back email 1 ...); the one exception is win-back
+// email 2's $5 store credit (owner, 4 Nov 2026), which goes with them (fika-winback.php keeps them in the cart with it)
 add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon ) {
 	if ( ! $valid || ! function_exists( 'WC' ) || ! WC()->cart ) {
 		return $valid;
@@ -480,6 +481,10 @@ add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon ) {
 	}
 	foreach ( WC()->cart->get_applied_coupons() as $other ) {
 		if ( strtolower( $other ) === strtolower( $coupon->get_code() ) ) {
+			continue;
+		}
+		// the one exception (owner, 4 Nov 2026): win-back email 2's $5 store credit goes with the rewards
+		if ( function_exists( 'fika_wb_is_owe' ) && ( fika_wb_is_owe( $coupon ) || fika_wb_is_owe( new WC_Coupon( $other ) ) ) ) {
 			continue;
 		}
 		if ( $mine !== fika_swim_is_code( $other ) ) {
