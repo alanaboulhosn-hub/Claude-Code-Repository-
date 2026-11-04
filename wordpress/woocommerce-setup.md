@@ -2635,3 +2635,6 @@ choice). Snippet 91, fika-club.php (new):
   text under 11.5 px: 28 of 28 after the fixes: email buttons' side padding 32 -> 22 px, "Limited edition" badge 11 ->
   12 px, "Unlock my free mystery taste" -> "Unlock my mystery taste" (snippet 35 redeployed, = git). On a computer the
   emails sit in a 600 px column (576 px content). Routes 288-291 trashed.
+- 5 Nov 2026 00:41 Beirut, **live** (owner): Email 0 goes **3 days** after Completed (was 5): setting days 3 (window
+  3: until 6 days after), code default and texts 3, snippets 35 and 287 redeployed (= git). Start stays 31 Oct 00:28.
+  The 55 orders completed on 2 Nov become due during 5 Nov; batches 10:00-20:00, at most 20 a day. Route 292 trashed.
