@@ -83,7 +83,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 		$set  = fika_fu_settings();
 		$from = max( time() - ( (int) $set['days'] + (int) $set['window'] ) * DAY_IN_SECONDS, (int) $set['start'] );
 		$to   = time() - (int) $set['days'] * DAY_IN_SECONDS;
-		$list = wc_get_orders( array( 'limit' => 200, 'type' => 'shop_order', 'status' => array( 'wc-completed' ), 'date_completed' => $from . '...' . $to, 'orderby' => 'date', 'order' => 'ASC' ) );
+		$list = wc_get_orders( array( 'limit' => 200, 'type' => 'shop_order', 'status' => array( 'wc-completed' ), 'date_completed' => $from . '...' . $to, 'orderby' => 'date', 'order' => 'DESC' ) ); // newest first: a customer with two orders due gets the email about their latest
 		$last = (array) get_option( 'fika_fu_last', array() );
 		$out  = array();
 		foreach ( $list as $o ) {
@@ -120,7 +120,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 		$strip = home_url( '/wp-content/uploads/2026/11/fika-email-owe-kilo.png' ); // ten cartoon candies, see-through
 		$quote = fika_fu_quote_for( $order );
 		$items = '';
-		foreach ( array_slice( fika_fu_items( $order ), 0, 8 ) as $row ) {
+		foreach ( fika_fu_items( $order ) as $row ) { // every item of the order (owner, 5 Nov 2026: what they ordered, in full)
 			$items .= '<tr>' .
 				'<td width="52" style="padding:7px 12px 7px 0;width:52px;vertical-align:middle;">' . ( $row[0] ? '<img src="' . esc_url( $row[0] ) . '" width="44" height="44" alt="" style="display:block;width:44px;height:44px;border-radius:12px;object-fit:cover;border:0;">' : '' ) . '</td>' .
 				'<td style="' . $f . 'padding:7px 0;vertical-align:middle;color:#004aad;font-size:15px;font-weight:600;line-height:1.3;">' . esc_html( $row[1] ) . '</td>' .
