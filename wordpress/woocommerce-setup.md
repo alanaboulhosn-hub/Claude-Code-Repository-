@@ -2442,3 +2442,8 @@ choice). Snippet 91, fika-club.php (new):
   (still settable); email-2 codes are marked with coupon meta _fika_owe. Bag strip: "add any sweets and it comes off
   at checkout" (empty bag) / "✓ We owe you $5: it comes off at checkout". WooCommerce never takes off more than the
   sweets cost (not the delivery fee); what is left of the $5 on a very small order is not kept.
+- 4 Nov (git only): the $5 shows **in the bag** (owner): for a logged-in customer with sweets in the bag, a green line
+  "Fika store credit −$5.00" above Total and the Total less $5 (never below $0), redrawn whenever the bag changes
+  (MutationObserver on #mxSub; Mix your own page itself unchanged). Strip: "✓ Your $5 store credit is taken off your
+  total." At the checkout (blocks) the discount line is labelled "Fika store credit" instead of the code
+  (registerCheckoutFilters 'coupons'); to check in the live test.

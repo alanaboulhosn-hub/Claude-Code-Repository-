@@ -1075,6 +1075,7 @@ add_action( 'wp_footer', function () {
 	list( $c, $min ) = $owe;
 	$d = array(
 		'amt'      => fika_wb_money( $c->get_amount() ),
+		'credit'   => (float) $c->get_amount(),
 		'min'      => (int) round( $min / 0.028 ),
 		'checkout' => function_exists( 'is_checkout' ) && is_checkout(),
 		'member'   => is_user_logged_in(),
@@ -1090,6 +1091,7 @@ add_action( 'wp_footer', function () {
 .fk-owe.done { border-style: solid; background: #eaf7ef; border-color: #1f8a4c; color: #1f6b3d; }
 .fk-owe a { color: #004aad; font-weight: 600; text-decoration: underline; }
 .fk-owe-co { max-width: 680px; margin: 0 0 18px; }
+#fkOweRow { color: #1f8a4c; font-weight: 600; }
 </style>
 <script id="fika-owe-js">
 (function () {
@@ -1100,10 +1102,25 @@ add_action( 'wp_footer', function () {
     if (!D.member) return 'We owe you <b>' + D.amt + '</b>: it is waiting for you in Fika Club. <a href="' + D.join + '">Create your free account</a> to claim it (your bag stays saved), or <a href="/my-account/#login">log in</a>.';
     var hi = D.welcome ? '<b>Welcome to Fika Club!</b> ' : '';
     if (!g) return hi + 'We owe you <b>' + D.amt + '</b>: add any sweets and it comes off at checkout.';
-    return hi + (g >= D.min ? '✓ We owe you ' + D.amt + ': it comes off at checkout.' : 'We owe you <b>' + D.amt + '</b>: add <b>' + more(g) + '</b> more and it comes off at checkout.');
+    return hi + (g >= D.min ? '✓ Your ' + D.amt + ' store credit is taken off your total.' : 'We owe you <b>' + D.amt + '</b>: add <b>' + more(g) + '</b> more and it comes off at checkout.');
+  }
+  // the bag's own totals: a "Fika store credit -$5.00" line above Total, and the Total less the credit (never below
+  // $0: WooCommerce takes off at most what the sweets cost), redone whenever the bag redraws its totals
+  function money(x) { return '$' + x.toFixed(2); }
+  function credit(done) {
+    var sub = document.getElementById('mxSub'), tot = document.getElementById('mxTot'), row = document.getElementById('fkOweRow');
+    if (!sub || !tot) return;
+    var s = parseFloat((sub.textContent || '').replace(/[^0-9.]/g, '')) || 0;
+    if (!done || !s) { if (row) { row.remove(); tot.textContent = money(s); } return; }
+    var off = Math.min(D.credit, s);
+    if (!row) { row = document.createElement('div'); row.id = 'fkOweRow'; row.className = 'mx-sum'; tot.parentNode.parentNode.insertBefore(row, tot.parentNode); }
+    var t = '<span>Fika store credit</span><span>&minus;' + money(off) + '</span>';
+    if (row.innerHTML !== t) row.innerHTML = t;
+    if (tot.textContent !== money(s - off)) tot.textContent = money(s - off);
   }
   function draw() {
     var g = grams(), done = g > 0 && g >= D.min && D.member;
+    credit(done);
     // in the bag, above the totals
     var df = document.querySelector('#mxDrawer .mx-df');
     if (df) {
@@ -1123,6 +1140,21 @@ add_action( 'wp_footer', function () {
     }
   }
   window.addEventListener('fikabag', function () { setTimeout(draw, 0); });
+  // at the checkout, the code's line reads "Fika store credit", like the bag (not the code "iou5-…")
+  try {
+    if (D.checkout && window.wc && wc.blocksCheckout && wc.blocksCheckout.registerCheckoutFilters) {
+      wc.blocksCheckout.registerCheckoutFilters('fika-owe', { coupons: function (cs) {
+        return (cs || []).map(function (c) { return /^iou\d+-/i.test(c.code || '') ? Object.assign({}, c, { label: 'Fika store credit' }) : c; });
+      } });
+    }
+  } catch (e) {}
+  // the bag rewrites its subtotal on every change (also without a fikabag event): follow it
+  (function watch(n) {
+    var sub = document.getElementById('mxSub');
+    if (!window.MutationObserver) return;
+    if (!sub) { if (n < 20) setTimeout(function () { watch(n + 1); }, 500); return; }
+    new MutationObserver(function () { draw(); }).observe(sub, { childList: true, characterData: true, subtree: true });
+  })(0);
   window.addEventListener('storage', function (e) { if (e.key === 'fika_bag_v1') draw(); });
   var tries = 0, t = setInterval(function () { draw(); if (++tries > 20) clearInterval(t); }, 500);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', draw); else draw();
