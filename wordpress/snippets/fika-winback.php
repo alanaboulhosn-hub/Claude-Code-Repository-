@@ -4,7 +4,7 @@
  * - Email 1, 30 days after a customer's last order (or after they created an account, if they never ordered):
  *   "It's been a while": what's new (products added in the last 45 days, or the favourites), a news box written
  *   in WP Admin, and a "Pick your mix" button.
- * - Email 2, 14 days after email 1 if they still have not ordered (owner, 3-4 Nov 2026): "Fika owes you $5" in store
+ * - Email 2, 7 days after email 1 (setting) if they still have not ordered (owner, 3-4 Nov 2026): "Fika owes you $5" in store
  *   credit, with loss aversion: "Name, don't lose your $5 ... before it runs out, or it is gone". A personal code, $5 off
  *   any order (no minimum; setting owe_min can add one), one use, only for their email, valid 2 days until 11:59 pm
  *   Beirut on the last day ("Only 2 days left · ends Friday"). Members and non-members get their own version.
@@ -52,7 +52,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'owe_min'     => 0, // ... store credit on any order (owner, 4 Nov 2026: no minimum; was $15). Above 0: a minimum of sweets
 			'valid_days'  => 2, // owner, 3 Nov 2026: 2 days, for urgency (was 14)
 			'first_days'  => 30,
-			'second_days' => 14,
+			'second_days' => 7, // owner, 4 Nov 2026: email 2 a week after email 1 (was 14)
 			'email2'      => 0, // 1 = email 2 (the code) is sent too; 0 = only email 1 goes out
 			'products'    => '118,121,120,107', // email 1 candy grid: product IDs, in order; empty = automatic
 		) );
@@ -1013,11 +1013,14 @@ $fika_wb_order = function ( $order ) {
 	}
 	$e  = strtolower( $order->get_billing_email() );
 	$st = fika_wb_state();
-	if ( ! empty( $st[ $e ]['s1'] ) ) {
+	if ( ! empty( $st[ $e ]['s1'] ) && empty( $st[ $e ]['ordered'] ) ) {
 		fika_wb_log( $e, 'Ordered again (#' . $order->get_order_number() . ')' . ( empty( $st[ $e ]['s2'] ) ? ' after email 1' : ' after email 2' ) );
 		$won = (int) get_option( 'fika_winback_won', 0 );
 		update_option( 'fika_winback_won', $won + 1, false );
-		unset( $st[ $e ] );
+		// the record is not cleared here (4 Nov 2026): it starts over by itself once the order counts (processing,
+		// completed...: their last order date changes, see fika_wb_due). A cancelled or failed order never counts, and
+		// clearing here made such a customer due for email 1 again: the same email twice
+		$st[ $e ]['ordered'] = time();
 		update_option( 'fika_winback_state', $st, false );
 	}
 };
@@ -1215,7 +1218,7 @@ add_action( 'admin_post_fika_wb_save', function () {
 	$set['owe_min']     = max( 0, absint( isset( $in['owe_min'] ) ? $in['owe_min'] : 0 ) );
 	$set['valid_days']  = max( 1, absint( isset( $in['valid_days'] ) ? $in['valid_days'] : 2 ) );
 	$set['first_days']  = max( 1, absint( isset( $in['first_days'] ) ? $in['first_days'] : 30 ) );
-	$set['second_days'] = max( 1, absint( isset( $in['second_days'] ) ? $in['second_days'] : 14 ) );
+	$set['second_days'] = max( 1, absint( isset( $in['second_days'] ) ? $in['second_days'] : 7 ) );
 	$set['email2']      = empty( $in['email2'] ) ? 0 : 1;
 	$set['products']    = implode( ',', array_slice( array_filter( array_map( 'absint', isset( $in['products'] ) ? (array) $in['products'] : array() ) ), 0, 4 ) );
 	update_option( 'fika_winback_settings', $set, false );
