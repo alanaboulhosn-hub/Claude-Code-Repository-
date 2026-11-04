@@ -6,7 +6,7 @@
  *   in WP Admin, and a "Pick your mix" button.
  * - Email 2, 14 days later if they still have not ordered: "We owe you $5" (owner, 3 Nov 2026): an IOU for $5 off
  *   store credit (a personal code: $5 off an order of at least $15 of sweets; one use, only for
- *   their email, valid 14 days). Top to bottom: the IOU voucher (picture), "Name, we put $5 aside for you", the
+ *   their email, valid 14 days). Top to bottom: the IOU voucher (picture), "Name, don't lose your $5", the
  *   deadline, "Claim my $5 store credit" (members) or "Join for free & claim my $5" (no account), the kilograms they already have with Fika and the
  *   reward that unlocks with an account (fika_wb_claim), the limited edition bag while it is on, a real customer's
  *   message. Its button opens the shop and the code applies at checkout. Pictures: wordpress/email-assets/make-email-owe.js.
@@ -656,10 +656,11 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$go     = $member ? $link : add_query_arg( 'fika_coupon', rawurlencode( $code ), wc_get_page_permalink( 'myaccount' ) ) . '#register';
 		$body  =
 			// the personal line right under the IOU (the voucher picture is the heading)
-			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:27px;line-height:1.15;margin:2px 0 10px;">' . ( $name ? esc_html( $name ) . ', we put ' : 'We put ' ) . $owe . ' aside for you</div>' .
+			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:27px;line-height:1.15;margin:2px 0 10px;">' . ( $name ? esc_html( $name ) . ', don&rsquo;t lose your ' : 'Don&rsquo;t lose your ' ) . $owe . '</div>' .
 			'<p style="text-align:center;">' . ( $member
-				? 'It is in your Fika Club account as store credit, on us. Spend it on anything you like.'
-				: 'It becomes your store credit the moment you join Fika Club. It is free and takes a minute, and your earlier orders join too.' ) . '</p>' .
+				// loss aversion (owner, 4 Nov 2026): the $5 is already theirs, and it runs out
+				? 'It is already in your Fika Club account as store credit. Use it on anything you like before it runs out, or it is gone.'
+				: 'It is already yours. Join Fika Club to keep it before it runs out, or it is gone. Joining is free and takes a minute, and your earlier orders join too.' ) . '</p>' .
 			'<p style="text-align:center;margin:0 !important;"><span style="' . $f . 'display:inline-block;padding:7px 16px;border-radius:999px;background:#fff4d9;border:1px solid #f2b84b;color:#8a5a00;font-size:14px;font-weight:600;">' . esc_html( $left ) . ' · ends ' . esc_html( wp_date( 'l', $expires ) ) . '</span></p>' .
 			fika_wb_button( $go, $claim ) .
 			fika_wb_claim( $email, $name, $member ? null : array( $go, $claim ) ) .
@@ -670,7 +671,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$html = WC()->mailer()->wrap_message( 'We owe you ' . $owe, $body );
 		// the IOU voucher is the heading
 		$html = str_replace( '>We owe you ' . $owe . '</h1>', '><img src="' . esc_url( home_url( '/wp-content/uploads/2026/11/fika-email-owe-voucher2.png' ) ) . '" width="480" alt="Fika owes you ' . esc_attr( $owe ) . ' in store credit" class="fika-t" style="display:block;width:100%;max-width:480px;height:auto;margin:0 auto;border:0;"></h1>', $html );
-		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( ( $member ? 'Your store credit is waiting in your Fika Club account' : 'Join Fika Club for free and it is your store credit' ) . ', only until ' . $until . '.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
+		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( ( $member ? 'Your ' . $owe . ' store credit runs out on ' . $until . '. Don\'t lose it.' : 'Your ' . $owe . ' runs out on ' . $until . '. Join Fika Club for free to keep it.' ) ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
 		$html = preg_replace( '/(<body\b[^>]*>)/i', '$1' . $pre, $html, 1 );
 		return array( ( $name ? $name . ', we owe you ' : 'We owe you ' ) . $owe . ' 🍬', $html );
 	}
