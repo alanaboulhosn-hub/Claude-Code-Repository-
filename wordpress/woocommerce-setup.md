@@ -2566,3 +2566,7 @@ choice). Snippet 91, fika-club.php (new):
 - Tracking: fika-email-tracking.php kind "fu" (delivery-follow-up); the kind is now read up to the dot (was the first
   3 letters, which "fu" does not fit); fika-order-source.php names it "Delivery follow-up". Both git only.
 - Previews rendered with temporary routes 272-274 (trashed); "Fika emails" artifact has 3 follow-up emails.
+- 4 Nov 2026, **live** (owner): snippet 94 (RT) sends the customer's phone exactly as they typed it (only extra spaces
+  trimmed), no longer 961 + the number. If RT refuses the number (an error mentioning the phone; RT then creates
+  nothing), the order is sent once more as 961 + the number and the order note says so. Live checked = git before the
+  change; dry run on #1665-#1670 (no parcel created): every number goes exactly as typed. Route 275 trashed.
