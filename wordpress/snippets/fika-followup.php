@@ -1,6 +1,6 @@
 <?php
 /**
- * Fika: the delivery follow-up email (owner, 4 Nov 2026: "a very warm follow-up 5 days after the order is marked
+ * Fika: email 0, the delivery follow-up email (owner, 4 Nov 2026, named "email 0": "a very warm follow-up 5 days after the order is marked
  * completed, asking them how the candies were").
  * - Who: an order marked Completed (delivered: the RT status update sets it, fika-rtd.php) gets one email, 5 days after
  *   it was completed (setting), and only while the completion is at most 8 days old: nobody is asked weeks later.
@@ -16,7 +16,7 @@
  *   and the Swedish tradition lördagsgodis (Saturday sweets), what they picked (photos and weights), a thank-you and the unsubscribe
  *   link (no P.S., owner 4 Nov 2026). Same look as the order and win-back emails. Nothing on the website.
  * - Tracking (fika-email-tracking.php, kind "fu"): clicks and orders show in WooCommerce > Email results.
- * - WP Admin > WooCommerce > Delivery follow-up: on / test / off, test addresses, days, a preview, the log.
+ * - WP Admin > WooCommerce > Email 0 (follow-up): on / test / off, test addresses, days, a preview, the log.
  * Needs the win-back snippet (its buttons, photos and unsubscribe link). Installed with the Code Snippets plugin.
  * Source: wordpress/snippets/fika-followup.php
  */
@@ -220,7 +220,7 @@ add_action( 'fika_fu_tick', function () {
 
 // ---------- WP Admin > WooCommerce > Delivery follow-up ----------
 add_action( 'admin_menu', function () {
-	add_submenu_page( 'woocommerce', 'Delivery follow-up', 'Delivery follow-up', 'manage_woocommerce', 'fika-followup', 'fika_fu_admin' );
+	add_submenu_page( 'woocommerce', 'Email 0: delivery follow-up', 'Email 0 (follow-up)', 'manage_woocommerce', 'fika-followup', 'fika_fu_admin' );
 }, 62 );
 add_action( 'admin_post_fika_fu_save', function () {
 	if ( ! current_user_can( 'manage_woocommerce' ) ) {
@@ -253,7 +253,7 @@ if ( ! function_exists( 'fika_fu_admin' ) ) {
 		$msg  = sanitize_key( $_GET['msg'] ?? '' ); // phpcs:ignore WordPress.Security.NonceVerification
 		?>
 <div class="wrap">
-	<h1>Delivery follow-up</h1>
+	<h1>Email 0: delivery follow-up</h1>
 	<p style="max-width:760px"><?php echo (int) $set['days']; ?> days after an order is marked <strong>Completed</strong> (delivered), the customer gets a warm thank-you email: &ldquo;we hope your sweets made you smile&rdquo;, the Swedish saying <i>Delad glädje är dubbel glädje</i>, how to keep sweets soft and fresh, the Swedish <i>lördagsgodis</i> tradition, and what they picked. One email per order, at most one per customer in 14 days, only for orders completed in the last <?php echo (int) ( $set['days'] + $set['window'] ); ?> days. Sent in small batches, 10:00&ndash;20:00 Beirut time.</p>
 	<?php if ( 'saved' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved.</p></div><?php endif; ?>
 	<?php if ( 'preview' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved, and the preview is on its way (it uses the latest completed order).</p></div><?php endif; ?>

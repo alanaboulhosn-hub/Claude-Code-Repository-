@@ -30,7 +30,7 @@ if ( ! function_exists( 'fika_et_kinds' ) ) {
 			'wb1' => array( 'winback-1', 'Win-back email 1' ),
 			'wb2' => array( 'winback-2', 'Win-back email 2' ),
 			'bag' => array( 'bag-reminder', 'Bag reminder' ),
-			'fu'  => array( 'delivery-follow-up', 'Delivery follow-up' ), // fika-followup.php (4 Nov 2026)
+			'fu'  => array( 'delivery-follow-up', 'Email 0 (delivery follow-up)' ), // fika-followup.php (4 Nov 2026)
 		);
 	}
 	// a new send: its id, saved with the kind, the time and the address (hashed)
