@@ -2625,3 +2625,13 @@ choice). Snippet 91, fika-club.php (new):
   fika_fu_quote_for() counts the customer's earlier orders with email 0 (_fika_fu, same billing email, this order left
   out) and takes the next one, starting again after the sixth. The preheader follows the saying. Six versions in the
   "Fika emails" artifact (route 286, trashed).
+- 4/5 Nov 2026, **live**: Email 0 installed as snippet 287 (fika-followup.php) and snippet 242 (tracking: kind "fu",
+  kind read up to the dot) updated; both = git. Email 0 switched **on** (owner: "start only with the customers set to
+  complete within the past 5 days"): setting start = 31 Oct 00:28 (orders completed before are never emailed),
+  mode live, hourly fika_fu_tick scheduled. Due then: 0 now; 55 orders (all completed 2 Nov) due Sat 7 Nov, sent ~20 a
+  day within their 5-8 day window. Cards: Email 0 On (due 0), Email 1 On (4), Email 2 On (221).
+- Device check (owner: phone and computer), from the live code: Email 0, Email 1, Email 2 member and non-member at 320,
+  375, 390, 430, 768, 1280 and 1680 px: nothing sideways or outside, no missing pictures, no button on two lines, no
+  text under 11.5 px: 28 of 28 after the fixes: email buttons' side padding 32 -> 22 px, "Limited edition" badge 11 ->
+  12 px, "Unlock my free mystery taste" -> "Unlock my mystery taste" (snippet 35 redeployed, = git). On a computer the
+  emails sit in a 600 px column (576 px content). Routes 288-291 trashed.
