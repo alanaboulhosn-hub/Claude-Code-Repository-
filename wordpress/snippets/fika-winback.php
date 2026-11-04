@@ -662,7 +662,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			return 'Start my lane & claim my ' . $owe;
 		}
 		if ( $got ) {
-			return 'a free mystery taste' === $got[0] ? 'Unlock my free mystery taste' : 'Unlock my free sweets';
+			return 'a free mystery taste' === $got[0] ? 'Unlock my mystery taste' : 'Unlock my free sweets';
 		}
 		$x = round( $g / 1000, 1 );
 		return 'Save my ' . ( fmod( $x, 1 ) ? number_format( $x, 1 ) : number_format( $x, 0 ) ) . ' kg & claim ' . $owe;
