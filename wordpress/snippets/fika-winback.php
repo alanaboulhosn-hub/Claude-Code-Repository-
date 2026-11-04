@@ -1423,7 +1423,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 		}
 		usort( $list, function ( $x, $y ) { return $x[2] <=> $y[2]; } );
 		$cards = array(
-			0 => array( 'Email 0', 'We hope your sweets made you smile', 'A warm thank-you ' . ( $fuon ? (int) $fu['days'] : 5 ) . ' days after an order is delivered.', $fuon ? 'live' === $fu['mode'] : false, $fuon ),
+			0 => array( 'Email 0', 'We hope your sweets made you smile', 'A warm thank-you ' . ( $fuon ? (int) $fu['days'] : 3 ) . ' days after an order is delivered.', $fuon ? 'live' === $fu['mode'] : false, $fuon ),
 			1 => array( 'Email 1', 'It&rsquo;s been a while', 'What&rsquo;s new, ' . (int) $set['first_days'] . ' days after a customer&rsquo;s last order.', ! empty( $set['email1'] ), true ),
 			2 => array( 'Email 2', 'Don&rsquo;t lose your ' . esc_html( fika_wb_money( $set['owe'] ) ), esc_html( fika_wb_money( $set['owe'] ) ) . ' store credit for ' . (int) $set['valid_days'] . ' days, ' . (int) $set['second_days'] . ' days after email 1. Once per customer, ever.', ! empty( $set['email2'] ), true ),
 		);
