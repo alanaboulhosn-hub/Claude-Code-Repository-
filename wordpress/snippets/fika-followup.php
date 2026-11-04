@@ -10,14 +10,11 @@
  * - Sent in small batches: at most 5 an hour, 10:00-20:00 Beirut, at most 20 in 24 hours, and never when the
  *   win-back emails and these together reached 70 in 24 hours (the hello@ mailbox sends about 100 a day, order
  *   emails included).
- * - The email: "Name, how were your sweets?", a personal note around the Swedish saying "Delad glädje är dubbel
- *   glädje" (shared joy is double joy), three answers to tap (Loved them /
- *   Pretty good / Not quite), what they picked (photos and weights), a thank-you, a P.S. to pick the next mix,
- *   and the unsubscribe link. Same look as the order and win-back emails (fika-emails.php, fika-winback.php).
- * - The answer, by email only (owner, 4 Nov 2026: nothing on the website): each of the three buttons opens a
- *   ready-made reply to hello@swedishfikalb.com in the customer's own mail app ("My Fika order #1234: Loved them"), with
- *   a few short questions to fill in (1-5 stars for the sweets, delivery, packing and value for money, their favourite,
- *   would they order again, anything else). Replying to the email works too. Answers arrive in the hello@ inbox.
+ * - The email (owner, 4 Nov 2026: no feedback questions, "a very heart warming follow-up, adding value to the
+ *   customer"): "Name, we hope your sweets made you smile", a personal note around the Swedish saying "Delad glädje är
+ *   dubbel glädje" (shared joy is double joy), "Swedish tips": how to keep the sweets soft and fresh,
+ *   and the Swedish tradition lördagsgodis (Saturday sweets), what they picked (photos and weights), a thank-you, a P.S.
+ *   to pick the next mix, and the unsubscribe link. Same look as the order and win-back emails. Nothing on the website.
  * - Tracking (fika-email-tracking.php, kind "fu"): clicks and orders show in WooCommerce > Email results.
  * - WP Admin > WooCommerce > Delivery follow-up: on / test / off, test addresses, days, a preview, the log.
  * Needs the win-back snippet (its buttons, photos and unsubscribe link). Installed with the Code Snippets plugin.
@@ -49,30 +46,6 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 			$n += preg_match( '/^(Sent|Not sent)/', $l['what'] ) ? 1 : 0;
 		}
 		return $n;
-	}
-	// the answers come back by email only (owner, 4 Nov 2026: "nothing shall pop up on our webpage"): each button opens
-	// a ready-made reply to hello@ in the customer's own mail app, their answer and a few short questions filled in
-	function fika_fu_mailto( $order, $r ) {
-		$a    = fika_fu_answers();
-		$lines = array( $a[ $r ][0] . ' ' . $a[ $r ][1], '', 'A few quick stars, 1 to 5 (if you like):' );
-		foreach ( fika_fu_aspects() as $x ) {
-			$lines[] = $x[0] . ( $x[1] ? ' (' . $x[1] . ')' : '' ) . ': ';
-		}
-		$lines = array_merge( $lines, array( '', 'My favourite this time: ', 'Would I order from Fika again (yes / maybe / no): ', '', 'Anything else: ', '', '' ) );
-		$subj  = 'My Fika order #' . $order->get_order_number() . ': ' . $a[ $r ][1];
-		return 'mailto:hello@swedishfikalb.com?subject=' . rawurlencode( $subj ) . '&body=' . rawurlencode( implode( "\n", $lines ) );
-	}
-	function fika_fu_answers() {
-		return array( 3 => array( '😍', 'Loved them' ), 2 => array( '🙂', 'Pretty good' ), 1 => array( '😕', 'Not quite' ) );
-	}
-	// the quick questions in the ready-made reply (owner, 4 Nov 2026: "a more detailed feedback segment"): 1-5 stars each
-	function fika_fu_aspects() {
-		return array(
-			'taste'    => array( 'The sweets', 'taste and freshness' ),
-			'delivery' => array( 'Delivery', 'time and the rider' ),
-			'packing'  => array( 'Packing', 'arrived in good shape' ),
-			'value'    => array( 'Value for money', '' ),
-		);
 	}
 	function fika_fu_skip( $email ) {
 		if ( ! is_email( $email ) || preg_match( '/@example\.(com|org|net)$/i', $email ) ) {
@@ -124,16 +97,6 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 		$email = strtolower( (string) $order->get_billing_email() );
 		$name  = function_exists( 'fika_wb_first_name' ) ? fika_wb_first_name( $order->get_billing_first_name() ) : $order->get_billing_first_name();
 		$strip = home_url( '/wp-content/uploads/2026/11/fika-email-owe-kilo.png' ); // ten cartoon candies, see-through
-		// the three answers, as big tappable pills (a table, so every inbox shows them side by side)
-		$cells = '';
-		foreach ( fika_fu_answers() as $r => $a ) {
-			// esc_url() would drop mailto: line breaks; the address is ours and the rest is encoded
-			$href   = esc_attr( fika_fu_mailto( $order, $r ) );
-			$cells .= '<td align="center" width="33%" valign="top" style="padding:0 4px;text-align:center;vertical-align:top;">' .
-				'<a href="' . $href . '" style="' . $f . 'display:block;height:84px;padding:14px 4px 0;border-radius:20px;background:#fdeaf2;border:2px solid #f3b7cf;color:#004aad;text-decoration:none;">' .
-				'<span style="display:block;font-size:34px;line-height:1.1;">' . $a[0] . '</span>' .
-				'<span style="display:block;margin-top:6px;font-size:13.5px;font-weight:600;line-height:1.25;color:#004aad;white-space:nowrap;">' . esc_html( $a[1] ) . '</span></a></td>';
-		}
 		$items = '';
 		foreach ( array_slice( fika_fu_items( $order ), 0, 8 ) as $row ) {
 			$items .= '<tr>' .
@@ -154,21 +117,29 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 				'<div style="font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-style:italic;color:#004aad;font-size:24px;line-height:1.3;margin:8px 0 6px;">&ldquo;Delad glädje är dubbel glädje.&rdquo;</div>' .
 				'<div style="' . $serif . 'color:#1b2a4a;font-size:17px;">Shared joy is double joy.</div>' .
 			'</div>' .
-			'<p style="text-align:center;">That is what fika is about: slowing down, and sharing something sweet with the people around you. We hope your bag did just that.</p>' .
-			'<p style="text-align:center;">Every bag is weighed and packed by hand, so it would mean a lot to us to hear how yours was.</p>' .
-			$div( 'fb', 'Tap one' ) .
-			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 4px;"><tr>' . $cells . '</tr></table>' .
-			'<div style="' . $f . 'text-align:center;color:#6c7b9c;font-size:13px;margin:8px 0 0;">Tap one and a short reply opens in your email, with a few quick questions. Fill in what you like and press send, or simply reply to this email. We read every answer.</div>' .
+			'<p style="text-align:center;">That is what fika is about: slowing down, and sharing something sweet with the people around you. We hope your bag did just that, and that every piece tasted like a little trip to Sweden.</p>' .
+			// a little something for them (owner, 4 Nov 2026: "adding value to the customer")
+			$div( 'tips', 'Swedish tips' ) .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td style="padding:18px 18px 16px;border-radius:20px;background:#eef4fb;text-align:center;">' .
+				'<div style="font-size:30px;line-height:1.1;">🫙</div>' .
+				'<div style="' . $f . 'color:#004aad;font-size:16.5px;font-weight:600;line-height:1.3;margin:6px 0 6px;">Keep them soft and fresh</div>' .
+				'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.6;">Close the bag tightly, or tip your sweets into a glass jar with a lid, and keep them somewhere cool and out of the sun. Swedish gummies stay soft and chewy for weeks that way, even in the Lebanese heat.</div>' .
+			'</td></tr></table>' .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td style="padding:18px 18px 16px;border-radius:20px;background:#fdeaf2;text-align:center;">' .
+				'<div style="font-size:30px;line-height:1.1;">🍬</div>' .
+				'<div style="' . $f . 'color:#004aad;font-size:16.5px;font-weight:600;line-height:1.3;margin:6px 0 6px;">Try a Swedish tradition: <i>lördagsgodis</i></div>' .
+				'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.6;">&ldquo;Saturday sweets.&rdquo; In Sweden, many families save their sweets for Saturday, pour them into one big bowl and share them over a slow afternoon or a film together. It makes the whole week feel a little sweeter.</div>' .
+			'</td></tr></table>' .
 			( $items ? $div( 'items', 'What you picked' ) . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:12px 0 0;">' . $items . '</table>' : '' ) .
 			$div( 'thanks', '' ) .
 			'<div style="' . $f . 'text-align:center;color:#1b2a4a;font-size:15.5px;line-height:1.6;margin:6px 0 0;">Thank you for choosing Fika. It truly means the world to us.</div>' .
 			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:21px;line-height:1.3;margin:10px 0 0;">With love,<br>the Fika family</div>' .
 			'<div style="' . $f . 'text-align:center;color:#1b2a4a;font-size:14.5px;line-height:1.55;margin:22px 0 0;">P.S. Running low already? <a href="' . esc_url( home_url( '/mix-your-own/' ) ) . '" style="color:#004aad;font-weight:600;">Pick your next mix</a></div>' .
 			( function_exists( 'fika_wb_small' ) ? fika_wb_small( $email ) : '' );
-		$html = WC()->mailer()->wrap_message( $name ? $name . ', how were your sweets?' : 'How were your sweets?', $body );
-		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( 'Delad glädje är dubbel glädje: shared joy is double joy. We would love to hear how your sweets were.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
+		$html = WC()->mailer()->wrap_message( $name ? $name . ', we hope your sweets made you smile' : 'We hope your sweets made you smile', $body );
+		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( 'Delad glädje är dubbel glädje: shared joy is double joy. A little note from all of us at Fika.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
 		$html = preg_replace( '/(<body[^>]*>)/i', '$1' . $pre, $html, 1 );
-		return array( ( $name ? $name . ', how' : 'How' ) . ' were your sweets? 🍬', $html );
+		return array( ( $name ? $name . ', we' : 'We' ) . ' hope your sweets made you smile 🍬', $html );
 	}
 	// send one: marked first (never twice), then sent
 	function fika_fu_send( $order ) {
@@ -284,7 +255,7 @@ if ( ! function_exists( 'fika_fu_admin' ) ) {
 		?>
 <div class="wrap">
 	<h1>Delivery follow-up</h1>
-	<p style="max-width:760px"><?php echo (int) $set['days']; ?> days after an order is marked <strong>Completed</strong> (delivered), the customer gets a warm &ldquo;How were your sweets?&rdquo; email with three answers to tap (😍 Loved them, 🙂 Pretty good, 😕 Not quite). Each opens a ready-made reply to hello@ in the customer&rsquo;s own email, with a few short questions (stars for the sweets, delivery, packing and value for money, their favourite, whether they would order again, anything else). Nothing appears on the website. One email per order, at most one per customer in 14 days, only for orders completed in the last <?php echo (int) ( $set['days'] + $set['window'] ); ?> days. Sent in small batches, 10:00&ndash;20:00 Beirut time.</p>
+	<p style="max-width:760px"><?php echo (int) $set['days']; ?> days after an order is marked <strong>Completed</strong> (delivered), the customer gets a warm thank-you email: &ldquo;we hope your sweets made you smile&rdquo;, the Swedish saying <i>Delad glädje är dubbel glädje</i>, how to keep sweets soft and fresh, the Swedish <i>lördagsgodis</i> tradition, what they picked, and a P.S. to pick their next mix. One email per order, at most one per customer in 14 days, only for orders completed in the last <?php echo (int) ( $set['days'] + $set['window'] ); ?> days. Sent in small batches, 10:00&ndash;20:00 Beirut time.</p>
 	<?php if ( 'saved' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved.</p></div><?php endif; ?>
 	<?php if ( 'preview' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved, and the preview is on its way (it uses the latest completed order).</p></div><?php endif; ?>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -300,8 +271,7 @@ if ( ! function_exists( 'fika_fu_admin' ) ) {
 		</table>
 		<?php submit_button( 'Save' ); ?>
 	</form>
-	<h2>Answers</h2>
-	<p style="max-width:760px">Answers come back as emails to <strong>hello@swedishfikalb.com</strong>, subject &ldquo;My Fika order #&hellip;: Loved them / Pretty good / Not quite&rdquo;, with the customer&rsquo;s stars, favourite and words. Nothing appears on the website. Sent so far: <strong><?php echo (int) $sent; ?></strong>.</p>
+	<h2>Sent so far: <?php echo (int) $sent; ?></h2>
 	<h2>Recent activity</h2>
 	<table class="widefat striped" style="max-width:900px"><tbody>
 		<?php if ( ! $log ) : ?><tr><td>Nothing sent yet.</td></tr><?php endif; ?>
