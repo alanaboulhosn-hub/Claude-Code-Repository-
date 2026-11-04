@@ -2608,3 +2608,7 @@ choice). Snippet 91, fika-club.php (new):
   first. Everything else (sending mode, test addresses, news, candies, store credit, timing, previews, recent activity)
   folded under "More settings, previews and recent activity". Preview rendered read-only (route 283, trashed): Email 1
   due 3, Email 2 due 221, 547 in the list.
+- 4 Nov 2026, **live** (owner: "yes, deploy it"): snippet 35 = git (live was 742865f before): email 2 once in a
+  lifetime (fika_wb_owe_got saved with the 20 addresses that had it) and the simple admin page. Checked: Email 1 On,
+  Email 2 On, Email 0 "Not installed yet"; due now 3 (email 1) and 221 (email 2); 547 in "Who is next"; mode live;
+  next batch Thu 5 Nov 10:00 Beirut; site pages load on phone and desktop, no errors. Route 284 trashed.
