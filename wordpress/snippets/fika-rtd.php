@@ -21,7 +21,7 @@
  * Sending orders to RT (switch "Send new orders to RT", Off by default): an order placed after the switch went On is
  * sent to RT as soon as it turns Processing (in the background, a few seconds later): shop 2392 (the RT shop), Inside
  * Beirut -> delivery type 3 (inside city) else 4, priority always Normal (2), special request None (4), name (RT
- * requires it) / phone (961 + local number) / address from the order, cash_collection = the order total for cash on
+ * requires it) / phone (as the customer typed it; 961 + the local number only if RT refuses that) / address from the order, cash_collection = the order total for cash on
  * delivery (0 otherwise), USD. No invoice number and no note (owner's choice, 16 Oct). RT's tracking ID is saved on
  * the order (RT column) and is how the webhook finds the order. Bags: 1 up to 1.5 kg, then one more per started 1.5 kg
  * (1.6 kg = 2, 3.1 kg = 3); RT's API has no documented bags field yet, so an order of 2+ bags gets a private note
@@ -107,7 +107,13 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 	if ( ! defined( 'FIKA_RTD_SHOP' ) ) {
 		define( 'FIKA_RTD_SHOP', 2392 );
 	}
-	// a Lebanese phone number the way RT wants it: 961 + the local number (no +, spaces or leading 0)
+	// the customer's number exactly as they typed it (owner, 4 Nov 2026: "keep the number exactly as the customer
+	// writes it"; only extra spaces are trimmed)
+	function fika_rtd_phone_typed( $raw ) {
+		return trim( preg_replace( '/\s+/', ' ', (string) $raw ) );
+	}
+	// a Lebanese phone number as 961 + the local number (no +, spaces or leading 0): only used when RT refuses the
+	// number as typed (see fika_rtd_send)
 	function fika_rtd_phone( $raw ) {
 		$d = preg_replace( '/\D/', '', (string) $raw );
 		if ( 0 === strpos( $d, '00' ) ) {
@@ -145,7 +151,7 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 			'delivery_priority_id' => 2, // always Normal (owner's choice)
 			'special_request_id'   => 4, // None
 			'customer_name'        => fika_rtd_cut( '' !== $name ? $name : 'Fika customer', 191 ),
-			'customer_phone'       => fika_rtd_phone( $phone ),
+			'customer_phone'       => fika_rtd_phone_typed( $phone ),
 			'customer_address'     => fika_rtd_cut( implode( ', ', array_filter( array_map( 'trim', $addr ) ) ), 191 ),
 			'cash_collection'      => 'cod' === $order->get_payment_method() ? round( (float) $order->get_total(), 2 ) : 0,
 			'currency_type'        => 1, // USD
@@ -175,15 +181,31 @@ if ( ! function_exists( 'fika_rtd_statuses' ) ) {
 		if ( '' !== (string) $order->get_meta( '_fika_rtd_tracking' ) ) {
 			return array( true, 'Already has an RT parcel: ' . $order->get_meta( '_fika_rtd_tracking' ) );
 		}
-		$tok = fika_rtd_api_signin();
-		$r   = is_wp_error( $tok ) ? $tok : fika_rtd_api_call( 'POST', '/parcel-create', fika_rtd_parcel_data( $order ), $tok );
-		$t   = ! is_wp_error( $r ) && isset( $r[1]['data']['parcel']['tracking_id'] ) ? (string) $r[1]['data']['parcel']['tracking_id'] : '';
+		$tok  = fika_rtd_api_signin();
+		$data = fika_rtd_parcel_data( $order );
+		$r    = is_wp_error( $tok ) ? $tok : fika_rtd_api_call( 'POST', '/parcel-create', $data, $tok );
+		$t    = ! is_wp_error( $r ) && isset( $r[1]['data']['parcel']['tracking_id'] ) ? (string) $r[1]['data']['parcel']['tracking_id'] : '';
+		$alt  = '';
+		// RT refused the number as the customer typed it (RT then creates nothing): once more as 961 + the number, so
+		// the way someone writes their number never keeps an order from RT
+		if ( '' === $t && ! is_wp_error( $r ) && false !== stripos( fika_rtd_api_error( $r ), 'phone' ) ) {
+			$alt = fika_rtd_phone( $data['customer_phone'] );
+			if ( '' !== $alt && $alt !== $data['customer_phone'] ) {
+				$why                    = fika_rtd_api_error( $r );
+				$data['customer_phone'] = $alt;
+				$r                      = fika_rtd_api_call( 'POST', '/parcel-create', $data, $tok );
+				$t                      = ! is_wp_error( $r ) && isset( $r[1]['data']['parcel']['tracking_id'] ) ? (string) $r[1]['data']['parcel']['tracking_id'] : '';
+				$alt                    = '' !== $t ? ' RT did not take the number as typed ("' . $why . '"), so it went as ' . $alt . '.' : '';
+			} else {
+				$alt = '';
+			}
+		}
 		$order = wc_get_order( $order->get_id() ); // fresh: the webhook may have written meanwhile
 		if ( '' !== $t ) {
 			$order->update_meta_data( '_fika_rtd_sent', time() );
 			$order->delete_meta_data( '_fika_rtd_send_error' );
 			$bags = fika_rtd_bags( $order );
-			$order->add_order_note( 'Sent to RT: parcel ' . $t . '.' . ( $bags > 1 ? ' ' . $bags . ' bags: set the bag count in RT.' : '' ) );
+			$order->add_order_note( 'Sent to RT: parcel ' . $t . '.' . $alt . ( $bags > 1 ? ' ' . $bags . ' bags: set the bag count in RT.' : '' ) );
 			fika_rtd_link( $order, $t ); // saves, and replays any RT update that came first
 			return array( true, 'Sent to RT: parcel ' . $t );
 		}
