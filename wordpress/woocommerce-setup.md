@@ -2455,3 +2455,6 @@ choice). Snippet 91, fika-club.php (new):
   delete"), tracking send wb2.atsduxhl. Temporary routes 246/247 trashed. Checked live on phone and desktop: no
   errors; the link opens the sign-up form with the box and the email filled in. To delete after the owner's test:
   the code, its fika_wb_owed entry, the test send/clicks, option fika_tmp_wb2test_sent (and the account if not kept).
+- 4 Nov (git only, not live yet): the progress box is always email 2's second part (owner): with nothing delivered
+  yet it shows "Name, your lane starts at 0 kg", the fish at the start and "Every kilogram you order moves your fish
+  along the lane to free sweets: 1.5 kg to go until a free mystery taste". Divider "Your Fika Club".
