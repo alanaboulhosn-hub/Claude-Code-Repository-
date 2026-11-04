@@ -297,7 +297,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	}
 	function fika_wb_button( $href, $text ) {
 		return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td align="center" style="text-align:center;padding:26px 0 22px;">' .
-			'<a class="fika-mail-btn" href="' . esc_url( $href ) . '" style="display:inline-block;padding:14px 32px;border-radius:999px;background:#004aad;color:#ffffff;text-decoration:none;font-weight:600;">' . esc_html( $text ) . '</a></td></tr></table>';
+			'<a class="fika-mail-btn" href="' . esc_url( $href ) . '" style="display:inline-block;padding:14px 22px;border-radius:999px;background:#004aad;color:#ffffff;text-decoration:none;font-weight:600;">' . esc_html( $text ) . '</a></td></tr></table>';
 	}
 	function fika_wb_small( $email ) {
 		return '<p style="margin-top:20px !important;text-align:center;color:#6c7b9c !important;font-size:12.5px !important;">You get this email because you shop with Fika. ' .
@@ -690,7 +690,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return fika_wb_divider( 'ff', 'Our pick for you' ) .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td align="center" style="text-align:center;padding:0;">' .
 			( $img ? '<a href="' . esc_url( $link ) . '" style="display:block;"><img src="' . esc_url( $img ) . '" width="230" alt="' . esc_attr( $p->get_name() ) . '" style="display:block;width:230px;max-width:100%;height:auto;margin:0 auto;border:0;border-radius:18px;"></a>' : '' ) .
-			'<div style="' . $f . 'display:inline-block;margin-top:10px;padding:3px 10px;border-radius:999px;background:#004aad;color:#ffffff;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Limited edition</div>' .
+			'<div style="' . $f . 'display:inline-block;margin-top:10px;padding:3px 10px;border-radius:999px;background:#004aad;color:#ffffff;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Limited edition</div>' .
 			'<div style="' . $f . 'margin:8px 0 4px;color:#004aad;font-size:20px;font-weight:600;line-height:1.25;">' . esc_html( $p->get_name() ) . '</div>' .
 			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;">Our top-selling Sweet &amp; Sour Mix with the new BUBS Strawberry Vanilla Diamond and the Pomegranate Ovals back.</div>' .
 			'<div style="' . $f . 'margin-top:6px;color:#6c7b9c;font-size:13.5px;">' . wp_strip_all_tags( wc_price( wc_get_price_to_display( $p ) ) ) . ' per 500 g bag, while it lasts</div>' .
@@ -1407,7 +1407,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 		}
 		if ( $fuon && function_exists( 'wc_get_orders' ) ) {
 			// email 0: orders completed in the last (days + window) days that have not had it
-			$from = $now - ( (int) $fu['days'] + (int) $fu['window'] ) * DAY_IN_SECONDS;
+			$from = max( $now - ( (int) $fu['days'] + (int) $fu['window'] ) * DAY_IN_SECONDS, (int) ( $fu['start'] ?? 0 ) );
 			$seen = array();
 			foreach ( wc_get_orders( array( 'limit' => 300, 'type' => 'shop_order', 'status' => array( 'wc-completed' ), 'date_completed' => '>' . $from ) ) as $o ) {
 				$e = strtolower( (string) $o->get_billing_email() );
