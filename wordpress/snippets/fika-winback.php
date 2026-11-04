@@ -597,7 +597,8 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		return '$' . rtrim( rtrim( number_format( (float) $x, 2, '.', '' ), '0' ), '.' );
 	}
 	// email 2: the limited edition bag, while it is on (snippet 193, FIKA_DROPS_MODE 'limited') and in stock
-	function fika_wb_ff_box( $link ) {
+	// $btn: [ link, words ] for a button under the bag (owner, 4 Nov 2026: the claim button there too)
+	function fika_wb_ff_box( $link, $btn = null ) {
 		if ( ! defined( 'FIKA_DROPS_MODE' ) || 'limited' !== FIKA_DROPS_MODE ) {
 			return '';
 		}
@@ -612,9 +613,10 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			( $img ? '<a href="' . esc_url( $link ) . '" style="display:block;"><img src="' . esc_url( $img ) . '" width="230" alt="' . esc_attr( $p->get_name() ) . '" style="display:block;width:230px;max-width:100%;height:auto;margin:0 auto;border:0;border-radius:18px;"></a>' : '' ) .
 			'<div style="' . $f . 'display:inline-block;margin-top:10px;padding:3px 10px;border-radius:999px;background:#004aad;color:#ffffff;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Limited edition</div>' .
 			'<div style="' . $f . 'margin:8px 0 4px;color:#004aad;font-size:20px;font-weight:600;line-height:1.25;">' . esc_html( $p->get_name() ) . '</div>' .
-			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;">Our top-selling Sweet &amp; Sour Mix with the new BUBS Strawberry Vanilla Diamond and the Pomegranate Ovals back.<br><b>Two bags make your kilogram.</b></div>' .
+			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;">Our top-selling Sweet &amp; Sour Mix with the new BUBS Strawberry Vanilla Diamond and the Pomegranate Ovals back.</div>' .
 			'<div style="' . $f . 'margin-top:6px;color:#6c7b9c;font-size:13.5px;">' . wp_strip_all_tags( wc_price( wc_get_price_to_display( $p ) ) ) . ' per 500 g bag, while it lasts</div>' .
-			'</td></tr></table>';
+			'</td></tr></table>' .
+			( $btn ? fika_wb_button( $btn[0], $btn[1] ) : '' );
 	}
 	// email 2: a real message a customer sent after a delivery (fika-checkout-texts.php), as the checkout's Fika inbox
 	// played as a short animation (a GIF: typing, the messages popping in, the pink heart), made by
@@ -666,7 +668,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<p style="text-align:center;margin:0 !important;"><span style="' . $f . 'display:inline-block;padding:7px 16px;border-radius:999px;background:#fff4d9;border:1px solid #f2b84b;color:#8a5a00;font-size:14px;font-weight:600;">' . esc_html( $left ) . ' · ends ' . esc_html( wp_date( 'l', $expires ) ) . '</span></p>' .
 			fika_wb_button( $go, $claim ) .
 			fika_wb_claim( $email, $name, $member ? null : array( $go, $claim ) ) .
-			fika_wb_ff_box( $link ) .
+			fika_wb_ff_box( $link, array( $go, $claim ) ) .
 			fika_wb_quote() .
 			fika_wb_button( $go, $claim ) .
 			fika_wb_small( $email );
