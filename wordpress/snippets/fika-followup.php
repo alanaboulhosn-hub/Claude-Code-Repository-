@@ -2,8 +2,8 @@
 /**
  * Fika: email 0, the delivery follow-up email (owner, 4 Nov 2026, named "email 0": "a very warm follow-up 5 days after the order is marked
  * completed, asking them how the candies were").
- * - Who: an order marked Completed (delivered: the RT status update sets it, fika-rtd.php) gets one email, 5 days after
- *   it was completed (setting), and only while the completion is at most 8 days old: nobody is asked weeks later.
+ * - Who: an order marked Completed (delivered: the RT status update sets it, fika-rtd.php) gets one email, 3 days after
+ *   it was completed (setting; 5 until 5 Nov 2026), and only while the completion is at most 6 days old.
  *   One email per order, at most one per customer in 14 days, never to unsubscribed addresses (the win-back
  *   unsubscribe list, fika_marketing_stop), test addresses (@example.com/.org/.net) or shop staff.
  * - Never twice: the order is marked (_fika_fu) and saved BEFORE the email goes out; a failed send is not retried.
@@ -27,7 +27,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 		return wp_parse_args( is_array( $s ) ? $s : array(), array(
 			'mode'        => 'off', // off | test (only the test addresses) | live
 			'test_emails' => 'alan.aboulhosn@gmail.com',
-			'days'        => 5,     // days after the order was completed
+			'days'        => 3,     // days after the order was completed (owner, 5 Nov 2026: 3, was 5)
 			'window'      => 3,     // ... and not later than this many days after that
 			'start'       => 0,     // only orders completed from this time (owner, 4 Nov 2026: start with the last 5 days)
 		) );
