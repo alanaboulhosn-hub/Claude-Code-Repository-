@@ -21,6 +21,9 @@
  *   (the email link is the proof): they are logged in, their earlier orders join, and Mix your own opens with the bag
  *   and "Welcome to Fika Club!". Members: Mix your own; the Fan Favourites picture and button open Ready Mix with one
  *   bag of it already in the bag (?fika_add). Pictures: wordpress/email-assets/make-email-owe.js (+ make-email-inbox).
+ * - Once in a lifetime (owner, 4 Nov 2026): each address gets email 2 only once, ever (option fika_wb_owe_got, marked
+ *   before it goes out; filled once from the state, the log and the codes already sent). Ordering again starts a new
+ *   cycle with email 1 at 30 days, but no second email 2: nobody can wait 37 days after each order for another $5.
  * - The $5 (email-2 codes are marked _fika_owe): the email's links remember the code (cookie fika_coupon), and a
  *   logged-in customer's code is also found by their email (fika_wb_owed), on any phone or computer. It is only for
  *   Fika Club members: it goes on by itself when a logged-in customer has sweets in the bag, and is forgotten once an
@@ -84,6 +87,53 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		}
 		$t['steps'][] = array( round( microtime( true ), 2 ), $step );
 		update_option( 'fika_winback_trace', $t, false );
+	}
+	// email 2's store credit goes to each address once in its whole life with Fika (owner, 4 Nov 2026: otherwise someone
+	// could wait 37 days after every order for another $5). Option fika_wb_owe_got: md5(email) => time. Filled once from
+	// what was already sent (fika_wb_owe_backfill), then marked before each email 2 goes out.
+	function fika_wb_owe_had( $email ) {
+		$got = get_option( 'fika_wb_owe_got', array() );
+		return is_array( $got ) && isset( $got[ md5( strtolower( trim( (string) $email ) ) ) ] );
+	}
+	function fika_wb_owe_mark( $email ) {
+		$got = get_option( 'fika_wb_owe_got', array() );
+		$got = is_array( $got ) ? $got : array();
+		$got[ md5( strtolower( trim( (string) $email ) ) ) ] = time();
+		update_option( 'fika_wb_owe_got', $got, false );
+	}
+	// everyone who already had an email 2: the win-back state, the log and the email-2 codes made for customers
+	function fika_wb_owe_backfill() {
+		if ( get_option( 'fika_wb_owe_got_v' ) ) {
+			return;
+		}
+		$got = get_option( 'fika_wb_owe_got', array() );
+		$got = is_array( $got ) ? $got : array();
+		$add = function ( $e, $t ) use ( &$got ) {
+			$e = strtolower( trim( (string) $e ) );
+			if ( is_email( $e ) && ! isset( $got[ md5( $e ) ] ) ) {
+				$got[ md5( $e ) ] = (int) $t;
+			}
+		};
+		foreach ( (array) get_option( 'fika_winback_state', array() ) as $e => $s ) {
+			if ( ! empty( $s['s2'] ) ) {
+				$add( $e, $s['s2'] );
+			}
+		}
+		foreach ( (array) get_option( 'fika_winback_log', array() ) as $l ) {
+			if ( 0 === strpos( (string) $l['what'], 'Email 2 sent' ) ) {
+				$add( $l['email'], $l['t'] );
+			}
+		}
+		foreach ( get_posts( array( 'post_type' => 'shop_coupon', 'post_status' => 'any', 'posts_per_page' => -1, 'fields' => 'ids', 'meta_key' => '_fika_owe', 'meta_value' => '1' ) ) as $cid ) {
+			$c = new WC_Coupon( $cid );
+			if ( 0 === strpos( (string) $c->get_description(), 'Win-back email 2' ) ) {
+				foreach ( $c->get_email_restrictions() as $e ) {
+					$add( $e, $c->get_date_created() ? $c->get_date_created()->getTimestamp() : time() );
+				}
+			}
+		}
+		update_option( 'fika_wb_owe_got', $got, false );
+		update_option( 'fika_wb_owe_got_v', 1, false );
 	}
 	function fika_wb_stopped( $email ) {
 		$stop = get_option( 'fika_marketing_stop', array() );
@@ -154,6 +204,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			return ( time() - $p['since'] >= (int) $set['first_days'] * DAY_IN_SECONDS ) ? '1' : '';
 		}
 		if ( empty( $s['s2'] ) ) {
+			if ( fika_wb_owe_had( $email ) ) {
+				return ''; // had the store credit once already: this cycle ends with email 1
+			}
 			return ( time() - (int) $s['s1'] >= (int) $set['second_days'] * DAY_IN_SECONDS ) ? '2' : '';
 		}
 		return '';
@@ -878,6 +931,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			return 0;
 		}
 		$test = array_filter( array_map( 'strtolower', array_map( 'trim', preg_split( '/[\s,;]+/', (string) $set['test_emails'] ) ) ) );
+		fika_wb_owe_backfill(); // once: everyone who already had an email 2 (the store credit, once in a lifetime)
 		$st   = fika_wb_state();
 		$sent = 0;
 		foreach ( fika_wb_audience() as $email => $p ) {
@@ -902,6 +956,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			$st[ $email ]               = isset( $st[ $email ] ) ? $st[ $email ] : array( 'base' => (int) $p['last'] );
 			$st[ $email ][ 's' . $due ] = time();
 			update_option( 'fika_winback_state', $st, false );
+			if ( '2' === $due ) {
+				fika_wb_owe_mark( $email ); // the store credit, once in a lifetime: marked before it goes out
+			}
 			if ( $sent ) {
 				sleep( 4 ); // a short gap between emails, so the mail server is not flooded
 			}
@@ -1306,6 +1363,7 @@ add_action( 'admin_post_fika_wb_save', function () {
 } );
 if ( ! function_exists( 'fika_wb_admin' ) ) {
 	function fika_wb_admin() {
+		fika_wb_owe_backfill();
 		$set   = fika_wb_settings();
 		$st    = fika_wb_state();
 		$aud   = fika_wb_audience();
@@ -1332,7 +1390,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 	<p style="max-width:760px">Customers who haven&rsquo;t ordered for <?php echo (int) $set['first_days']; ?> days get <strong>email 1</strong> (&ldquo;It&rsquo;s been a while&rdquo;: what&rsquo;s new, your news, &ldquo;Pick your mix&rdquo;).
 	<?php echo (int) $set['second_days']; ?> days later, if they still haven&rsquo;t ordered, <strong>email 2</strong>: &ldquo;Fika owes you <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?>&rdquo; in store credit (&ldquo;don&rsquo;t lose your <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?>&rdquo;), on <?php echo $set['owe_min'] > 0 ? 'an order of ' . esc_html( fika_wb_money( $set['owe_min'] ) ) . ' or more' : 'any order'; ?>, for <?php echo (int) $set['valid_days']; ?> days (until 11:59 pm on the last day).
 	The <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?> is for Fika Club members: members&rsquo; buttons open the shop with the <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?> already taken off in the bag; everyone else&rsquo;s open the sign-up page (no confirmation email needed when they come from the email), then the shop.
-	Email 2 also shows their Fika Club progress and the limited edition bag. Ordering again starts over.
+	Email 2 also shows their Fika Club progress and the limited edition bag. <strong>Each customer gets email 2 only once, ever</strong>: ordering again starts over with email 1, without a second $5.
 	Sent in small batches, 10:00&ndash;20:00 Beirut time, at most 50 a day. Orders came back after these emails: <strong><?php echo (int) get_option( 'fika_winback_won', 0 ); ?></strong>.</p>
 	<?php if ( 'saved' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved.</p></div><?php endif; ?>
 	<?php if ( 'preview' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved, and the preview is on its way.</p></div><?php endif; ?>
