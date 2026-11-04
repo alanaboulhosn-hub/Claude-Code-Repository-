@@ -1172,8 +1172,12 @@ add_action( 'wp_footer', function () {
     if (!done || !s) { if (row) { row.remove(); tot.textContent = money(left); } return; }
     var off = Math.min(D.credit, left);
     if (!row) { row = document.createElement('div'); row.id = 'fkOweRow'; row.className = 'mx-sum'; tot.parentNode.parentNode.insertBefore(row, tot.parentNode); }
-    var t = '<span>Fika store credit</span><span>&minus;' + money(off) + '</span>';
-    if (row.innerHTML !== t) row.innerHTML = t;
+    // compared as text (the browser reads "&minus;" back as "\u2212": comparing the markup rewrote the line on every
+    // change it caused, for ever, and froze the page)
+    var amt = '\u2212' + money(off);
+    if (row.children.length !== 2 || row.children[0].textContent !== 'Fika store credit' || row.children[1].textContent !== amt) {
+      row.innerHTML = '<span>Fika store credit</span><span></span>'; row.children[1].textContent = amt;
+    }
     if (tot.textContent !== money(left - off)) tot.textContent = money(left - off);
   }
   function draw() {
