@@ -2593,3 +2593,4 @@ choice). Snippet 91, fika-club.php (new):
   tradition: lördagsgodis" (Saturday sweets), what they picked, thank-you, P.S. next mix, unsubscribe. Preheader
   "Delad glädje är dubbel glädje: shared joy is double joy. A little note from all of us at Fika." Admin page: no
   answers section. Routes 279-280 trashed.
+- 4 Nov (git only): the follow-up's P.S. ("Running low already? Pick your next mix") removed (owner). Route 281 trashed.

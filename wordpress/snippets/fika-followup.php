@@ -13,8 +13,8 @@
  * - The email (owner, 4 Nov 2026: no feedback questions, "a very heart warming follow-up, adding value to the
  *   customer"): "Name, we hope your sweets made you smile", a personal note around the Swedish saying "Delad glädje är
  *   dubbel glädje" (shared joy is double joy), "Swedish tips": how to keep the sweets soft and fresh,
- *   and the Swedish tradition lördagsgodis (Saturday sweets), what they picked (photos and weights), a thank-you, a P.S.
- *   to pick the next mix, and the unsubscribe link. Same look as the order and win-back emails. Nothing on the website.
+ *   and the Swedish tradition lördagsgodis (Saturday sweets), what they picked (photos and weights), a thank-you and the unsubscribe
+ *   link (no P.S., owner 4 Nov 2026). Same look as the order and win-back emails. Nothing on the website.
  * - Tracking (fika-email-tracking.php, kind "fu"): clicks and orders show in WooCommerce > Email results.
  * - WP Admin > WooCommerce > Delivery follow-up: on / test / off, test addresses, days, a preview, the log.
  * Needs the win-back snippet (its buttons, photos and unsubscribe link). Installed with the Code Snippets plugin.
@@ -134,7 +134,6 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 			$div( 'thanks', '' ) .
 			'<div style="' . $f . 'text-align:center;color:#1b2a4a;font-size:15.5px;line-height:1.6;margin:6px 0 0;">Thank you for choosing Fika. It truly means the world to us.</div>' .
 			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:21px;line-height:1.3;margin:10px 0 0;">With love,<br>the Fika family</div>' .
-			'<div style="' . $f . 'text-align:center;color:#1b2a4a;font-size:14.5px;line-height:1.55;margin:22px 0 0;">P.S. Running low already? <a href="' . esc_url( home_url( '/mix-your-own/' ) ) . '" style="color:#004aad;font-weight:600;">Pick your next mix</a></div>' .
 			( function_exists( 'fika_wb_small' ) ? fika_wb_small( $email ) : '' );
 		$html = WC()->mailer()->wrap_message( $name ? $name . ', we hope your sweets made you smile' : 'We hope your sweets made you smile', $body );
 		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( 'Delad glädje är dubbel glädje: shared joy is double joy. A little note from all of us at Fika.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
@@ -255,7 +254,7 @@ if ( ! function_exists( 'fika_fu_admin' ) ) {
 		?>
 <div class="wrap">
 	<h1>Delivery follow-up</h1>
-	<p style="max-width:760px"><?php echo (int) $set['days']; ?> days after an order is marked <strong>Completed</strong> (delivered), the customer gets a warm thank-you email: &ldquo;we hope your sweets made you smile&rdquo;, the Swedish saying <i>Delad glädje är dubbel glädje</i>, how to keep sweets soft and fresh, the Swedish <i>lördagsgodis</i> tradition, what they picked, and a P.S. to pick their next mix. One email per order, at most one per customer in 14 days, only for orders completed in the last <?php echo (int) ( $set['days'] + $set['window'] ); ?> days. Sent in small batches, 10:00&ndash;20:00 Beirut time.</p>
+	<p style="max-width:760px"><?php echo (int) $set['days']; ?> days after an order is marked <strong>Completed</strong> (delivered), the customer gets a warm thank-you email: &ldquo;we hope your sweets made you smile&rdquo;, the Swedish saying <i>Delad glädje är dubbel glädje</i>, how to keep sweets soft and fresh, the Swedish <i>lördagsgodis</i> tradition, and what they picked. One email per order, at most one per customer in 14 days, only for orders completed in the last <?php echo (int) ( $set['days'] + $set['window'] ); ?> days. Sent in small batches, 10:00&ndash;20:00 Beirut time.</p>
 	<?php if ( 'saved' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved.</p></div><?php endif; ?>
 	<?php if ( 'preview' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved, and the preview is on its way (it uses the latest completed order).</p></div><?php endif; ?>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
