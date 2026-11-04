@@ -2530,3 +2530,8 @@ choice). Snippet 91, fika-club.php (new):
   Tested live (combo-e2e@example.com, Store API as the checkout uses it, no order): $14 bag + SWIM3 ($2.80) + $5 ->
   Discount −$7.80, Total $6.20, the $5 labelled "Fika store credit"; another code refused; reward first then $5 keeps
   the reward; bag $14 − $5 − $2.80 = $6.20, reward out -> $9.00. Test user, 3 codes, saved bag deleted; route 265 trashed.
+- 4 Nov: COMEBACK test codes (old win-back previews for alan.aboulhosn@gmail.com, unused) deleted: 1350, 1119, 1091.
+  Discounts on the shop now: FIKA10 (checkout exit popup, 10% candies, individual use, once per person; the popup is not
+  offered while any code or a SWIM reward is on), Fika Club rewards SWIM3/6/10/15 (combine with each other and with
+  the $5 only), mystery taste (free 50 g line, price 0, not a code: goes with everything), email 2 $5 IOU codes
+  (individual use except SWIM rewards). No discount touches delivery.
