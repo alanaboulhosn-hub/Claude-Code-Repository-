@@ -2494,3 +2494,6 @@ choice). Snippet 91, fika-club.php (new):
   previous code IOU5-GKXZTW (unused) deleted. Temporary route 258 trashed; option fika_tmp_wb2three_sent to delete.
 - 4 Nov: email 1 preview to alan.aboulhosn@gmail.com ("[Preview] It's been a while, Alan! A few sweets picked for
   you"), live code, no code or tracking. Temporary route 259 trashed; option fika_tmp_wb1prev_sent to delete.
+- 4 Nov, live setting (owner): email 1's four candies (win-back setting "products") now 118 Fruity Lemon Mix Skulls,
+  **110 BUBS Banana Toffee Ovals** (was 121 Forest Berry Ovals, out of stock), 120 Bubblegum Skull, 107 Raspberry
+  Salty Licorice Skulls. Done with temporary route 260 (trashed); email 1 rendered from the live code to check.
