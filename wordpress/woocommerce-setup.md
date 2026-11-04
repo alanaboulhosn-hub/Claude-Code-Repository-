@@ -2548,3 +2548,21 @@ choice). Snippet 91, fika-club.php (new):
   SWIM3 reward checkout Discount −$7.80, Total $6.20; popup "Don't lose your $5". Test users/codes/bags deleted
   (route 270 trashed). Email 2: 2nd batch 19:34 (10 sent; 20 in all, codes right), next tomorrow 10:00; #1668 ordered
   again after email 1.
+
+## Delivery follow-up email (4 Nov 2026, git only, not live)
+- New snippet wordpress/snippets/fika-followup.php (not installed yet; starts with mode Off). 5 days after an order is
+  marked Completed (window: completed 5-8 days ago), one email per order, at most one per customer in 14 days; not to
+  unsubscribed (fika_marketing_stop), @example.com or staff; marked _fika_fu before sending; batches of 5 an hour
+  10:00-20:00 Beirut (Action Scheduler fika_fu_tick, WordPress cron runs only), at most 20 a day and 70 a day with the
+  win-back emails. Would be due if switched on 4 Nov: 31 orders.
+- Email: heading "Name, how were your sweets?", the ten-candies strip (media 1344), "Your Fika bag reached you a few
+  days ago… did the sour ones make you pucker? Did anyone steal the last Swedish fish?", "Tap one": 😍 Loved them /
+  🙂 Pretty good / 😕 Not quite, "What you picked" (photos, weights, mystery taste), "Thank you for choosing Fika…
+  With love, the Fika family", P.S. "Pick your next mix", unsubscribe. Subject "Name, how were your sweets? 🍬".
+- Answer: /?fika_fb=<order>.<sig>&r=3|2|1 shows a card on the home page (answer chosen, a box for a few words,
+  Send; other popups hidden). Opening saves nothing; Send (POST) saves order meta _fika_fb, an order note, option
+  fika_fu_feedback; thank-you card by answer (Instagram @swedishfika.lb / next mix / WhatsApp 79 411 565).
+- WP Admin > WooCommerce > Delivery follow-up: On / Test / Off, test addresses, days, preview, answers, log.
+- Tracking: fika-email-tracking.php kind "fu" (delivery-follow-up); the kind is now read up to the dot (was the first
+  3 letters, which "fu" does not fit); fika-order-source.php names it "Delivery follow-up". Both git only.
+- Previews rendered with temporary routes 272-274 (trashed); "Fika emails" artifact has 3 follow-up emails.

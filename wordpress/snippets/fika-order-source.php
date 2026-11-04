@@ -26,7 +26,7 @@ if ( ! function_exists( 'fika_src_of' ) ) {
 		$ref    = $g( 'referrer' );
 		// our own emails (fika-email-tracking.php): the order's stamp, or the UTM tags of the email's links
 		$em     = (string) $order->get_meta( '_fika_email' );
-		$emails = array( 'wb1' => 'Win-back email 1', 'wb2' => 'Win-back email 2', 'bag' => 'Bag reminder', 'winback-1' => 'Win-back email 1', 'winback-2' => 'Win-back email 2', 'bag-reminder' => 'Bag reminder' );
+		$emails = array( 'wb1' => 'Win-back email 1', 'wb2' => 'Win-back email 2', 'bag' => 'Bag reminder', 'fu' => 'Delivery follow-up', 'delivery-follow-up' => 'Delivery follow-up', 'winback-1' => 'Win-back email 1', 'winback-2' => 'Win-back email 2', 'bag-reminder' => 'Bag reminder' );
 		if ( '' === $em && 'email' === $med && 'fika' === $src ) {
 			$em = $g( 'utm_campaign' );
 		}
