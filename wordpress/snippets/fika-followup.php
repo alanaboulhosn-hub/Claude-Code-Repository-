@@ -29,6 +29,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 			'test_emails' => 'alan.aboulhosn@gmail.com',
 			'days'        => 5,     // days after the order was completed
 			'window'      => 3,     // ... and not later than this many days after that
+			'start'       => 0,     // only orders completed from this time (owner, 4 Nov 2026: start with the last 5 days)
 		) );
 	}
 	function fika_fu_log( $email, $what ) {
@@ -80,7 +81,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 	// orders due now: completed between (days + window) and days ago, not emailed yet
 	function fika_fu_due() {
 		$set  = fika_fu_settings();
-		$from = time() - ( (int) $set['days'] + (int) $set['window'] ) * DAY_IN_SECONDS;
+		$from = max( time() - ( (int) $set['days'] + (int) $set['window'] ) * DAY_IN_SECONDS, (int) $set['start'] );
 		$to   = time() - (int) $set['days'] * DAY_IN_SECONDS;
 		$list = wc_get_orders( array( 'limit' => 200, 'type' => 'shop_order', 'status' => array( 'wc-completed' ), 'date_completed' => $from . '...' . $to, 'orderby' => 'date', 'order' => 'ASC' ) );
 		$last = (array) get_option( 'fika_fu_last', array() );
