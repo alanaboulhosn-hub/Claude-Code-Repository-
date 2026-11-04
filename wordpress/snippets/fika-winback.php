@@ -686,7 +686,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			fika_wb_claim( $email, $name, array( $go ) ) .
 			fika_wb_ff_box( $link, array( $member ? add_query_arg( 'fika_coupon', rawurlencode( $code ), home_url( '/ready-mix/' ) ) : $go, $member ? 'Get it for {price}' : 'Join for free & get it for {price}' ) ) .
 			fika_wb_quote() .
-			fika_wb_button( $go, $member ? 'Try them, ' . $owe . ' on us' : 'Join & try them, ' . $owe . ' on us' ) .
+			fika_wb_button( $go, $member ? 'Get obsessed too' : 'Join & get obsessed too' ) . // echoes "Im obsessed with them" in the inbox
 			fika_wb_small( $email );
 		$html = WC()->mailer()->wrap_message( 'We owe you ' . $owe, $body );
 		// the IOU voucher is the heading
