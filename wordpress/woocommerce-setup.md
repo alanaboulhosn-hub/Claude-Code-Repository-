@@ -2587,3 +2587,9 @@ choice). Snippet 91, fika-club.php (new):
   1-5 for the sweets, delivery, packing, value for money; favourite; order again yes/maybe/no; anything else). Email
   line: "Tap one and a short reply opens in your email… or simply reply to this email." Admin page: settings, preview,
   log, and a note that answers arrive in hello@. Taps on these buttons are not counted (mail links). Route 278 trashed.
+- 4 Nov (git only): feedback removed entirely (owner: replying is too much friction). The follow-up is a warm
+  thank-you: subject/heading "Name, we hope your sweets made you smile", the personal note and the Swedish saying,
+  "Swedish tips": "Keep them soft and fresh" (bag closed or a glass jar, cool, out of the sun) and "Try a Swedish
+  tradition: lördagsgodis" (Saturday sweets), what they picked, thank-you, P.S. next mix, unsubscribe. Preheader
+  "Delad glädje är dubbel glädje: shared joy is double joy. A little note from all of us at Fika." Admin page: no
+  answers section. Routes 279-280 trashed.
