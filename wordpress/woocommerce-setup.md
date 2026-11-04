@@ -2517,3 +2517,6 @@ choice). Snippet 91, fika-club.php (new):
   email results; fika_tmp_* options deleted. Settings: live, email2 1, $5, no minimum, valid 2 days, email 1 after
   30 days, email 2 7 days after email 1. Due at switch-on: email 1: 3, email 2: 242 (50 a day, 10:00-20:00 Beirut).
   First batch planned 18:31. Temporary route 262 trashed.
+- 4 Nov 18:32-18:33 Beirut: first email 2 batch sent, 10 emails (8 non-member, 2 member versions), no mail errors;
+  each code is for the address it went to, marked _fika_owe, ends Fri 6 Nov 23:59. Next batch 19:32; then from 10:00
+  tomorrow (50 a day, email 1 included). Checked with temporary routes 263/264 (trashed).
