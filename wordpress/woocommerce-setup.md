@@ -2594,3 +2594,9 @@ choice). Snippet 91, fika-club.php (new):
   "Delad glädje är dubbel glädje: shared joy is double joy. A little note from all of us at Fika." Admin page: no
   answers section. Routes 279-280 trashed.
 - 4 Nov (git only): the follow-up's P.S. ("Running low already? Pick your next mix") removed (owner). Route 281 trashed.
+- 4 Nov (git only, deploy needs the owner's OK): email 2's store credit **once in a lifetime** per address (owner):
+  option fika_wb_owe_got (md5(email) => time), filled once (fika_wb_owe_backfill, flag fika_wb_owe_got_v) from the
+  win-back state (s2), the log ("Email 2 sent") and _fika_owe codes described "Win-back email 2"; marked before each
+  email 2 goes out; fika_wb_due returns nothing for email 2 if the address had it. A new cycle after another order
+  still gets email 1. Tested with the real functions (PHP stubs). The follow-up is named **Email 0** (admin menu
+  "Email 0 (follow-up)", Email results "Email 0 (delivery follow-up)", order source "Email 0 (follow-up)"), not live.
