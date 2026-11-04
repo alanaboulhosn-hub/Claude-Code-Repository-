@@ -2647,3 +2647,10 @@ choice). Snippet 91, fika-club.php (new):
   driver #1637, #1645). Left alone: #1589 (cancelled on the website, RT: collected by pickup). Flagged: RT cash $22.40
   vs order $27.40 on #1652; the same 2 parcels with no website order. The 28 newly completed orders get Email 0
   3 days after this (from 8 Nov), within its daily limit.
+- 5 Nov 2026, **live** (owner: personal, their name and their order): Email 0 now lists every item of the order (was
+  capped at 8; the biggest order due has 14) and, if one customer has two orders due, takes the latest (newest first).
+  Snippet 287 redeployed (= git). Checked from the live code on all 83 orders lined up (one per customer, their
+  latest): subject, heading and "Hi Name," = the order's billing first name; "What you picked" = exactly the order's
+  items in order with their weight (Weight / Amount / Mystery taste), nothing missing or extra: 83 of 83 correct
+  (53 with Ready Mix bags, 5 with a mystery taste, none without a name). The 14-item email checked on a phone.
+  Routes 295-296 trashed.
