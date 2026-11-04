@@ -2484,3 +2484,9 @@ choice). Snippet 91, fika-club.php (new):
   code IOU5-J5N9RI (note "TEST (Claude email 2 trial) - safe to delete"), tracking send wb2.yli50rmw. Temporary routes
   254 (failed: submit_button not loaded in REST) and 255 trashed. Options fika_tmp_wb2test_sent / fika_tmp_wb2trial_sent
   to delete in the clean-up.
+- 4 Nov: test on the owner's 2 addresses (live code): alan.aboulhosn@gmail.com (member, account 232, 0 kg) code
+  IOU5-GKXZTW, send wb2.mckeagcq; alan.aboul@gmail.com (no account, no orders) code IOU5-MN6FTQ, send wb2.3zflmohj.
+  Both "[Test] Alan, we owe you $5 🍬", until Friday 6 Nov 23:59. Earlier trial code IOU5-J5N9RI (unused) deleted.
+  Temporary routes 256/257 trashed; option fika_tmp_wb2two_sent to delete in the clean-up. Note: account 232 is now in
+  the win-back list (an account that never ordered gets email 1 after 30 days): delete it or unsubscribe it in the
+  clean-up so the owner never gets the real emails twice.
