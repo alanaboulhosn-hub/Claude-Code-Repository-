@@ -2468,3 +2468,8 @@ choice). Snippet 91, fika-club.php (new):
   $5", 0 kg "Start my lane & claim my $5", to the sign-up page. Fan Favourites: "Get it for $9" (members, to Ready Mix
   with the code) / "Join for free & get it for $9" ($14 bag less the $5). Inbox: "Get obsessed too" / "Join & get obsessed too" (was "Try them, $5 on us" / "Join & try
   them, $5 on us". All one line on phones (360/390 px). Previews rendered with temporary route 250 (trashed).
+- 4 Nov (git only, not live yet): email 2 links (owner): non-members, every button and picture (lane, Fan Favourites)
+  to the sign-up page; members, every button and the lane picture to Mix your own, and the Fan Favourites picture and
+  "Get it for $9" to /ready-mix/?fika_add=1200&bag=open: one 500 g Fan Favourites bag goes into the bag (not twice)
+  and the bag opens with "Fika store credit −$5.00", Total $9.00 (checked as a mock-up on the live Ready Mix page).
+  Previews rendered with temporary routes 252/253 (trashed).

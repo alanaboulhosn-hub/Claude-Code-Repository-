@@ -571,7 +571,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			}
 		}
 		$lane = fika_wb_lane_url( $g );
-		$link = $member ? home_url( '/my-account/' ) : home_url( '/my-account/#register' );
+		$link = $btn ? $btn[0] : ( $member ? home_url( '/my-account/' ) : home_url( '/my-account/#register' ) ); // the picture goes where its button goes
 		$pic  = $lane ? '<a href="' . esc_url( $link ) . '" style="display:block;text-decoration:none;"><img src="' . esc_url( $lane ) . '" width="400" alt="Your fish at ' . esc_attr( $kg( $g ) ) . ' on the 15 kg lane" class="fika-t" style="display:block;width:100%;max-width:400px;height:auto;margin:4px auto 0;border:0;"></a>' : '';
 		if ( $zero ) {
 			$text = 'Every kilogram you order moves your fish along the lane to free sweets: <b>' . $togo( $next[0] ) . ' to go</b> until ' . $next[1][0] . ' (' . $next[1][1] . ').' . ( $member ? '' : ' Your Fika Club account keeps count.' );
@@ -586,7 +586,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td class="fika-mail-box">' .
 			'<p style="' . $f . 'padding-bottom:10px;color:#1b2a4a;font-size:14px;">' . ( $name ? esc_html( $name ) . ( $zero ? ', your lane starts at' : ', you already have' ) : ( $zero ? 'Your lane starts at' : 'You already have' ) ) . '<br><span style="' . $h . 'font-variant:normal;font-size:40px;line-height:1.1;">' . $kg( $g ) . '</span> <span style="color:#6c7b9c;">with Fika</span></p>' .
 			$pic . '<p style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;padding-top:12px;">' . $text . '</p></td></tr></table>' .
-			fika_wb_button( $btn ? $btn[0] : $link, $btn ? fika_wb_claim_label( $member, $zero, $g, $got ) : ( $member ? 'See my rewards' : 'Create my account' ) );
+			fika_wb_button( $link, $btn ? fika_wb_claim_label( $member, $zero, $g, $got ) : ( $member ? 'See my rewards' : 'Create my account' ) );
 	}
 	// the progress box's button (owner, 4 Nov 2026: each part of email 2 has its own words, after what it shows)
 	function fika_wb_claim_label( $member, $zero, $g, $got ) {
@@ -673,6 +673,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$member = fika_wb_is_member( $email );
 		$claim  = $member ? 'Claim my ' . $owe . ' store credit' : 'Join for free & claim my ' . $owe;
 		$go     = $member ? $link : add_query_arg( 'fika_coupon', rawurlencode( $code ), wc_get_page_permalink( 'myaccount' ) ) . '#register';
+		$ffgo   = $member && defined( 'FIKA_DROPS_DROP_ID' ) ? add_query_arg( array( 'fika_coupon' => rawurlencode( $code ), 'fika_add' => FIKA_DROPS_DROP_ID, 'bag' => 'open' ), home_url( '/ready-mix/' ) ) : $go;
 		$body  =
 			// the personal line right under the IOU (the voucher picture is the heading)
 			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:27px;line-height:1.15;margin:2px 0 10px;">' . ( $name ? esc_html( $name ) . ', don&rsquo;t lose your ' : 'Don&rsquo;t lose your ' ) . $owe . '</div>' .
@@ -684,7 +685,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			fika_wb_button( $go, $claim ) .
 			// each part's button says what that part shows; members go to the shop, everyone else to the sign-up page
 			fika_wb_claim( $email, $name, array( $go ) ) .
-			fika_wb_ff_box( $link, array( $member ? add_query_arg( 'fika_coupon', rawurlencode( $code ), home_url( '/ready-mix/' ) ) : $go, $member ? 'Get it for {price}' : 'Join for free & get it for {price}' ) ) .
+			// Fan Favourites (picture and button): members to Ready Mix with the bag already in their bag (owner, 4 Nov
+			// 2026), everyone else to the sign-up page
+			fika_wb_ff_box( $ffgo, array( $ffgo, $member ? 'Get it for {price}' : 'Join for free & get it for {price}' ) ) .
 			fika_wb_quote() .
 			fika_wb_button( $go, $member ? 'Get obsessed too' : 'Join & get obsessed too' ) . // echoes "Im obsessed with them" in the inbox
 			fika_wb_small( $email );
@@ -1422,3 +1425,32 @@ add_filter( 'woocommerce_add_success', function ( $msg ) {
 add_filter( 'woocommerce_registration_redirect', function ( $to ) {
 	return empty( $GLOBALS['fika_wb_signed_up'] ) ? $to : add_query_arg( array( 'bag' => 'open', 'fika_owe' => 'welcome' ), home_url( '/mix-your-own/' ) );
 }, 99 );
+
+// email 2, members' Fan Favourites link (/ready-mix/?fika_add=<id>&bag=open): one 500 g bag of it goes into the Fika bag
+// (localStorage fika_bag_v1, id rw<product>, as the Ready Mix "Add to bag" does), unless it is in there already, and the
+// bag opens (?bag=open, fika-store-pages.php). Only the limited edition bag, while it can be bought.
+add_action( 'wp_footer', function () {
+	if ( is_admin() || ! isset( $_GET['fika_add'] ) || ! defined( 'FIKA_DROPS_DROP_ID' ) || (int) $_GET['fika_add'] !== (int) FIKA_DROPS_DROP_ID ) { // phpcs:ignore WordPress.Security.NonceVerification
+		return;
+	}
+	$p = wc_get_product( FIKA_DROPS_DROP_ID );
+	if ( ! $p || ! $p->is_purchasable() || ! $p->is_in_stock() || 'publish' !== $p->get_status() ) {
+		return;
+	}
+	$d = array( 'id' => 'rw' . $p->get_id(), 'name' => $p->get_name(), 'per' => (float) wc_get_price_to_display( $p ) / 5 );
+	?>
+<script id="fika-owe-add">
+(function () {
+  var D = <?php echo wp_json_encode( $d ); ?>, st = null;
+  try { st = JSON.parse(localStorage.getItem('fika_bag_v1') || 'null'); } catch (e) {}
+  st = st || {}; st.bag = st.bag || {}; st.meta = st.meta || {};
+  if (!st.bag[D.id]) {
+    st.bag[D.id] = 500; st.meta[D.id] = { name: D.name, price: D.per };
+    try { localStorage.setItem('fika_bag_v1', JSON.stringify(st)); } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent('fikabag', { detail: 'owe' })); } catch (e) {}
+  }
+  try { var u = new URL(location.href); u.searchParams.delete('fika_add'); history.replaceState(null, '', u.toString()); } catch (e) {}
+})();
+</script>
+	<?php
+}, 5 );
