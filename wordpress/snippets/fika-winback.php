@@ -1072,6 +1072,22 @@ add_action( 'woocommerce_cart_item_removed', 'fika_wb_sync_code', 30 );
 add_action( 'woocommerce_after_cart_item_quantity_update', 'fika_wb_sync_code', 30 );
 add_action( 'woocommerce_cart_loaded_from_session', 'fika_wb_sync_code', 30 );
 // a code with our minimum: no "coupon applied" notice (it goes on by itself), and refused below the minimum with a
+// the $5 store credit goes with Fika Club rewards (owner, 4 Nov 2026), and with no other code: the code is "individual
+// use" (WooCommerce keeps every other code out), except the rewards (fika-loyalty.php, SWIM codes), which stay in the
+// cart when the $5 goes on and may be added while it is on
+add_filter( 'woocommerce_apply_individual_use_coupon', function ( $keep, $the_coupon, $applied ) {
+	if ( fika_wb_is_owe( $the_coupon ) && function_exists( 'fika_swim_is_code' ) ) {
+		foreach ( (array) $applied as $c ) {
+			if ( fika_swim_is_code( $c ) ) {
+				$keep[] = $c;
+			}
+		}
+	}
+	return $keep;
+}, 10, 3 );
+add_filter( 'woocommerce_apply_with_individual_use_coupon', function ( $ok, $the_coupon, $individual ) {
+	return ( fika_wb_is_owe( $individual ) && function_exists( 'fika_swim_is_code' ) && fika_swim_is_code( $the_coupon->get_code() ) ) ? true : $ok;
+}, 10, 3 );
 // clear message (only seen if someone types it in with a smaller bag)
 add_filter( 'woocommerce_coupon_message', function ( $msg, $msg_code, $coupon ) {
 	return function_exists( 'fika_wb_is_owe' ) && fika_wb_is_owe( $coupon ) ? '' : $msg;
@@ -1150,12 +1166,15 @@ add_action( 'wp_footer', function () {
     var sub = document.getElementById('mxSub'), tot = document.getElementById('mxTot'), row = document.getElementById('fkOweRow');
     if (!sub || !tot) return;
     var s = parseFloat((sub.textContent || '').replace(/[^0-9.]/g, '')) || 0;
-    if (!done || !s) { if (row) { row.remove(); tot.textContent = money(s); } return; }
-    var off = Math.min(D.credit, s);
+    // Fika Club rewards in the bag (fika-bag-rewards.php, "Fika Club rewards -$2.80"): the $5 comes off what is left
+    var rwEl = document.querySelector('#mxDrawer .fk-brw-sum span:last-child'), rw = rwEl ? parseFloat((rwEl.textContent || '').replace(/[^0-9.]/g, '')) || 0 : 0;
+    var left = Math.max(0, s - rw);
+    if (!done || !s) { if (row) { row.remove(); tot.textContent = money(left); } return; }
+    var off = Math.min(D.credit, left);
     if (!row) { row = document.createElement('div'); row.id = 'fkOweRow'; row.className = 'mx-sum'; tot.parentNode.parentNode.insertBefore(row, tot.parentNode); }
     var t = '<span>Fika store credit</span><span>&minus;' + money(off) + '</span>';
     if (row.innerHTML !== t) row.innerHTML = t;
-    if (tot.textContent !== money(s - off)) tot.textContent = money(s - off);
+    if (tot.textContent !== money(left - off)) tot.textContent = money(left - off);
   }
   function draw() {
     var g = grams(), done = g > 0 && g >= D.min && D.member;
@@ -1207,6 +1226,9 @@ add_action( 'wp_footer', function () {
     if (!window.MutationObserver) return;
     if (!sub) { if (n < 20) setTimeout(function () { watch(n + 1); }, 500); return; }
     new MutationObserver(function () { draw(); }).observe(sub, { childList: true, characterData: true, subtree: true });
+    // the rewards line and the total are rewritten by fika-bag-rewards.php too: follow those (writes only on a change)
+    var df = sub.closest('.mx-df');
+    if (df) new MutationObserver(function () { credit(grams() > 0 && grams() >= D.min && D.member); }).observe(df, { childList: true, characterData: true, subtree: true });
   })(0);
   window.addEventListener('storage', function (e) { if (e.key === 'fika_bag_v1') draw(); });
   var tries = 0, t = setInterval(function () { draw(); if (++tries > 20) clearInterval(t); }, 500);
