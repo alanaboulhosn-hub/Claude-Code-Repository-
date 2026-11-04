@@ -2432,3 +2432,9 @@ choice). Snippet 91, fika-club.php (new):
 - The bag/checkout strip for non-members: "Create your free account to claim it (your bag stays saved), or log in"
   (no "tick create account at checkout": that made the account only when the order was placed, too late for the $5).
 - Email text for non-members: "It is free and takes a minute" (signing up includes confirming the email).
+- 4 Nov (git only): headline "Name, don't lose your $5" (loss aversion), text "It is already yours… before it runs out,
+  or it is gone", preheader "Your $5 … runs out on <date>".
+- 4 Nov (git only, owner's decision): signing up from the email-2 button **with the email we wrote to** skips the
+  "confirm your email" step: the email counts as confirmed (earlier orders join), the customer is logged in and goes
+  to Mix your own (bag open, "Welcome to Fika Club! We owe you $5…"). User meta fika_joined_from = winback-2. Anyone
+  signing up any other way, or with another email, still confirms by email.
