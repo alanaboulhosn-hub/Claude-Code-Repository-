@@ -2438,3 +2438,7 @@ choice). Snippet 91, fika-club.php (new):
   "confirm your email" step: the email counts as confirmed (earlier orders join), the customer is logged in and goes
   to Mix your own (bag open, "Welcome to Fika Club! We owe you $5…"). User meta fika_joined_from = winback-2. Anyone
   signing up any other way, or with another email, still confirms by email.
+- 4 Nov (git only): **no minimum** for email 2's $5 (owner): store credit on any order. Setting owe_min default 0
+  (still settable); email-2 codes are marked with coupon meta _fika_owe. Bag strip: "add any sweets and it comes off
+  at checkout" (empty bag) / "✓ We owe you $5: it comes off at checkout". WooCommerce never takes off more than the
+  sweets cost (not the delivery fee); what is left of the $5 on a very small order is not kept.
