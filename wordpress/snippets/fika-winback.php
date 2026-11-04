@@ -4,20 +4,30 @@
  * - Email 1, 30 days after a customer's last order (or after they created an account, if they never ordered):
  *   "It's been a while": what's new (products added in the last 45 days, or the favourites), a news box written
  *   in WP Admin, and a "Pick your mix" button.
- * - Email 2, 14 days later if they still have not ordered: "We owe you $5" (owner, 3 Nov 2026): an IOU for $5 off
- *   store credit (a personal code: $5 off any order, no minimum since 4 Nov; one use, only for their email, valid 2
- *   days, until 11:59 pm on the last day). Top to bottom: the IOU voucher (picture), "Name, don't lose your $5", the
- *   deadline, "Claim my $5 store credit" (members) or "Join for free & claim my $5" (no account), the kilograms they already have with Fika and the
- *   reward that unlocks with an account (fika_wb_claim), the limited edition bag while it is on, a real customer's
- *   message. Its button opens the shop and the code applies at checkout. Pictures: wordpress/email-assets/make-email-owe.js.
- * - Email-2 codes are marked _fika_owe. Optional minimum (setting owe_min, coupon meta _fika_owe_min, ours, not
- *   WooCommerce's minimum spend): 0 since 4 Nov 2026 (was $15). The email's links remember the code (cookie fika_coupon);
- *   a logged-in customer's code is also found by their email (fika_wb_owed). It goes on by itself when the bag has
- *   sweets (and reaches the minimum, if any), and is forgotten once an order uses it or it has expired
- *   (fika_wb_sync_code). The bag shows "We owe you $5: add any sweets / ✓ it comes off at checkout".
- * - The $5 is for Fika Club members (owner, 3 Nov 2026): it goes on only when the customer is signed in. Non-members'
- *   buttons open the sign-up page; signing up there from the email logs them in at once (no confirmation step, the
- *   email link is the proof) and opens Mix your own with the $5 waiting.
+ * - Email 2, 14 days after email 1 if they still have not ordered (owner, 3-4 Nov 2026): "Fika owes you $5" in store
+ *   credit, with loss aversion: "Name, don't lose your $5 ... before it runs out, or it is gone". A personal code, $5 off
+ *   any order (no minimum; setting owe_min can add one), one use, only for their email, valid 2 days until 11:59 pm
+ *   Beirut on the last day ("Only 2 days left · ends Friday"). Members and non-members get their own version.
+ *   Top to bottom, each part with its own button:
+ *     1. the voucher picture, "Name, don't lose your $5", the deadline: "Claim my $5 store credit" (members) /
+ *        "Join for free & claim my $5" (non-members);
+ *     2. their Fika Club progress, always (0 kg too): the lane with their fish and the next reward (fika_wb_claim):
+ *        members "Move my fish forward" (0 kg: "Start my lane"); non-members "Unlock my free mystery taste" /
+ *        "Unlock my free sweets" (reward reached), "Save my 0.9 kg & claim $5", 0 kg "Start my lane & claim my $5";
+ *     3. the limited edition Fan Favourites Mix, while it is on: "Get it for $9" / "Join for free & get it for $9";
+ *     4. "From our inbox", real customer messages (animated): "Get obsessed too" / "Join & get obsessed too".
+ *   Where the links go: non-members, every button and picture to the sign-up page (My account, the "Join Fika Club"
+ *   form) with their email filled in and a "We owe you $5" box; signing up there with that email needs no confirmation
+ *   (the email link is the proof): they are logged in, their earlier orders join, and Mix your own opens with the bag
+ *   and "Welcome to Fika Club!". Members: Mix your own; the Fan Favourites picture and button open Ready Mix with one
+ *   bag of it already in the bag (?fika_add). Pictures: wordpress/email-assets/make-email-owe.js (+ make-email-inbox).
+ * - The $5 (email-2 codes are marked _fika_owe): the email's links remember the code (cookie fika_coupon), and a
+ *   logged-in customer's code is also found by their email (fika_wb_owed), on any phone or computer. It is only for
+ *   Fika Club members: it goes on by itself when a logged-in customer has sweets in the bag, and is forgotten once an
+ *   order uses it or it has expired (fika_wb_sync_code). In the bag: "✓ Your $5 store credit is taken off your total",
+ *   a green "Fika store credit −$5.00" line and the Total less $5 (never below $0; WooCommerce never takes off more
+ *   than the sweets cost, nor the delivery fee). At checkout the discount reads "Fika store credit". Logged out:
+ *   "Create your free account to claim it, or log in".
  * - Tracking (fika-email-tracking.php, when installed): each send gets an id, its links get UTM tags, the email 2 code
  *   carries the id, so clicks and orders show per email in WooCommerce > Email results.
  * - Ordering again starts the cycle over. Every email has an unsubscribe link, and unsubscribed addresses never get
@@ -904,7 +914,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 				$st[ $email ]['coupon'] = $ok;
 				update_option( 'fika_winback_state', $st, false );
 			}
-			fika_wb_log( $email, '1' === $due ? 'Email 1 sent (it’s been a while)' : 'Email 2 sent (code ' . ( is_string( $ok ) ? $ok : '' ) . ')' );
+			fika_wb_log( $email, '1' === $due ? 'Email 1 sent (it’s been a while)' : 'Email 2 sent ($' . (int) fika_wb_owe()[0] . ' store credit, code ' . ( is_string( $ok ) ? $ok : '' ) . ')' );
 			$sent++;
 		}
 		update_option( 'fika_winback_state', $st, false );
@@ -1273,9 +1283,11 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 		?>
 <div class="wrap">
 	<h1>Win-back emails</h1>
-	<p style="max-width:760px">Customers who haven&rsquo;t ordered for <?php echo (int) $set['first_days']; ?> days get <strong>email 1</strong> (what&rsquo;s new, your news, &ldquo;Pick your mix&rdquo;).
-	<?php echo (int) $set['second_days']; ?> days later, if they still haven&rsquo;t ordered, <strong>email 2</strong> says &ldquo;We owe you <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?>&rdquo;: a personal code for <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?> off an order of <?php echo esc_html( fika_wb_money( $set['owe_min'] ) ); ?> or more, valid <?php echo (int) $set['valid_days']; ?> days.
-	Ordering again starts over. Sent once a day, around 10:00. Orders came back after these emails: <strong><?php echo (int) get_option( 'fika_winback_won', 0 ); ?></strong>.</p>
+	<p style="max-width:760px">Customers who haven&rsquo;t ordered for <?php echo (int) $set['first_days']; ?> days get <strong>email 1</strong> (&ldquo;It&rsquo;s been a while&rdquo;: what&rsquo;s new, your news, &ldquo;Pick your mix&rdquo;).
+	<?php echo (int) $set['second_days']; ?> days later, if they still haven&rsquo;t ordered, <strong>email 2</strong>: &ldquo;Fika owes you <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?>&rdquo; in store credit (&ldquo;don&rsquo;t lose your <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?>&rdquo;), on <?php echo $set['owe_min'] > 0 ? 'an order of ' . esc_html( fika_wb_money( $set['owe_min'] ) ) . ' or more' : 'any order'; ?>, for <?php echo (int) $set['valid_days']; ?> days (until 11:59 pm on the last day).
+	The <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?> is for Fika Club members: members&rsquo; buttons open the shop with the <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?> already taken off in the bag; everyone else&rsquo;s open the sign-up page (no confirmation email needed when they come from the email), then the shop.
+	Email 2 also shows their Fika Club progress and the limited edition bag. Ordering again starts over.
+	Sent in small batches, 10:00&ndash;20:00 Beirut time, at most 50 a day. Orders came back after these emails: <strong><?php echo (int) get_option( 'fika_winback_won', 0 ); ?></strong>.</p>
 	<?php if ( 'saved' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved.</p></div><?php endif; ?>
 	<?php if ( 'preview' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved, and the preview is on its way.</p></div><?php endif; ?>
 	<?php if ( 'preview-failed' === $msg ) : ?><div class="notice notice-error is-dismissible"><p>The preview could not be sent.</p></div><?php endif; ?>
@@ -1288,7 +1300,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 				<label><input type="radio" name="mode" value="off" <?php checked( 'off', $set['mode'] ); ?>> Off</label>
 				<?php $golive = function_exists( 'as_next_scheduled_action' ) ? as_next_scheduled_action( 'fika_winback_golive', array(), 'fika' ) : false; ?>
 				<?php if ( $golive ) : ?><p class="description" style="color:#004aad"><strong>Goes Live by itself on <?php echo esc_html( wp_date( 'j F, H:i', $golive, new DateTimeZone( 'Asia/Beirut' ) ) ); ?> Beirut time</strong>, then sends to everyone due in small batches (10 an hour, 10:00-20:00, at most 50 in 24 hours).</p><?php endif; ?></td></tr>
-			<tr><th>Email 2</th><td><label><input type="checkbox" name="email2" value="1" <?php checked( ! empty( $set['email2'] ) ); ?>> Send email 2 (the personal code) as well</label><p class="description">Off: only email 1 goes out, also in Live mode. Customers who got email 1 receive email 2 once this is on and 14 days have passed.</p></td></tr>
+			<tr><th>Email 2</th><td><label><input type="checkbox" name="email2" value="1" <?php checked( ! empty( $set['email2'] ) ); ?>> Send email 2 (&ldquo;Fika owes you <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?>&rdquo; store credit) as well</label><p class="description">Off: only email 1 goes out, also in Live mode. Customers who got email 1 receive email 2 once this is on and <?php echo (int) $set['second_days']; ?> days have passed. Each email 2 creates its own personal code (one use, only for that customer&rsquo;s email).</p></td></tr>
 			<tr><th>Test addresses</th><td><textarea name="test_emails" rows="2" class="large-text"><?php echo esc_textarea( $set['test_emails'] ); ?></textarea><p class="description">Used in Test mode. One or more, separated by commas.</p></td></tr>
 			<tr><th>News (email 1)</th><td><input type="text" name="news_title" class="regular-text" value="<?php echo esc_attr( $set['news_title'] ); ?>" placeholder="Title"><br><br>
 				<textarea name="news_text" rows="3" class="large-text" placeholder="A few words of news"><?php echo esc_textarea( $set['news_text'] ); ?></textarea><p class="description">Shown in a pink box. Leave both empty to leave it out. &ldquo;New drops&rdquo; fill in by themselves: candies added in the last 45 days, otherwise your favourites.</p></td></tr>
@@ -1299,12 +1311,12 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 					?><select name="products[]" style="margin:0 6px 6px 0;max-width:260px"><option value="">(automatic)</option><?php foreach ( $all as $pr ) : ?><option value="<?php echo (int) $pr->get_id(); ?>"<?php selected( isset( $chosen[ $i ] ) ? $chosen[ $i ] : 0, $pr->get_id() ); ?>><?php echo esc_html( $pr->get_name() ); ?></option><?php endforeach; ?></select><?php
 				endfor; ?>
 				<p class="description">The four candies in the &ldquo;New drops&rdquo; grid. All left on (automatic): candies added in the last 45 days, otherwise your favourites. Sold-out candies are skipped.</p></td></tr>
-			<tr><th>Email 2: we owe you</th><td>$ <input type="number" name="owe" min="1" max="50" value="<?php echo (int) $set['owe']; ?>" style="width:70px"> off an order of at least $ <input type="number" name="owe_min" min="0" value="<?php echo (int) $set['owe_min']; ?>" style="width:70px"> of sweets (0 = any order; $15 = about 550 g; 1 kg = $28), valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
+			<tr><th>Email 2: store credit</th><td>$ <input type="number" name="owe" min="1" max="50" value="<?php echo (int) $set['owe']; ?>" style="width:70px"> off an order of at least $ <input type="number" name="owe_min" min="0" value="<?php echo (int) $set['owe_min']; ?>" style="width:70px"> of sweets (0 = any order; $15 = about 550 g; 1 kg = $28), valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
 			<tr><th>Timing</th><td>Email 1 after <input type="number" name="first_days" min="1" value="<?php echo (int) $set['first_days']; ?>" style="width:70px"> days without an order, email 2 <input type="number" name="second_days" min="1" value="<?php echo (int) $set['second_days']; ?>" style="width:70px"> days after email 1</td></tr>
 			<tr><th>Send a preview</th><td><input type="email" name="preview_to" class="regular-text" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>"> <input type="text" name="preview_name" placeholder="Name to greet (optional)"><br>
 				<input type="email" name="preview_as" class="regular-text" placeholder="Show it as this customer (their email, optional)" style="margin-top:6px">
 				<button class="button" name="preview" value="1">Email 1</button> <button class="button" name="preview" value="2">Email 2</button>
-				<p class="description">A preview of email 2 creates a real code for that address. &ldquo;Show it as this customer&rdquo; uses that customer&rsquo;s name and Fika Club progress; the preview still goes only to the address above.</p></td></tr>
+				<p class="description">A preview of email 2 creates a real <?php echo esc_html( fika_wb_money( $set['owe'] ) ); ?> code for that address (it shows the member or non-member version, as that address is). &ldquo;Show it as this customer&rdquo; uses that customer&rsquo;s name and Fika Club progress; the preview still goes only to the address above.</p></td></tr>
 		</table>
 		<?php submit_button( 'Save' ); ?>
 	</form>
