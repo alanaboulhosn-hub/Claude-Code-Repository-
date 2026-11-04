@@ -263,6 +263,13 @@ add_action( 'wp_footer', function () {
 	if ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-received' ) ) {
 		return;
 	}
+	// win-back email 2's $5 store credit waiting for this customer (fika-winback.php): the popup reminds them of it
+	// instead of offering FIKA10, which cannot go with it (owner, 4 Nov 2026)
+	$owe = function_exists( 'fika_wb_owe_code' ) && function_exists( 'fika_wb_pending_code' ) ? fika_wb_owe_code( fika_wb_pending_code() ) : null;
+	if ( $owe ) {
+		$exp = $owe[0]->get_date_expires();
+		echo '<script>window.FIKA_OWE_EXIT = ' . wp_json_encode( array( 'amt' => fika_wb_money( $owe[0]->get_amount() ), 'until' => $exp ? wp_date( 'l', $exp->getTimestamp() ) . ' 11:59 pm' : '' ) ) . ';</script>';
+	}
 	echo <<<'FIKA_EXIT'
 <style>
 .fkx-veil { position: fixed; inset: 0; z-index: 200000; display: flex; align-items: center; justify-content: center; padding: 18px;
@@ -323,6 +330,10 @@ add_action( 'wp_footer', function () {
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
   function ss(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
   function toon(slug) { return window.FIKA_CARTOON ? window.FIKA_CARTOON(slug) : ''; }
+  // win-back email 2's $5 store credit is on the order (codes IOU5-...): it does not go with FIKA10
+  function hasOwe() {
+    try { return (wp.data.select('wc/store/cart').getCartData().coupons || []).some(function (x) { return /^iou\d+-/.test((x.code || '').toLowerCase()); }); } catch (e) { return false; }
+  }
   function hasCoupon() {
     try { var c = wp.data.select('wc/store/cart').getCartData(); return (c.coupons || []).some(function (x) { return (x.code || '').toLowerCase() === COUPON.toLowerCase(); }); } catch (e) { return false; }
   }
@@ -389,6 +400,17 @@ add_action( 'wp_footer', function () {
       '<button class="fkx-link" type="button" data-fkx="leave">No thanks, I’ll leave</button>';
     burst();
   }
+  // the $5 store credit is on the order: remind them of it (they lose it by leaving), no 10% offer
+  function stepOwe() {
+    var o = window.FIKA_OWE_EXIT || {}, amt = o.amt || '$5';
+    card.innerHTML = closeBtn() +
+      '<h2 class="fkx-h" id="fkxTitle">You already have ' + amt + ' off</h2>' +
+      '<p class="fkx-p">Your Fika store credit is on this order' + (o.until ? ', and it is yours until ' + o.until : '') + '. Leave now and it is gone.</p>' +
+      '<div class="fkx-badge fkx-owe" aria-hidden="true"><b>' + amt + '</b><span>OFF</span></div>' +
+      '<p class="fkx-code">Already taken off your total ✓</p>' +
+      '<button class="fkx-go" type="button" data-fkx="stay">Keep checking out</button>' +
+      '<button class="fkx-link" type="button" data-fkx="leave">Leave anyway</button>';
+  }
   function stepThanks() {
     card.innerHTML = closeBtn() + toons('peaches', 'sugared-apples', 'tutti-frutti-rings') +
       '<h2 class="fkx-h" id="fkxTitle">Thanks for telling us</h2>' +
@@ -437,11 +459,12 @@ add_action( 'wp_footer', function () {
     if (!b) return;
     var act = b.getAttribute('data-fkx');
     if (act === 'stay') { stay(); return; }
-    if (act === 'leave') { if (card.querySelector('.fkx-badge')) { ls(OFFER_KEY, 'declined'); track('offer-declined'); } leave(); return; }
+    if (act === 'leave') { if (card.querySelector('.fkx-badge:not(.fkx-owe)')) { ls(OFFER_KEY, 'declined'); track('offer-declined'); } leave(); return; }
     if (act === 'reason') {
       var r = b.getAttribute('data-r');
       track(r);
       if (r === 'change-order') { hide(); busy = true; location.href = '/mix-your-own/'; return; }
+      if (hasOwe()) { stepOwe(); return; }
       if (!offerAvailable()) { stepThanks(); return; }
       // the server checks the email / phone given so far (once per person) and unlocks the code for this browser
       var who = {};
