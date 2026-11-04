@@ -586,7 +586,22 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td class="fika-mail-box">' .
 			'<p style="' . $f . 'padding-bottom:10px;color:#1b2a4a;font-size:14px;">' . ( $name ? esc_html( $name ) . ( $zero ? ', your lane starts at' : ', you already have' ) : ( $zero ? 'Your lane starts at' : 'You already have' ) ) . '<br><span style="' . $h . 'font-variant:normal;font-size:40px;line-height:1.1;">' . $kg( $g ) . '</span> <span style="color:#6c7b9c;">with Fika</span></p>' .
 			$pic . '<p style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;padding-top:12px;">' . $text . '</p></td></tr></table>' .
-			( $btn ? fika_wb_button( $btn[0], $btn[1] ) : fika_wb_button( $link, $member ? 'See my rewards' : 'Create my account' ) );
+			fika_wb_button( $btn ? $btn[0] : $link, $btn ? fika_wb_claim_label( $member, $zero, $g, $got ) : ( $member ? 'See my rewards' : 'Create my account' ) );
+	}
+	// the progress box's button (owner, 4 Nov 2026: each part of email 2 has its own words, after what it shows)
+	function fika_wb_claim_label( $member, $zero, $g, $got ) {
+		$owe = fika_wb_money( fika_wb_owe()[0] );
+		if ( $member ) {
+			return $zero ? 'Start my lane' : 'Move my fish forward';
+		}
+		if ( $zero ) {
+			return 'Start my lane & claim my ' . $owe;
+		}
+		if ( $got ) {
+			return 'a free mystery taste' === $got[0] ? 'Unlock my free mystery taste' : 'Unlock my free sweets';
+		}
+		$x = round( $g / 1000, 1 );
+		return 'Save my ' . ( fmod( $x, 1 ) ? number_format( $x, 1 ) : number_format( $x, 0 ) ) . ' kg & claim ' . $owe;
 	}
 	// email 2's offer: [ dollars we owe, minimum order of sweets ]
 	function fika_wb_owe() {
@@ -616,7 +631,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;">Our top-selling Sweet &amp; Sour Mix with the new BUBS Strawberry Vanilla Diamond and the Pomegranate Ovals back.</div>' .
 			'<div style="' . $f . 'margin-top:6px;color:#6c7b9c;font-size:13.5px;">' . wp_strip_all_tags( wc_price( wc_get_price_to_display( $p ) ) ) . ' per 500 g bag, while it lasts</div>' .
 			'</td></tr></table>' .
-			( $btn ? fika_wb_button( $btn[0], $btn[1] ) : '' );
+			( $btn ? fika_wb_button( $btn[0], str_replace( '{price}', fika_wb_money( max( 0, (float) wc_get_price_to_display( $p ) - fika_wb_owe()[0] ) ), $btn[1] ) ) : '' );
 	}
 	// email 2: a real message a customer sent after a delivery (fika-checkout-texts.php), as the checkout's Fika inbox
 	// played as a short animation (a GIF: typing, the messages popping in, the pink heart), made by
@@ -667,10 +682,11 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 				: 'It is already yours. Join Fika Club to keep it before it runs out, or it is gone. Joining is free and takes a minute, and your earlier orders join too.' ) . '</p>' .
 			'<p style="text-align:center;margin:0 !important;"><span style="' . $f . 'display:inline-block;padding:7px 16px;border-radius:999px;background:#fff4d9;border:1px solid #f2b84b;color:#8a5a00;font-size:14px;font-weight:600;">' . esc_html( $left ) . ' · ends ' . esc_html( wp_date( 'l', $expires ) ) . '</span></p>' .
 			fika_wb_button( $go, $claim ) .
-			fika_wb_claim( $email, $name, $member ? null : array( $go, $claim ) ) .
-			fika_wb_ff_box( $link, array( $go, $claim ) ) .
+			// each part's button says what that part shows; members go to the shop, everyone else to the sign-up page
+			fika_wb_claim( $email, $name, array( $go ) ) .
+			fika_wb_ff_box( $link, array( $member ? add_query_arg( 'fika_coupon', rawurlencode( $code ), home_url( '/ready-mix/' ) ) : $go, $member ? 'Get it for {price}' : 'Join for free & get it for {price}' ) ) .
 			fika_wb_quote() .
-			fika_wb_button( $go, $claim ) .
+			fika_wb_button( $go, $member ? 'Try them, ' . $owe . ' on us' : 'Join & try them, ' . $owe . ' on us' ) .
 			fika_wb_small( $email );
 		$html = WC()->mailer()->wrap_message( 'We owe you ' . $owe, $body );
 		// the IOU voucher is the heading
