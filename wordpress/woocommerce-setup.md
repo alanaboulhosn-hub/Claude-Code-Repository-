@@ -2570,3 +2570,7 @@ choice). Snippet 91, fika-club.php (new):
   trimmed), no longer 961 + the number. If RT refuses the number (an error mentioning the phone; RT then creates
   nothing), the order is sent once more as 961 + the number and the order note says so. Live checked = git before the
   change; dry run on #1665-#1670 (no parcel created): every number goes exactly as typed. Route 275 trashed.
+- 4 Nov (git only): follow-up opening made personal (owner): "Hi Name, we hope your sweets brought a little extra joy
+  to your week… shared them with the people you love most", a pink box "In Sweden we say · “Delad glädje är dubbel
+  glädje.” · Shared joy is double joy.", "That is what fika is about: slowing down, and sharing something sweet with
+  the people around you…", then "Every bag is weighed and packed by hand…". Preheader: the saying. Route 276 trashed.
