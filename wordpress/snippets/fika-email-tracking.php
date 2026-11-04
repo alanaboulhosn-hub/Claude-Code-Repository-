@@ -30,6 +30,7 @@ if ( ! function_exists( 'fika_et_kinds' ) ) {
 			'wb1' => array( 'winback-1', 'Win-back email 1' ),
 			'wb2' => array( 'winback-2', 'Win-back email 2' ),
 			'bag' => array( 'bag-reminder', 'Bag reminder' ),
+			'fu'  => array( 'delivery-follow-up', 'Delivery follow-up' ), // fika-followup.php (4 Nov 2026)
 		);
 	}
 	// a new send: its id, saved with the kind, the time and the address (hashed)
@@ -49,7 +50,7 @@ if ( ! function_exists( 'fika_et_kinds' ) ) {
 		return $id;
 	}
 	function fika_et_valid( $id ) {
-		return is_string( $id ) && preg_match( '/^(wb1|wb2|bag)\.[a-z0-9]{8}$/', $id );
+		return is_string( $id ) && preg_match( '/^(wb1|wb2|bag|fu)\.[a-z0-9]{8}$/', $id );
 	}
 	// the email's links to the shop get the UTM tags and the send id
 	function fika_et_tag( $html, $id ) {
@@ -57,7 +58,7 @@ if ( ! function_exists( 'fika_et_kinds' ) ) {
 			return $html;
 		}
 		$kinds = fika_et_kinds();
-		$camp  = $kinds[ substr( $id, 0, 3 ) ][0];
+		$camp  = $kinds[ strstr( $id, '.', true ) ][0];
 		$home  = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
 		$seen  = array();
 		return preg_replace_callback( '#<a\b([^>]*?)\bhref=(["\'])(.*?)\2([^>]*)>(.*?)</a>#is', function ( $m ) use ( $camp, $id, $home, &$seen ) {
@@ -126,7 +127,7 @@ if ( ! function_exists( 'fika_et_kinds' ) ) {
 		if ( ! $id ) {
 			return;
 		}
-		$order->update_meta_data( '_fika_email', substr( $id, 0, 3 ) );
+		$order->update_meta_data( '_fika_email', strstr( $id, '.', true ) );
 		$order->update_meta_data( '_fika_email_send', $id );
 		$order->update_meta_data( '_fika_email_link', $link );
 		$order->update_meta_data( '_fika_email_click', $at );
@@ -147,7 +148,7 @@ if ( ! function_exists( 'fika_et_kinds' ) ) {
 			$out[ $k ] = array( 'name' => $v[1], 'sent' => 0, 'clicked' => 0, 'clicks' => 0, 'phone' => 0, 'orders' => 0, 'orders_click' => 0, 'orders_code' => 0, 'sales' => 0.0, 'discounts' => 0.0, 'links' => array(), 'first_sent' => 0 );
 		}
 		foreach ( $sends as $id => $s ) {
-			$k = substr( $id, 0, 3 );
+			$k = strstr( $id, '.', true );
 			if ( isset( $out[ $k ] ) ) {
 				$out[ $k ]['sent']++;
 				$out[ $k ]['first_sent'] = $out[ $k ]['first_sent'] ? min( $out[ $k ]['first_sent'], (int) $s['t'] ) : (int) $s['t'];
@@ -155,7 +156,7 @@ if ( ! function_exists( 'fika_et_kinds' ) ) {
 		}
 		$who = array();
 		foreach ( $clicks as $c ) {
-			$k = substr( $c[1], 0, 3 );
+			$k = strstr( $c[1], '.', true );
 			if ( ! isset( $out[ $k ] ) ) {
 				continue;
 			}
