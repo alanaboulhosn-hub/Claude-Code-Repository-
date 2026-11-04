@@ -549,9 +549,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$user   = get_user_by( 'email', $email );
 		$member = $user && ! user_can( $user, 'manage_woocommerce' );
 		$total  = fika_wb_delivered( $email, $member ? $user : null );
-		if ( $total <= 0 ) {
-			return '';
-		}
+		// nothing delivered yet: the box still shows (owner, 4 Nov 2026: their progress is always the 2nd part), with
+		// the fish at the start of the lane and the first reward to aim for
+		$zero   = $total <= 0;
 		$g    = $total % 15000;
 		$kg   = function ( $x ) {
 			$x = round( $x / 1000, 1 );
@@ -573,16 +573,18 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$lane = fika_wb_lane_url( $g );
 		$link = $member ? home_url( '/my-account/' ) : home_url( '/my-account/#register' );
 		$pic  = $lane ? '<a href="' . esc_url( $link ) . '" style="display:block;text-decoration:none;"><img src="' . esc_url( $lane ) . '" width="400" alt="Your fish at ' . esc_attr( $kg( $g ) ) . ' on the 15 kg lane" class="fika-t" style="display:block;width:100%;max-width:400px;height:auto;margin:4px auto 0;border:0;"></a>' : '';
-		if ( $member ) {
+		if ( $zero ) {
+			$text = 'Every kilogram you order moves your fish along the lane to free sweets: <b>' . $togo( $next[0] ) . ' to go</b> until ' . $next[1][0] . ' (' . $next[1][1] . ').' . ( $member ? '' : ' Your Fika Club account keeps count.' );
+		} elseif ( $member ) {
 			$text = $next ? '<b>' . $togo( $next[0] - $g ) . ' to go</b> until ' . $next[1][0] . ' (' . $next[1][1] . '). Rewards you have reached wait on your account.' : 'Your next order starts a new 15 kg lap.';
 		} elseif ( $got ) {
 			$text = 'That is already <b>' . $got[0] . '</b> (' . $got[1] . '). It is yours as soon as you create your Fika Club account with this email: your earlier orders count straight away.';
 		} else {
 			$text = 'Create your Fika Club account with this email and your earlier orders count straight away: only <b>' . $togo( $next[0] - $g ) . ' to go</b> until ' . $next[1][0] . ' (' . $next[1][1] . ').';
 		}
-		return fika_wb_divider( 'c2', $member ? 'Your Fika Club' : 'Already earned' ) .
+		return fika_wb_divider( 'c2', $member || $zero ? 'Your Fika Club' : 'Already earned' ) .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td class="fika-mail-box">' .
-			'<p style="' . $f . 'padding-bottom:10px;color:#1b2a4a;font-size:14px;">' . ( $name ? esc_html( $name ) . ', you' : 'You' ) . ' already have<br><span style="' . $h . 'font-variant:normal;font-size:40px;line-height:1.1;">' . $kg( $g ) . '</span> <span style="color:#6c7b9c;">with Fika</span></p>' .
+			'<p style="' . $f . 'padding-bottom:10px;color:#1b2a4a;font-size:14px;">' . ( $name ? esc_html( $name ) . ( $zero ? ', your lane starts at' : ', you already have' ) : ( $zero ? 'Your lane starts at' : 'You already have' ) ) . '<br><span style="' . $h . 'font-variant:normal;font-size:40px;line-height:1.1;">' . $kg( $g ) . '</span> <span style="color:#6c7b9c;">with Fika</span></p>' .
 			$pic . '<p style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.5;padding-top:12px;">' . $text . '</p></td></tr></table>' .
 			( $btn ? fika_wb_button( $btn[0], $btn[1] ) : fika_wb_button( $link, $member ? 'See my rewards' : 'Create my account' ) );
 	}
