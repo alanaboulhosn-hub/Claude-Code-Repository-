@@ -2458,3 +2458,7 @@ choice). Snippet 91, fika-club.php (new):
 - 4 Nov (git only, not live yet): the progress box is always email 2's second part (owner): with nothing delivered
   yet it shows "Name, your lane starts at 0 kg", the fish at the start and "Every kilogram you order moves your fish
   along the lane to free sweets: 1.5 kg to go until a free mystery taste". Divider "Your Fika Club".
+- 4 Nov (git only, not live yet): Fan Favourites card in email 2: "Two bags make your kilogram." removed; the claim
+  button under it ("Join for free & claim my $5" / "Claim my $5 store credit"). Previews rendered from this code with
+  a temporary route (248 failed to switch on: fika_wb_is_member already live, renamed in the copy; 249 used; both
+  trashed). alan.aboulhosn@gmail.com now has an account (made in the owner's test).
