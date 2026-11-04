@@ -139,9 +139,16 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 		};
 		$body =
 			'<img src="' . esc_url( $strip ) . '" width="480" alt="" style="display:block;width:100%;max-width:480px;height:auto;margin:0 auto 14px;border:0;">' .
-			// "a few days ago", not a date: the order is marked Completed when the RT update runs, not on the day it arrived
-			'<p style="text-align:center;">Your Fika bag reached you a few days ago, and we have been wondering ever since: did the sour ones make you pucker? Did anyone steal the last Swedish fish?</p>' .
-			'<p style="text-align:center;">Every bag is weighed and packed by hand, so it would mean a lot to hear how yours was.</p>' .
+			// the opening: to them, personally, around a Swedish saying about sharing (owner, 4 Nov 2026)
+			'<p style="text-align:center;">' . ( $name ? 'Hi ' . esc_html( $name ) . ',' : 'Hi,' ) . '</p>' .
+			'<p style="text-align:center;">we hope your sweets brought a little extra joy to your week. Maybe they waited in a bowl on the table, maybe they were gone before the bag was even unpacked, or maybe you shared them with the people you love most.</p>' .
+			'<div style="margin:18px 0 18px;padding:18px 16px 16px;border-radius:20px;background:#fdeaf2;text-align:center;">' .
+				'<div style="' . $f . 'color:#d35d93;font-size:12px;letter-spacing:.14em;text-transform:uppercase;">In Sweden we say</div>' .
+				'<div style="font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-style:italic;color:#004aad;font-size:24px;line-height:1.3;margin:8px 0 6px;">&ldquo;Delad glädje är dubbel glädje.&rdquo;</div>' .
+				'<div style="' . $serif . 'color:#1b2a4a;font-size:17px;">Shared joy is double joy.</div>' .
+			'</div>' .
+			'<p style="text-align:center;">That is what fika is about: slowing down, and sharing something sweet with the people around you. We hope your bag did just that.</p>' .
+			'<p style="text-align:center;">Every bag is weighed and packed by hand, so it would mean a lot to us to hear how yours was.</p>' .
 			$div( 'fb', 'Tap one' ) .
 			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 4px;"><tr>' . $cells . '</tr></table>' .
 			'<div style="' . $f . 'text-align:center;color:#6c7b9c;font-size:13px;margin:8px 0 0;">One tap, and a few words if you like. We read every answer.</div>' .
@@ -152,7 +159,7 @@ if ( ! function_exists( 'fika_fu_settings' ) ) {
 			'<div style="' . $f . 'text-align:center;color:#1b2a4a;font-size:14.5px;line-height:1.55;margin:22px 0 0;">P.S. Running low already? <a href="' . esc_url( home_url( '/mix-your-own/' ) ) . '" style="color:#004aad;font-weight:600;">Pick your next mix</a></div>' .
 			( function_exists( 'fika_wb_small' ) ? fika_wb_small( $email ) : '' );
 		$html = WC()->mailer()->wrap_message( $name ? $name . ', how were your sweets?' : 'How were your sweets?', $body );
-		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( 'Your Fika bag arrived a few days ago. We would love to hear how it was: one tap.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
+		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( 'Delad glädje är dubbel glädje: shared joy is double joy. We would love to hear how your sweets were.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
 		$html = preg_replace( '/(<body[^>]*>)/i', '$1' . $pre, $html, 1 );
 		return array( ( $name ? $name . ', how' : 'How' ) . ' were your sweets? 🍬', $html );
 	}
