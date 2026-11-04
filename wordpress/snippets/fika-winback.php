@@ -5,19 +5,19 @@
  *   "It's been a while": what's new (products added in the last 45 days, or the favourites), a news box written
  *   in WP Admin, and a "Pick your mix" button.
  * - Email 2, 14 days later if they still have not ordered: "We owe you $5" (owner, 3 Nov 2026): an IOU for $5 off
- *   store credit (a personal code: $5 off an order of at least $15 of sweets; one use, only for
- *   their email, valid 14 days). Top to bottom: the IOU voucher (picture), "Name, don't lose your $5", the
+ *   store credit (a personal code: $5 off any order, no minimum since 4 Nov; one use, only for their email, valid 2
+ *   days, until 11:59 pm on the last day). Top to bottom: the IOU voucher (picture), "Name, don't lose your $5", the
  *   deadline, "Claim my $5 store credit" (members) or "Join for free & claim my $5" (no account), the kilograms they already have with Fika and the
  *   reward that unlocks with an account (fika_wb_claim), the limited edition bag while it is on, a real customer's
  *   message. Its button opens the shop and the code applies at checkout. Pictures: wordpress/email-assets/make-email-owe.js.
- * - The $5 waits for the minimum (owner, 3 Nov 2026): the code's minimum is ours (coupon meta _fika_owe_min, $15), not
- *   WooCommerce's minimum spend. The "Claim my $5" link remembers the code (cookie fika_coupon, 14 days); it goes on
- *   by itself once the cart reaches $28, comes off quietly below it, and is forgotten once an order uses it or it has
- *   expired or been used (fika_wb_sync_code). The bag shows "We owe you $5: add 300 g more" (or "comes off at
- *   checkout"), the checkout the same while under it. A code typed in by hand below it is refused with a clear message.
- * - The $5 is for Fika Club members (owner, 3 Nov 2026): it goes on only when the customer is signed in (joining at
- *   checkout with the emailed 6-digit code signs them in, fika-club.php); until then the bag and checkout say "it is
- *   waiting in your Fika Club account: join (free, 10 seconds) or log in". The email says the same to guests.
+ * - Email-2 codes are marked _fika_owe. Optional minimum (setting owe_min, coupon meta _fika_owe_min, ours, not
+ *   WooCommerce's minimum spend): 0 since 4 Nov 2026 (was $15). The email's links remember the code (cookie fika_coupon);
+ *   a logged-in customer's code is also found by their email (fika_wb_owed). It goes on by itself when the bag has
+ *   sweets (and reaches the minimum, if any), and is forgotten once an order uses it or it has expired
+ *   (fika_wb_sync_code). The bag shows "We owe you $5: add any sweets / ✓ it comes off at checkout".
+ * - The $5 is for Fika Club members (owner, 3 Nov 2026): it goes on only when the customer is signed in. Non-members'
+ *   buttons open the sign-up page; signing up there from the email logs them in at once (no confirmation step, the
+ *   email link is the proof) and opens Mix your own with the $5 waiting.
  * - Tracking (fika-email-tracking.php, when installed): each send gets an id, its links get UTM tags, the email 2 code
  *   carries the id, so clicks and orders show per email in WooCommerce > Email results.
  * - Ordering again starts the cycle over. Every email has an unsubscribe link, and unsubscribed addresses never get
@@ -39,7 +39,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			'news_title'  => 'Fredagsmys is here',
 			'news_text'   => 'Make Friday night the sweetest night of the week: let everyone pick a few favourites, pour them into one big bowl and gather the family around it.',
 			'owe'         => 5,  // email 2: dollars of store credit
-			'owe_min'     => 15, // ... as store credit on an order of at least this much sweets ($15: about 550 g, or one Ready Mix bag)
+			'owe_min'     => 0, // ... store credit on any order (owner, 4 Nov 2026: no minimum; was $15). Above 0: a minimum of sweets
 			'valid_days'  => 2, // owner, 3 Nov 2026: 2 days, for urgency (was 14)
 			'first_days'  => 30,
 			'second_days' => 14,
@@ -687,6 +687,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$c->set_amount( $amount );
 		// the minimum is ours, not WooCommerce's minimum spend: the code waits until the bag reaches it
 		// (fika_wb_sync_code) instead of failing with an error and being lost
+		$c->update_meta_data( '_fika_owe', 1 ); // an email-2 code: store credit, needs a Fika Club account
 		$c->update_meta_data( '_fika_owe_min', $min );
 		$c->set_individual_use( true );
 		$c->set_usage_limit( 1 );
@@ -776,10 +777,14 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			update_option( 'fika_wb_owed', $left, false );
 		}
 	}
+	// an email-2 code ("we owe you"): marked _fika_owe (codes made before 4 Nov only have a minimum)
+	function fika_wb_is_owe( $c ) {
+		return $c instanceof WC_Coupon && ( $c->get_meta( '_fika_owe' ) || (float) $c->get_meta( '_fika_owe_min' ) > 0 );
+	}
 	// an email-2 code that can still be used: [ coupon, minimum ] or null
 	function fika_wb_owe_code( $code ) {
 		$c = $code ? new WC_Coupon( $code ) : null;
-		if ( ! $c || ! $c->get_id() || ! (float) $c->get_meta( '_fika_owe_min' ) ) {
+		if ( ! $c || ! $c->get_id() || ! fika_wb_is_owe( $c ) ) {
 			return null;
 		}
 		$exp = $c->get_date_expires();
@@ -800,7 +805,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 	// email 2's $5 is for Fika Club members (owner, 3 Nov 2026: "to claim their store credit they need an account"):
 	// signed in (joining at checkout with the emailed code signs them in). The code's email check stays WooCommerce's.
 	function fika_wb_member_ok( $c ) {
-		return ! (float) $c->get_meta( '_fika_owe_min' ) || is_user_logged_in();
+		return ! fika_wb_is_owe( $c ) || is_user_logged_in();
 	}
 	// the remembered code goes on once the bag reaches the code's minimum (email 2: $15), comes off again
 	// (quietly) if the bag drops below it, and stays remembered until an order uses it or it cannot be used any more
@@ -1033,13 +1038,13 @@ add_action( 'woocommerce_cart_loaded_from_session', 'fika_wb_sync_code', 30 );
 // a code with our minimum: no "coupon applied" notice (it goes on by itself), and refused below the minimum with a
 // clear message (only seen if someone types it in with a smaller bag)
 add_filter( 'woocommerce_coupon_message', function ( $msg, $msg_code, $coupon ) {
-	return $coupon instanceof WC_Coupon && (float) $coupon->get_meta( '_fika_owe_min' ) > 0 ? '' : $msg;
+	return function_exists( 'fika_wb_is_owe' ) && fika_wb_is_owe( $coupon ) ? '' : $msg;
 }, 10, 3 );
 add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon, $discounts ) {
 	$min = $coupon instanceof WC_Coupon ? (float) $coupon->get_meta( '_fika_owe_min' ) : 0;
 	$obj = is_object( $discounts ) && method_exists( $discounts, 'get_object' ) ? $discounts->get_object() : null;
-	if ( $valid && $min > 0 && $obj instanceof WC_Cart && ! is_user_logged_in() ) {
-		throw new Exception( 'Your ' . fika_wb_money( $coupon->get_amount() ) . ' is waiting in your Fika Club account: log in, or join for free at checkout, and it comes off by itself.' );
+	if ( $valid && fika_wb_is_owe( $coupon ) && $obj instanceof WC_Cart && ! is_user_logged_in() ) {
+		throw new Exception( 'Your ' . fika_wb_money( $coupon->get_amount() ) . ' is waiting in your Fika Club account: log in, or create your free account, and it comes off by itself.' );
 	}
 	if ( $valid && $min > 0 && $obj instanceof WC_Cart && fika_wb_cart_value( $obj ) < $min ) {
 		throw new Exception( 'Your ' . fika_wb_money( $coupon->get_amount() ) . ' comes off on ' . fika_wb_money( $min ) . ' of sweets or more: fill your bag and it is added by itself.' );
@@ -1094,10 +1099,11 @@ add_action( 'wp_footer', function () {
   function txt(g) {
     if (!D.member) return 'We owe you <b>' + D.amt + '</b>: it is waiting for you in Fika Club. <a href="' + D.join + '">Create your free account</a> to claim it (your bag stays saved), or <a href="/my-account/#login">log in</a>.';
     var hi = D.welcome ? '<b>Welcome to Fika Club!</b> ' : '';
+    if (!g) return hi + 'We owe you <b>' + D.amt + '</b>: add any sweets and it comes off at checkout.';
     return hi + (g >= D.min ? '✓ We owe you ' + D.amt + ': it comes off at checkout.' : 'We owe you <b>' + D.amt + '</b>: add <b>' + more(g) + '</b> more and it comes off at checkout.');
   }
   function draw() {
-    var g = grams(), done = g >= D.min && D.member;
+    var g = grams(), done = g > 0 && g >= D.min && D.member;
     // in the bag, above the totals
     var df = document.querySelector('#mxDrawer .mx-df');
     if (df) {
@@ -1141,7 +1147,7 @@ add_action( 'admin_post_fika_wb_save', function () {
 	$set['news_title']  = sanitize_text_field( isset( $in['news_title'] ) ? $in['news_title'] : '' );
 	$set['news_text']   = sanitize_textarea_field( isset( $in['news_text'] ) ? $in['news_text'] : '' );
 	$set['owe']         = max( 1, min( 50, absint( isset( $in['owe'] ) ? $in['owe'] : 5 ) ) );
-	$set['owe_min']     = max( 0, absint( isset( $in['owe_min'] ) ? $in['owe_min'] : 28 ) );
+	$set['owe_min']     = max( 0, absint( isset( $in['owe_min'] ) ? $in['owe_min'] : 0 ) );
 	$set['valid_days']  = max( 1, absint( isset( $in['valid_days'] ) ? $in['valid_days'] : 2 ) );
 	$set['first_days']  = max( 1, absint( isset( $in['first_days'] ) ? $in['first_days'] : 30 ) );
 	$set['second_days'] = max( 1, absint( isset( $in['second_days'] ) ? $in['second_days'] : 14 ) );
@@ -1238,7 +1244,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 					?><select name="products[]" style="margin:0 6px 6px 0;max-width:260px"><option value="">(automatic)</option><?php foreach ( $all as $pr ) : ?><option value="<?php echo (int) $pr->get_id(); ?>"<?php selected( isset( $chosen[ $i ] ) ? $chosen[ $i ] : 0, $pr->get_id() ); ?>><?php echo esc_html( $pr->get_name() ); ?></option><?php endforeach; ?></select><?php
 				endfor; ?>
 				<p class="description">The four candies in the &ldquo;New drops&rdquo; grid. All left on (automatic): candies added in the last 45 days, otherwise your favourites. Sold-out candies are skipped.</p></td></tr>
-			<tr><th>Email 2: we owe you</th><td>$ <input type="number" name="owe" min="1" max="50" value="<?php echo (int) $set['owe']; ?>" style="width:70px"> off an order of at least $ <input type="number" name="owe_min" min="0" value="<?php echo (int) $set['owe_min']; ?>" style="width:70px"> of sweets ($15 = about 550 g; 1 kg = $28), valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
+			<tr><th>Email 2: we owe you</th><td>$ <input type="number" name="owe" min="1" max="50" value="<?php echo (int) $set['owe']; ?>" style="width:70px"> off an order of at least $ <input type="number" name="owe_min" min="0" value="<?php echo (int) $set['owe_min']; ?>" style="width:70px"> of sweets (0 = any order; $15 = about 550 g; 1 kg = $28), valid <input type="number" name="valid_days" min="1" value="<?php echo (int) $set['valid_days']; ?>" style="width:70px"> days</td></tr>
 			<tr><th>Timing</th><td>Email 1 after <input type="number" name="first_days" min="1" value="<?php echo (int) $set['first_days']; ?>" style="width:70px"> days without an order, email 2 <input type="number" name="second_days" min="1" value="<?php echo (int) $set['second_days']; ?>" style="width:70px"> days after email 1</td></tr>
 			<tr><th>Send a preview</th><td><input type="email" name="preview_to" class="regular-text" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>"> <input type="text" name="preview_name" placeholder="Name to greet (optional)"><br>
 				<input type="email" name="preview_as" class="regular-text" placeholder="Show it as this customer (their email, optional)" style="margin-top:6px">
