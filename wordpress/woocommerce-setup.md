@@ -2581,3 +2581,9 @@ choice). Snippet 91, fika-club.php (new):
   (average stars, order-again split, favourites, every answer). Email line: "One tap, then a few quick questions
   (about 30 seconds)". Admin "Send a preview" emails carry fika_fb_test: their card saves nothing on the real order
   behind the preview. Route 277 trashed.
+- 4 Nov (git only): the follow-up is email only (owner: "nothing shall pop up on our webpage"): the answer card, its
+  saving and the home-page code are removed. The three buttons are mailto links: a ready-made reply to
+  hello@swedishfikalb.com, subject "My Fika order #1640: Loved them", body with the answer and the questions (stars
+  1-5 for the sweets, delivery, packing, value for money; favourite; order again yes/maybe/no; anything else). Email
+  line: "Tap one and a short reply opens in your email… or simply reply to this email." Admin page: settings, preview,
+  log, and a note that answers arrive in hello@. Taps on these buttons are not counted (mail links). Route 278 trashed.
