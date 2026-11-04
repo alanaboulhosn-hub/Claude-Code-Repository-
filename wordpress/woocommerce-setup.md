@@ -2600,3 +2600,11 @@ choice). Snippet 91, fika-club.php (new):
   email 2 goes out; fika_wb_due returns nothing for email 2 if the address had it. A new cycle after another order
   still gets email 1. Tested with the real functions (PHP stubs). The follow-up is named **Email 0** (admin menu
   "Email 0 (follow-up)", Email results "Email 0 (delivery follow-up)", order source "Email 0 (follow-up)"), not live.
+- 4 Nov (git only, with the once-in-a-lifetime rule, deploy needs the owner's OK): WooCommerce > Win-back emails made
+  simple (owner): three cards side by side, Email 0 (delivery follow-up; "Not installed yet" until fika-followup.php is
+  installed; its switch sets fika_fu_settings mode live/off), Email 1 (new setting email1, default on) and Email 2
+  (email2), each with a description, "Due now: N" and an On/Off switch (admin_post fika_wb_toggle, logged). Below:
+  "Who is next": every address, what it is due for (Email 0 with the order number) and when (Now / date), soonest
+  first. Everything else (sending mode, test addresses, news, candies, store credit, timing, previews, recent activity)
+  folded under "More settings, previews and recent activity". Preview rendered read-only (route 283, trashed): Email 1
+  due 3, Email 2 due 221, 547 in the list.
