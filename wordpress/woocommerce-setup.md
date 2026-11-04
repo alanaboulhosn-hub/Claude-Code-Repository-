@@ -2612,3 +2612,10 @@ choice). Snippet 91, fika-club.php (new):
   lifetime (fika_wb_owe_got saved with the 20 addresses that had it) and the simple admin page. Checked: Email 1 On,
   Email 2 On, Email 0 "Not installed yet"; due now 3 (email 1) and 221 (email 2); 547 in "Who is next"; mode live;
   next batch Thu 5 Nov 10:00 Beirut; site pages load on phone and desktop, no errors. Route 284 trashed.
+- 4 Nov 2026, **live** (owner: "yes, deploy it"): snippet 25 (bag reminder) = git (was 8387e60): its links get the
+  tracking tags (fika_et_tag, kind "bag") and carry them on to the checkout, so bag-reminder clicks and orders count in
+  WooCommerce > Email results. Snippet 203 (order source, admin only) = git (was 51cc0a3): "Email · Win-back email
+  1/2 / Bag reminder" in the Origin column. Both checked = the old versions first; saved inactive, activated, match
+  git. Bag reminder preview renders. Note: a check route calling fika_src_of (admin-only) gave a REST "critical
+  error" for that request only; route deleted, every snippet still active, site 200. Email results before: wb2 20
+  sent, 1 click; wb1 and bag 0 (email 1 tagged since today's deploy, bag from now).
