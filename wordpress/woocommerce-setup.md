@@ -2462,3 +2462,9 @@ choice). Snippet 91, fika-club.php (new):
   button under it ("Join for free & claim my $5" / "Claim my $5 store credit"). Previews rendered from this code with
   a temporary route (248 failed to switch on: fika_wb_is_member already live, renamed in the copy; 249 used; both
   trashed). alan.aboulhosn@gmail.com now has an account (made in the owner's test).
+- 4 Nov (git only, not live yet): each part of email 2 has its own button words (owner). Top: "Claim my $5 store
+  credit" / "Join for free & claim my $5". Progress: members "Move my fish forward" (0 kg: "Start my lane"), to the
+  shop; non-members "Unlock my free mystery taste" / "Unlock my free sweets" (reward reached), "Save my 0.9 kg & claim
+  $5", 0 kg "Start my lane & claim my $5", to the sign-up page. Fan Favourites: "Get it for $9" (members, to Ready Mix
+  with the code) / "Join for free & get it for $9" ($14 bag less the $5). Inbox: "Try them, $5 on us" / "Join & try
+  them, $5 on us". All one line on phones (360/390 px). Previews rendered with temporary route 250 (trashed).
