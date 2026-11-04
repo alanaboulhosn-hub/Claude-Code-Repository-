@@ -2535,3 +2535,16 @@ choice). Snippet 91, fika-club.php (new):
   offered while any code or a SWIM reward is on), Fika Club rewards SWIM3/6/10/15 (combine with each other and with
   the $5 only), mystery taste (free 50 g line, price 0, not a code: goes with everything), email 2 $5 IOU codes
   (individual use except SWIM rewards). No discount touches delivery.
+- 4 Nov ~19:20, **live** (owner: "yes, deploy it"): snippet 9 (checkout before-you-go popup) = git (live was cc3dd72
+  before): with email 2's $5 (an IOU code) on the order, any reason but "change my order" shows "Wait! Don't lose your
+  $5 · Your Fika store credit is on this order. It's yours until <day> 11:59 pm, then it runs out. · $5 OFF · Already
+  taken off your total ✓ · Keep checking out / Leave anyway" instead of the FIKA10 offer (window.FIKA_OWE_EXIT printed
+  by the snippet); "Leave anyway" there is not counted as declining the 10% offer.
+- Full check after it (phone + desktop, test accounts, Meta and exit counts blocked, no order): all pages 200, no page
+  errors; filters All 26 / Sweet 13 / Sour 13 / Gelatin-free 23 / Gluten-free 17 / Vegan 15; add to bag; search,
+  product links, /cart/ -> Mix your own; 404 page; Fan Favourites popup. Shopper without $5: 10% offer as before.
+  Non-member from email 2: sign-up box + email, logged in at once, confirmed, joined_from winback-2, welcome strip, bag
+  and checkout −$5 ("Fika store credit"), popup "Don't lose your $5". Member: Fan Favourites link -> bag $9.00; with a
+  SWIM3 reward checkout Discount −$7.80, Total $6.20; popup "Don't lose your $5". Test users/codes/bags deleted
+  (route 270 trashed). Email 2: 2nd batch 19:34 (10 sent; 20 in all, codes right), next tomorrow 10:00; #1668 ordered
+  again after email 1.
