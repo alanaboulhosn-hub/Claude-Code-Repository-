@@ -2473,3 +2473,14 @@ choice). Snippet 91, fika-club.php (new):
   "Get it for $9" to /ready-mix/?fika_add=1200&bag=open: one 500 g Fan Favourites bag goes into the bag (not twice)
   and the bag opens with "Fika store credit −$5.00", Total $9.00 (checked as a mock-up on the live Ready Mix page).
   Previews rendered with temporary routes 252/253 (trashed).
+- 4 Nov 2026, **live** (owner: "upload this new email ... make this the new version and save it"): snippet 35 =
+  git (checked live = 7318494 first; saved inactive, activated; matches git), renamed "Fika: win-back emails (30 days,
+  then $5 store credit)". Its description and the admin page (WooCommerce > Win-back emails: intro, email 2 box,
+  "Email 2: store credit" row, preview note, log "Email 2 sent ($5 store credit, code …)") rewritten for the new email 2.
+  Email 2 still **off** for customers (email2 = 0). Checked on phone and desktop (home, Mix your own, Ready Mix, My
+  account, About us): no errors, nothing new for visitors without a $5.
+  Owner's first test worked: account 232 (alan.aboulhosn@gmail.com) confirmed without the email, fika_joined_from
+  winback-2. First test code IOU5-LAEZ1V (unused) deleted. Trial: email 2 (member version) sent to that address,
+  code IOU5-J5N9RI (note "TEST (Claude email 2 trial) - safe to delete"), tracking send wb2.yli50rmw. Temporary routes
+  254 (failed: submit_button not loaded in REST) and 255 trashed. Options fika_tmp_wb2test_sent / fika_tmp_wb2trial_sent
+  to delete in the clean-up.
