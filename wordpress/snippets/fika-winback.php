@@ -38,7 +38,9 @@
  * - Sends in small batches (10 emails, a few seconds apart, one batch an hour, 10:00-20:00 Beirut, at most 50 in any
  *   24 hours, within the hello@ mailbox's limit of about 100), so a big list goes out over a few days.
  * - Mode: "Test" sends only to the addresses listed in WP Admin; "Live" sends to everyone due; "Off" sends nothing.
- * - WP Admin > WooCommerce > Win-back emails: settings, previews, who is due, what was sent, who came back.
+ * - Email 0, the thank-you 3 days after delivery, is in this snippet too (its own section below; was fika-followup.php).
+ * - WP Admin > WooCommerce > Win-back emails: emails 0, 1 and 2, each with On / Off, how many were sent, who is due
+ *   next; settings, previews and the activity of all three under "More settings".
  * Sent with WooCommerce's email layout (the same template as the order emails).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-winback.php
  */
@@ -101,6 +103,29 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		$got = is_array( $got ) ? $got : array();
 		$got[ md5( strtolower( trim( (string) $email ) ) ) ] = time();
 		update_option( 'fika_wb_owe_got', $got, false );
+	}
+	// how many of email 1 and email 2 went out, ever (5 Nov 2026: the state forgets a customer who orders again, so it
+	// cannot be counted from there). Counted when the email is marked as sent, just before it goes out
+	function fika_wb_sent_n() {
+		$n = get_option( 'fika_wb_sent_n' );
+		if ( ! is_array( $n ) ) {
+			// first time: email 1 = everyone the state still has with email 1, plus those who came back after it under the
+			// old code, which cleared their record (all but the ones it now keeps with 'ordered'); email 2 = the lifetime list
+			fika_wb_owe_backfill();
+			$one = 0; $kept = 0;
+			foreach ( fika_wb_state() as $s ) {
+				$one  += empty( $s['s1'] ) ? 0 : 1;
+				$kept += empty( $s['ordered'] ) ? 0 : 1;
+			}
+			$n = array( 1 => $one + max( 0, (int) get_option( 'fika_winback_won', 0 ) - $kept ), 2 => count( (array) get_option( 'fika_wb_owe_got', array() ) ) );
+			update_option( 'fika_wb_sent_n', $n, false );
+		}
+		return $n;
+	}
+	function fika_wb_sent_add( $which ) {
+		$n = fika_wb_sent_n();
+		$n[ (int) $which ] = ( isset( $n[ (int) $which ] ) ? (int) $n[ (int) $which ] : 0 ) + 1;
+		update_option( 'fika_wb_sent_n', $n, false );
 	}
 	// everyone who already had an email 2: the win-back state, the log and the email-2 codes made for customers
 	function fika_wb_owe_backfill() {
@@ -960,6 +985,7 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			if ( '2' === $due ) {
 				fika_wb_owe_mark( $email ); // the store credit, once in a lifetime: marked before it goes out
 			}
+			fika_wb_sent_add( $due );
 			if ( $sent ) {
 				sleep( 4 ); // a short gap between emails, so the mail server is not flooded
 			}
@@ -1361,7 +1387,7 @@ add_action( 'admin_post_fika_wb_save', function () {
 	wp_safe_redirect( admin_url( 'admin.php?page=fika-winback&msg=' . $msg ) );
 	exit;
 } );
-// the On / Off switch of each email on the admin page: 0 = email 0 (delivery follow-up, fika-followup.php), 1, 2
+// the On / Off switch of each email on the admin page: 0 = email 0 (the thank-you after delivery, below), 1, 2
 add_action( 'admin_post_fika_wb_toggle', function () {
 	if ( ! current_user_can( 'manage_woocommerce' ) ) {
 		wp_die( 'Not allowed.' );
@@ -1427,7 +1453,33 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 			1 => array( 'Email 1', 'It&rsquo;s been a while', 'What&rsquo;s new, ' . (int) $set['first_days'] . ' days after a customer&rsquo;s last order.', ! empty( $set['email1'] ), true ),
 			2 => array( 'Email 2', 'Don&rsquo;t lose your ' . esc_html( fika_wb_money( $set['owe'] ) ), esc_html( fika_wb_money( $set['owe'] ) ) . ' store credit for ' . (int) $set['valid_days'] . ' days, ' . (int) $set['second_days'] . ' days after email 1. Once per customer, ever.', ! empty( $set['email2'] ), true ),
 		);
-		$log = get_option( 'fika_winback_log', array() );
+		// sent so far, and in the last 24 hours
+		$sn   = fika_wb_sent_n();
+		$f24  = $fuon ? fika_fu_sent_24h() : 0;
+		$w24  = array( 1 => 0, 2 => 0 );
+		foreach ( (array) get_option( 'fika_winback_log', array() ) as $l ) {
+			if ( (int) $l['t'] < $now - DAY_IN_SECONDS ) {
+				break;
+			}
+			if ( preg_match( '/^Email (\d) (sent|not sent)/', $l['what'], $mm ) ) {
+				$w24[ (int) $mm[1] ]++;
+			}
+		}
+		$sent = array(
+			0 => array( $fuon ? count( wc_get_orders( array( 'limit' => -1, 'return' => 'ids', 'type' => 'shop_order', 'status' => array_keys( wc_get_order_statuses() ), 'meta_query' => array( array( 'key' => '_fika_fu', 'compare' => 'EXISTS' ) ) ) ) ) : 0, $f24 ),
+			1 => array( (int) $sn[1], $w24[1] ),
+			2 => array( (int) $sn[2], $w24[2] ),
+		);
+		// one activity list for the three emails, newest first
+		$log = array();
+		foreach ( (array) get_option( 'fika_winback_log', array() ) as $l ) {
+			$log[] = $l;
+		}
+		foreach ( (array) get_option( 'fika_fu_log', array() ) as $l ) {
+			$l['what'] = 'Email 0: ' . $l['what'];
+			$log[]     = $l;
+		}
+		usort( $log, function ( $x, $y ) { return (int) $y['t'] <=> (int) $x['t']; } );
 		$msg = isset( $_GET['msg'] ) ? sanitize_key( $_GET['msg'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 		?>
 <style>
@@ -1457,7 +1509,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 			<div class="fkw-num"><?php echo esc_html( $c[0] ); ?></div>
 			<div class="fkw-name"><?php echo $c[1]; // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 			<div class="fkw-what"><?php echo $c[2]; // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
-			<div class="fkw-due"><?php echo $c[4] ? 'Due now: <b>' . (int) $cnt[ $k ] . '</b>' : 'Not installed yet'; ?></div>
+			<div class="fkw-due">Sent so far: <b><?php echo (int) $sent[ $k ][0]; ?></b> &middot; last 24 hours: <b><?php echo (int) $sent[ $k ][1]; ?></b><br>Due now: <b><?php echo (int) $cnt[ $k ]; ?></b></div>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="fika_wb_toggle"><input type="hidden" name="which" value="<?php echo (int) $k; ?>"><input type="hidden" name="on" value="<?php echo $c[3] ? 0 : 1; ?>"><?php wp_nonce_field( 'fika_wb_toggle' ); ?>
 				<button class="fkw-sw" type="submit"<?php disabled( ! $c[4] ); ?> aria-pressed="<?php echo $c[3] ? 'true' : 'false'; ?>"><i></i><?php echo $c[3] ? 'On' : 'Off'; ?></button>
@@ -1473,7 +1525,7 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 		<?php endforeach; ?>
 	</tbody></table>
 	<details class="fkw-more"><summary>More settings, previews and recent activity</summary>
-	<p style="max-width:760px">Emails 1 and 2 are sent in small batches, 10:00&ndash;20:00 Beirut time, at most 50 a day; each email is marked as sent before it goes out, so nobody gets the same email twice. Orders came back after these emails: <strong><?php echo (int) get_option( 'fika_winback_won', 0 ); ?></strong>.</p>
+	<p style="max-width:760px">All three emails go out in small batches, 10:00&ndash;20:00 Beirut time: emails 1 and 2 at most 50 a day, email 0 at most 20 a day (5 an hour), and the three together at most 70 a day. Each email is marked as sent before it goes out, so nobody gets the same email twice. Customers who ordered again after email 1 or 2: <strong><?php echo (int) get_option( 'fika_winback_won', 0 ); ?></strong> (orders and sales per email: WooCommerce &gt; Email results).</p>
 	<?php if ( 'saved' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved.</p></div><?php endif; ?>
 	<?php if ( 'preview' === $msg ) : ?><div class="notice notice-success is-dismissible"><p>Saved, and the preview is on its way.</p></div><?php endif; ?>
 	<?php if ( 'preview-failed' === $msg ) : ?><div class="notice notice-error is-dismissible"><p>The preview could not be sent.</p></div><?php endif; ?>
@@ -1506,6 +1558,17 @@ if ( ! function_exists( 'fika_wb_admin' ) ) {
 		</table>
 		<?php submit_button( 'Save' ); ?>
 	</form>
+	<?php if ( $fuon ) : ?>
+	<h2>Email 0: the thank-you after delivery</h2>
+	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+		<input type="hidden" name="action" value="fika_fu_save"><?php wp_nonce_field( 'fika_fu_save' ); ?>
+		<table class="form-table" role="presentation">
+			<tr><th>Timing</th><td><input type="number" name="days" min="1" value="<?php echo (int) $fu['days']; ?>" style="width:70px"> days after the order is marked Completed (delivered), and not more than <input type="number" name="window" min="1" value="<?php echo (int) $fu['window']; ?>" style="width:70px"> days after that<p class="description">One email per order, at most one per customer in 14 days, oldest delivery first. Only orders completed from <?php echo esc_html( wp_date( 'j M Y', (int) $fu['start'], new DateTimeZone( 'Asia/Beirut' ) ) ); ?>.</p></td></tr>
+			<tr><th>Send a preview</th><td><input type="email" name="preview_to" class="regular-text" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>"> <button class="button" name="preview" value="1">Email 0</button><p class="description">Uses the latest completed order (its name and what was ordered); goes only to the address above.</p></td></tr>
+		</table>
+		<?php submit_button( 'Save' ); ?>
+	</form>
+	<?php endif; ?>
 	<h2>Recent activity</h2>
 	<table class="widefat striped" style="max-width:900px"><thead><tr><th style="width:160px">When</th><th>Email</th><th>What</th></tr></thead><tbody>
 		<?php if ( ! $log ) : ?><tr><td colspan="3">Nothing sent yet.</td></tr><?php endif; ?>
@@ -1651,3 +1714,265 @@ add_action( 'wp_footer', function () {
 </script>
 	<?php
 }, 5 );
+
+// =====================================================================================================================
+// Email 0: the thank-you after delivery (owner, 4 Nov 2026; until 5 Nov 2026 the separate snippet fika-followup.php,
+// merged here on the owner's request so all three emails live in one place, with one admin page).
+// - Who: an order marked Completed (delivered: the RT status update sets it, fika-rtd.php) gets one email, 3 days
+//   after it was completed (setting), and only while the completion is at most 6 days old (days + window); the
+//   oldest delivery goes first. One email per order, at most one per customer in 14 days, never to unsubscribed
+//   addresses (fika_marketing_stop), test addresses (@example.com/.org/.net) or shop staff. Only orders completed
+//   from 31 Oct 2026 00:28 (setting start).
+// - Never twice: the order is marked (_fika_fu) and saved BEFORE the email goes out; a failed send is not retried.
+// - Small batches: at most 5 an hour, 10:00-20:00 Beirut, at most 20 in 24 hours, and never when emails 0, 1 and 2
+//   together reached 70 in 24 hours (the hello@ mailbox sends about 100 a day, order emails included).
+// - The email: "Name, we hope your sweets made you smile", a personal note around a Swedish saying (a different one
+//   for each of the customer's orders, fika_fu_quotes), "Swedish tips" (keeping the sweets soft and fresh,
+//   lördagsgodis), what they picked (photos and weights), a thank-you and the unsubscribe link. Nothing on the website.
+// - Tracking (fika-email-tracking.php, kind "fu"). On / Off: the Email 0 card on the Win-back emails page; its timing,
+//   a preview and its log are under "More settings".
+// =====================================================================================================================
+if ( ! function_exists( 'fika_fu_settings' ) ) {
+	function fika_fu_settings() {
+		$s = get_option( 'fika_fu_settings', array() );
+		return wp_parse_args( is_array( $s ) ? $s : array(), array(
+			'mode'        => 'off', // off | test (only the test addresses) | live
+			'test_emails' => 'alan.aboulhosn@gmail.com',
+			'days'        => 3,     // days after the order was completed (owner, 5 Nov 2026: 3, was 5)
+			'window'      => 3,     // ... and not later than this many days after that
+			'start'       => 0,     // only orders completed from this time (owner, 4 Nov 2026: start with the last 5 days)
+		) );
+	}
+	function fika_fu_log( $email, $what ) {
+		$log = get_option( 'fika_fu_log', array() );
+		$log = is_array( $log ) ? $log : array();
+		array_unshift( $log, array( 't' => time(), 'email' => $email, 'what' => $what ) );
+		update_option( 'fika_fu_log', array_slice( $log, 0, 400 ), false );
+	}
+	function fika_fu_sent_24h() {
+		$n = 0;
+		foreach ( (array) get_option( 'fika_fu_log', array() ) as $l ) {
+			if ( (int) $l['t'] < time() - DAY_IN_SECONDS ) {
+				break;
+			}
+			$n += preg_match( '/^(Sent|Not sent)/', $l['what'] ) ? 1 : 0;
+		}
+		return $n;
+	}
+	// Swedish sayings for the pink box (owner, 4 Nov 2026: a new one for each order of the same customer):
+	// [ Swedish, English ]
+	function fika_fu_quotes() {
+		return array(
+			array( 'Delad glädje är dubbel glädje.', 'Shared joy is double joy.' ),
+			array( 'Den som väntar på något gott väntar aldrig för länge.', 'Whoever waits for something good never waits too long.' ),
+			array( 'Liten men naggande god.', 'Small, but oh so good.' ),
+			array( 'Borta bra men hemma bäst.', 'Away is nice, but home is best.' ),
+			array( 'Lagom är bäst.', 'Just the right amount is best.' ),
+			array( 'Ingen ko på isen.', 'No cow on the ice: nothing to worry about.' ),
+		);
+	}
+	// the saying for this order: the customer's first email 0 gets the first, their next one the next, and so on
+	// (counted from their earlier orders that had email 0; after the last saying it starts again)
+	function fika_fu_quote_for( $order ) {
+		$q    = fika_fu_quotes();
+		$prev = wc_get_orders( array( 'limit' => -1, 'return' => 'ids', 'type' => 'shop_order', 'billing_email' => (string) $order->get_billing_email(), 'meta_query' => array( array( 'key' => '_fika_fu', 'compare' => 'EXISTS' ) ) ) );
+		$n    = count( array_diff( array_map( 'intval', (array) $prev ), array( (int) $order->get_id() ) ) );
+		return $q[ $n % count( $q ) ];
+	}
+	function fika_fu_skip( $email ) {
+		if ( ! is_email( $email ) || preg_match( '/@example\.(com|org|net)$/i', $email ) ) {
+			return true;
+		}
+		if ( function_exists( 'fika_wb_stopped' ) && fika_wb_stopped( $email ) ) {
+			return true;
+		}
+		$u = get_user_by( 'email', $email );
+		return $u ? user_can( $u, 'manage_woocommerce' ) : false;
+	}
+	// orders due now: completed between (days + window) and days ago, not emailed yet
+	function fika_fu_due() {
+		$set  = fika_fu_settings();
+		$from = max( time() - ( (int) $set['days'] + (int) $set['window'] ) * DAY_IN_SECONDS, (int) $set['start'] );
+		$to   = time() - (int) $set['days'] * DAY_IN_SECONDS;
+		$list = wc_get_orders( array( 'limit' => 200, 'type' => 'shop_order', 'status' => array( 'wc-completed' ), 'date_completed' => $from . '...' . $to, 'orderby' => 'date', 'order' => 'DESC' ) ); // newest first: a customer with two orders due gets the email about their latest
+		$last = (array) get_option( 'fika_fu_last', array() );
+		$out  = array();
+		foreach ( $list as $o ) {
+			$e = strtolower( (string) $o->get_billing_email() );
+			if ( $o->get_meta( '_fika_fu' ) || fika_fu_skip( $e ) || isset( $out[ $e ] ) ) {
+				continue;
+			}
+			if ( isset( $last[ md5( $e ) ] ) && time() - (int) $last[ md5( $e ) ] < 14 * DAY_IN_SECONDS ) {
+				continue; // one follow-up per customer in 14 days
+			}
+			$out[ $e ] = $o;
+		}
+		// sent oldest delivery first (5 Nov 2026): with at most 20 a day, a busy day of deliveries must not push
+		// the earlier ones past the window while newer orders go first
+		uasort( $out, function ( $a, $b ) { return $a->get_date_completed()->getTimestamp() <=> $b->get_date_completed()->getTimestamp(); } );
+		return array_values( $out );
+	}
+	// what they picked: [ photo, name, weight label ] for each line (the free mystery taste included)
+	function fika_fu_items( $order ) {
+		$rows = array();
+		foreach ( $order->get_items() as $it ) {
+			$p     = $it->get_product();
+			$label = (string) $it->get_meta( 'Weight' );
+			$label = '' !== $label ? $label : (string) $it->get_meta( 'Amount' );
+			$label = '' !== $label ? $label : ( '' !== (string) $it->get_meta( 'Mystery taste' ) ? 'Mystery taste, 50 g' : '' );
+			$img   = $p && $p->get_image_id() && function_exists( 'fika_wb_photo' ) ? fika_wb_photo( $p->get_image_id() ) : '';
+			$rows[] = array( $img, html_entity_decode( $it->get_name() ), $label );
+		}
+		return $rows;
+	}
+	// the email: [ subject, html ]
+	function fika_fu_email( $order ) {
+		$f     = 'font-family:Outfit,\'Helvetica Neue\',Helvetica,Arial,sans-serif;';
+		$serif = 'font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-variant:small-caps;font-weight:400;';
+		$email = strtolower( (string) $order->get_billing_email() );
+		$name  = function_exists( 'fika_wb_first_name' ) ? fika_wb_first_name( $order->get_billing_first_name() ) : $order->get_billing_first_name();
+		$strip = home_url( '/wp-content/uploads/2026/11/fika-email-owe-kilo.png' ); // ten cartoon candies, see-through
+		$quote = fika_fu_quote_for( $order );
+		$items = '';
+		foreach ( fika_fu_items( $order ) as $row ) { // every item of the order (owner, 5 Nov 2026: what they ordered, in full)
+			$items .= '<tr>' .
+				'<td width="52" style="padding:7px 12px 7px 0;width:52px;vertical-align:middle;">' . ( $row[0] ? '<img src="' . esc_url( $row[0] ) . '" width="44" height="44" alt="" style="display:block;width:44px;height:44px;border-radius:12px;object-fit:cover;border:0;">' : '' ) . '</td>' .
+				'<td style="' . $f . 'padding:7px 0;vertical-align:middle;color:#004aad;font-size:15px;font-weight:600;line-height:1.3;">' . esc_html( $row[1] ) . '</td>' .
+				'<td align="right" style="' . $f . 'padding:7px 0 7px 10px;vertical-align:middle;color:#6c7b9c;font-size:13.5px;white-space:nowrap;">' . esc_html( $row[2] ) . '</td></tr>';
+		}
+		$div = function ( $id, $label ) {
+			return function_exists( 'fika_wb_divider' ) ? fika_wb_divider( $id, $label ) : '';
+		};
+		$body =
+			'<img src="' . esc_url( $strip ) . '" width="480" alt="" style="display:block;width:100%;max-width:480px;height:auto;margin:0 auto 14px;border:0;">' .
+			// the opening: to them, personally, around a Swedish saying about sharing (owner, 4 Nov 2026)
+			'<p style="text-align:center;">' . ( $name ? 'Hi ' . esc_html( $name ) . ',' : 'Hi,' ) . '</p>' .
+			'<p style="text-align:center;">we hope your sweets brought a little extra joy to your week. Maybe they waited in a bowl on the table, maybe they were gone before the bag was even unpacked, or maybe you shared them with the people you love most.</p>' .
+			'<div style="margin:18px 0 18px;padding:18px 16px 16px;border-radius:20px;background:#fdeaf2;text-align:center;">' .
+				'<div style="' . $f . 'color:#d35d93;font-size:12px;letter-spacing:.14em;text-transform:uppercase;">In Sweden we say</div>' .
+				'<div style="font-family:\'Fanwood Text\',Georgia,\'Times New Roman\',serif;font-style:italic;color:#004aad;font-size:24px;line-height:1.3;margin:8px 0 6px;">&ldquo;' . esc_html( $quote[0] ) . '&rdquo;</div>' .
+				'<div style="' . $serif . 'color:#1b2a4a;font-size:17px;">' . esc_html( $quote[1] ) . '</div>' .
+			'</div>' .
+			'<p style="text-align:center;">That is what fika is about: slowing down, and sharing something sweet with the people around you. We hope your bag did just that, and that every piece tasted like a little trip to Sweden.</p>' .
+			// a little something for them (owner, 4 Nov 2026: "adding value to the customer")
+			$div( 'tips', 'Swedish tips' ) .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td style="padding:18px 18px 16px;border-radius:20px;background:#eef4fb;text-align:center;">' .
+				'<div style="font-size:30px;line-height:1.1;">🫙</div>' .
+				'<div style="' . $f . 'color:#004aad;font-size:16.5px;font-weight:600;line-height:1.3;margin:6px 0 6px;">Keep them soft and fresh</div>' .
+				'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.6;">Close the bag tightly, or tip your sweets into a glass jar with a lid, and keep them somewhere cool and out of the sun. Swedish gummies stay soft and chewy for weeks that way, even in the Lebanese heat.</div>' .
+			'</td></tr></table>' .
+			'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:14px 0 0;"><tr><td style="padding:18px 18px 16px;border-radius:20px;background:#fdeaf2;text-align:center;">' .
+				'<div style="font-size:30px;line-height:1.1;">🍬</div>' .
+				'<div style="' . $f . 'color:#004aad;font-size:16.5px;font-weight:600;line-height:1.3;margin:6px 0 6px;">Try a Swedish tradition: <i>lördagsgodis</i></div>' .
+				'<div style="' . $f . 'color:#1b2a4a;font-size:15px;line-height:1.6;">&ldquo;Saturday sweets.&rdquo; In Sweden, many families save their sweets for Saturday, pour them into one big bowl and share them over a slow afternoon or a film together. It makes the whole week feel a little sweeter.</div>' .
+			'</td></tr></table>' .
+			( $items ? $div( 'items', 'What you picked' ) . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:12px 0 0;">' . $items . '</table>' : '' ) .
+			$div( 'thanks', '' ) .
+			'<div style="' . $f . 'text-align:center;color:#1b2a4a;font-size:15.5px;line-height:1.6;margin:6px 0 0;">Thank you for choosing Fika. It truly means the world to us.</div>' .
+			'<div style="' . $serif . 'text-align:center;color:#004aad;font-size:21px;line-height:1.3;margin:10px 0 0;">With love,<br>the Fika family</div>' .
+			( function_exists( 'fika_wb_small' ) ? fika_wb_small( $email ) : '' );
+		$html = WC()->mailer()->wrap_message( $name ? $name . ', we hope your sweets made you smile' : 'We hope your sweets made you smile', $body );
+		$pre  = '<div class="fika-pre" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' . esc_html( rtrim( $quote[0], '.' ) . ': ' . lcfirst( rtrim( $quote[1], '.' ) ) . '. A little note from all of us at Fika.' ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>';
+		$html = preg_replace( '/(<body[^>]*>)/i', '$1' . $pre, $html, 1 );
+		return array( ( $name ? $name . ', we' : 'We' ) . ' hope your sweets made you smile 🍬', $html );
+	}
+	// send one: marked first (never twice), then sent
+	function fika_fu_send( $order ) {
+		$email = strtolower( (string) $order->get_billing_email() );
+		$order->update_meta_data( '_fika_fu', time() );
+		$order->save();
+		$last              = (array) get_option( 'fika_fu_last', array() );
+		$last[ md5( $email ) ] = time();
+		update_option( 'fika_fu_last', $last, false );
+		list( $subject, $html ) = fika_fu_email( $order );
+		$sid = function_exists( 'fika_et_new_send' ) ? fika_et_new_send( 'fu', $email ) : '';
+		if ( $sid ) {
+			$html = fika_et_tag( $html, $sid );
+			$order->update_meta_data( '_fika_fu_send', $sid );
+			$order->save();
+		}
+		$ok = WC()->mailer()->send( $email, $subject, $html );
+		fika_fu_log( $email, ( $ok ? 'Sent' : 'Not sent (mail error), not retried' ) . ' (order #' . $order->get_order_number() . ')' );
+		return $ok;
+	}
+	function fika_fu_run( $limit = 5 ) {
+		$set = fika_fu_settings();
+		if ( 'off' === $set['mode'] ) {
+			return 0;
+		}
+		$lock = (int) get_option( 'fika_fu_lock', 0 );
+		if ( $lock && time() - $lock < 15 * MINUTE_IN_SECONDS ) {
+			return 0;
+		}
+		delete_option( 'fika_fu_lock' );
+		if ( ! add_option( 'fika_fu_lock', time(), '', false ) ) {
+			return 0;
+		}
+		$test = array_filter( array_map( 'strtolower', array_map( 'trim', preg_split( '/[\s,;]+/', (string) $set['test_emails'] ) ) ) );
+		$room = min( $limit, 20 - fika_fu_sent_24h(), 70 - fika_fu_sent_24h() - ( function_exists( 'fika_wb_sent_24h' ) ? fika_wb_sent_24h() : 0 ) );
+		$sent = 0;
+		foreach ( fika_fu_due() as $o ) {
+			if ( $sent >= $room ) {
+				break;
+			}
+			if ( 'test' === $set['mode'] && ! in_array( strtolower( (string) $o->get_billing_email() ), $test, true ) ) {
+				continue;
+			}
+			if ( $sent ) {
+				sleep( 4 );
+			}
+			if ( ! fika_fu_send( $o ) ) {
+				break; // the mail server is struggling: the next batch tries again with the next people
+			}
+			$sent++;
+		}
+		delete_option( 'fika_fu_lock' );
+		return $sent;
+	}
+}
+
+// ---------- sending: once an hour, 10:00-20:00 Beirut, from WordPress's own cron only ----------
+add_action( 'init', function () {
+	if ( ! function_exists( 'as_has_scheduled_action' ) ) {
+		return;
+	}
+	$on = 'off' !== fika_fu_settings()['mode'];
+	if ( $on && ! as_has_scheduled_action( 'fika_fu_tick', array(), 'fika' ) ) {
+		as_schedule_recurring_action( time() + 5 * MINUTE_IN_SECONDS, HOUR_IN_SECONDS, 'fika_fu_tick', array(), 'fika' );
+	} elseif ( ! $on && as_has_scheduled_action( 'fika_fu_tick', array(), 'fika' ) ) {
+		as_unschedule_all_actions( 'fika_fu_tick', array(), 'fika' );
+	}
+} );
+add_action( 'fika_fu_tick', function () {
+	// an "async request" run can be cut off part-way (see fika-winback.php); the next hour's run picks it up
+	if ( ! wp_doing_cron() ) {
+		return;
+	}
+	$h = (int) wp_date( 'G', null, new DateTimeZone( 'Asia/Beirut' ) );
+	if ( $h >= 10 && $h < 20 ) {
+		fika_fu_run( 5 );
+	}
+} );
+
+// Email 0 settings (timing) and a preview, from the Win-back emails page
+add_action( 'admin_post_fika_fu_save', function () {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		wp_die( 'Not allowed.' );
+	}
+	check_admin_referer( 'fika_fu_save' );
+	$in  = wp_unslash( $_POST );
+	$set = fika_fu_settings();
+	$set['days']   = max( 1, absint( $in['days'] ?? $set['days'] ) );
+	$set['window'] = max( 1, absint( $in['window'] ?? $set['window'] ) );
+	update_option( 'fika_fu_settings', $set, false );
+	$msg = 'saved';
+	if ( ! empty( $in['preview'] ) && is_email( $in['preview_to'] ?? '' ) ) {
+		$last = wc_get_orders( array( 'limit' => 1, 'status' => array( 'wc-completed' ), 'orderby' => 'date', 'order' => 'DESC' ) );
+		if ( $last ) {
+			list( $subject, $html ) = fika_fu_email( $last[0] );
+			$msg = WC()->mailer()->send( sanitize_email( $in['preview_to'] ), '[Preview] ' . $subject, $html ) ? 'preview' : 'preview-failed';
+		}
+	}
+	wp_safe_redirect( admin_url( 'admin.php?page=fika-winback&msg=' . $msg ) );
+	exit;
+} );
