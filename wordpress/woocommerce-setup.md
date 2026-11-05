@@ -2654,3 +2654,19 @@ choice). Snippet 91, fika-club.php (new):
   items in order with their weight (Weight / Amount / Mystery taste), nothing missing or extra: 83 of 83 correct
   (53 with Ready Mix bags, 5 with a mystery taste, none without a name). The 14-item email checked on a phone.
   Routes 295-296 trashed.
+
+## 5 Nov 2026: Email 0 merged into the win-back snippet; sent counts on the admin cards (live)
+
+- Owner: one place for the three emails. The Email 0 code (fika-followup.php, snippet 287) now lives at the end of
+  fika-winback.php (snippet 35), same function names, same options (fika_fu_settings, fika_fu_log, _fika_fu), same
+  hourly job (fika_fu_tick). The separate "Email 0 (follow-up)" admin page is gone: its timing and preview are under
+  "More settings" on WooCommerce > Win-back emails, and its log is part of the one "Recent activity" list.
+  Deploy order: 287 switched off first, then 35 updated and switched on (live code = git), then 287 deleted (trash).
+- Each card now shows "Sent so far · last 24 hours · Due now". Email 0: orders marked _fika_fu. Emails 1 and 2: new
+  counter fika_wb_sent_n, counted when the email is marked as sent; filled once from the state (email 1: 320 still
+  recorded + 17 who came back under the old code that cleared their record = 337) and the lifetime list (email 2: 50).
+  The Email results page showed email 1 as 0 because tracking started after the email 1 sends.
+- Email 0 now sends the oldest delivery first: with at most 20 a day, the 55 orders completed 2 Nov (due from
+  10:00 Fri 6 Nov) and the 28 completed 5 Nov would otherwise have pushed about 15 past the 6-day window.
+- Checked after deploy: home and shop pages 200, Email 0 functions and its job present (next tick hourly), no Email 0
+  due before Fri 10:00, admin page rendered on desktop and phone.
