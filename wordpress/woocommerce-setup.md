@@ -2670,3 +2670,13 @@ choice). Snippet 91, fika-club.php (new):
   10:00 Fri 6 Nov) and the 28 completed 5 Nov would otherwise have pushed about 15 past the 6-day window.
 - Checked after deploy: home and shop pages 200, Email 0 functions and its job present (next tick hourly), no Email 0
   due before Fri 10:00, admin page rendered on desktop and phone.
+- 11 Nov 2026: RT export of 11 Nov 23:00 (667 parcels) applied the same way (fika_rtd_apply: RT column + order note, no
+  emails; temporary admin-only endpoint, snippet 300, trashed). Live snippet 94 = git first; each order re-checked
+  against the dry run (status, RT step, tracking) before it changed: 54/54 unchanged, all matched by tracking, all 54
+  verified after. 39 status changes: 36 processing -> completed (#1628, #1630, #1637, #1642, #1654, #1659-#1666,
+  #1668-#1684, #1686, #1688-#1691, #1695; completed time = export time), #1594, #1645, #1667 -> failed (RT: return
+  received by merchant). RT step only on 15 open orders (#1685, #1692, #1698 return to warehouse; #1693, #1694, #1696,
+  #1697, #1699-#1705 at warehouse; #1706 parcel created). Left alone: #1589 (cancelled here, RT: collected by pickup).
+  After: 639 completed, 16 processing, 29 failed, 15 cancelled. Flagged to the owner: RT cash differs from the order
+  on 18 delivered parcels (new: #1679 $0 vs $34, #1669 $34 vs $22.80, #1665 $18.60 vs $24.60). The 36 newly completed
+  orders get Email 0 from 14 Nov, oldest delivery first.
