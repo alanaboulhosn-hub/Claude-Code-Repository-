@@ -1,0 +1,324 @@
+{
+ "title": "FIKA: third batch order",
+ "status": "Final",
+ "today": "2026-11-12",
+ "count_date": "2026-11-06",
+ "arrival": "2026-11-24",
+ "window": {
+  "from": "2026-09-28",
+  "to": "2026-11-11"
+ },
+ "batch_kg": 550,
+ "projection": {
+  "growth_per_month": 0.1,
+  "season": {
+   "12": 1.5
+  },
+  "loss": 0.1,
+  "wholesale_kg": 50
+ },
+ "ready_mixes": {
+  "1200": "ff",
+  "95": "sour",
+  "96": "sweet",
+  "94": "ss",
+  "1201": "skull"
+ },
+ "mix_use": {
+  "fan_favourites_bags_per_day": 2.3,
+  "fan_favourites_base_kg": 0.3,
+  "fan_favourites_extras_kg": {
+   "108": 0.1,
+   "9001": 0.1
+  }
+ },
+ "share_from_earlier_batch": {
+  "108": 0.148,
+  "119": 0.071,
+  "114": 0.028
+ },
+ "fixed_kg": {
+  "108": 80,
+  "119": 15.6,
+  "9001": 24.7
+ },
+ "landed_usd_per_kg": 14.39,
+ "vat_usd": 840,
+ "candies": {
+  "108": {
+   "sheet": "WILD BERRY POMEGRANATE OVALS 2,8 KG",
+   "shop": "BUBS Wild Berry Pomegranate Oval",
+   "group": "sweet",
+   "code": "BUB5969055157",
+   "pack_kg": 2.8,
+   "sek_per_pack": 144.04,
+   "note": "Set by the owner: about 80 kg. No sales this batch: from the first batch (15.9 kg in 8 days, 16-23 Aug, 14.8% of loose sales, then sold out); also 100 g in every Fan Favourites bag"
+  },
+  "121": {
+   "sheet": "Forest Berries Ovals 175g",
+   "shop": "BUBS Forest Berry Ovals",
+   "group": "sweet",
+   "code": "BUB5450208151",
+   "pack_kg": 2.1,
+   "sek_per_pack": null,
+   "days_on_sale": 37,
+   "note": "Sold out 3 Nov: rate over its 37 days on sale. Bought as 175 g packs"
+  },
+  "120": {
+   "sheet": "Bubblegum Skalle 2.6kg",
+   "shop": "BUBS Bubblegum Skull",
+   "group": "sour",
+   "code": "BUB5969055160",
+   "pack_kg": 2.6,
+   "sek_per_pack": 136.03
+  },
+  "119": {
+   "sheet": "TUTTI FRUTTI DIAMOND 2,6KG",
+   "shop": "BUBS Tutti Frutti Diamond",
+   "group": "sour",
+   "code": "BUB5969055032",
+   "pack_kg": 2.6,
+   "sek_per_pack": 133.76,
+   "note": "Trial amount (about 16 kg): no sales this batch; first batch 11.1 kg (16 Aug-12 Sep) = 7.1% of loose sales"
+  },
+  "122": {
+   "sheet": "LEMON RASPBERRY SKALLE 3,2KG",
+   "shop": "BUBS Lemon Raspberry Skull",
+   "group": "sour",
+   "code": "BUB5969055156",
+   "pack_kg": 3.2,
+   "sek_per_pack": 158.04
+  },
+  "110": {
+   "sheet": "BANANA TOFFEE OVALS 2,8 KG",
+   "shop": "BUBS Banana Toffee Ovals",
+   "group": "sweet",
+   "code": "BUB5969055155",
+   "pack_kg": 2.8,
+   "sek_per_pack": 144.04
+  },
+  "124": {
+   "sheet": "COOL COLA SKALLE 3,0KG",
+   "shop": "BUBS Cola Skull",
+   "group": "sour",
+   "code": "BUB5450217145",
+   "pack_kg": 3.0,
+   "sek_per_pack": 157.48
+  },
+  "123": {
+   "sheet": "FRUITY PEAR OVALS MEDIUM 2,6KG",
+   "shop": "BUBS Fruity Pear Ovals",
+   "group": "sour",
+   "code": "BUB5969055159",
+   "pack_kg": 2.6,
+   "sek_per_pack": 133.7
+  },
+  "116": {
+   "sheet": "SURA KÖRSBÄR 3kg",
+   "shop": "Sour Cherries",
+   "group": "sour",
+   "code": "GSD38115",
+   "pack_kg": 3.0,
+   "sek_per_pack": 166.17
+  },
+  "125": {
+   "sheet": "FIZZYPOP BLUE 6 KG LÖSVIKT",
+   "shop": "Fizzy Blue",
+   "group": "sour",
+   "code": "MAL1004566",
+   "pack_kg": 6.0,
+   "sek_per_pack": 314.57
+  },
+  "9001": {
+   "sheet": "BUBS Sour Strawberry Vanilla Diamond",
+   "shop": "BUBS Sour Strawberry Vanilla Diamond",
+   "group": "extra",
+   "code": "BUB5450208218",
+   "pack_kg": 1.9,
+   "sek_per_pack": null,
+   "in_mixes": false,
+   "stock_zero": true,
+   "note": "About 25 kg (owner), new candy; 100 g in every Fan Favourites bag. ERT 155 g packs x 12"
+  },
+  "111": {
+   "sheet": "MINIDYNAMIT SUR JORDGUBB",
+   "shop": "Sour Strawberries",
+   "group": "sour",
+   "code": "SKÅ16101",
+   "pack_kg": 1.0,
+   "sek_per_pack": 54.84
+  },
+  "114": {
+   "sheet": "Sour Pineapple 3 kg lösvikt",
+   "shop": "Sour Pineapple",
+   "group": "sour",
+   "code": "MAL1013861",
+   "pack_kg": 3.0,
+   "sek_per_pack": 193.36,
+   "note": "No sales this batch: from the first batch (3.7 kg, 16-27 Aug, 2.8% of loose sales). Price from the first batch"
+  },
+  "118": {
+   "sheet": "Fruit Lemon Mix skalle 190g",
+   "shop": "BUBS Fruity Lemon Mix Skulls",
+   "group": "sour",
+   "code": "BUB5450208143",
+   "pack_kg": 2.7,
+   "sek_per_pack": null
+  },
+  "107": {
+   "sheet": "Raspberry Salty Licorice Skalle 155g",
+   "shop": "BUBS Raspberry Salty Licorice Skulls",
+   "group": "sweet",
+   "code": "BUB5450208215",
+   "pack_kg": 1.9,
+   "sek_per_pack": 202.41
+  },
+  "115": {
+   "sheet": "Syrlig Pastellfisk 3,2 kg",
+   "shop": "Sour Swedish Fish",
+   "group": "sour",
+   "code": "MAL1016739",
+   "pack_kg": 3.2,
+   "sek_per_pack": 147.09
+  },
+  "113": {
+   "sheet": "SURA MELONNAPPAR 3KG",
+   "shop": "Sour Watermelon Pacifier",
+   "group": "sour",
+   "code": "GSD381070",
+   "pack_kg": 3.0,
+   "sek_per_pack": 169.17
+  },
+  "109": {
+   "sheet": "PERSIKOR KRT*AA",
+   "shop": "Peaches",
+   "group": "sweet",
+   "code": "CLO1004565",
+   "pack_kg": 6.0,
+   "sek_per_pack": 281.72
+  },
+  "100": {
+   "sheet": "Pastellfisk 3 kg BiB lösvikt",
+   "shop": "Swedish Fish",
+   "group": "sweet",
+   "code": "MAL1017669",
+   "pack_kg": 3.0,
+   "sek_per_pack": 136.17
+  },
+  "99": {
+   "sheet": "SUGAR STRAWBERRYS 3 KG LÖSVIKT",
+   "shop": "Sugared Strawberries",
+   "group": "sweet",
+   "code": "MAL1009811",
+   "pack_kg": 3.0,
+   "sek_per_pack": 136.45
+  },
+  "103": {
+   "sheet": "Tutti Frutti Rings Lösvikt",
+   "shop": "Tutti Frutti Rings",
+   "group": "sweet",
+   "code": "FAZ403104",
+   "pack_kg": 1.7,
+   "sek_per_pack": 86.75
+  },
+  "117": {
+   "sheet": "Tutti Frutti Syrlig Melon",
+   "shop": "Tutti Frutti Sour Melon",
+   "group": "sour",
+   "code": "FAZ403243",
+   "pack_kg": 2.1,
+   "sek_per_pack": 105.95
+  },
+  "104": {
+   "sheet": "RED AMMO - 3 kg",
+   "shop": "Red Ammo",
+   "group": "sweet",
+   "code": "TOM681000",
+   "pack_kg": 3.0,
+   "sek_per_pack": 122.97
+  },
+  "90": {
+   "sheet": "Fizzy Cola Bottles 3,25 kg",
+   "shop": "Fizzy Cola",
+   "group": "sour",
+   "code": "MAL1009471",
+   "pack_kg": 3.25,
+   "sek_per_pack": 170.38
+  },
+  "112": {
+   "sheet": "Tutti Frutti Sour Lösvikt",
+   "shop": "Tutti Frutti Sour",
+   "group": "sour",
+   "code": "FAZ403124",
+   "pack_kg": 2.0,
+   "sek_per_pack": 101.85
+  },
+  "105": {
+   "sheet": "RABARBERBITAR STORA (TIVOLIBITAR)",
+   "shop": "Rhubarb Bites",
+   "group": "sweet",
+   "code": "TOM469325",
+   "pack_kg": 3.0,
+   "sek_per_pack": 128.97
+  },
+  "92": {
+   "sheet": "Bubbliz Original",
+   "shop": "Fizzy Pop",
+   "group": "sour",
+   "code": "SKÅ4233364",
+   "pack_kg": 2.5,
+   "sek_per_pack": 151.78,
+   "note": "Back on sale: Fizzy Pop"
+  },
+  "102": {
+   "sheet": "Tutti Frutti Passion Lösvikt",
+   "shop": "Tutti Frutti Passion",
+   "group": "sweet",
+   "code": "FAZ403134",
+   "pack_kg": 2.2,
+   "sek_per_pack": 112.04
+  },
+  "93": {
+   "sheet": "AROMA GELEHALLON BIB",
+   "shop": "Raspberry Bites",
+   "group": "sweet",
+   "code": "ARO7301",
+   "pack_kg": 4.0,
+   "sek_per_pack": 175.33
+  },
+  "101": {
+   "sheet": "SOCKRADE ÄPPLEN LÖSVIKT 3 KG BIB Lösvikt",
+   "shop": "Sugared Apples",
+   "group": "sweet",
+   "code": "CLO1015532",
+   "pack_kg": 3.0,
+   "sek_per_pack": 172.57
+  },
+  "91": {
+   "sheet": "Mormors Löständer 3x1KG",
+   "shop": "Loose Teeth",
+   "group": "sweet",
+   "code": "CAB10703",
+   "pack_kg": 3.0,
+   "sek_per_pack": 181.02
+  },
+  "106": {
+   "sheet": "SKOGSBÄR",
+   "shop": "Forest Berries",
+   "group": "sweet",
+   "code": "MAL10377",
+   "pack_kg": 2.24,
+   "sek_per_pack": 107.25
+  }
+ },
+ "explanation": [
+  "Every candy is planned to reach 0 stock on about the same day, so one reorder covers them all.",
+  "Loose sales: each candy's own loose sales since the batch arrived on 28 Sep (45 days; Forest Berry Ovals over its 37 days on sale).",
+  "No sales this batch: from the first batch's August orders as a share of loose sales: Pomegranate Ovals 14.8%, Tutti Frutti Diamonds 7.1%, Sour Pineapple 2.8%.",
+  "Ready Mix use: Sour Mix over the sour candies, Sweet Mix over the sweet ones (kg sold in the window); Fan Favourites 2.3 bags a day after its launch week: 300 g over every candy + 100 g Pomegranate Ovals + 100 g Sour Strawberry Vanilla Diamonds. Sweet & Sour Mix (replaced by Fan Favourites) and Skull Mix (Halloween) not counted.",
+  "x 1.10 for losses and non-website use (PR, atypical orders, sampling: about 11% of website sales), x 10% growth a month, x 1.5 in December (Christmas promotions and ads).",
+  "Stock: the 6 Nov count (Inventory tab), minus use until arrival (air freight about 10 days).",
+  "Order = use from arrival to the common run-out day minus stock on arrival plus a share of 50 kg wholesale; nearest whole ERT pack, at least one pack of every candy. Owner-set amounts: Pomegranate Ovals 80 kg, Tutti Frutti Diamonds 15.6 kg (trial), Sour Strawberry Vanilla Diamonds 24.7 kg.",
+  "Fine-tuned to 550 kg by adding packs to the candies that run out first (only where that keeps them within a week of the common day) or taking from those that run out last."
+ ]
+}
