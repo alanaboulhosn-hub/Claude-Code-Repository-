@@ -39,7 +39,7 @@
  },
  "fixed_kg": {
   "108": 80,
-  "119": 15.6,
+  "119": 23.4,
   "9001": 24.7
  },
  "landed_usd_per_kg": 14.39,
@@ -79,7 +79,7 @@
    "code": "BUB5969055032",
    "pack_kg": 2.6,
    "sek_per_pack": 133.76,
-   "note": "Trial amount (about 16 kg): no sales this batch; first batch 11.1 kg (16 Aug-12 Sep) = 7.1% of loose sales"
+   "note": "Set by the owner: about 22 kg (23.4 kg in ERT packs). No sales this batch; first batch 11.1 kg (16 Aug-12 Sep) = 7.1% of loose sales"
   },
   "122": {
    "sheet": "LEMON RASPBERRY SKALLE 3,2KG",
@@ -318,7 +318,7 @@
   "Ready Mix use: Sour Mix over the sour candies, Sweet Mix over the sweet ones (kg sold in the window); Fan Favourites 2.3 bags a day after its launch week: 300 g over every candy + 100 g Pomegranate Ovals + 100 g Sour Strawberry Vanilla Diamonds. Sweet & Sour Mix (replaced by Fan Favourites) and Skull Mix (Halloween) not counted.",
   "x 1.10 for losses and non-website use (PR, atypical orders, sampling: about 11% of website sales), x 10% growth a month, x 1.5 in December (Christmas promotions and ads).",
   "Stock: the 6 Nov count (Inventory tab), minus use until arrival (air freight about 10 days).",
-  "Order = use from arrival to the common run-out day minus stock on arrival plus a share of 50 kg wholesale; nearest whole ERT pack, at least one pack of every candy. Owner-set amounts: Pomegranate Ovals 80 kg, Tutti Frutti Diamonds 15.6 kg (trial), Sour Strawberry Vanilla Diamonds 24.7 kg.",
+  "Order = use from arrival to the common run-out day minus stock on arrival plus a share of 50 kg wholesale; nearest whole ERT pack, at least one pack of every candy. Owner-set amounts: Pomegranate Ovals 80 kg, Tutti Frutti Diamonds 23.4 kg (about 22 kg), Sour Strawberry Vanilla Diamonds 24.7 kg.",
   "Fine-tuned to 550 kg by adding packs to the candies that run out first (only where that keeps them within a week of the common day) or taking from those that run out last."
  ]
 }
