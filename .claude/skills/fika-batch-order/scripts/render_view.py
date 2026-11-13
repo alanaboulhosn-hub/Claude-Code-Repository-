@@ -17,9 +17,9 @@ tot = sum(r["kg"] for r in rows)
 body += f'<tr class="tot"><td class="c">Total</td><td>{f(sum(r["loose"] for r in rows),2)}</td><td>{f(sum(r["mix"] for r in rows),2)}</td><td>{f(sum(r["stock"] for r in rows))}</td><td>{f(sum(r["arr"] for r in rows))}</td><td class="b">{f(tot)}</td><td></td><td></td></tr>'
 ok = sum(1 for r in rows if abs(r["runout"] - T) <= 7)
 cost = ""
-if d.get("landed_usd_per_kg"):
-    base = tot * d["landed_usd_per_kg"]
-    cost = f'Landed cost at ${d["landed_usd_per_kg"]} per kg: about ${base:,.0f}' + (f', plus VAT (about ${d["vat_usd"]:,.0f}): about ${base + d["vat_usd"]:,.0f} in all.' if d.get("vat_usd") else ".")
+if d.get("landed_per_kg"):
+    base = tot * d["landed_per_kg"]
+    cost = f'Landed cost at ${d["landed_per_kg"]} per kg: about ${base:,.0f}' + (f', plus VAT (about ${d["vat_usd"]:,.0f}): about ${base + d["vat_usd"]:,.0f} in all.' if d.get("vat_usd") else ".")
 css = """:root{--bg:#fff;--fg:#1d2327;--mut:#646970;--line:#e2e4e7;--head:#0b4eae;--est:#fff6d6;--tot:#eef3fb;--ok:#e3f4e8;--okf:#1a6b35;--warn:#fde8e4;--warnf:#a3341f;--late:#e8eefc;--latef:#24489e}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181b;--fg:#e8eaed;--mut:#9aa0a6;--line:#2c3036;--head:#2f6fd6;--est:#3a3214;--tot:#1e2a3d;--ok:#16301f;--okf:#7fd49b;--warn:#3d1f1a;--warnf:#f2a493;--late:#1c2740;--latef:#9db8f2}}
 :root[data-theme="dark"]{--bg:#16181b;--fg:#e8eaed;--mut:#9aa0a6;--line:#2c3036;--head:#2f6fd6;--est:#3a3214;--tot:#1e2a3d;--ok:#16301f;--okf:#7fd49b;--warn:#3d1f1a;--warnf:#f2a493;--late:#1c2740;--latef:#9db8f2}
