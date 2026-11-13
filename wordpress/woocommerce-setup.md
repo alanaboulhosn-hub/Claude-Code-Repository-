@@ -2680,3 +2680,22 @@ choice). Snippet 91, fika-club.php (new):
   After: 639 completed, 16 processing, 29 failed, 15 cancelled. Flagged to the owner: RT cash differs from the order
   on 18 delivered parcels (new: #1679 $0 vs $34, #1669 $34 vs $22.80, #1665 $18.60 vs $24.60). The 36 newly completed
   orders get Email 0 from 14 Nov, oldest delivery first.
+
+## 13 Nov 2026: security hardening (live, snippet 301 "Fika: security hardening")
+
+- Outside-in check first (logged out, read-only): orders / customers / Fika stats endpoints answer 401, the order
+  received page shows nothing without its key, public pages hold only hello@ and the WhatsApp number, uploads are not
+  listable, config / backup / log files are blocked, uploads hold no documents. Weak points found: the account name
+  "admin" public (/wp-json/wp/v2/users, ?author=1, users sitemap), XML-RPC on, no login limit, no security headers,
+  PHP version announced, readme.html / license.txt public (left: needs the file manager), no privacy policy page
+  (/privacy-policy/ is a 404).
+- wordpress/snippets/fika-security.php, installed off, then on (POST; live = git): user list only for staff who can
+  list users; author pages and ?author= go home (301); users sitemap and oEmbed author removed; xmlrpc.php answers 403;
+  login pauses 15 min after 8 wrong passwords for one account or 20 from one address (REMOTE_ADDR is the visitor's
+  own address behind Hostinger's CDN, checked); HSTS 180 days (this domain only), X-Frame-Options SAMEORIGIN,
+  nosniff, Referrer-Policy, Permissions-Policy; X-Powered-By removed; LiteSpeed purged once.
+- Checked after: the four fixes from outside; 9 wrong passwords for a made-up account -> the 9th shows the pause
+  message; shop API with the application password still 200; home, Mix your own, Ready Mix, My account on a phone and a
+  desktop browser load with no page errors and adding a candy to the bag works (no order placed). Hostinger's
+  "Checking your browser" page answers headless browsers with 403 for a few seconds; it is not this snippet.
+- Removed a customer's email addresses from these notes (they remain in git history; owner to decide on a rewrite).
