@@ -2714,6 +2714,14 @@ choice). Snippet 91, fika-club.php (new):
   bag's Checkout opens checkout with the fields and Place order (no order placed); home, Ready Mix, About us, /shop/,
   /cart/ fine; no JS errors. To undo: remove the filter from snippet 21.
 - **Order dip:** 2 orders on 13 Nov, 0 on 14 Nov, 1 on 15 Nov, 0 on 16 Nov until the fix (about 5 a day before).
+- **Timeline:** WooCommerce 11.3.0 released 11 Nov. Site still on 11.2.0 on 12 Nov 23:13 UTC; /mix-your-own/ checked
+  working on phone and desktop on 13 Nov 08:31 UTC (10:31 Beirut, after the security snippet went live). Found broken
+  16 Nov ~11:40 UTC, fixed 11:42 UTC (13:42 Beirut). The update was not done by WordPress auto-update (off for
+  WooCommerce; update emails go to the admin Hotmail address); most likely Hostinger's automatic updates.
+- **Impact:** Meta events forwarded per day (fika/v1/meta-stats, all event types): 3-12 Nov about 350 a day (4 Nov
+  1,020), then 13 Nov 148, 14 Nov 133, 15 Nov 259, 16 Nov 159. Orders in the ~3 days: 2, against about 17 expected at
+  the 2-12 Nov rate (5.5 a day, $21 candy per order). The site keeps no visitor log; Meta Events Manager (ViewContent
+  for Mix your own) and Hostinger's visitor stats have the visit counts.
 
 ## Customer walkthrough (2026-11-16)
 
