@@ -26,4 +26,6 @@
   (snippets, pages, patterns, WooCommerce or plugin settings, plugin/theme/WordPress updates, cache), run
   `node wordpress/tools/site-check.js` and report the result; a FAIL is fixed or undone before the work counts as done.
   It also runs every night at midnight Beirut time (scheduled task "Fika nightly site check"). It places no order and
-  sends no email. When it reports software updates and passes, record them in wordpress/tools/site-check-versions.json.
+  sends no email. When it reports software updates and passes, record them in wordpress/tools/site-check-versions.json;
+  when a snippet is switched on or off on purpose, update `_active_snippets` there too (the check fails if one on the
+  list is off). After saving a snippet, confirm it is still active (a save can switch it off; POST .../{id}/activate).

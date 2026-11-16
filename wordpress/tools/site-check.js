@@ -35,6 +35,13 @@ async function serverChecks() {
     const sn = await api('/code-snippets/v1/snippets');
     const list = Array.isArray(sn) ? sn : (sn.snippets || []);
     const bad = list.filter(s => s.active && !s.trashed && s.code_error);
+    // every snippet that was on at the last known-good check must still be on (a failed save can switch one off)
+    const vf = path.join(__dirname, 'site-check-versions.json');
+    const want = (fs.existsSync(vf) ? JSON.parse(fs.readFileSync(vf, 'utf8')) : {})._active_snippets || [];
+    const on = list.filter(s => s.active && !s.trashed).map(s => s.id);
+    const off = want.filter(id => !on.includes(id)).map(id => { const s = list.find(x => x.id === id); return id + (s ? ' ' + s.name : ' (gone)'); });
+    check(off.length === 0, 'api', 'all shop snippets switched on', off.length ? 'OFF: ' + off.join('; ') : on.length + ' on');
+    module.exports.activeSnippets = on.sort((a, b) => a - b);
     check(bad.length === 0, 'api', 'active snippets without errors', bad.length ? bad.map(s => s.id + ' ' + s.name + ': ' + JSON.stringify(s.code_error)).join('; ') : list.filter(s => s.active).length + ' active');
   } catch (e) { warn('api', 'snippet list', e.message); }
   try {
@@ -149,6 +156,6 @@ async function browse(b, dev, opt) {
   const n = l => R.filter(r => r.lvl === l).length;
   for (const r of R) console.log(r.lvl.padEnd(5), r.dev.padEnd(8), r.what + (r.info ? ' — ' + r.info : ''));
   console.log(`\nRESULT: ${n('FAIL') ? 'PROBLEM' : 'OK'} — ${n('PASS')} pass, ${n('FAIL')} fail, ${n('WARN')} warn, ${Math.round((Date.now() - t0) / 1000)} s, ${new Date().toISOString()}`);
-  if (process.argv[2]) fs.writeFileSync(process.argv[2], JSON.stringify({ at: new Date().toISOString(), results: R, versions: module.exports.versions || null }, null, 1));
+  if (process.argv[2]) fs.writeFileSync(process.argv[2], JSON.stringify({ at: new Date().toISOString(), results: R, versions: module.exports.versions || null, active_snippets: module.exports.activeSnippets || null }, null, 1));
   process.exit(n('FAIL') ? 1 : 0);
 })();
