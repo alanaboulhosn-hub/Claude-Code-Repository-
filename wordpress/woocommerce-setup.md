@@ -2714,3 +2714,19 @@ choice). Snippet 91, fika-club.php (new):
   bag's Checkout opens checkout with the fields and Place order (no order placed); home, Ready Mix, About us, /shop/,
   /cart/ fine; no JS errors. To undo: remove the filter from snippet 21.
 - **Order dip:** 2 orders on 13 Nov, 0 on 14 Nov, 1 on 15 Nov, 0 on 16 Nov until the fix (about 5 a day before).
+
+## Customer walkthrough (2026-11-16)
+
+Phone (iPhone 13) and desktop, as a customer, after the Mix your own fix. No order placed (the order request was
+blocked in the test browser), no email typed at checkout, no exit-survey answer sent, no account created.
+- Working: every linked page (no broken images, no JS errors, no sideways scroll); arrival popup (×, Keep browsing,
+  once per visit); phone menu; videos (next / previous / sound); footer WhatsApp, Instagram, email links; filters
+  (combine, counts right) and search (empty message); all 26 candies add themselves; + / − / remove / Empty bag;
+  limits ("Max 200 g per order" on BUBS); suggestions; Ready Mix 500 g bags; bag kept across pages and reloads;
+  checkout lines, $5 Beirut / $6 outside, totals, delivery-date box, cash on delivery, FIKA10 typed refused, empty
+  form errors, "Leaving already?" popup; log-in error, lost password, sign-up form checks, 404 page.
+- Fixed: My account page text "Every kilo" -> "Every kilogram" (page 88, store-skin-account.html; live = git).
+- For the owner (not changed): delivery promise differs (banner and checkout: tomorrow in Beirut / 2 days elsewhere;
+  FAQ and About: 1-2 / 2-3 business days); every Ready Mix card has a "Gelatin Free" badge and the home hero says
+  "gelatin-free" while Raspberry Bites, Loose Teeth and Fizzy Cola are marked pork gelatin (depends on the Ready Mix
+  recipes); Ready Mix price shows "From $14.00" though there is one price; no privacy policy page or link yet.
