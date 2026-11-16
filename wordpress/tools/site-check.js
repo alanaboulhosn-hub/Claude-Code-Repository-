@@ -134,7 +134,7 @@ async function browse(b, dev, opt) {
   check(st404 === 404 && await p.locator('.fika-header').count() > 0, dev, 'unknown address shows the Fika "page not found"', 'status ' + st404);
   check(errs.length === 0, dev, 'no page script errors', errs.slice(0, 4).join(' | '));
   if (bad.length) warn(dev, 'failed requests', [...new Set(bad)].slice(0, 6).join(' | '));
-  await p.screenshot({ path: path.join(process.env.CHECK_OUT || '.', 'site-check-' + dev + '.png') }).catch(() => {});
+  await p.screenshot({ path: path.join(process.env.CHECK_OUT || require('os').tmpdir(), 'site-check-' + dev + '.png') }).catch(() => {});
   await ctx.close();
 }
 
