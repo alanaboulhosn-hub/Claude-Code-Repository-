@@ -2699,3 +2699,18 @@ choice). Snippet 91, fika-club.php (new):
   desktop browser load with no page errors and adding a candy to the bag works (no order placed). Hostinger's
   "Checking your browser" page answers headless browsers with 403 for a few seconds; it is not this snippet.
 - Removed a customer's email addresses from these notes (they remain in git history; owner to decide on a rewrite).
+
+## Mix your own page blank (fixed 2026-11-16)
+
+- **What customers saw:** /mix-your-own/ (also reached from /shop/, /cart/ and the menu) showed only "Home / Mix your
+  own" and the Fan Favourites popup: no header, no candies, no footer. The home page, Ready Mix and checkout worked.
+- **Cause:** page 40 was WooCommerce's "Shop page" (Settings > Products). WooCommerce 11.3 forces its product-catalogue
+  template (archive-product) onto the Shop page, and with the catalogue switched off that template shows nothing. Page
+  40's own content and snippet 21 were unchanged (live = git). The WooCommerce REST setting will not accept "no page".
+- **Fix:** snippet 21 (fika-shop-page.php) now returns -1 for `woocommerce_get_shop_page_id`, so no page is the Shop
+  page; page 40 then uses the default template again ('' like Ready Mix, page 38). "Return to store" already goes to
+  /mix-your-own/ (fika-accounts.php). The snippet save cleared the LiteSpeed cache.
+- **Checked after:** phone and desktop, /mix-your-own/ shows banner, filters and candies; Add to bag fills the bag; the
+  bag's Checkout opens checkout with the fields and Place order (no order placed); home, Ready Mix, About us, /shop/,
+  /cart/ fine; no JS errors. To undo: remove the filter from snippet 21.
+- **Order dip:** 2 orders on 13 Nov, 0 on 14 Nov, 1 on 15 Nov, 0 on 16 Nov until the fix (about 5 a day before).

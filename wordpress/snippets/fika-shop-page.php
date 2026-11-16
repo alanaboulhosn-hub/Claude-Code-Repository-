@@ -5,6 +5,9 @@
  * - WooCommerce's built-in product catalogue is switched off (has_archive false) so it does not claim /shop/;
  *   single product pages (/product/...) get the Fika look from fika-store-pages.php.
  * - The old /shop/ address sends visitors to /mix-your-own/ (permanent redirect).
+ * - No page is WooCommerce's "Shop page" (16 Nov 2026): WooCommerce 11.3 forces its product-catalogue template onto the
+ *   Shop page, which turned Mix your own (page 40, set as Shop page) into an empty page with no header. "Return to
+ *   store" links already go to /mix-your-own/ (fika-accounts.php).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-shop-page.php
  */
 add_filter( 'woocommerce_register_post_type_product', function ( $args ) {
@@ -18,3 +21,6 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 }, 1 );
+add_filter( 'woocommerce_get_shop_page_id', function () {
+	return -1;
+} );
