@@ -22,3 +22,8 @@
 - **Email changes:** after any change to an email, show the owner the whole email (rendered from the shop's real
   email code, never sent), not just the part that changed: republish the "Fika Win-back Email" artifact
   (https://claude.ai/artifact/VtpguUmXoMcStVCDV1ZwHr, phone / computer switch) and open it in the side panel.
+- **Site check (owner, 2026-11-16):** after any change to the live site that could affect pages, the bag or checkout
+  (snippets, pages, patterns, WooCommerce or plugin settings, plugin/theme/WordPress updates, cache), run
+  `node wordpress/tools/site-check.js` and report the result; a FAIL is fixed or undone before the work counts as done.
+  It also runs every night at midnight Beirut time (scheduled task "Fika nightly site check"). It places no order and
+  sends no email. When it reports software updates and passes, record them in wordpress/tools/site-check-versions.json.
