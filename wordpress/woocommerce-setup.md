@@ -2750,3 +2750,13 @@ blocked in the test browser), no email typed at checkout, no exit-survey answer 
   1744 processing, $5 Delivery in Beirut, weights on the lines; "New order" and "Processing order" emails sent; Meta
   skipped. Order deleted (force), saved bag removed (saved-bags/test), no customer account made. Site check after the
   snippet change: OK 45 pass.
+
+## KPIs page (2026-11-16)
+
+WP Admin > Fika dashboard > KPIs (snippet 303, wordpress/snippets/fika-kpis.php, admin only, read-only). AOV without
+delivery, LTV so far (sweets and gross profit at the landing cost), orders per customer, new customers (30 days,
+weekly bars), repeat rate, came back within 30 / 60 / 90 days, month-by-month table, retention by first-order month,
+and retention / value per group. Filters: delivery area, account or guest, how they found us, device, first order
+size, first-order months. A customer = one phone number (email if none). Age / gender are not collected by the shop.
+Checked: local render with the real orders and a live render through a temporary staff-only route (snippet 305,
+trashed after); both 555 customers, 663 orders, $14,668.87 sweets, 83 repeat customers on 16 Nov.
