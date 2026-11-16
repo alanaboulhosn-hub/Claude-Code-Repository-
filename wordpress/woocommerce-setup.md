@@ -2738,3 +2738,15 @@ blocked in the test browser), no email typed at checkout, no exit-survey answer 
   FAQ and About: 1-2 / 2-3 business days); every Ready Mix card has a "Gelatin Free" badge and the home hero says
   "gelatin-free" while Raspberry Bites, Loose Teeth and Fizzy Cola are marked pork gelatin (depends on the Ready Mix
   recipes); Ready Mix price shows "From $14.00" though there is one price; no privacy policy page or link yet.
+
+## Test order (2026-11-16, owner asked)
+
+- Snippet 43 (fika-meta.php): orders with a billing email @example.com are never sent to Meta (order note "Meta: test
+  order (@example.com), purchase not sent."). Live = git. Saving it with POST switched the snippet off for about a
+  minute (Code Snippets' check: "Cannot redeclare function fika_meta_active"); POST /code-snippets/v1/snippets/43/activate
+  switched it back on, no error. After any snippet update, check `active` and re-activate if needed.
+- Phone, guest: Swedish Fish 100 g + Sour Mix 500 g, Inside Beirut, cash on delivery, note "TEST ORDER (Claude site
+  test) - safe to delete". Placed in 9 s; "Order confirmed" popup (#1716, 600 g, $21.80, 1-2 business days); order
+  1744 processing, $5 Delivery in Beirut, weights on the lines; "New order" and "Processing order" emails sent; Meta
+  skipped. Order deleted (force), saved bag removed (saved-bags/test), no customer account made. Site check after the
+  snippet change: OK 45 pass.

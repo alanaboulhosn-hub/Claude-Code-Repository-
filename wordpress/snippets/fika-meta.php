@@ -24,6 +24,7 @@
  *   counted per day (accepted / refused) on the settings screen and at GET /wp-json/fika/v1/meta-stats (managers).
  * - "Send a test event" on the settings screen checks the token (shows Meta's answer); with a test event code the
  *   server events appear under Events Manager > Test events only.
+ * - Test orders (billing email @example.com) are never sent to Meta (owner, 16 Nov 2026).
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-meta.php
  */
 
@@ -337,6 +338,11 @@ add_action( 'rest_api_init', function () {
 // background so the checkout is not slowed down.
 add_action( 'woocommerce_store_api_checkout_order_processed', function ( $order ) {
 	if ( ! fika_meta_active() || $order->get_meta( '_fika_meta_purchase' ) ) {
+		return;
+	}
+	// test orders (CLAUDE.md: test addresses are @example.com) never reach Meta
+	if ( preg_match( '/@example\.com$/i', (string) $order->get_billing_email() ) ) {
+		$order->add_order_note( 'Meta: test order (@example.com), purchase not sent.' );
 		return;
 	}
 	$order->update_meta_data( '_fika_meta_user', fika_meta_request_user() );
