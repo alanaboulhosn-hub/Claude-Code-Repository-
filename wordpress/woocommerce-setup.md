@@ -2783,3 +2783,14 @@ trashed after); both 555 customers, 663 orders, $14,668.87 sweets, 83 repeat cus
   No emails sent by the status changes. #1714 Delivered with cash collection 0 against an order total of $27.40.
 - RT's live updates (webhook) stopped: 61 arrived 2-5 Nov, none since 5 Nov 00:46. Parcels are still created
   automatically (tracking IDs on every new order).
+
+## Loyalty audit (2026-11-17, owner asked)
+
+wordpress/tools/loyalty-audit.py recounts every account from its orders. Result after the RT export of 17 Nov:
+193 accounts (157 confirmed, 117 with delivered kg; 36 past 1.5 kg, 5 past 3 kg, none past 6 kg). Stored totals
+(fika_totals) equal the delivered orders for every account (updated by woocommerce_order_status_changed, so the RT
+updates refreshed them); no guest order left unjoined on a confirmed account; every reward code locked to its owner's
+email, one use, none used twice or by someone else; no unused reward above what the customer has delivered; all 25
+mystery tastes given were reached; the 2 tastes in a cancelled / failed order went back to "won" and were used later.
+One past exception: SWIM3-82UQ5D (account 133) was used on 14 Oct at about 2.8 kg delivered (order #1521; an order
+#1519 the same day was cancelled), before pending orders stopped unlocking rewards. Cost $2.80; left as is.
