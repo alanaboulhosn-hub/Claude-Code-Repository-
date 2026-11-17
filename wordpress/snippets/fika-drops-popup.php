@@ -41,7 +41,7 @@ if ( ! defined( 'FIKA_DROPS_LIVE' ) ) {
 if ( ! defined( 'FIKA_DROPS_MODE' ) ) {
 	// 'halloween': both bags, with the Halloween switch. 'limited': only the Fan Favourites Mix, normal look, always on,
 	// in place of the Sweet & Sour Mix. 'off': the offer is over, the Sweet & Sour Mix is back
-	define( 'FIKA_DROPS_MODE', 'limited' );
+	define( 'FIKA_DROPS_MODE', 'off' ); // owner, 17 Nov 2026: Fan Favourites over, Sweet & Sour Mix back, no arrival popup
 	define( 'FIKA_DROPS_FF_KEY', 'a504403931' ); // ?fika_ff=<key>: the 'limited' version for whoever opens that link
 }
 

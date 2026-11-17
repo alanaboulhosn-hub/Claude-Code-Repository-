@@ -2760,3 +2760,26 @@ and retention / value per group. Filters: delivery area, account or guest, how t
 size, first-order months. A customer = one phone number (email if none). Age / gender are not collected by the shop.
 Checked: local render with the real orders and a live render through a temporary staff-only route (snippet 305,
 trashed after); both 555 customers, 663 orders, $14,668.87 sweets, 83 repeat customers on 16 Nov.
+
+## Fan Favourites off, Sweet & Sour Mix back (2026-11-17, owner)
+
+- Snippet 193 (fika-drops-popup.php): FIKA_DROPS_MODE 'limited' -> 'off'. Live = git before and after. The save switched
+  the snippet off ("Cannot redeclare function fika_drops_ff_preview"); re-activated at once, no error. On the next
+  request the switch made product 94 Sweet & Sour Mix visible and 1200 Fan Favourites Mix hidden (1201 stays hidden).
+- Checked live, phone and computer: no arrival popup on Home / Mix your own / Ready Mix / About; Ready Mix shows Sweet
+  Mix, Sweet & Sour Mix, Sour Mix; no "Fan Favourites" text left; Sweet & Sour adds a 500 g bag. Site check OK 46/46.
+- Emails: the bag reminder lost its "Limited edition" box and win-back email 2 its limited edition bag (both follow
+  the mode). Rendered from the live code (winback-preview n=1/2, saved-bags/sample hw=0; nothing sent) and added to the
+  "Fika emails" artifact (version 48). The sample bag of the reminder preview still lists a Fan Favourites Mix (made-up
+  sample data in fika-bag-reminder.php).
+- Preview before going live was made in the test browser only (page HTML rewritten in the browser, nothing changed).
+- Batch 3 order still has Strawberry Vanilla Diamonds 24.7 kg and part of Pomegranate Ovals for the Fan Favourites
+  Mix (about 14 kg each over the batch): owner to decide.
+
+## RT export of 17 Nov applied
+
+- 694 parcels; 260 orders already in sync; 40 updated with fika_rtd_apply through a temporary staff-only route
+  (snippet 307, trashed): 22 Completed (Delivered), 1 Failed (#1710, Return received by merchant), 17 RT step only.
+  No emails sent by the status changes. #1714 Delivered with cash collection 0 against an order total of $27.40.
+- RT's live updates (webhook) stopped: 61 arrived 2-5 Nov, none since 5 Nov 00:46. Parcels are still created
+  automatically (tracking IDs on every new order).
