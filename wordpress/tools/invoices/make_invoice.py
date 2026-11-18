@@ -19,6 +19,9 @@ LBP_RATE = 89500           # Central Bank rate used for the Lebanese pound equiv
 VAT_RATE = 0.11
 BEIRUT = datetime.timezone(datetime.timedelta(hours=2))
 PH = lambda s: s.startswith('[')
+import base64, os
+_logo = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'email-assets', 'fika-email-logo.png')
+LOGO = 'data:image/png;base64,' + base64.b64encode(open(_logo, 'rb').read()).decode() if os.path.exists(_logo) else ''
 
 
 def esc(s):
@@ -113,63 +116,82 @@ def invoice_html(o, vat=False):
     vat_lbp = round(round(total - total / k, 2) * LBP_RATE) if vat else 0
     ph = lambda v: f'<span class="ph">{esc(v)}</span>' if PH(v) else esc(v)
     title, title_ar = ('Tax invoice', 'فاتورة ضريبية') if vat else ('Invoice', 'فاتورة')
-    vat_note = (f'VAT 11% included in the prices: USD {money(total - total / k)} = LBP {vat_lbp:,} at LBP {LBP_RATE:,}/USD (rate to confirm: Sayrafa / Central Bank).'
-                if vat else 'Not subject to VAT: the supplier was not registered for VAT on the date of sale.')
+    vat_note = (f'VAT 11% is included in the prices: USD {money(r2(total - net_total))} = LBP {vat_lbp:,} at LBP {LBP_RATE:,} per USD (rate to confirm: Sayrafa / Central Bank).'
+                if vat else 'Not subject to VAT: Fika was not registered for VAT on the date of this sale.')
+    tot_rows = ''.join(f'<tr><td>{esc(t)}</td><td class="n">{"−" if v < 0 else ""}$ {money(abs(v))}</td></tr>' for t, v in tot)
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{title} INV-{esc(num)}</title><style>
-@page {{ size: A4; margin: 14mm 14mm 16mm; }}
+@page {{ size: A4; margin: 12mm 0 10mm; }}
+@page :first {{ margin: 0 0 10mm; }}
 * {{ box-sizing: border-box; }}
-body {{ font: 10.5pt/1.45 "Helvetica Neue", Arial, sans-serif; color: #1b2a4a; margin: 0; }}
-.top {{ display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #004aad; padding-bottom: 10px; }}
-.logo {{ font: 700 30pt/1 Georgia, serif; color: #004aad; letter-spacing: .02em; }}
-.logo small {{ display: block; font: 9pt Arial, sans-serif; color: #6b7894; letter-spacing: 0; margin-top: 4px; }}
-.title {{ text-align: right; }}
-.title h1 {{ margin: 0; font-size: 20pt; color: #004aad; text-transform: uppercase; letter-spacing: .06em; }}
-.title .ar {{ font-size: 14pt; color: #d35d93; direction: rtl; }}
-.grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }}
-.box {{ border: 1px solid #e3e9f5; border-radius: 8px; padding: 10px 12px; }}
-.box h2 {{ margin: 0 0 6px; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .08em; color: #6b7894; }}
-.box p {{ margin: 0; }}
-.kv {{ display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; }}
-.kv b {{ font-weight: 600; color: #6b7894; font-size: 9pt; }}
+body {{ font: 9.5pt/1.4 "Helvetica Neue", Arial, sans-serif; color: #1b2a4a; margin: 0; }}
+.page {{ width: 210mm; }}
+.band {{ background: #fdeaf2; padding: 8mm 14mm 6mm; display: flex; justify-content: space-between; align-items: flex-start; gap: 10mm; }}
+.band h1 {{ margin: 0 0 3px; font-size: 17pt; letter-spacing: .03em; color: #004aad; }}
+.band p {{ margin: 0; color: #4a5875; font-size: 9.5pt; line-height: 1.45; }}
+.band .ids {{ margin-top: 6px; font-size: 9pt; color: #4a5875; }}
+.band .ids b {{ color: #1b2a4a; font-weight: 600; }}
+.brand {{ text-align: right; flex: 0 0 58mm; }}
+.brand img {{ width: 58mm; background: #fff; border-radius: 12px; padding: 6px 10px; display: block; }}
+.brand .t {{ margin-top: 6px; font: 700 15pt/1.1 "Helvetica Neue", Arial, sans-serif; color: #004aad; text-transform: uppercase; letter-spacing: .06em; }}
+.brand .ar {{ font-size: 13pt; color: #d35d93; direction: rtl; }}
+.main {{ padding: 6mm 14mm 0; }}
+.two {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; }}
+h2 {{ margin: 0 0 4px; font-size: 11pt; letter-spacing: .04em; text-transform: uppercase; color: #1b2a4a; }}
+.two p {{ margin: 0; color: #4a5875; }}
+.kv {{ display: grid; grid-template-columns: 34mm 1fr; gap: 2px 8px; }}
+.kv b {{ color: #1b2a4a; }}
+.kv span {{ color: #4a5875; }}
 .ph {{ background: #fff3c4; color: #6b4e00; padding: 0 3px; border-radius: 3px; }}
-table.items {{ width: 100%; border-collapse: collapse; margin-top: 4px; }}
-.items th {{ background: #004aad; color: #fff; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .05em; text-align: left; padding: 6px 8px; }}
-.items td {{ padding: 6px 8px; border-bottom: 1px solid #eef2f9; vertical-align: top; }}
-.items td.t span {{ display: block; color: #6b7894; font-size: 9pt; }}
+table.items {{ width: 100%; border-collapse: collapse; margin-top: 6mm; }}
+.items th {{ background: #004aad; color: #fff; font-weight: 600; text-align: left; padding: 5px 8px; font-size: 9pt; }}
+.items td {{ padding: 4px 8px; border: 1px solid #c9d4ea; vertical-align: top; color: #1b2a4a; }}
+.items td span {{ display: block; color: #6b7894; font-size: 9pt; }}
+.items th.c, .items td.c {{ text-align: center; }}
 .n {{ text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }}
+.items tr, .sum, .pay, .fine {{ break-inside: avoid; }}
+.items thead {{ display: table-header-group; }}
 .items th.n {{ text-align: right; }}
-.sum {{ display: flex; justify-content: space-between; gap: 18px; margin-top: 12px; }}
-.sum .left {{ flex: 1; font-size: 9.5pt; }}
-table.tot {{ width: 300px; border-collapse: collapse; }}
-.tot td {{ padding: 4px 8px; }}
-.tot tr.grand td {{ border-top: 2px solid #004aad; font-weight: 700; font-size: 12.5pt; color: #004aad; padding-top: 7px; }}
-.tot tr.lbp td {{ color: #6b7894; font-size: 9pt; }}
-.paid {{ display: inline-block; margin-top: 8px; padding: 3px 10px; border: 2px solid #1e8a4c; color: #1e8a4c; border-radius: 6px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: 9pt; }}
-.foot {{ margin-top: 18px; padding-top: 10px; border-top: 1px solid #e3e9f5; display: flex; justify-content: space-between; gap: 20px; font-size: 8.5pt; color: #6b7894; }}
-.sign {{ width: 210px; height: 70px; border: 1px dashed #c9d4ea; border-radius: 8px; padding: 6px; font-size: 8pt; color: #6b7894; }}
-</style></head><body>
-<div class="top"><div class="logo">Fika<small>Swedish pick &amp; mix, delivered across Lebanon</small></div>
-<div class="title"><h1>{title}</h1><div class="ar">{title_ar}</div></div></div>
-<div class="grid">
-<div class="box"><h2>From (seller)</h2><p><b>{ph(COMPANY['name'])}</b><br>{ph(COMPANY['address'])}</p>
-<div class="kv" style="margin-top:6px"><b>Commercial reg.</b><span>{ph(COMPANY['cr'])}</span><b>Tax no. (MoF)</b><span>{ph(COMPANY['tax'])}</span>{f"<b>VAT no.</b><span>{ph(COMPANY['vat'])}</span>" if vat else ''}<b>Contact</b><span>{esc(COMPANY['phone'])} · {esc(COMPANY['email'])}</span></div></div>
-<div class="box"><h2>Invoice details</h2><div class="kv">
-<b>Invoice no.</b><span><b style="color:#1b2a4a;font-size:10.5pt">INV-{esc(num)}</b></span>
-<b>Invoice date</b><span>{deliv:%d %B %Y} (date delivered)</span>
-<b>Order no. / date</b><span>#{esc(o['number'])} · {ordered:%d %B %Y, %H:%M}</span>
-<b>Payment</b><span>{esc(paid)}</span>
-<b>Delivered by</b><span>RT Deliveries{f" · tracking {esc(track)}" if track else ''}</span>
-<b>Currency</b><span>US dollars (USD)</span></div></div>
+.sum {{ display: flex; justify-content: space-between; align-items: flex-start; gap: 10mm; margin-top: 5mm; }}
+.thanks {{ flex: 1; }}
+.thanks .big {{ font: 700 15pt/1.2 "Helvetica Neue", Arial, sans-serif; color: #1b2a4a; margin-bottom: 8px; }}
+.thanks p {{ margin: 2px 0; font-size: 9pt; color: #4a5875; }}
+table.tot {{ width: 80mm; border-collapse: separate; border-spacing: 0 3px; }}
+.tot td {{ background: #eef3fb; padding: 3px 10px; color: #1b2a4a; }}
+.tot tr.grand td {{ background: #004aad; color: #fff; font-weight: 700; font-size: 11.5pt; padding: 5px 10px; }}
+.tot tr.lbp td {{ background: none; color: #6b7894; font-size: 9pt; padding: 0 10px; }}
+.paid {{ display: inline-block; margin-top: 6px; padding: 3px 10px; border: 2px solid #1e8a4c; color: #1e8a4c; border-radius: 6px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: 9pt; }}
+.pay {{ margin: 6mm 14mm 0; padding-top: 4mm; border-top: 1px solid #c9d4ea; }}
+.pay .two h3 {{ margin: 0 0 4px; font-size: 10.5pt; text-decoration: underline; color: #1b2a4a; }}
+.fine {{ margin: 5mm 14mm 0; display: flex; justify-content: space-between; gap: 10mm; font-size: 8.5pt; color: #6b7894; }}
+.sign {{ flex: 0 0 52mm; height: 18mm; border: 1px dashed #c9d4ea; border-radius: 8px; padding: 5px 7px; }}
+</style></head><body><div class="page">
+<div class="band"><div>
+<h1>{ph(COMPANY['name'])}</h1>
+<p>{ph(COMPANY['address'])}<br>{esc(COMPANY['phone'])} (WhatsApp)<br>{esc(COMPANY['email'])} · {esc(COMPANY['web'])}</p>
+<div class="ids"><b>Commercial reg.:</b> {ph(COMPANY['cr'])} &nbsp; <b>Tax no. (MoF):</b> {ph(COMPANY['tax'])}{f" &nbsp; <b>VAT no.:</b> {ph(COMPANY['vat'])}" if vat else ''}</div>
+</div><div class="brand">{f'<img src="{LOGO}" alt="Fika">' if LOGO else '<div style="font:700 28pt Georgia;color:#004aad">Fika</div>'}<div class="t">{title}</div><div class="ar">{title_ar}</div></div></div>
+<div class="main">
+<div class="two">
+<div><h2>Bill to</h2><p><b style="color:#1b2a4a">{esc(name)}</b><br>{esc(b.get('phone', ''))}{f"<br>{esc(b['email'])}" if b.get('email') else ''}<br>{esc(addr)}</p></div>
+<div><h2>Invoice details</h2><div class="kv">
+<b>Invoice no.:</b><span>INV-{esc(num)}</span>
+<b>Invoice date:</b><span>{deliv:%d/%m/%Y} (delivered)</span>
+<b>Order no.:</b><span>#{esc(o['number'])} of {ordered:%d/%m/%Y, %H:%M}</span>
+<b>Terms:</b><span>Paid in full on delivery</span>
+<b>Currency:</b><span>US dollars (USD)</span></div></div>
 </div>
-<div class="box" style="margin-bottom:12px"><h2>Bill to (customer)</h2><p><b>{esc(name)}</b> · {esc(b.get('phone', ''))}{f" · {esc(b['email'])}" if b.get('email') else ''}<br>{esc(addr)}</p></div>
-<table class="items"><thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Unit</th><th class="n">Unit price{' excl. VAT' if vat else ''}</th><th class="n">Amount{' excl. VAT' if vat else ''}</th></tr></thead>
-<tbody>{lines}</tbody></table>
-<div class="sum"><div class="left"><b>Total weight:</b> {grams / 1000:g} kg<br><b>Amount in words:</b> {esc(words(total))}<br>{esc(vat_note)}<br><span class="paid">Paid · cash on delivery</span></div>
-<table class="tot">{tot_html}<tr class="grand"><td>Total{' incl. VAT' if vat else ''}</td><td class="n">USD {money(total)}</td></tr>
-<tr class="lbp"><td>Equivalent in Lebanese pounds</td><td class="n">LBP {round(total * LBP_RATE):,}</td></tr></table></div>
-<div class="foot"><div>Prices per 100 g of pick-and-mix or per 500 g Ready Mix bag. Stamp duty on this invoice is settled through Fika's monthly stamp duty declaration (to confirm with the accountant).<br>Questions about this invoice: {esc(COMPANY['email'])} · WhatsApp {esc(COMPANY['phone'])} · {esc(COMPANY['web'])}</div>
-<div class="sign">Company stamp and signature</div></div>
-</body></html>'''
+<table class="items"><thead><tr><th>Description</th><th class="c">Weight</th><th class="c">Qty</th><th class="n">Unit price{' excl. VAT' if vat else ''}</th><th class="n">Amount{' excl. VAT' if vat else ''}</th></tr></thead>
+<tbody>{''.join(f'<tr><td>{esc(r[0])}</td><td class="c">{esc(r[3] if r[3] != "100 g" else (r[1] or r[3]))}</td><td class="c">{r[2]}</td><td class="n">$ {money(nl / r[2] if r[2] else 0)}</td><td class="n">$ {money(nl)}</td></tr>' for r, nl in zip(rows, net_lines))}</tbody></table>
+<div class="sum"><div class="thanks"><div class="big">Thank you for choosing Fika!</div>
+<p><b>Total weight:</b> {grams / 1000:g} kg</p><p><b>Amount in words:</b> {esc(words(total))}</p><p>{esc(vat_note)}</p><span class="paid">Paid · cash on delivery</span></div>
+<table class="tot">{tot_rows}<tr class="grand"><td>Total{' incl. VAT' if vat else ''} paid</td><td class="n">$ {money(total)}</td></tr><tr class="lbp"><td colspan="2" class="n">Equivalent: LBP {round(total * LBP_RATE):,} at LBP {LBP_RATE:,} per USD</td></tr></table></div>
+</div>
+<div class="pay"><h2>Payment information</h2><div class="two">
+<div><h3>Cash on delivery</h3><p>Paid in cash to our courier, RT Deliveries, on {deliv:%d/%m/%Y}.{f"<br>Parcel tracking no.: {esc(track)}" if track else ''}</p></div>
+<div><h3>Bank transfer (wholesale customers)</h3><div class="kv"><b>Bank:</b><span>{ph('[bank name]')}</span><b>Account name:</b><span>{ph(COMPANY['name'])}</span><b>IBAN:</b><span>{ph('[IBAN]')}</span></div></div>
+</div></div>
+<div class="fine"><div>Prices per 100 g of pick-and-mix or per 500 g Ready Mix bag. Stamp duty on this invoice is settled through Fika's monthly stamp duty declaration (to confirm with the accountant).<br>Questions about this invoice: {esc(COMPANY['email'])} · WhatsApp {esc(COMPANY['phone'])}</div><div class="sign">Company stamp and signature</div></div>
+</div></body></html>'''
 
 
 if __name__ == '__main__':
