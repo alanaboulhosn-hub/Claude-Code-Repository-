@@ -85,7 +85,8 @@ if ( ! function_exists( 'fika_customer_rows' ) ) {
 			}
 			if ( 'completed' === $o->get_status() ) {
 				$r['done']++;
-				$r['grams'] += function_exists( 'fika_order_grams' ) ? fika_order_grams( $o ) : 0;
+				// delivered kg as the rewards lane counts them (owner, 18 Nov 2026)
+				$r['grams'] += function_exists( 'fika_swim_order_grams' ) ? fika_swim_order_grams( $o ) : ( function_exists( 'fika_order_grams' ) ? fika_order_grams( $o ) : 0 );
 			}
 			unset( $r );
 		}

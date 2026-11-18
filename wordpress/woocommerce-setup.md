@@ -2808,3 +2808,15 @@ gift received. (Corrected: a hand count first said 2.2 kg / 2.8 kg; the owner's 
 (RTL25723815) was created with $19.00 cash: the owner updates it to $21.80 in RT.
 Found on the way: the admin customer list (fika_totals, fika_order_grams) counts a free 50 g mystery taste line as
 100 g, so it shows 2.5 kg delivered where the lane counts 2.4 kg.
+
+## Customer kg now counted like the rewards lane (2026-11-18, owner)
+
+- Snippet 10 (fika-accounts.php) fika_customer_totals and snippet 17 (fika-customers-admin.php) "Delivered" column now
+  add fika_swim_order_grams (the lane's count: no free mystery taste, no part paid by a reward) instead of
+  fika_order_grams (packed weight, taste line as 100 g). fika_order_grams itself is unchanged (RT bags, packing).
+  Live = git before; both saved with POST, still active, no error.
+- Totals refreshed for all 200 accounts (temporary route, trashed): 25 went down by 100-200 g; afterwards stored
+  totals, the Fika customers list (delivered and reach) and fika_swim_totals agree for all 200. Shown to customers:
+  the kg in the header account menu (same total).
+- Checked after: site check OK 46/46; loyalty audit (expects the lane's count since today) shows only the known,
+  expected items; account 125: list 2.4 kg delivered, 3.0 kg reach, next "3 kg to 200 g on us".

@@ -46,7 +46,9 @@ if ( ! function_exists( 'fika_customer_totals' ) ) {
 		) );
 		$grams = 0;
 		foreach ( $orders as $o ) {
-			$grams += fika_order_grams( $o );
+			// the kg that count in Fika Club, as the rewards lane counts them (no free mystery taste, no part paid by a
+			// reward; owner, 18 Nov 2026), so the account menu and the admin lists match the lane
+			$grams += function_exists( 'fika_swim_order_grams' ) ? fika_swim_order_grams( $o ) : fika_order_grams( $o );
 		}
 		$totals = array( 'orders' => count( $orders ), 'grams' => $grams, 'updated' => time() );
 		update_user_meta( $user_id, 'fika_totals', $totals );

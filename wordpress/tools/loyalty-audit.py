@@ -49,7 +49,7 @@ for c in D['cust']:
     comp = [o for o in os_ if o['status'] == 'completed']
     pend = [o for o in os_ if o['status'] in ('processing', 'on-hold')]
     totals = meta(c, 'fika_totals') or {}
-    exp = {'orders': len(comp), 'grams': sum(order_grams(o) for o in comp)}
+    exp = {'orders': len(comp), 'grams': sum(swim_grams(o) for o in comp)}  # since 18 Nov: the lane's count
     if (totals.get('orders'), totals.get('grams')) != (exp['orders'], exp['grams']):
         issues['stored total differs from orders'].append((uid, em, 'stored', totals.get('orders'), totals.get('grams'), 'actual', exp['orders'], exp['grams']))
     delivered = sum(swim_grams(o) for o in comp)
