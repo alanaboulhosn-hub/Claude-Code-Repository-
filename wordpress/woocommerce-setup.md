@@ -2802,8 +2802,9 @@ Banana Toffee Ovals (her free 100 g) added to order #1734 (id 1765), and her 3 k
 code SWIM3-TZ3MGS ($2.80, locked to her email, use count 1), claim {lap 1, g 3000} on her account. Order total
 $19.00 -> $21.80 (the fixed $2.80 discount is spread over the lines by WooCommerce; the line note marks Banana Toffee
 as the free 100 g). No email sent. Done through a temporary staff-only route (snippet 308, trashed); its reply failed
-after the changes were saved, every change checked afterwards. Her lane: 2.2 kg delivered + 0.6 kg counting on this
-order (the 100 g paid by the reward does not count) = about 2.8 kg, with the 3 kg gift received. The RT parcel
+after the changes were saved, every change checked afterwards. Her lane (fika_swim_totals, read live): 2.4 kg
+delivered + 0.6 kg counting on this order (700 g, the 100 g paid by the reward does not count) = 3.0 kg, with the 3 kg
+gift received. (Corrected: a hand count first said 2.2 kg / 2.8 kg; the owner's 2.9 kg before the change was right.) The RT parcel
 (RTL25723815) was created with $19.00 cash: the owner updates it to $21.80 in RT.
 Found on the way: the admin customer list (fika_totals, fika_order_grams) counts a free 50 g mystery taste line as
-100 g, so it shows 2.5 kg where the lane counts 2.2 kg.
+100 g, so it shows 2.5 kg delivered where the lane counts 2.4 kg.
