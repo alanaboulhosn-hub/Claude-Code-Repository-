@@ -2820,3 +2820,26 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   the kg in the header account menu (same total).
 - Checked after: site check OK 46/46; loyalty audit (expects the lane's count since today) shows only the known,
   expected items; account 125: list 2.4 kg delivered, 3.0 kg reach, next "3 kg to 200 g on us".
+
+## Sales invoices for the accountant (18 Nov 2026, template v3, draft)
+- Tools in wordpress/tools/invoices (customer data and the invoices themselves stay out of git):
+  `python3 make_invoice.py orders.json out [--vat] [--ids ...] [--draft]` writes one A4 invoice (HTML) per completed
+  order; `node render_pdf.js out` turns them into PDFs (page footer: company, invoice no., contact, "Page x of y");
+  `node check_invoices.js out --pdf` lays every invoice out in Chromium and fails on overlapping text, anything wider
+  than its box or the margins, or a last page without invoice lines. Fonts embedded (Inter, Noto Sans Arabic; OFL).
+- Layout after the owner's reference: pink band with the transparent logo, company lines, registration strip; Bill to
+  / Invoice details; lines Description | Qty | Unit (100 g, 500 g bag, 50 g taste) | Unit price | Amount; thank-you
+  notes (weight, amount in words, LBP at 89,500, VAT status) beside the totals; payment information (cash on delivery
+  with RT tracking, bank transfer for wholesale, stamp box). Orders over 14 lines (12 with VAT) take two pages: page 2
+  opens with a "continued" line and the last lines, then the totals.
+- Data rules: number INV-<order no.> (old-site numbers kept, all 661 unique); invoice date = order date, Beirut time
+  (delivery dates only from RT's live updates: spreadsheet imports stamp the import day; old-site completion dates are
+  the 9-13 Oct import); Ready Mix found by product id (94/95/96/1200/1201; old site $12.50, website $14.00), all other
+  lines 100 g ($2.50 old site, $2.80 website); names unescaped (Sweet &amp; Sour Mix), all-lower/upper names
+  capitalised, Lebanese phone numbers spaced. Tax invoice (--vat): lines as charged, VAT taken out of the total
+  (31.20 = 28.11 + 3.09), VAT also in LBP; no rounding lines.
+- Checked on all 661 completed orders: 0 layout problems (VAT version too); 649 on one page, 12 on two; every
+  invoice adds up; totals $18,173.67, 565.35 kg (Aug $7,143.75, Sep $2,910.50, Oct $5,946.02, Nov $2,173.40).
+- Before the real run: company details and bank details at the top of make_invoice.py (a full run refuses while
+  [placeholders] are left); the accountant's choices (invoice date, numbering, rate); order #1056 (joke name) to keep
+  or leave out.
