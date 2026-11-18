@@ -2794,3 +2794,16 @@ email, one use, none used twice or by someone else; no unused reward above what 
 mystery tastes given were reached; the 2 tastes in a cancelled / failed order went back to "won" and were used later.
 One past exception: SWIM3-82UQ5D (account 133) was used on 14 Oct at about 2.8 kg delivered (order #1521; an order
 #1519 the same day was cancelled), before pending orders stopped unlocking rewards. Cost $2.80; left as is.
+
+## Owner gift: 3 kg reward for account 125 on order #1734 (2026-11-18)
+
+Owner's choice (option A): the customer was just short of 3 kg; 100 g BUBS Pomegranate Ovals ($2.80) and 100 g BUBS
+Banana Toffee Ovals (her free 100 g) added to order #1734 (id 1765), and her 3 kg reward created and used on it:
+code SWIM3-TZ3MGS ($2.80, locked to her email, use count 1), claim {lap 1, g 3000} on her account. Order total
+$19.00 -> $21.80 (the fixed $2.80 discount is spread over the lines by WooCommerce; the line note marks Banana Toffee
+as the free 100 g). No email sent. Done through a temporary staff-only route (snippet 308, trashed); its reply failed
+after the changes were saved, every change checked afterwards. Her lane: 2.2 kg delivered + 0.6 kg counting on this
+order (the 100 g paid by the reward does not count) = about 2.8 kg, with the 3 kg gift received. The RT parcel
+(RTL25723815) was created with $19.00 cash: the owner updates it to $21.80 in RT.
+Found on the way: the admin customer list (fika_totals, fika_order_grams) counts a free 50 g mystery taste line as
+100 g, so it shows 2.5 kg where the lane counts 2.2 kg.
