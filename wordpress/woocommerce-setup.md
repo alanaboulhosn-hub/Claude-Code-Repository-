@@ -2862,3 +2862,16 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
 - Checked live: every eye exactly on its hole (0 off) on iPhone SE / 13 / 15 Pro Max, Pixel 7, Galaxy S9+, iPad Mini,
   1280x800, 1366x768, 1920x1080, also with the photo layer made taller or narrower; site check OK 45/45 (WordPress
   updated itself 7.1.4 -> 7.1.5, recorded).
+
+## 2026-11-19: owner's note on every order (personal message + Instagram question)
+- Owner: a note in each bag that fits only that customer (from their order history and the patterns in it), plus a
+  question for them to answer on Instagram; no codes or offers. Written in the owner's own voice
+  (wordpress/tools/notes/owner-voice.md, studied from the owner's messages).
+- Snippet 311 "Fika: owner's note on each order" (wordpress/snippets/fika-owner-notes.php, scope everywhere):
+  box "Owner's note" on the order page, under the order: "Message to <name>" and "Question for Instagram",
+  editable (Update keeps the edit, with who and when). Stored in order meta _fika_owner_note. Staff-only route
+  GET/POST /wp-json/fika/v1/owner-note/{id} for the notes agent. Saving a note writes only that meta (checked:
+  status, totals, items and order notes unchanged, no email; only "last modified" moves). Never shown to customers.
+- Facts per order: wordpress/tools/notes/order_facts.py (history, favourites by grams, sweet/sour leaning, what is
+  a favourite again or new to them, gift, town, customer note). First notes saved on #1714, #1736-#1743.
+- Site check OK 46/46 after installing; 311 added to _active_snippets.
