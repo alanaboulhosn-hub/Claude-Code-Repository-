@@ -13,7 +13,7 @@ Customer data: the order JSON and the invoices made from it stay out of git.
 
 Dates: the invoice date is the order date (Beirut time). A delivery date is printed only when it came from the
 courier's live status updates: the "Delivered" times written by RT spreadsheet imports are the import day."""
-import sys, os, re, io, json, html, base64, datetime
+import sys, os, re, json, html, base64, datetime
 from zoneinfo import ZoneInfo
 
 COMPANY = {
@@ -53,26 +53,8 @@ def _fonts():
     return out
 
 
-def _logo():
-    """The shop logo, cropped to its visible part (the PNG is transparent around it), so it sits on the pink band."""
-    p = os.path.join(HERE, '..', '..', 'email-assets', 'fika-email-logo.png')
-    if not os.path.exists(p):
-        return ''
-    data = open(p, 'rb').read()
-    try:
-        from PIL import Image
-        im = Image.open(io.BytesIO(data))
-        box = im.getchannel('A').getbbox() if 'A' in im.getbands() else None
-        if box:
-            buf = io.BytesIO()
-            im.crop(box).save(buf, 'PNG')
-            data = buf.getvalue()
-    except Exception:
-        pass
-    return 'data:image/png;base64,' + base64.b64encode(data).decode()
 
-
-FONTS, LOGO = _fonts(), _logo()
+FONTS = _fonts()
 
 
 def esc(s):
@@ -247,19 +229,18 @@ body { margin: 0; background: #fff; color: #16213e;
 .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ph { background: #fff1b8; color: #6b4e00; border-radius: 1mm; padding: 0 1mm; }
 
-.band { background: #fdeaf2; padding: 8mm 14mm 0; }
+.band { background: #fff; padding: 9mm 14mm 0; }
 .band-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10mm; }
 .co { min-width: 0; }
 .co-name { font-weight: 700; font-size: 18pt; line-height: 1.15; color: #004aad; margin-bottom: 1.8mm; }
 .co-line { font-size: 9pt; line-height: 1.5; color: #3c4863; }
-.brand { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; padding-top: 1mm; }
-.logo { display: block; width: 50mm; height: auto; }
-.doc-title { margin-top: 2mm; text-align: right; }
-.doc-title .en { font-weight: 700; font-size: 18pt; line-height: 1.25; letter-spacing: .16em; color: #004aad; }
+.brand { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; }
+.doc-title { text-align: right; }
+.doc-title .en { font-weight: 700; font-size: 22pt; line-height: 1.25; letter-spacing: .16em; color: #004aad; }
 .doc-title .en .last { letter-spacing: 0; }
-.doc-title .ar { margin-top: 1mm; font-weight: 600; font-size: 11pt; line-height: 1.75; color: #c13f7d; }
-.reg { display: flex; margin-top: 4mm; border-top: .3mm solid rgba(0, 74, 173, .18); }
-.reg-item { padding: 2mm 7mm 2.5mm 0; margin-right: 7mm; border-right: .3mm solid rgba(0, 74, 173, .14); }
+.doc-title .ar { margin-top: 1mm; font-weight: 600; font-size: 11pt; line-height: 1.75; color: #6b7894; }
+.reg { display: flex; margin-top: 5mm; border-top: .3mm solid #d5dcea; border-bottom: .6mm solid #004aad; }
+.reg-item { padding: 2mm 7mm 2.5mm 0; margin-right: 7mm; border-right: .3mm solid #d5dcea; }
 .reg-item:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
 .reg .lbl { font-weight: 600; font-size: 6.6pt; line-height: 1.3; letter-spacing: .1em; text-transform: uppercase; color: #6b7894; }
 .reg .val { margin-top: .7mm; font-weight: 500; font-size: 9pt; line-height: 1.4; color: #16213e; }
@@ -371,7 +352,6 @@ def render(d):
         cash.append(f'<p class="one">Delivered: {day(d["delivered"])}</p>')
     bank = [('Bank', BANK['bank']), ('Account name', COMPANY['name']), ('IBAN', BANK['iban']), ('SWIFT / BIC', BANK['swift'])]
     bank_html = ''.join(f'<dt>{esc(l)}</dt><dd class="one">{ph(v)}</dd>' for l, v in bank)
-    logo = f'<img class="logo" src="{LOGO}" alt="Fika">' if LOGO else '<div class="co-name">Fika</div>'
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>{title} {esc(d['inv'])} · {esc(COMPANY['name'])}</title>
@@ -388,7 +368,7 @@ def render(d):
       <div class="co-line one">{esc(COMPANY['email'])}</div>
       <div class="co-line one">{esc(COMPANY['web'])}</div>
     </div>
-    <div class="brand">{logo}
+    <div class="brand">
       <div class="doc-title"><div class="en one">{title.upper()[:-1]}<span class="last">{title.upper()[-1]}</span></div><div class="ar one" lang="ar" dir="rtl">{title_ar}</div></div>
     </div>
   </div>

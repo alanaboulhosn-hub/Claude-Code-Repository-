@@ -2827,7 +2827,8 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   order; `node render_pdf.js out` turns them into PDFs (page footer: company, invoice no., contact, "Page x of y");
   `node check_invoices.js out --pdf` lays every invoice out in Chromium and fails on overlapping text, anything wider
   than its box or the margins, or a last page without invoice lines. Fonts embedded (Inter, Noto Sans Arabic; OFL).
-- Layout after the owner's reference: pink band with the transparent logo, company lines, registration strip; Bill to
+- Layout after the owner's reference, plain corporate style (19 Nov: no logo image, no pink, company name as the
+  wordmark in Inter): company lines and INVOICE title, registration strip; Bill to
   / Invoice details; lines Description | Qty | Unit (100 g, 500 g bag, 50 g taste) | Unit price | Amount; thank-you
   notes (weight, amount in words, LBP at 89,500, VAT status) beside the totals; payment information (cash on delivery
   with RT tracking, bank transfer for wholesale, stamp box). Orders over 14 lines (12 with VAT) take two pages: page 2
