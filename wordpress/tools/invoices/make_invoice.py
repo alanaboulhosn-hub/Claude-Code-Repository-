@@ -135,8 +135,9 @@ def words(amount):
         return w(n // 1000) + ' thousand' + (' ' + w(n % 1000) if n % 1000 else '')
     cents = round(amount * 100)
     d, c = cents // 100, cents % 100
-    s = w(d).capitalize() + ' US dollar' + ('s' if d != 1 else '')
-    return s + (' and ' + w(c) + ' cent' + ('s' if c != 1 else '') if c else '') + ' only'
+    title = lambda t: ' '.join('-'.join(p.capitalize() for p in x.split('-')) if x != 'and' else x for x in t.split(' '))
+    s = title(w(d)) + ' US Dollar' + ('s' if d != 1 else '')
+    return s + (' and ' + title(w(c)) + ' Cent' + ('s' if c != 1 else '') if c else '')
 
 
 def delivered_on(o):
@@ -173,7 +174,7 @@ def invoice_data(o, vat=False):
         if '_fika_taste' in m:
             row.update(note='Free sample (loyalty programme), no charge', unit='50 g', grams=50 * qty)
         elif i['product_id'] in READY_MIX:
-            row.update(unit='500 g bag', grams=500 * qty)
+            row.update(unit='500 g', grams=500 * qty)
             if price < 10:
                 problems.append(f'Ready Mix line priced {price:.2f}: {row["name"]}')
         else:
@@ -182,15 +183,15 @@ def invoice_data(o, vat=False):
                 problems.append(f'pick-and-mix line priced {price:.2f}: {row["name"]}')
         rows.append(row)
     disc = [(discount_label(c['code']), txt(c['code']).upper(), float(c['discount'])) for c in o['coupon_lines']]
-    extra = [(txt(l['method_title']), float(l['total'])) for l in o['shipping_lines']]
-    extra += [(txt(f['name']), float(f['total'])) for f in o.get('fee_lines', [])]
-    total = float(o['total'])
+    # delivery is charged for and kept by the courier (RT), not Fika's revenue: the invoice covers the sweets only
+    delivery = sum(float(l['total']) for l in o['shipping_lines']) + sum(float(f['total']) for f in o.get('fee_lines', []))
     sub = r2(sum(r['amount'] for r in rows))
-    if abs(sub - sum(d for *_, d in disc) + sum(v for _, v in extra) - total) > 0.005:
-        problems.append(f'lines {sub:.2f} - discounts + delivery does not give the total {total:.2f}')
+    total = r2(sub - sum(d for *_, d in disc))
+    if abs(total + delivery - float(o['total'])) > 0.005:
+        problems.append(f'lines {sub:.2f} - discounts + delivery {delivery:.2f} does not give the order total {o["total"]}')
     if o.get('refunds'):
         problems.append('order has refunds')
-    tot = [('Subtotal', '', sub)] + [(lab, code, -d) for lab, code, d in disc] + [(t, '', v) for t, v in extra]
+    tot = [('Subtotal', '', sub)] + [(lab, code, -d) for lab, code, d in disc]
     vat_amt = 0.0
     if vat:
         # shelf prices include VAT: the lines show what was charged, and the VAT is taken out of the total
@@ -316,6 +317,16 @@ h2 { display: flex; justify-content: space-between; align-items: baseline; }
 .notes dt { line-height: 1.45; }
 .notes dd { line-height: 1.5; }
 .notes { row-gap: 1.6mm; }
+table.info { width: 100%; border-collapse: collapse; font-size: 8.4pt; }
+.info th, .info td { border: .3mm solid #d5dcea; padding: 1mm 2.4mm; vertical-align: top; text-align: left; }
+.info th { width: 30mm; background: #f7f9fd; font-weight: 500; color: #3c4863; }
+.info .ien { display: block; line-height: 1.35; white-space: nowrap; }
+.info .iar { display: block; font-size: 7.4pt; font-weight: 400; color: #6b7894; line-height: 1.6; unicode-bidi: plaintext; text-align: left; white-space: nowrap; }
+.info td { color: #16213e; line-height: 1.45; }
+.info td .nar { color: #3c4863; }
+.info .rate { display: block; font-size: 7.6pt; color: #6b7894; }
+.kv dd.wrap { white-space: normal; overflow-wrap: anywhere; unicode-bidi: plaintext; text-align: left; text-wrap: pretty; }
+.cust .kv dd.nm { font-weight: 600; }
 .stamp { margin-top: 4mm; height: 20mm; border: .35mm dashed #b9c5dd; border-radius: 2mm; padding: 1.5mm 2.4mm; font-size: 7.2pt; color: #8590aa; }
 """
 
@@ -329,7 +340,7 @@ AR = {
 
 
 def words_ar(amount):
-    """The amount in Arabic words (فقط ... لا غير), as Lebanese invoices carry it."""
+    """The amount in Arabic words, as Lebanese invoices carry it."""
     ones = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة', 'عشرة', 'أحد عشر', 'اثنا عشر',
             'ثلاثة عشر', 'أربعة عشر', 'خمسة عشر', 'ستة عشر', 'سبعة عشر', 'ثمانية عشر', 'تسعة عشر']
     tens = ['', '', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون', 'ستون', 'سبعون', 'ثمانون', 'تسعون']
@@ -361,7 +372,7 @@ def words_ar(amount):
         parts.append(counted(d, 'دولار أميركي', 'دولاران أميركيان', 'دولارات أميركية', 'دولاراً أميركياً'))
     if c:
         parts.append(counted(c, 'سنت', 'سنتان', 'سنتات', 'سنتاً'))
-    return 'فقط ' + ' و'.join(parts or ['صفر دولار']) + ' لا غير'
+    return ' و'.join(parts or ['صفر دولار'])
 
 
 def ar(s, cls='ar'):
@@ -380,13 +391,14 @@ def render(d):
         reg.append(('VAT registration no.', 'رقم التسجيل في الضريبة على القيمة المضافة', COMPANY['vat']))
     reg_html = ''.join(f'<div class="reg-item"><div class="lbl one">{lab(l, a)}</div><div class="val one">{ph(v)}</div></div>'
                        for l, a, v in reg)
-    cust = ''.join(f'<div class="ln{c}">{esc(v)}</div>' for v, c in (
-        (d['name'], ' nm'), (d['street'], ''), (d['city'], ''), (d['phone'], ' one'), (d['email'], ' one')) if v)
+    address = ', '.join(x for x in (d['street'], d['city']) if x)
+    cust = ''.join(f'<dt>{l}</dt><dd class="{c}">{esc(v)}</dd>' for l, v, c in (
+        (lab('Name', 'الاسم'), d['name'], 'wrap nm'), (lab('Address', 'العنوان'), address, 'wrap'),
+        (lab('Phone', 'الهاتف'), d['phone'], 'one'), (lab('Email', 'البريد الإلكتروني'), d['email'], 'wrap')) if v)
     pay_en, pay_ar = ('Cash on delivery', 'نقداً عند التسليم') if d['cod'] else (d['pay_title'] or 'Paid', '')
     details = [(lab('Invoice no.', 'رقم الفاتورة'), esc(d['inv'])), (lab('Invoice date', 'تاريخ الفاتورة'), day(d['date'])),
                (lab('Order no.', 'رقم الطلب'), f"#{esc(d['order'])}"),
-               (lab('Payment', 'طريقة الدفع'), f'{esc(pay_en)}{ar(pay_ar, "dar")}'),
-               (lab('Status', 'الحالة'), '<span class="paid">Paid · <span lang="ar">مدفوعة</span></span>')]
+               (lab('Payment', 'طريقة الدفع'), f'{esc(pay_en)}{ar(pay_ar, "dar")}')]
     if d['tracking']:
         details.append((lab('Tracking no.', 'رقم التتبع'), esc(d['tracking'])))
     if d['delivered']:
@@ -395,7 +407,7 @@ def render(d):
     cap_r = (('Amounts in US dollars (USD), including 11% VAT', 'المبالغ بالدولار الأميركي، شاملة الضريبة على القيمة المضافة 11%')
              if vat else ('Amounts in US dollars (USD)', 'المبالغ بالدولار الأميركي'))
     caption = f'{esc(cap_r[0])}{ar(cap_r[1], "dar")}'
-    units = {'100 g': ('100 g', ''), '500 g bag': ('500 g bag', 'كيس'), '50 g': ('50 g', '')}
+    units = {}
     rows = []
     for r in d['rows']:
         u_en, u_ar = units.get(r['unit'], (r['unit'], ''))
@@ -420,15 +432,17 @@ def render(d):
     grand = 'Total incl. VAT' if vat else 'Total paid'
     total, lbp = d['total'], round(d['total'] * LBP_RATE)
     nar = lambda s: f'<div class="nar" lang="ar" dir="rtl">{esc(s)}</div>'
-    notes = [(lab('Total weight', 'الوزن الإجمالي'), f'<span class="one">{weight(d["grams"])}</span>'),
-             (lab('Amount in words', 'المبلغ بالأحرف'), f'<div>{esc(words(total))}</div>{nar(words_ar(total))}'),
-             (lab('Total in LBP', 'المجموع بالليرة'), f'<span class="one">LBP {lbp:,} (at LBP {LBP_RATE:,} per USD)</span>')]
+    cell = lambda en, a: f'<th><span class="ien">{esc(en)}</span><span class="iar" lang="ar" dir="rtl">{esc(a)}</span></th>'
+    info = [(cell('Total weight', 'الوزن الإجمالي'), f'<span class="one">{weight(d["grams"])}</span>'),
+            (cell('Amount in words', 'المبلغ بالأحرف'), f'<div>{esc(words(total))}</div>{nar(words_ar(total))}'),
+            (cell('Equivalent in LBP', 'المعادل بالليرة اللبنانية'), f'<span class="one">LBP {lbp:,}</span><span class="rate one">at 1 USD = {LBP_RATE:,} LBP</span>')]
     if vat:
-        notes.append((lab('VAT in LBP', 'الضريبة بالليرة'), f"<span class=\"one\">LBP {round(d['vat_amt'] * LBP_RATE):,}</span>"))
+        info.append((cell('VAT in LBP', 'الضريبة بالليرة اللبنانية'), f"<span class=\"one\">LBP {round(d['vat_amt'] * LBP_RATE):,}</span>"))
     else:
-        notes.append((lab('VAT', 'الضريبة'), '<div>Not charged: not VAT-registered on the invoice date.</div>'
-                      + nar('غير مفروضة: غير مسجّلة في الضريبة بتاريخ الفاتورة.')))
-    notes_html = ''.join(f'<dt>{l}</dt><dd>{v}</dd>' for l, v in notes)
+        info.append((cell('VAT', 'الضريبة على القيمة المضافة'),
+                     '<div>Not applicable: the company was not registered for VAT on the invoice date.</div>'
+                     + nar('غير مطبّقة: لم تكن الشركة مسجّلة في الضريبة على القيمة المضافة بتاريخ الفاتورة.')))
+    notes_html = ''.join(f'<tr>{l}<td>{v}</td></tr>' for l, v in info)
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>{title} {esc(d['inv'])} · {esc(COMPANY['name'])}</title>
@@ -452,13 +466,13 @@ def render(d):
 </header>
 <main class="main">
   <section class="parties">
-    <div class="cust">{h2('Bill to', 'فاتورة إلى')}{cust}</div>
+    <div class="cust">{h2('Bill to', 'فاتورة إلى')}<dl class="kv">{cust}</dl></div>
     <div class="details">{h2('Invoice details', 'تفاصيل الفاتورة')}<dl class="kv">{details_html}</dl></div>
   </section>
-  <div class="cap"><span class="one">Pick-and-mix priced per 100 g, Ready Mix per 500 g bag{ar("الحلوى بالوزن لكل 100 غ، والخلطة الجاهزة لكل كيس 500 غ", "dar")}</span><span class="one">{caption}</span></div>
+  <div class="cap"><span class="one">Pick-and-mix priced per 100 g, Ready Mix per 500 g{ar("الحلوى بالوزن لكل 100 غ، والخلطة الجاهزة لكل 500 غ", "dar")}</span><span class="one">{caption}</span></div>
   {table}
   <section class="summary">
-    <div class="thanks">{h2('Notes', 'ملاحظات')}<dl class="kv notes">{notes_html}</dl></div>
+    <div class="thanks">{h2('Additional information', 'معلومات إضافية')}<table class="info">{notes_html}</table></div>
     <div class="totals"><table>{tot}<tr class="grand"><td><span class="one">{grand}</span>{ar(AR[grand], "tar")}</td><td class="num">${money(total)}</td></tr></table>
       <div class="stamp">Company stamp and signature<br><span lang="ar" dir="rtl">ختم الشركة والتوقيع</span></div></div>
   </section>

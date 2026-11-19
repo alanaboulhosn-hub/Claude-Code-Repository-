@@ -2893,3 +2893,9 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   with notes_agent.py save (refuses if a note exists: the owner's or the team's edits are never overwritten).
   Customer data only in the session's scratch folder. Before switching it on: site check OK 46/46, 42 snippets on
   without errors, admin pages and orders API fine.
+- Invoices, owner's changes (19 Nov): Bill to with labels (Name, Address, Phone, Email, each with its Arabic); no
+  Status row (every invoice is paid); unit is the weight only (500 g, no "bag"); NO delivery on invoices (the courier
+  charges and keeps it, not Fika's revenue): invoice total = sweets - discounts (661 invoices $14,615.67 + delivery
+  $3,558.00 = orders $18,173.67); amount in words in formal title case without "only" / "فقط ... لا غير";
+  "Additional information" as a bordered table (weight, amount in words EN + AR, LBP with the rate, VAT status).
+  All 661 checked, both versions: 0 layout problems; 637 on one page, 24 on two (VAT 618 / 43).
