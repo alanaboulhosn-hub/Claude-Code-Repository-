@@ -73,21 +73,19 @@
   var scrollAnim = !!(window.CSS ? (CSS.supports ? CSS.supports('animation-timeline: scroll()') : false) : false);
   var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
 
-  // Work out where the photo is drawn inside the hero, the same way the page CSS places it
+  // Work out where the photo is drawn, the same way the page CSS places it (cover, centre bottom). Measure the
+  // layer the photo is painted on (the still-photo layer, sized by the header script), not the hero: the two
+  // differ while the page settles, beside a desktop scrollbar and in some phone browsers, and the eyes slid off
+  var box = layer.parentElement;
   function layout() {
-    var W = hero.clientWidth, H = hero.clientHeight;
-    var fixed = getComputedStyle(hero).backgroundAttachment === 'fixed';
-    var vw = document.documentElement.clientWidth, vh = window.innerHeight;
-    var bw = fixed ? vw : W, bh = fixed ? vh : H;
+    var bw = box.clientWidth, bh = box.clientHeight;
+    if (!bw) return;
+    if (!bh) return;
     // phones get the middle part of the photo (a sharper, enlarged file): measure from that part
     var ph = window.matchMedia ? window.matchMedia('(max-width: 760px)').matches : false;
     var PW = ph ? 960 : IMG_W, PX = ph ? 480 : 0;
     var s = Math.max(bw / PW, bh / IMG_H);
     var ox = (bw - PW * s) / 2 - PX * s, oy = bh - IMG_H * s;
-    if (fixed) {
-      var rc = hero.getBoundingClientRect();
-      ox -= rc.left; oy -= rc.top;
-    }
     var r = Math.max(4.5, EYE_R * s);
     eyes.forEach(function (e) {
       e.r = r;
@@ -165,7 +163,7 @@
   window.addEventListener('load', layout);
   window.addEventListener('scroll', function () { kick(); }, { passive: true });
   setTimeout(layout, 400); setTimeout(layout, 1500);
-  if (window.ResizeObserver) new ResizeObserver(layout).observe(hero);
+  if (window.ResizeObserver) { var ro = new ResizeObserver(layout); ro.observe(hero); ro.observe(box); }
   if (window.IntersectionObserver) {
     new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) kick(); }).observe(hero);
   }

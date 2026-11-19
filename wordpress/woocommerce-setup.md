@@ -2851,3 +2851,14 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   block dropped (cash sales already paid); tracking no. and delivery date in the invoice details; stamp box under the
   totals. Page split now measured by render_pdf.js (last lines, at least 3, go to page 2 with the totals when page 1
   overflows). Re-checked all 661: 0 problems; 635 on one page, 26 on two (VAT version 566 / 95).
+
+## 2026-11-19: hero googly eyes sat off the skulls on some screens (owner)
+- Cause: the eye script placed the eyes for the hero box's size, but the photo is painted on the still-photo layer
+  (position: fixed, height set by the header script). Whenever the two differ (page still settling, a desktop
+  scrollbar, some phone browsers) the eyes slid off the eye holes: up to 20 eye-widths with the layer 160 px taller,
+  about one eye-width beside a 17 px scrollbar.
+- Fix (page 41, live = git): the script measures the layer it sits on (layer.parentElement) and also re-places the
+  eyes when that layer resizes. The 22 eye-hole positions were already right (checked on 3x zooms of the photo).
+- Checked live: every eye exactly on its hole (0 off) on iPhone SE / 13 / 15 Pro Max, Pixel 7, Galaxy S9+, iPad Mini,
+  1280x800, 1366x768, 1920x1080, also with the photo layer made taller or narrower; site check OK 45/45 (WordPress
+  updated itself 7.1.4 -> 7.1.5, recorded).
