@@ -1,7 +1,8 @@
 <?php
 /**
  * Fika: the owner's note on each order: a personal message to that customer and the question that goes with it
- * (answered on Instagram). Shown on the order page in the admin, under the order, and editable there.
+ * (answered on Instagram). Shown in the order preview on the Orders list (the eye icon), under the products, where
+ * it can be edited and saved; the preview also has arrows to the previous and next order of the list.
  * Written by the owner's-notes agent (wordpress/tools/notes) through POST /wp-json/fika/v1/owner-note/{order id}
  * (shop staff only). Stored in the order meta _fika_owner_note: { message, question, by, at }.
  * Never shown or emailed to the customer. Saving a note changes nothing else on the order.
@@ -27,95 +28,110 @@ if ( ! function_exists( 'fika_owner_note_get' ) ) {
 		$order->save_meta_data();   // only the note: no order save, no status change, no email
 		return fika_owner_note_get( $order );
 	}
-
-	function fika_owner_note_box( $post_or_order ) {
-		$order = $post_or_order instanceof WC_Order ? $post_or_order : wc_get_order( $post_or_order->ID );
-		if ( ! $order ) {
-			return;
-		}
-		$n    = fika_owner_note_get( $order );
-		$name = $order->get_shipping_first_name() ?: $order->get_billing_first_name();
-		wp_nonce_field( 'fika_owner_note', 'fika_owner_note_nonce' );
-		?>
-		<style>
-		#fika-owner-note .fon { display: grid; gap: 14px; padding: 6px 2px 4px; }
-		#fika-owner-note .fon-card { border: 1px solid #e6c9d6; background: #fff7fa; border-radius: 10px; padding: 14px 16px; }
-		#fika-owner-note .fon-card.q { border-color: #c9d6ee; background: #f5f8fe; }
-		#fika-owner-note .fon-lbl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #8a5a72; margin-bottom: 6px; }
-		#fika-owner-note .q .fon-lbl { color: #3d5a99; }
-		#fika-owner-note textarea { width: 100%; border: 0; background: transparent; padding: 0; font-size: 15px; line-height: 1.55; color: #1d2433; resize: vertical; box-shadow: none; }
-		#fika-owner-note textarea:focus { outline: 1px dashed #c9a0b5; outline-offset: 4px; }
-		#fika-owner-note .fon-meta { font-size: 12px; color: #7a8193; }
-		#fika-owner-note .fon-empty { color: #7a8193; font-style: italic; }
-		</style>
-		<div class="fon">
-			<?php if ( ! $n ) : ?>
-				<p class="fon-empty">No note yet for <?php echo esc_html( $name ); ?>. The notes agent writes one for every new order; you can also write it here.</p>
-			<?php endif; ?>
-			<div class="fon-card">
-				<span class="fon-lbl">Message to <?php echo esc_html( $name ); ?></span>
-				<textarea name="fika_owner_note_message" rows="3"><?php echo esc_textarea( $n['message'] ?? '' ); ?></textarea>
-			</div>
-			<div class="fon-card q">
-				<span class="fon-lbl">Question for Instagram</span>
-				<textarea name="fika_owner_note_question" rows="2"><?php echo esc_textarea( $n['question'] ?? '' ); ?></textarea>
-			</div>
-			<?php if ( $n ) : ?>
-				<div class="fon-meta">Written by <?php echo esc_html( $n['by'] ?? '' ); ?>, <?php echo esc_html( wp_date( 'j M Y, H:i', (int) ( $n['at'] ?? 0 ) ) ); ?>. Edit the text and press Update to change it.</div>
-			<?php endif; ?>
-		</div>
-		<?php
-	}
 }
 
-// the box, under the order's items, on the order page (both order storage screens)
-add_action( 'add_meta_boxes', function () {
-	$screens = array( 'shop_order' );
-	if ( function_exists( 'wc_get_page_screen_id' ) ) {
-		$screens[] = wc_get_page_screen_id( 'shop-order' );
-	}
-	foreach ( array_unique( $screens ) as $screen ) {
-		add_meta_box( 'fika-owner-note', "Owner's note", 'fika_owner_note_box', $screen, 'normal', 'default' );
-	}
+// the note travels with the order preview's data
+add_filter( 'woocommerce_admin_order_preview_get_order_details', function ( $data, $order ) {
+	$n                 = fika_owner_note_get( $order );
+	$data['fika_note'] = array(
+		'id'       => $order->get_id(),
+		'name'     => $order->get_shipping_first_name() ?: $order->get_billing_first_name(),
+		'message'  => $n['message'] ?? '',
+		'question' => $n['question'] ?? '',
+		'meta'     => $n ? 'Written by ' . ( $n['by'] ?? '' ) . ', ' . wp_date( 'j M Y, H:i', (int) ( $n['at'] ?? 0 ) ) : '',
+	);
+	return $data;
+}, 10, 2 );
+
+// ... and is shown under the products in the preview (an underscore template: {{ }} escapes)
+add_action( 'woocommerce_admin_order_preview_end', function () {
+	?>
+	<# if ( data.fika_note ) { #>
+	<div class="fon" data-order="{{ data.fika_note.id }}">
+		<div class="fon-title">Owner's note</div>
+		<div class="fon-card">
+			<span class="fon-lbl">Message to {{ data.fika_note.name }}</span>
+			<textarea class="fon-m" rows="3" placeholder="No note yet">{{ data.fika_note.message }}</textarea>
+		</div>
+		<div class="fon-card q">
+			<span class="fon-lbl">Question for Instagram</span>
+			<textarea class="fon-q" rows="2" placeholder="No question yet">{{ data.fika_note.question }}</textarea>
+		</div>
+		<div class="fon-foot"><span class="fon-meta">{{ data.fika_note.meta }}</span><button type="button" class="button fon-save">Save note</button></div>
+	</div>
+	<# } #>
+	<?php
 } );
 
-// right under the order items, even when an admin's saved page layout predates the box
-foreach ( array( 'shop_order', 'woocommerce_page_wc-orders' ) as $fika_screen ) {
-	add_filter( 'get_user_option_meta-box-order_' . $fika_screen, function ( $order ) {
-		if ( ! is_array( $order ) || empty( $order['normal'] ) ) {
-			return $order;
+// styles, the save button and the previous / next arrows, on the Orders list only
+add_action( 'admin_footer', function () {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( ! $screen || ! in_array( $screen->id, array( 'woocommerce_page_wc-orders', 'edit-shop_order' ), true ) || ! current_user_can( 'manage_woocommerce' ) ) {
+		return;
+	}
+	?>
+	<style>
+	.wc-order-preview .fon { margin: 18px 1.5em 6px; display: grid; gap: 12px; }
+	.wc-order-preview .fon-title { font-size: 14px; font-weight: 600; color: #1d2327; }
+	.wc-order-preview .fon-card { border: 1px solid #e6c9d6; background: #fff7fa; border-radius: 8px; padding: 12px 14px; }
+	.wc-order-preview .fon-card.q { border-color: #c9d6ee; background: #f5f8fe; }
+	.wc-order-preview .fon-lbl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #8a5a72; margin-bottom: 6px; }
+	.wc-order-preview .fon-card.q .fon-lbl { color: #3d5a99; }
+	.wc-order-preview .fon textarea { width: 100%; border: 0; background: transparent; padding: 0; font-size: 14px; line-height: 1.55; color: #1d2433; resize: vertical; box-shadow: none; min-height: 0; }
+	.wc-order-preview .fon textarea:focus { outline: 1px dashed #c9a0b5; outline-offset: 4px; box-shadow: none; }
+	.wc-order-preview .fon-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+	.wc-order-preview .fon-meta { font-size: 12px; color: #7a8193; }
+	.fon-nav { position: absolute; top: 0; right: 54px; height: 100%; display: flex; align-items: center; gap: 4px; }
+	.fon-nav button { font-size: 20px; line-height: 1; color: #1d2327; border: 1px solid #c3c4c7; background: #fff; border-radius: 4px; width: 32px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+	.fon-nav button:hover:not([disabled]) { border-color: #2271b1; color: #2271b1; }
+	.fon-nav button[disabled] { opacity: .35; cursor: default; }
+	</style>
+	<script>
+	jQuery( function ( $ ) {
+		var nonce = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
+		var api = <?php echo wp_json_encode( esc_url_raw( rest_url( 'fika/v1/owner-note/' ) ) ); ?>;
+		var current = 0;
+		function buttons() { return $( 'a.order-preview' ).filter( function () { return $( this ).closest( 'tr' ).is( ':visible' ); } ); }
+		function indexOf( id ) { var i = -1; buttons().each( function ( k ) { if ( String( $( this ).data( 'orderId' ) ) === String( id ) ) { i = k; } } ); return i; }
+		// which order is open: caught before WooCommerce handles the click, and read again from the preview itself
+		document.addEventListener( 'click', function ( e ) { var a = e.target.closest ? e.target.closest( 'a.order-preview' ) : null; if ( a ) { current = a.getAttribute( 'data-order-id' ); } }, true );
+		function go( step ) {
+			var list = buttons(), i = indexOf( current ) + step;
+			if ( i < 0 ) { return; }
+			if ( i >= list.length ) { return; }
+			var next = list.eq( i );
+			$( '.wc-backbone-modal .modal-close' ).first().trigger( 'click' );
+			setTimeout( function () { next.trigger( 'click' ); }, 60 );
 		}
-		$ids = array_values( array_diff( explode( ',', $order['normal'] ), array( 'fika-owner-note' ) ) );
-		$at  = array_search( 'woocommerce-order-items', $ids, true );
-		array_splice( $ids, false === $at ? count( $ids ) : $at + 1, 0, 'fika-owner-note' );
-		foreach ( array( 'side', 'advanced' ) as $ctx ) {
-			if ( ! empty( $order[ $ctx ] ) ) {
-				$order[ $ctx ] = implode( ',', array_diff( explode( ',', $order[ $ctx ] ), array( 'fika-owner-note' ) ) );
-			}
-		}
-		$order['normal'] = implode( ',', $ids );
-		return $order;
+		$( document.body ).on( 'wc_backbone_modal_loaded', function ( e, target ) {
+			if ( 'wc-modal-view-order' !== target ) { return; }
+			current = $( '.wc-order-preview .fon' ).last().data( 'order' ) || current;
+			var head = $( '.wc-backbone-modal-header' ).last(), i = indexOf( current ), n = buttons().length;
+			head.css( 'position', 'relative' ).find( '.fon-nav' ).remove();
+			var nav = $( '<div class="fon-nav"><button type="button" class="fon-prev" title="Previous order (left arrow key)">&#8249;</button><button type="button" class="fon-next" title="Next order (right arrow key)">&#8250;</button></div>' );
+			nav.find( '.fon-prev' ).prop( 'disabled', i <= 0 ).on( 'click', function () { go( -1 ); } );
+			nav.find( '.fon-next' ).prop( 'disabled', i < 0 || i >= n - 1 ).on( 'click', function () { go( 1 ); } );
+			head.append( nav );
+		} );
+		$( document ).on( 'keydown', function ( e ) {
+			if ( ! $( '.wc-backbone-modal .wc-order-preview' ).length ) { return; }
+			if ( $( e.target ).is( 'textarea, input' ) ) { return; }
+			if ( 37 === e.which ) { go( -1 ); }
+			if ( 39 === e.which ) { go( 1 ); }
+		} );
+		$( document.body ).on( 'click', '.wc-order-preview .fon-save', function () {
+			var box = $( this ).closest( '.fon' ), btn = $( this );
+			btn.prop( 'disabled', true ).text( 'Saving...' );
+			$.ajax( { url: api + box.data( 'order' ), method: 'POST', contentType: 'application/json', headers: { 'X-WP-Nonce': nonce },
+				data: JSON.stringify( { message: box.find( '.fon-m' ).val(), question: box.find( '.fon-q' ).val() } ) } )
+				.done( function () { btn.text( 'Saved' ); box.find( '.fon-meta' ).text( 'Saved just now' ); } )
+				.fail( function ( x ) { btn.text( 'Not saved' ); alert( ( x.responseJSON && x.responseJSON.message ) || 'The note could not be saved.' ); } )
+				.always( function () { setTimeout( function () { btn.prop( 'disabled', false ).text( 'Save note' ); }, 1500 ); } );
+		} );
 	} );
-}
-
-// edits made in the box are kept when the order is updated
-add_action( 'woocommerce_process_shop_order_meta', function ( $order_id ) {
-	if ( ! isset( $_POST['fika_owner_note_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['fika_owner_note_nonce'] ) ), 'fika_owner_note' ) ) {
-		return;
-	}
-	$order = wc_get_order( $order_id );
-	if ( ! $order || ! current_user_can( 'manage_woocommerce' ) ) {
-		return;
-	}
-	$m   = isset( $_POST['fika_owner_note_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['fika_owner_note_message'] ) ) : '';
-	$q   = isset( $_POST['fika_owner_note_question'] ) ? sanitize_textarea_field( wp_unslash( $_POST['fika_owner_note_question'] ) ) : '';
-	$old = fika_owner_note_get( $order );
-	if ( trim( $m ) === trim( $old['message'] ?? '' ) && trim( $q ) === trim( $old['question'] ?? '' ) ) {
-		return;
-	}
-	$user = wp_get_current_user();
-	fika_owner_note_set( $order, $m, $q, $user->display_name ?: 'the shop' );
-}, 60 );
+	</script>
+	<?php
+} );
 
 // the agent's door: read or write one order's note (shop staff only)
 add_action( 'rest_api_init', function () {
@@ -141,7 +157,12 @@ add_action( 'rest_api_init', function () {
 				if ( '' === trim( $m ) || '' === trim( $q ) ) {
 					return new WP_Error( 'fika_note_empty', 'Message and question are both needed', array( 'status' => 400 ) );
 				}
-				return fika_owner_note_set( $order, $m, $q, (string) ( $req->get_param( 'by' ) ?: 'the notes agent' ) );
+				$by = (string) $req->get_param( 'by' );
+				if ( '' === $by ) {
+					$u  = wp_get_current_user();
+					$by = $u->display_name ?: 'the shop';
+				}
+				return fika_owner_note_set( $order, $m, $q, $by );
 			},
 		),
 	) );

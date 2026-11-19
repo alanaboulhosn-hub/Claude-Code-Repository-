@@ -2879,3 +2879,11 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   WooCommerce's boxes, so it fell to the bottom under Custom Fields. Snippet 311 now places it right after the order
   items for every admin (filter on that saved layout). Checked from inside the shop (temporary routes 312/313,
   trashed): admin layout = order data, order items, Owner's note, downloads, custom fields. Site check after.
+- Owner (19 Nov): the note belongs in the order PREVIEW (eye icon on the Orders list), not on the order page; plus an
+  arrow to the next order. Snippet 311 now: no box on the order page; the preview shows "Owner's note" under the
+  products (message + question, editable, "Save note" -> POST fika/v1/owner-note with the admin's REST nonce, saved
+  as written by that admin); header arrows ‹ › and the left / right keys open the previous / next order of the list
+  (greyed at the ends; keys ignored while typing). Checked: preview data and template carry the note (temporary
+  routes 314/315, trashed; 314 errored on loading the list-table class, the shop was unaffected); arrows, keys and
+  save tested on a stand-in of the preview (first version's arrows could open disabled: fixed by reading the open
+  order from the preview). Site check OK 46/46.
