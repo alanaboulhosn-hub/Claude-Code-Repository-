@@ -397,10 +397,6 @@ def render(d):
                (lab('Order no.', 'رقم الطلب'), f"#{esc(d['order'])}"),
                (lab('Payment', 'طريقة الدفع'), f'{esc(pay_en)}{ar(pay_ar, "dar")}'),
                (lab('Currency', 'العملة'), f'US dollar (USD){ar("دولار أميركي", "dar")}')]
-    if d['tracking']:
-        details.append((lab('Tracking no.', 'رقم التتبع'), esc(d['tracking'])))
-    if d['delivered']:
-        details.append((lab('Delivered on', 'تاريخ التسليم'), day(d['delivered'])))
     details_html = ''.join(f'<dt>{l}</dt><dd class="one">{v}</dd>' for l, v in details)
     units = {}
     rows = []
