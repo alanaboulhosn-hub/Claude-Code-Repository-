@@ -7,7 +7,7 @@ Customer data: the order JSON and the invoices made from it stay out of git.
   python3 make_invoice.py orders.json out_dir [--vat] [--ids 1292,1300] [--draft]
       --vat    tax invoice: the prices include 11% VAT; the split is shown, and the VAT in Lebanese pounds
       --ids    only these WooCommerce order ids (any status); without it, every completed order
-      --draft  allow the [placeholders] still in COMPANY and BANK (samples only)
+      --draft  allow the [placeholders] still in COMPANY (samples only)
   node render_pdf.js out_dir       every INV-*.html in out_dir -> A4 PDF (Chromium, via Playwright)
   node check_invoices.js out_dir   layout check: no field wraps, overflows or overlaps; pages per invoice
 
@@ -18,20 +18,17 @@ from zoneinfo import ZoneInfo
 
 COMPANY = {
     'name': 'Fika S.A.R.L.',                        # registered name: to confirm
+    'name_ar': 'فيكا ش.م.م.',                        # registered Arabic name: to confirm from the commercial register
     'address': '[registered address], Lebanon',
     'phone': '+961 79 411 565', 'email': 'hello@swedishfikalb.com', 'web': 'swedishfikalb.com',
     'cr': '[commercial register no.]',
     'tax': '[Ministry of Finance tax no.]',
     'vat': '[VAT no.]',
 }
-BANK = {'bank': '[bank name]', 'iban': '[IBAN]', 'swift': '[SWIFT / BIC]'}
 LBP_RATE = 89500            # Lebanese pound equivalent (the accountant may want the Sayrafa rate for VAT)
 VAT_RATE = 0.11
 BEIRUT = ZoneInfo('Asia/Beirut')
 READY_MIX = {94, 95, 96, 1200, 1201}   # 500 g Ready Mix bags; every other product is pick-and-mix sold per 100 g
-ONE_PAGE_LINES = 14        # longer orders take two pages: the last lines go over with the totals (checked on all 661);
-                           # the tax invoice has two more total lines, so it holds two invoice lines fewer
-FIRST_PAGE_LINES = 22      # most lines page 1 holds when the totals are on page 2
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -153,13 +150,13 @@ def delivered_on(o):
 def discount_label(code):
     c = code.upper()
     if c.startswith('SWIM'):
-        return 'Fika Club reward'
+        return 'Loyalty discount'
     if c.startswith('IOU'):
         return 'Store credit'
     if c.startswith('WELCOME'):
-        return 'Welcome discount'
+        return 'Promotional discount'
     if c == 'FIKA10':
-        return 'Welcome-back offer'
+        return 'Promotional discount'
     return 'Discount'
 
 
@@ -174,7 +171,7 @@ def invoice_data(o, vat=False):
         price = amount / qty if qty else 0.0
         row = {'name': txt(i['name']), 'note': '', 'qty': qty, 'price': price, 'amount': amount}
         if '_fika_taste' in m:
-            row.update(note='Mystery taste: free gift from the Fika Club', unit='50 g', grams=50 * qty)
+            row.update(note='Free sample (loyalty programme), no charge', unit='50 g', grams=50 * qty)
         elif i['product_id'] in READY_MIX:
             row.update(unit='500 g bag', grams=500 * qty)
             if price < 10:
@@ -232,7 +229,7 @@ body { margin: 0; background: #fff; color: #16213e;
 .band { background: #fff; padding: 9mm 14mm 0; }
 .band-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10mm; }
 .co { min-width: 0; }
-.co-name { font-weight: 700; font-size: 18pt; line-height: 1.15; color: #004aad; margin-bottom: 1.8mm; }
+.co-name { font-weight: 700; font-size: 18pt; line-height: 1.15; color: #004aad; margin-bottom: .6mm; }
 .co-line { font-size: 9pt; line-height: 1.5; color: #3c4863; }
 .brand { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; }
 .doc-title { text-align: right; }
@@ -252,19 +249,19 @@ h2 { margin: 0 0 2.2mm; padding-bottom: 1.4mm; border-bottom: .35mm solid #d5dce
 .cust { min-width: 0; }
 .cust .ln { color: #3c4863; line-height: 1.45; unicode-bidi: plaintext; text-align: left; overflow-wrap: anywhere; }
 .cust .nm { font-weight: 600; font-size: 10.5pt; line-height: 1.35; color: #16213e; margin-bottom: .6mm; }
-.kv { display: grid; grid-template-columns: 27mm minmax(0, 1fr); column-gap: 4mm; row-gap: .5mm; margin: 0; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 4mm; row-gap: .5mm; margin: 0; }
 .kv dt { color: #6b7894; font-weight: 500; white-space: nowrap; }
 .kv dd { margin: 0; color: #16213e; font-weight: 500; white-space: nowrap; }
 .paid { display: inline-block; margin-left: 2mm; padding: 0 1.6mm; border: .35mm solid #1d7a46; border-radius: 1mm;
   font-weight: 700; font-size: 6.8pt; line-height: 1.55; letter-spacing: .12em; text-transform: uppercase; color: #1d7a46;
   vertical-align: .2mm; }
 
-.cap { display: flex; justify-content: space-between; gap: 6mm; margin: 5.5mm 0 1.4mm; font-size: 7.6pt; color: #6b7894; }
+.cap { display: flex; justify-content: space-between; align-items: flex-end; gap: 4mm; margin: 5mm 0 1.4mm; font-size: 7.6pt; color: #6b7894; }
 table.items { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.items col.q { width: 13mm; } .items col.u { width: 24mm; } .items col.p { width: 27mm; } .items col.a { width: 27mm; }
+.items col.q { width: 13mm; } .items col.u { width: 28mm; } .items col.p { width: 27mm; } .items col.a { width: 27mm; }
 .items thead { display: table-header-group; }
 .items th { background: #004aad; color: #fff; border: .3mm solid #004aad; padding: 1.9mm 2.6mm; font-weight: 600;
-  font-size: 7.3pt; line-height: 1.2; letter-spacing: .1em; text-transform: uppercase; text-align: left; white-space: nowrap; }
+  font-size: 7.3pt; line-height: 1.3; letter-spacing: .1em; text-transform: uppercase; text-align: left; white-space: nowrap; }
 .items td { border: .3mm solid #d5dcea; padding: .95mm 2.6mm; line-height: 1.3; color: #16213e; vertical-align: top; }
 .items tbody tr:nth-child(even) td { background: #f7f9fd; }
 .items .c { text-align: center; }
@@ -276,14 +273,16 @@ table.items { width: 100%; border-collapse: collapse; table-layout: fixed; }
   border-bottom: .3mm solid #d5dcea; font-size: 7.6pt; color: #6b7894; }
 .cont b { color: #004aad; font-weight: 600; }
 
-.summary { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; margin-top: 5mm; break-inside: avoid; }
+.summary { display: flex; justify-content: space-between; align-items: flex-start; gap: 7mm; margin-top: 5mm; break-inside: avoid; }
 .thanks { flex: 1 1 auto; min-width: 0; }
-.thanks .big { font-weight: 700; font-size: 13.5pt; line-height: 1.2; color: #16213e; margin: .4mm 0 2.4mm; }
-.notes { grid-template-columns: 27mm minmax(0, 1fr); font-size: 8.3pt; row-gap: .6mm; }
+.notes { grid-template-columns: max-content minmax(0, 1fr); font-size: 8.3pt; row-gap: .6mm; }
 .notes dd { color: #2a3654; font-weight: 400; }
 .notes dd:not(.one) { white-space: normal; }
 .notes dd, .pay p, .cust .ln { text-wrap: pretty; }
-.totals { flex: 0 0 84mm; }
+.totals { flex: 0 0 78mm; }
+.cap > span { display: flex; flex-direction: column; }
+.cap > span:last-child { align-items: flex-end; }
+.cap .dar { margin: .3mm 0 0; line-height: 1.6; }
 .totals table { width: 100%; border-collapse: separate; border-spacing: 0 1mm; margin: -1mm 0; }
 .totals td { background: #eef3fb; padding: 1.25mm 3.2mm; line-height: 1.35; color: #16213e; }
 .totals .code { margin-left: 1.6mm; font-size: 7.6pt; letter-spacing: .03em; color: #6b7894; }
@@ -291,82 +290,159 @@ table.items { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .totals tr.grand td { background: #004aad; color: #fff; font-weight: 700; font-size: 11pt; padding: 2mm 3.2mm; }
 
 .pay { margin-top: 5.5mm; break-inside: avoid; }
-.pay-grid { display: grid; grid-template-columns: 46mm minmax(0, 1fr) 38mm; gap: 7mm; align-items: start; }
+.pay-grid { display: grid; grid-template-columns: 60mm minmax(0, 1fr) 34mm; gap: 7mm; align-items: start; }
 .pay h3 { margin: 0 0 1.2mm; font-weight: 600; font-size: 9pt; line-height: 1.3; color: #16213e;
   text-decoration: underline; text-decoration-thickness: .25mm; text-underline-offset: .8mm; }
 .pay p { margin: 0; color: #3c4863; line-height: 1.45; }
-.pay .kv { grid-template-columns: 22mm minmax(0, 1fr); column-gap: 3mm; }
+.pay .kv { grid-template-columns: max-content minmax(0, 1fr); column-gap: 3mm; }
 .pay .kv dt, .pay .kv dd { font-weight: 400; }
-.stamp { height: 20mm; border: .35mm dashed #b9c5dd; border-radius: 2mm; padding: 1.5mm 2.4mm; font-size: 7.2pt; color: #8590aa; }
+.ar, .dar, .h2ar, .thar, .tar, .h3ar, .nar, .par { font-family: 'Fika Arabic', 'Fika Inter', sans-serif; letter-spacing: 0; text-transform: none; }
+.dar { margin-left: 1.6mm; color: #8a94ad; font-weight: 400; font-size: .9em; }
+.kv dt, .kv dd { line-height: 1.7; }
+.kv { row-gap: 0; }
+.co-name-ar { font-weight: 600; font-size: 11pt; line-height: 1.7; color: #004aad; margin: 0 0 .6mm; text-align: left; unicode-bidi: plaintext; }
+h2 { display: flex; justify-content: space-between; align-items: baseline; }
+.h2ar { font-size: 9pt; font-weight: 600; color: #004aad; }
+.thar { display: block; margin-top: .4mm; font-size: 7.4pt; font-weight: 400; opacity: .85; line-height: 1.6; }
+.tar { display: block; font-size: 7.6pt; line-height: 1.6; color: #6b7894; font-weight: 400; unicode-bidi: plaintext; text-align: left; }
+.totals tr.grand .tar { color: #dfe8fb; font-size: 8pt; }
+.totals td.num { vertical-align: middle; }
+.nar, .par { unicode-bidi: plaintext; text-align: left; color: #5d6985; line-height: 1.6; }
+.h3ar { display: block; margin: -.6mm 0 1mm; font-size: 8.3pt; font-weight: 600; color: #3c4863; }
+.items .note[lang=ar] { unicode-bidi: plaintext; }
+.paid [lang=ar] { font-family: 'Fika Arabic', sans-serif; letter-spacing: 0; }
+.reg .dar { display: block; margin: .3mm 0 0; font-size: 7pt; line-height: 1.5; }
+.notes .dar { display: block; margin: 0; line-height: 1.5; }
+.notes dt { line-height: 1.45; }
+.notes dd { line-height: 1.5; }
+.notes { row-gap: 1.6mm; }
+.stamp { margin-top: 4mm; height: 20mm; border: .35mm dashed #b9c5dd; border-radius: 2mm; padding: 1.5mm 2.4mm; font-size: 7.2pt; color: #8590aa; }
 """
+
+
+AR = {
+    'Subtotal': 'المجموع الفرعي', 'Loyalty discount': 'حسم برنامج الولاء', 'Promotional discount': 'حسم ترويجي',
+    'Store credit': 'رصيد شرائي', 'Discount': 'حسم', 'Delivery in Beirut': 'التوصيل داخل بيروت',
+    'Delivery outside Beirut': 'التوصيل خارج بيروت', 'Total excl. VAT': 'المجموع من دون الضريبة',
+    'VAT 11%': 'الضريبة على القيمة المضافة 11%', 'Total paid': 'المجموع المدفوع', 'Total incl. VAT': 'المجموع مع الضريبة',
+}
+
+
+def words_ar(amount):
+    """The amount in Arabic words (فقط ... لا غير), as Lebanese invoices carry it."""
+    ones = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة', 'عشرة', 'أحد عشر', 'اثنا عشر',
+            'ثلاثة عشر', 'أربعة عشر', 'خمسة عشر', 'ستة عشر', 'سبعة عشر', 'ثمانية عشر', 'تسعة عشر']
+    tens = ['', '', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون', 'ستون', 'سبعون', 'ثمانون', 'تسعون']
+    hund = ['', 'مائة', 'مائتان', 'ثلاثمائة', 'أربعمائة', 'خمسمائة', 'ستمائة', 'سبعمائة', 'ثمانمائة', 'تسعمائة']
+
+    def w(n):
+        if n < 20:
+            return ones[n]
+        if n < 100:
+            return (ones[n % 10] + ' و' if n % 10 else '') + tens[n // 10]
+        if n < 1000:
+            return hund[n // 100] + (' و' + w(n % 100) if n % 100 else '')
+        k, r = n // 1000, n % 1000
+        th = 'ألف' if k == 1 else 'ألفان' if k == 2 else w(k) + (' آلاف' if k <= 10 else ' ألف')
+        return th + (' و' + w(r) if r else '')
+
+    def counted(n, one, two, few, many):     # Arabic counted-noun forms
+        if n == 1:
+            return f'{one} واحد'
+        if n == 2:
+            return two
+        t = n % 100
+        noun = few if 3 <= t <= 10 else many if 11 <= t <= 99 else one
+        return f'{w(n)} {noun}'
+    cents = round(amount * 100)
+    d, c = cents // 100, cents % 100
+    parts = []
+    if d:
+        parts.append(counted(d, 'دولار أميركي', 'دولاران أميركيان', 'دولارات أميركية', 'دولاراً أميركياً'))
+    if c:
+        parts.append(counted(c, 'سنت', 'سنتان', 'سنتات', 'سنتاً'))
+    return 'فقط ' + ' و'.join(parts or ['صفر دولار']) + ' لا غير'
+
+
+def ar(s, cls='ar'):
+    return f'<span class="{cls}" lang="ar" dir="rtl">{esc(s)}</span>' if s else ''
 
 
 def render(d):
     ph = lambda v: f'<span class="ph">{esc(v)}</span>' if str(v).startswith('[') else esc(v)
     vat = d['vat']
     title, title_ar = ('Tax invoice', 'فاتورة ضريبية') if vat else ('Invoice', 'فاتورة')
-    reg = [('Commercial register no.', COMPANY['cr']), ('Tax no. (Ministry of Finance)', COMPANY['tax'])]
+    h2 = lambda en, a: f'<h2><span>{en}</span>{ar(a, "h2ar")}</h2>'
+    lab = lambda en, a: f'{esc(en)}{ar(a, "dar")}'          # English label with its Arabic beside it
+    reg = [('Commercial register no.', 'رقم السجل التجاري', COMPANY['cr']),
+           ('Tax no. (Ministry of Finance)', 'الرقم المالي', COMPANY['tax'])]
     if vat:
-        reg.append(('VAT registration no.', COMPANY['vat']))
-    reg_html = ''.join(f'<div class="reg-item"><div class="lbl one">{esc(l)}</div><div class="val one">{ph(v)}</div></div>'
-                       for l, v in reg)
+        reg.append(('VAT registration no.', 'رقم التسجيل في الضريبة على القيمة المضافة', COMPANY['vat']))
+    reg_html = ''.join(f'<div class="reg-item"><div class="lbl one">{lab(l, a)}</div><div class="val one">{ph(v)}</div></div>'
+                       for l, a, v in reg)
     cust = ''.join(f'<div class="ln{c}">{esc(v)}</div>' for v, c in (
         (d['name'], ' nm'), (d['street'], ''), (d['city'], ''), (d['phone'], ' one'), (d['email'], ' one')) if v)
-    pay = 'Cash on delivery' if d['cod'] else (d['pay_title'] or 'Paid')
-    details = [('Invoice no.', esc(d['inv'])), ('Invoice date', day(d['date'])), ('Order no.', f"#{esc(d['order'])}"),
-               ('Payment', f'{esc(pay)}<span class="paid">Paid</span>')]
+    pay_en, pay_ar = ('Cash on delivery', 'نقداً عند التسليم') if d['cod'] else (d['pay_title'] or 'Paid', '')
+    details = [(lab('Invoice no.', 'رقم الفاتورة'), esc(d['inv'])), (lab('Invoice date', 'تاريخ الفاتورة'), day(d['date'])),
+               (lab('Order no.', 'رقم الطلب'), f"#{esc(d['order'])}"),
+               (lab('Payment', 'طريقة الدفع'), f'{esc(pay_en)}{ar(pay_ar, "dar")}'),
+               (lab('Status', 'الحالة'), '<span class="paid">Paid · <span lang="ar">مدفوعة</span></span>')]
+    if d['tracking']:
+        details.append((lab('Tracking no.', 'رقم التتبع'), esc(d['tracking'])))
+    if d['delivered']:
+        details.append((lab('Delivered on', 'تاريخ التسليم'), day(d['delivered'])))
     details_html = ''.join(f'<dt>{l}</dt><dd class="one">{v}</dd>' for l, v in details)
-    caption = 'Amounts in US dollars (USD), including 11% VAT' if vat else 'Amounts in US dollars (USD)'
-    rows = [
-        f'<tr><td class="item"><span class="nm">{esc(r["name"])}</span>' + (f'<span class="note">{esc(r["note"])}</span>' if r['note'] else '') + '</td>'
-        f'<td class="c num">{r["qty"]}</td><td class="one">{esc(r["unit"])}</td>'
-        f'<td class="num">{money(r["price"])}</td><td class="num">{money(r["amount"])}</td></tr>' for r in d['rows']]
-    head = ('<table class="items"><colgroup><col><col class="q"><col class="u"><col class="p"><col class="a"></colgroup>'
-            '<thead><tr><th>Description</th><th class="c">Qty</th><th>Unit</th><th class="num">Unit price</th>'
-            '<th class="num">Amount</th></tr></thead><tbody>')
-    if len(rows) > ONE_PAGE_LINES - (2 if vat else 0):   # page 2 opens with a "continued" line and the last lines, then the totals
-        split = min(len(rows) - 3, FIRST_PAGE_LINES)
-        table = (head + ''.join(rows[:split]) + '</tbody></table>'
-                 + f'<div class="cont"><span><b>{esc(COMPANY["name"])}</b> · Invoice {esc(d["inv"])} · continued</span>'
-                 + f'<span class="one">{caption}</span></div>' + head + ''.join(rows[split:]) + '</tbody></table>')
-    else:
-        table = head + ''.join(rows) + '</tbody></table>'
+    cap_r = (('Amounts in US dollars (USD), including 11% VAT', 'المبالغ بالدولار الأميركي، شاملة الضريبة على القيمة المضافة 11%')
+             if vat else ('Amounts in US dollars (USD)', 'المبالغ بالدولار الأميركي'))
+    caption = f'{esc(cap_r[0])}{ar(cap_r[1], "dar")}'
+    units = {'100 g': ('100 g', ''), '500 g bag': ('500 g bag', 'كيس'), '50 g': ('50 g', '')}
+    rows = []
+    for r in d['rows']:
+        u_en, u_ar = units.get(r['unit'], (r['unit'], ''))
+        note = (f'<span class="note">{esc(r["note"])}</span><span class="note" lang="ar" dir="rtl">عيّنة مجانية من برنامج الولاء، من دون مقابل</span>'
+                if r['note'] else '')
+        rows.append(f'<tr><td class="item"><span class="nm">{esc(r["name"])}</span>{note}</td>'
+                    f'<td class="c num">{r["qty"]}</td><td class="one">{esc(u_en)}{ar(u_ar, "dar")}</td>'
+                    f'<td class="num">{money(r["price"])}</td><td class="num">{money(r["amount"])}</td></tr>')
+    th = lambda en, a, c='': f'<th{c}>{en}{ar(a, "thar")}</th>'
+    head = ('<table class="items"><colgroup><col><col class="q"><col class="u"><col class="p"><col class="a"></colgroup><thead><tr>'
+            + th('Description', 'البيان') + th('Qty', 'الكمية', ' class="c"') + th('Unit', 'الوحدة')
+            + th('Unit price', 'سعر الوحدة', ' class="num"') + th('Amount', 'المبلغ', ' class="num"') + '</tr></thead><tbody>')
+    table = head + ''.join(rows) + '</tbody></table>'
+    # render_pdf.js measures the page: if the invoice runs past page 1, it moves the last lines (at least 3) and the
+    # totals to page 2, opened by this "continued" line
+    table += (f'<template id="cont"><span><b>{esc(COMPANY["name"])}</b> · Invoice {esc(d["inv"])} · continued{ar("تابع", "dar")}</span>'
+              f'<span class="one">{caption}</span></template>')
     tot = ''.join(
-        f'<tr class="{"net" if lab == "Total excl. VAT" else ""}"><td class="one">{esc(lab)}'
-        + (f'<span class="code">{esc(code)}</span>' if code else '') + f'</td><td class="num">{signed(v)}</td></tr>'
-        for lab, code, v in d['tot'])
+        f'<tr class="{"net" if l == "Total excl. VAT" else ""}"><td><span class="one">{esc(l)}'
+        + (f'<span class="code">{esc(code)}</span>' if code else '') + f'</span>{ar(AR.get(l, ""), "tar")}</td><td class="num">{signed(v)}</td></tr>'
+        for l, code, v in d['tot'])
     grand = 'Total incl. VAT' if vat else 'Total paid'
     total, lbp = d['total'], round(d['total'] * LBP_RATE)
-    notes = [('Total weight', weight(d['grams']), True), ('Amount in words', words(total), False),
-             ('Total in LBP', f'LBP {lbp:,} at {LBP_RATE:,} per USD', True)]
+    nar = lambda s: f'<div class="nar" lang="ar" dir="rtl">{esc(s)}</div>'
+    notes = [(lab('Total weight', 'الوزن الإجمالي'), f'<span class="one">{weight(d["grams"])}</span>'),
+             (lab('Amount in words', 'المبلغ بالأحرف'), f'<div>{esc(words(total))}</div>{nar(words_ar(total))}'),
+             (lab('Total in LBP', 'المجموع بالليرة'), f'<span class="one">LBP {lbp:,} (at LBP {LBP_RATE:,} per USD)</span>')]
     if vat:
-        notes.append(('VAT in LBP', f"LBP {round(d['vat_amt'] * LBP_RATE):,} (11% VAT, USD {money(d['vat_amt'])})", True))
+        notes.append((lab('VAT in LBP', 'الضريبة بالليرة'), f"<span class=\"one\">LBP {round(d['vat_amt'] * LBP_RATE):,}</span>"))
     else:
-        notes.append(('VAT', 'Not charged: Fika was not registered for VAT on the invoice date.', False))
-    notes_html = ''.join(f'<dt>{esc(l)}</dt><dd{" class=one" if one else ""}>{esc(v)}</dd>' for l, v, one in notes)
-    cash = ['<p>Paid in full, in cash, to our courier RT Deliveries.</p>' if d['tracking'] else
-            '<p>Paid in full, in cash, on delivery.</p>']
-    if d['tracking']:
-        cash.append(f'<p class="one">Tracking no.: {esc(d["tracking"])}</p>')
-    if d['delivered']:
-        cash.append(f'<p class="one">Delivered: {day(d["delivered"])}</p>')
-    bank = [('Bank', BANK['bank']), ('Account name', COMPANY['name']), ('IBAN', BANK['iban']), ('SWIFT / BIC', BANK['swift'])]
-    bank_html = ''.join(f'<dt>{esc(l)}</dt><dd class="one">{ph(v)}</dd>' for l, v in bank)
+        notes.append((lab('VAT', 'الضريبة'), '<div>Not charged: not VAT-registered on the invoice date.</div>'
+                      + nar('غير مفروضة: غير مسجّلة في الضريبة بتاريخ الفاتورة.')))
+    notes_html = ''.join(f'<dt>{l}</dt><dd>{v}</dd>' for l, v in notes)
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>{title} {esc(d['inv'])} · {esc(COMPANY['name'])}</title>
 <meta name="fika-invoice" content="{esc(d['inv'])}"><meta name="fika-company" content="{esc(COMPANY['name'])}">
-<meta name="fika-contact" content="Questions about this invoice: {esc(COMPANY['email'])} · WhatsApp {esc(COMPANY['phone'])}">
 <style>{FONTS}{CSS}</style></head>
 <body>
 <header class="band">
   <div class="band-top">
     <div class="co">
       <div class="co-name one">{ph(COMPANY['name'])}</div>
+      <div class="co-name-ar one" lang="ar" dir="rtl">{ph(COMPANY['name_ar'])}</div>
       <div class="co-line one">{ph(COMPANY['address'])}</div>
-      <div class="co-line one">{esc(COMPANY['phone'])} (WhatsApp)</div>
-      <div class="co-line one">{esc(COMPANY['email'])}</div>
-      <div class="co-line one">{esc(COMPANY['web'])}</div>
+      <div class="co-line one">Tel. {esc(COMPANY['phone'])}</div>
+      <div class="co-line one">{esc(COMPANY['email'])} · {esc(COMPANY['web'])}</div>
     </div>
     <div class="brand">
       <div class="doc-title"><div class="en one">{title.upper()[:-1]}<span class="last">{title.upper()[-1]}</span></div><div class="ar one" lang="ar" dir="rtl">{title_ar}</div></div>
@@ -376,29 +452,22 @@ def render(d):
 </header>
 <main class="main">
   <section class="parties">
-    <div class="cust"><h2>Bill to</h2>{cust}</div>
-    <div class="details"><h2>Invoice details</h2><dl class="kv">{details_html}</dl></div>
+    <div class="cust">{h2('Bill to', 'فاتورة إلى')}{cust}</div>
+    <div class="details">{h2('Invoice details', 'تفاصيل الفاتورة')}<dl class="kv">{details_html}</dl></div>
   </section>
-  <div class="cap"><span class="one">Pick-and-mix is priced per 100 g, Ready Mix per 500 g bag</span><span class="one">{caption}</span></div>
+  <div class="cap"><span class="one">Pick-and-mix priced per 100 g, Ready Mix per 500 g bag{ar("الحلوى بالوزن لكل 100 غ، والخلطة الجاهزة لكل كيس 500 غ", "dar")}</span><span class="one">{caption}</span></div>
   {table}
   <section class="summary">
-    <div class="thanks"><div class="big">Thank you for choosing Fika!</div><dl class="kv notes">{notes_html}</dl></div>
-    <div class="totals"><table>{tot}<tr class="grand"><td class="one">{grand}</td><td class="num">${money(total)}</td></tr></table></div>
-  </section>
-  <section class="pay">
-    <h2>Payment information</h2>
-    <div class="pay-grid">
-      <div><h3>Cash on delivery</h3>{''.join(cash)}</div>
-      <div><h3>Bank transfer (wholesale customers)</h3><dl class="kv">{bank_html}</dl></div>
-      <div class="stamp">Company stamp and signature</div>
-    </div>
+    <div class="thanks">{h2('Notes', 'ملاحظات')}<dl class="kv notes">{notes_html}</dl></div>
+    <div class="totals"><table>{tot}<tr class="grand"><td><span class="one">{grand}</span>{ar(AR[grand], "tar")}</td><td class="num">${money(total)}</td></tr></table>
+      <div class="stamp">Company stamp and signature<br><span lang="ar" dir="rtl">ختم الشركة والتوقيع</span></div></div>
   </section>
 </main>
 </body></html>'''
 
 
 def placeholders():
-    return [v for v in list(COMPANY.values()) + list(BANK.values()) if str(v).startswith('[')]
+    return [v for v in COMPANY.values() if str(v).startswith('[')]
 
 
 if __name__ == '__main__':
@@ -409,7 +478,7 @@ if __name__ == '__main__':
     vat, draft = '--vat' in args, '--draft' in args
     ids = {int(x) for x in args[args.index('--ids') + 1].split(',')} if '--ids' in args else None
     if placeholders() and not draft:
-        sys.exit('Company or bank details still missing: ' + ', '.join(placeholders()) +
+        sys.exit('Company details still missing: ' + ', '.join(placeholders()) +
                  '\nFill them in at the top of this file, or pass --draft for samples.')
     orders = json.load(open(src))
     orders = orders if isinstance(orders, list) else [orders]

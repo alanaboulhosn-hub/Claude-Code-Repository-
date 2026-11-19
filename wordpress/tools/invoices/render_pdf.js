@@ -1,6 +1,6 @@
 // Fika invoices: every INV-*.html in a folder becomes an A4 PDF next to it, rendered by Chromium (Playwright).
 // Usage: node render_pdf.js <folder> [INV-1616.html ...]
-// The page footer carries the company, the invoice number, the contact line and "Page x of y".
+// The page footer carries the company, the invoice number and "Page x of y".
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -17,7 +17,27 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
   for (const f of files) {
     await page.goto('file://' + path.join(dir, f), { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
-    const [inv, company, contact] = await page.evaluate(() => ['fika-invoice', 'fika-company', 'fika-contact']
+    // an invoice longer than page 1: its last lines (at least 3) go to page 2 with the totals, after a "continued" line
+    await page.emulateMedia({ media: 'print' });
+    await page.setViewportSize({ width: 794, height: 1123 });
+    await page.evaluate(() => {
+      const H = 283 * 96 / 25.4 - 6;                       // page 1: A4 less the 14 mm bottom margin (no top margin)
+      const t = document.querySelector('table.items'), tpl = document.querySelector('template#cont');
+      if (!t || !tpl || document.body.scrollHeight <= H) return;
+      const rows = [...t.tBodies[0].rows], top = document.body.getBoundingClientRect().top;
+      const fit = rows.filter(r => r.getBoundingClientRect().bottom - top <= H).length;
+      const k = Math.min(rows.length - 1, Math.max(3, rows.length - fit));
+      if (k < 1) return;
+      const t2 = t.cloneNode(true);
+      [...t2.tBodies[0].rows].slice(0, rows.length - k).forEach(r => r.remove());
+      rows.slice(rows.length - k).forEach(r => r.remove());
+      const cont = document.createElement('div');
+      cont.className = 'cont';
+      cont.innerHTML = tpl.innerHTML;
+      t.after(cont);
+      cont.after(t2);
+    });
+    const [inv, company] = await page.evaluate(() => ['fika-invoice', 'fika-company']
       .map(k => (document.querySelector(`meta[name="${k}"]`) || {}).content || ''));
     await page.pdf({
       path: path.join(dir, f.replace(/\.html$/, '.pdf')),
@@ -26,7 +46,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
       headerTemplate: '<span></span>',   // page 2 of a long invoice opens with its own "continued" line (make_invoice.py)
       footerTemplate: `<div style="box-sizing:border-box;width:100%;padding:0 14mm;display:flex;justify-content:space-between;`
         + `gap:6mm;font-family:Inter,'Helvetica Neue',Arial,sans-serif;font-size:6.8pt;line-height:1.3;color:#7a86a1">`
-        + `<span>${esc(company)} · ${esc(inv)} · ${esc(contact)}</span>`
+        + `<span>${esc(company)} · Invoice ${esc(inv)}</span>`
         + `<span style="white-space:nowrap">Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`,
     });
     n++;

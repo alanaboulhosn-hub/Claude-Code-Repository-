@@ -2844,3 +2844,10 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
 - Before the real run: company details and bank details at the top of make_invoice.py (a full run refuses while
   [placeholders] are left); the accountant's choices (invoice date, numbering, rate); order #1056 (joke name) to keep
   or leave out.
+- 19 Nov (owner): the invoices are for the Ministry of Finance, not the customer: no thank-you or customer-service
+  lines, no WhatsApp/contact line in the footer, neutral wording (promotional / loyalty discount, free sample).
+  Everything in English with Arabic beside or under it (headings, labels, table header, totals, notes, amount in
+  Arabic words "فقط ... لا غير"); Arabic company name "فيكا ش.م.م." to confirm from the commercial register. Bank
+  block dropped (cash sales already paid); tracking no. and delivery date in the invoice details; stamp box under the
+  totals. Page split now measured by render_pdf.js (last lines, at least 3, go to page 2 with the totals when page 1
+  overflows). Re-checked all 661: 0 problems; 635 on one page, 26 on two (VAT version 566 / 95).

@@ -34,7 +34,12 @@ const { chromium } = require('playwright');
         const range = document.createRange();
         range.selectNodeContents(node);
         id++;
-        for (const b of range.getClientRects()) if (b.width > 0.5 && b.height > 0.5) boxes.push({ id, b, el: node.parentElement });
+        // the Arabic font reserves a much taller box than its letters: measure every text by 1.25 x its size, centred
+        const fs = parseFloat(getComputedStyle(node.parentElement).fontSize);
+        for (const r of range.getClientRects()) if (r.width > 0.5 && r.height > 0.5) {
+          const h = Math.min(r.height, 1.25 * fs), top = r.top + (r.height - h) / 2;
+          boxes.push({ id, b: { left: r.left, right: r.right, top, bottom: top + h }, el: node.parentElement });
+        }
       }
       for (const img of document.querySelectorAll('img')) boxes.push({ id: ++id, b: img.getBoundingClientRect(), el: img });
       for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
