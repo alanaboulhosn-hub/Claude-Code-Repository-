@@ -2875,3 +2875,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
 - Facts per order: wordpress/tools/notes/order_facts.py (history, favourites by grams, sweet/sour leaning, what is
   a favourite again or new to them, gift, town, customer note). First notes saved on #1714, #1736-#1743.
 - Site check OK 46/46 after installing; 311 added to _active_snippets.
+- Owner couldn't find the box: it was registered, but the admin's saved order-page layout (meta-box-order) listed only
+  WooCommerce's boxes, so it fell to the bottom under Custom Fields. Snippet 311 now places it right after the order
+  items for every admin (filter on that saved layout). Checked from inside the shop (temporary routes 312/313,
+  trashed): admin layout = order data, order items, Owner's note, downloads, custom fields. Site check after.

@@ -79,6 +79,25 @@ add_action( 'add_meta_boxes', function () {
 	}
 } );
 
+// right under the order items, even when an admin's saved page layout predates the box
+foreach ( array( 'shop_order', 'woocommerce_page_wc-orders' ) as $fika_screen ) {
+	add_filter( 'get_user_option_meta-box-order_' . $fika_screen, function ( $order ) {
+		if ( ! is_array( $order ) || empty( $order['normal'] ) ) {
+			return $order;
+		}
+		$ids = array_values( array_diff( explode( ',', $order['normal'] ), array( 'fika-owner-note' ) ) );
+		$at  = array_search( 'woocommerce-order-items', $ids, true );
+		array_splice( $ids, false === $at ? count( $ids ) : $at + 1, 0, 'fika-owner-note' );
+		foreach ( array( 'side', 'advanced' ) as $ctx ) {
+			if ( ! empty( $order[ $ctx ] ) ) {
+				$order[ $ctx ] = implode( ',', array_diff( explode( ',', $order[ $ctx ] ), array( 'fika-owner-note' ) ) );
+			}
+		}
+		$order['normal'] = implode( ',', $ids );
+		return $order;
+	} );
+}
+
 // edits made in the box are kept when the order is updated
 add_action( 'woocommerce_process_shop_order_meta', function ( $order_id ) {
 	if ( ! isset( $_POST['fika_owner_note_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['fika_owner_note_nonce'] ) ), 'fika_owner_note' ) ) {
