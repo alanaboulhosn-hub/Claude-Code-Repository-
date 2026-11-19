@@ -2887,3 +2887,9 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   routes 314/315, trashed; 314 errored on loading the list-table class, the shop was unaffected); arrows, keys and
   save tested on a stand-in of the preview (first version's arrows could open disabled: fixed by reading the open
   order from the preview). Site check OK 46/46.
+- Hourly notes agent (19 Nov, owner): scheduled task "Fika owner's notes (hourly)" (fresh session each hour). It
+  runs wordpress/tools/notes/notes_agent.py pending (orders not yet packed, processing / on hold, without a note),
+  writes the message + Instagram question from the facts in the owner's voice (owner-voice.md), and saves each
+  with notes_agent.py save (refuses if a note exists: the owner's or the team's edits are never overwritten).
+  Customer data only in the session's scratch folder. Before switching it on: site check OK 46/46, 42 snippets on
+  without errors, admin pages and orders API fine.
