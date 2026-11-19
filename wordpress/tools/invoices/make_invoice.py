@@ -257,8 +257,8 @@ h2 { margin: 0 0 2.2mm; padding-bottom: 1.4mm; border-bottom: .35mm solid #d5dce
   font-weight: 700; font-size: 6.8pt; line-height: 1.55; letter-spacing: .12em; text-transform: uppercase; color: #1d7a46;
   vertical-align: .2mm; }
 
-.cap { display: flex; justify-content: space-between; align-items: flex-end; gap: 4mm; margin: 5mm 0 1.4mm; font-size: 7.6pt; color: #6b7894; }
 table.items { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.parties + table.items { margin-top: 6mm; }
 .items col.q { width: 13mm; } .items col.u { width: 28mm; } .items col.p { width: 27mm; } .items col.a { width: 27mm; }
 .items thead { display: table-header-group; }
 .items th { background: #004aad; color: #fff; border: .3mm solid #004aad; padding: 1.9mm 2.6mm; font-weight: 600;
@@ -281,9 +281,6 @@ table.items { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .notes dd:not(.one) { white-space: normal; }
 .notes dd, .pay p, .cust .ln { text-wrap: pretty; }
 .totals { flex: 0 0 78mm; }
-.cap > span { display: flex; flex-direction: column; }
-.cap > span:last-child { align-items: flex-end; }
-.cap .dar { margin: .3mm 0 0; line-height: 1.6; }
 .totals table { width: 100%; border-collapse: separate; border-spacing: 0 1mm; margin: -1mm 0; }
 .totals td { background: #eef3fb; padding: 1.25mm 3.2mm; line-height: 1.35; color: #16213e; }
 .totals .code { margin-left: 1.6mm; font-size: 7.6pt; letter-spacing: .03em; color: #6b7894; }
@@ -398,15 +395,13 @@ def render(d):
     pay_en, pay_ar = ('Cash on delivery', 'نقداً عند التسليم') if d['cod'] else (d['pay_title'] or 'Paid', '')
     details = [(lab('Invoice no.', 'رقم الفاتورة'), esc(d['inv'])), (lab('Invoice date', 'تاريخ الفاتورة'), day(d['date'])),
                (lab('Order no.', 'رقم الطلب'), f"#{esc(d['order'])}"),
-               (lab('Payment', 'طريقة الدفع'), f'{esc(pay_en)}{ar(pay_ar, "dar")}')]
+               (lab('Payment', 'طريقة الدفع'), f'{esc(pay_en)}{ar(pay_ar, "dar")}'),
+               (lab('Currency', 'العملة'), f'US dollar (USD){ar("دولار أميركي", "dar")}')]
     if d['tracking']:
         details.append((lab('Tracking no.', 'رقم التتبع'), esc(d['tracking'])))
     if d['delivered']:
         details.append((lab('Delivered on', 'تاريخ التسليم'), day(d['delivered'])))
     details_html = ''.join(f'<dt>{l}</dt><dd class="one">{v}</dd>' for l, v in details)
-    cap_r = (('Amounts in US dollars (USD), including 11% VAT', 'المبالغ بالدولار الأميركي، شاملة الضريبة على القيمة المضافة 11%')
-             if vat else ('Amounts in US dollars (USD)', 'المبالغ بالدولار الأميركي'))
-    caption = f'{esc(cap_r[0])}{ar(cap_r[1], "dar")}'
     units = {}
     rows = []
     for r in d['rows']:
@@ -424,7 +419,7 @@ def render(d):
     # render_pdf.js measures the page: if the invoice runs past page 1, it moves the last lines (at least 3) and the
     # totals to page 2, opened by this "continued" line
     table += (f'<template id="cont"><span><b>{esc(COMPANY["name"])}</b> · Invoice {esc(d["inv"])} · continued{ar("تابع", "dar")}</span>'
-              f'<span class="one">{caption}</span></template>')
+              '</template>')
     tot = ''.join(
         f'<tr class="{"net" if l == "Total excl. VAT" else ""}"><td><span class="one">{esc(l)}'
         + (f'<span class="code">{esc(code)}</span>' if code else '') + f'</span>{ar(AR.get(l, ""), "tar")}</td><td class="num">{signed(v)}</td></tr>'
@@ -469,7 +464,6 @@ def render(d):
     <div class="cust">{h2('Bill to', 'فاتورة إلى')}<dl class="kv">{cust}</dl></div>
     <div class="details">{h2('Invoice details', 'تفاصيل الفاتورة')}<dl class="kv">{details_html}</dl></div>
   </section>
-  <div class="cap"><span class="one">Pick-and-mix priced per 100 g, Ready Mix per 500 g{ar("الحلوى بالوزن لكل 100 غ، والخلطة الجاهزة لكل 500 غ", "dar")}</span><span class="one">{caption}</span></div>
   {table}
   <section class="summary">
     <div class="thanks">{h2('Additional information', 'معلومات إضافية')}<table class="info">{notes_html}</table></div>

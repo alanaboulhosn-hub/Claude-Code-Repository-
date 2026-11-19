@@ -2899,3 +2899,6 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   $3,558.00 = orders $18,173.67); amount in words in formal title case without "only" / "فقط ... لا غير";
   "Additional information" as a bordered table (weight, amount in words EN + AR, LBP with the rate, VAT status).
   All 661 checked, both versions: 0 layout problems; 637 on one page, 24 on two (VAT 618 / 43).
+- Owner (19 Nov): removed the line above the table ("Pick-and-mix priced per 100 g..." / "Amounts in US dollars"),
+  also from page 2's "continued" line; the currency now sits in the invoice details ("Currency: US dollar (USD)").
+  All 661 checked, both versions: 0 layout problems; 646 on one page, 15 on two (VAT 629 / 32).
