@@ -2916,3 +2916,14 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   shop) added to order #1755 (id 1885) as its own line, 1 x $2.80 (Weight 100 g); totals recalculated: $53.60 ->
   $56.40 (delivery $6.00 unchanged). Private order note, no email. Done through temporary staff-only route
   (snippet 316, trashed). RT parcel RTL71827180 was created with $53.60 cash: the owner updates it to $56.40 in RT.
+
+## 2026-11-24: #1757 raised to 9.9 kg; loyalty for #1755 and #1757 (owner)
+- #1757 (id 1891, guest): as the customer's note asked, the five 200 g lines (BUBS Bubblegum Skull, Fruity Lemon Mix
+  Skulls (Mini), Lemon Raspberry Skull, Fruity Pear Ovals, Cola Skull) set to 1.1 kg (qty 11, $30.80, Weight 1.1 kg);
+  9 candies x 1.1 kg = 9.9 kg. Total $156.20 -> $282.20 (delivery $5.00). Over the BUBS 200 g cap on purpose (owner).
+  Private order note, no email. RT parcel RTL62824303 created with $156.20 and the old bag count: owner updates RT.
+- Her loyalty: no account exists for her email, so the order counts nowhere yet. If she makes an account with the
+  same email and confirms it, her guest orders (this one included, 9.9 kg) join it automatically (fika_link_past_orders).
+- #1755 Maria Khairallah (account 316): the added 100 g already counts: lane 1.8 kg on its way (fika_swim_totals,
+  live), delivered once the order is Completed. fika_swim_sync run for 316 (prunes claims only, sends nothing).
+- Temporary staff-only route snippet 317 (trashed).
