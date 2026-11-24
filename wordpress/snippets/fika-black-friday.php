@@ -13,6 +13,8 @@
  * - The per-order caps (fika-order-caps.php) stay. The kg count in Fika Club in full.
  * - The bag drawer on the shop pages shows the Black Friday line, a progress bar to 1 kg, the lower total and what is
  *   still needed for 20%; with the bag closed, each change shows a short note ("0.9 kg in your bag · 100 g more for 20%").
+ * - The checkout shows the same above its totals: "You're 100 g away from 20% off" with the bar and "Add more" (back to
+ *   Mix your own), or "20% off unlocked with 1 kg".
  * - The home page hero carries an "Up to 20% off" sticker ("10% on everything / 20% from 1 kg" under it) linking to Mix your own.
  * - Private preview while it is off: any shop page with ?fika_bf_preview=<FIKA_BF_PREVIEW_KEY> switches it on for that
  *   browser only (a cookie for 3 hours, pages not cached for it), nobody else; a small note says it is a preview.
@@ -116,6 +118,13 @@ add_action( 'wp_footer', function () {
   padding: 10px 16px; border-radius: 999px; background: #111827; color: #fff; font: 600 13px/1.3 'Outfit', 'Open Sans', Arial, sans-serif;
   box-shadow: 0 8px 24px rgba(17, 24, 39, .3); white-space: nowrap; pointer-events: none; transition: opacity .25s ease, transform .25s ease; }
 .fkbf-toast b { color: #fcd34d; }
+.fkbf-co { margin: 0 0 14px; padding: 12px 14px; border-radius: 10px; background: #111827; color: #fff; font: 600 14px/1.35 'Outfit', 'Open Sans', Arial, sans-serif; }
+.fkbf-co.won { background: linear-gradient(135deg, #111827, #3b2f05); }
+.fkbf-co .h { display: block; color: #fcd34d; }
+.fkbf-co .bar { display: block; position: relative; height: 8px; margin: 9px 0 5px; border-radius: 99px; background: rgba(255, 255, 255, .16); overflow: hidden; }
+.fkbf-co .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: #fcd34d; }
+.fkbf-co .s { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, .75); }
+.fkbf-co a.fkbf-more, .fkbf-co a.fkbf-more:visited, .fkbf-co a.fkbf-more:hover { color: #fcd34d !important; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; white-space: nowrap; }
 .fkbf-toast.on { opacity: 1; transform: translate(-50%, 0); }
 .fkbf-stk { position: absolute; z-index: 3; right: 12%; bottom: 200px; width: 196px; height: 196px; border-radius: 50%; background: #111827;
   color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; text-decoration: none;
@@ -197,6 +206,29 @@ add_action( 'wp_footer', function () {
 		h.appendChild(a);
 	}
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sticker); else sticker();
+	<?php endif; ?>
+	<?php if ( function_exists( 'is_checkout' ) && is_checkout() && WC()->cart ) : $fika_bfb = fika_bf_bag( WC()->cart ); ?>
+	// the checkout: how close the bag is to 20%, just above the totals
+	(function () {
+		var g = <?php echo (int) $fika_bfb['g']; ?>;
+		if (!g) return;
+		function html() {
+			if (g >= 1000) return '<span class="h">20% off unlocked with ' + kg(g) + '</span><span class="bar"><i style="width:100%"></i></span><span class="s"><span>Black Friday: 20% off from 1 kg</span></span>';
+			return '<span class="h">You\'re ' + (1000 - g) + ' g away from 20% off</span><span class="bar"><i style="width:' + (g / 10) + '%"></i></span>' +
+				'<span class="s"><span>' + kg(g) + ' in your bag &middot; 1 kg = 20% off</span><a class="fkbf-more" href="/mix-your-own/">Add more</a></span>';
+		}
+		function place() {
+			var sum = document.querySelector('.wp-block-woocommerce-checkout-order-summary-block');
+			var tot = sum ? sum.querySelector('.wc-block-components-totals-wrapper') : null;
+			if (!tot || sum.querySelector('.fkbf-co')) return;
+			var n = document.createElement('div');
+			n.className = 'fkbf-co' + (g >= 1000 ? ' won' : ''); n.innerHTML = html();
+			tot.parentNode.insertBefore(n, tot);
+		}
+		var t = null;
+		new MutationObserver(function () { clearTimeout(t); t = setTimeout(place, 120); }).observe(document.body, { childList: true, subtree: true });
+		if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', place); else place();
+	})();
 	<?php endif; ?>
 	<?php if ( $preview ) : ?>
 	document.addEventListener('DOMContentLoaded', function () { var n = document.createElement('div'); n.className = 'fkbf-prev'; n.textContent = 'Black Friday preview (only you see this)'; document.body.appendChild(n); });

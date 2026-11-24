@@ -2979,3 +2979,8 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   (testbf280, deleted after) -> $19.60 (rewards combine); FIKA10 refused with the message; BUBS cap still refuses
   300 g; checkout 900 g outside Beirut: Subtotal $25.20, Black Friday 10% off -$2.52, Delivery $6.00, Total $28.68;
   before-you-go 10% skipped (FIKA_FREEKG = blackfriday); no page errors; normal visitor unchanged; site check OK.
+- 24 Nov (owner): checkout note added to snippet 320, at the top of the order summary: under 1 kg "You're 200 g away
+  from 20% off", gold bar, "800 g in your bag · 1 kg = 20% off", "Add more" (gold, to /mix-your-own/); from 1 kg
+  "20% off unlocked with 1.1 kg". Grams from the cart on the server (fika_bf_bag). Preview checked on a phone at 800 g
+  (Subtotal $22.40, 10% -$2.24, delivery $5, total $25.16) and 1.1 kg (20% -$6.16, total $29.64); no page errors.
+  Switch still OFF; site check OK 46/46.
