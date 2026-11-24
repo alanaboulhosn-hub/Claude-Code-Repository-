@@ -15,7 +15,9 @@
  * - The bag drawer on the shop pages shows the Black Friday line, a progress bar to 1 kg, the lower total and what is
  *   still needed for 20%; with the bag closed, each change shows a short note ("0.9 kg in your bag · 100 g more for 20%").
  * - The checkout shows the same above its totals: "You're 100 g away from 20% off" with the bar and "Add more" (back to
- *   Mix your own), or "20% off unlocked with 1 kg".
+ *   Mix your own), or "20% off unlocked with 1 kg". Signed-in customers also get a card on top of it (owner, 24 Nov 2026:
+ *   make it clear what happened to their rewards): "Your Fika Club rewards are saved", listing each reward and mystery
+ *   taste waiting in their account by name, and that every gram of this order still counts.
  * - The home page hero carries an "Up to 20% off" sticker ("10% on everything / 20% from 1 kg" under it) linking to Mix your own.
  * - Private preview while it is off: any shop page with ?fika_bf_preview=<FIKA_BF_PREVIEW_KEY> switches it on for that
  *   browser only (a cookie for 3 hours, pages not cached for it), nobody else; a small note says it is a preview.
@@ -54,6 +56,27 @@ if ( ! function_exists( 'fika_bf_on' ) ) {
 			$sub += (float) $item['line_subtotal'];
 		}
 		return array( 'g' => $g, 'sub' => $sub );
+	}
+	// what a signed-in customer has waiting, by name: rewards reached (claimed or not) and won mystery tastes
+	function fika_bf_saved( $uid ) {
+		$out = array();
+		if ( function_exists( 'fika_brw_data' ) ) {
+			$d = fika_brw_data( $uid );
+			foreach ( $d ? $d['rewards'] : array() as $w ) {
+				if ( $w['need'] <= $d['reach'] ) {
+					$out[] = $w['title'] . ' (worth $' . number_format( (float) $w['amount'], 2 ) . ')';
+				}
+			}
+		}
+		if ( function_exists( 'fika_taste_list' ) ) {
+			foreach ( fika_taste_list( $uid ) as $t ) {
+				$p = 'won' === ( $t['status'] ?? '' ) ? wc_get_product( (int) $t['pid'] ) : null;
+				if ( $p ) {
+					$out[] = 'Mystery taste: ' . html_entity_decode( $p->get_name() ) . ', 50 g free';
+				}
+			}
+		}
+		return $out;
 	}
 	function fika_bf_rate( $grams ) {
 		return $grams >= 1000 ? 20 : 10;
@@ -124,7 +147,14 @@ add_action( 'wp_footer', function () {
 .fkbf-co .h { display: block; color: #fcd34d; }
 .fkbf-co .bar { display: block; position: relative; height: 8px; margin: 9px 0 5px; border-radius: 99px; background: rgba(255, 255, 255, .16); overflow: hidden; }
 .fkbf-co .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: #fcd34d; }
-.fkbf-co .m { display: block; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, .14); font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, .8); }
+.fkbf-rw { display: flex; gap: 12px; margin: 0 0 10px; padding: 14px 16px; border-radius: 12px; background: #fff6d6; border: 2px solid #fcd34d; color: #1b2a4a; font: 500 14px/1.45 'Outfit', 'Open Sans', Arial, sans-serif; }
+.fkbf-rw .i { flex: none; font-size: 26px; line-height: 1; }
+.fkbf-rw b { display: block; margin: 1px 0 4px; font-size: 16px; font-weight: 700; color: #004aad; }
+.fkbf-rw p { margin: 0; }
+.fkbf-rw ul { margin: 8px 0 8px; padding: 0; list-style: none; }
+.fkbf-rw li { position: relative; margin: 0 0 4px; padding-left: 20px; font-weight: 600; color: #004aad; }
+.fkbf-rw li::before { content: '\2713'; position: absolute; left: 0; color: #2fb36b; font-weight: 700; }
+.fkbf-rw .s { margin-top: 6px; font-size: 13px; color: #4a587a; }
 .fkbf-co .s { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, .75); }
 .fkbf-co a.fkbf-more, .fkbf-co a.fkbf-more:visited, .fkbf-co a.fkbf-more:hover { color: #fcd34d !important; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; white-space: nowrap; }
 .fkbf-toast.on { opacity: 1; transform: translate(-50%, 0); }
@@ -219,15 +249,24 @@ add_action( 'wp_footer', function () {
 			return '<span class="h">You\'re ' + (1000 - g) + ' g away from 20% off</span><span class="bar"><i style="width:' + (g / 10) + '%"></i></span>' +
 				'<span class="s"><span>' + kg(g) + ' in your bag &middot; 1 kg = 20% off</span><a class="fkbf-more" href="/mix-your-own/">Add more</a></span>';
 		}
-		var member = <?php echo is_user_logged_in() ? 'true' : 'false'; ?>;
+		// signed in: what is waiting in their account, by name (null for visitors)
+		var saved = <?php echo is_user_logged_in() ? wp_json_encode( fika_bf_saved( get_current_user_id() ) ) : 'null'; ?>;
+		function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+		function card() {
+			if (!saved) return '';
+			if (!saved.length) return '<span class="i" aria-hidden="true">&#127873;</span><div><b>Every gram counts in Fika Club</b><p>Black Friday does not combine with other offers, so any Fika Club reward you reach now is saved in your account for your next order after Black Friday.</p><p class="s">This order still moves your fish towards your next reward.</p></div>';
+			return '<span class="i" aria-hidden="true">&#127873;</span><div><b>Your Fika Club rewards are saved</b><p>Black Friday does not combine with other offers, so ' + (saved.length > 1 ? 'these wait' : 'this waits') + ' in your account for your next order after Black Friday:</p><ul>' +
+				saved.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul><p class="s">Nothing is lost, and every gram of this order still counts towards your next reward.</p></div>';
+		}
 		// every order summary that has totals (WooCommerce also keeps a hidden copy of the summary, first in the page)
 		function place() {
 			[].forEach.call(document.querySelectorAll('.wp-block-woocommerce-checkout-order-summary-block'), function (sum) {
 				var tot = sum.querySelector('.wc-block-components-totals-wrapper');
 				if (!tot || sum.querySelector('.fkbf-co')) return;
 				var n = document.createElement('div');
-				n.className = 'fkbf-co' + (g >= 1000 ? ' won' : ''); n.innerHTML = html() + (member ? '<span class="m">Your Fika Club rewards are saved for your next order after Black Friday. Every gram here still counts.</span>' : '');
+				n.className = 'fkbf-co' + (g >= 1000 ? ' won' : ''); n.innerHTML = html();
 				tot.parentNode.insertBefore(n, tot);
+				if (saved) { var r = document.createElement('div'); r.className = 'fkbf-rw'; r.innerHTML = card(); n.parentNode.insertBefore(r, n); }
 			});
 		}
 		var t = null;

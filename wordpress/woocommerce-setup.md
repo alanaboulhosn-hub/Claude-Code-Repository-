@@ -3029,3 +3029,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   - home sticker (no overlap, goes to Mix your own), bag note while closed, bag box and bar, checkout note and "Add more";
   - member: spin works (taste saved), reward claim works (saved), bag / checkout / My account texts as above.
 - No $5 store-credit codes created since the switch (last one 13:12 UTC). Site check OK 46/46 after the changes.
+- Member card at checkout (owner: the saved-rewards line must be more apparent): fika-black-friday.php has a gold
+  "Your Fika Club rewards are saved" card listing each reward / mystery taste by name (fika_bf_saved()). Committed and
+  previewed (injected in a test browser only); NOT deployed yet, waiting for the owner's go. Live snippet 320 = commit
+  377c7b6 until then.
