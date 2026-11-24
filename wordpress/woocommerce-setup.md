@@ -2910,3 +2910,9 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   100 g. Set in product meta fika_max_g (REST, POST); the page cache cleared itself (fika-cache) and the shop pages
   carry the new caps. Checked through the Store API with a throwaway bag (no order): 100 g accepted, 200 g refused
   with "You can order up to 100 g of ... per order." Site check OK 46/46.
+
+## 2026-11-24: 100 g Pomegranate Ovals added to #1755 (owner)
+- Customer's note asked for "the pink bubs 100g": BUBS Wild Berry Pomegranate Oval (108, hidden / out of stock in the
+  shop) added to order #1755 (id 1885) as its own line, 1 x $2.80 (Weight 100 g); totals recalculated: $53.60 ->
+  $56.40 (delivery $6.00 unchanged). Private order note, no email. Done through temporary staff-only route
+  (snippet 316, trashed). RT parcel RTL71827180 was created with $53.60 cash: the owner updates it to $56.40 in RT.
