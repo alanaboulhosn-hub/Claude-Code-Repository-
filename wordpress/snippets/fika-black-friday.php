@@ -19,12 +19,19 @@
  *   make it clear what happened to their rewards): "Your Fika Club rewards are saved", listing each reward and mystery
  *   taste waiting in their account by name, and that every gram of this order still counts.
  * - The home page hero carries an "Up to 20% off" sticker ("10% on everything / 20% from 1 kg" under it) linking to Mix your own.
+ * - End date (owner, 24 Nov 2026: show when the deal ends): FIKA_BF_ENDS, the deal's last day (Beirut). Shown on the
+ *   top strip of every page ("Black Friday: up to 20% off · Ends Sunday 29 November"), under the home page sticker, in
+ *   the bag's Black Friday box and in the checkout note; "Ends tomorrow" / "Ends tonight" on the last two days (worked
+ *   out in the browser, so cached pages stay right). Empty = no end date shown. It does not switch the deal off.
  * - Private preview while it is off: any shop page with ?fika_bf_preview=<FIKA_BF_PREVIEW_KEY> switches it on for that
  *   browser only (a cookie for 3 hours, pages not cached for it), nobody else; a small note says it is a preview.
  * - GET /wp-json/fika/v1/black-friday (shop admins): whether it is on.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-black-friday.php
  */
 
+if ( ! defined( 'FIKA_BF_ENDS' ) ) {
+	define( 'FIKA_BF_ENDS', '2026-11-29' ); // the deal's last day, Beirut time ('' = no end date shown)
+}
 if ( ! defined( 'FIKA_BF_PREVIEW_KEY' ) ) {
 	define( 'FIKA_BF_PREVIEW_KEY', 'bf7c41e9a2' );
 }
@@ -174,12 +181,38 @@ add_action( 'wp_footer', function () {
   .fkbf-stk .t2 { font-size: 40px; }
   .fkbf-stk .t4 { font-size: 8.5px; margin-top: 5px; }
 }
+.fkbf .h { display: flex; justify-content: space-between; gap: 10px; }
+.fkbf .h .dl, .fkbf-co .dl { font-weight: 600; color: #fff; }
+.fkbf-co .dl { display: block; margin-top: 6px; font-size: 12px; }
+.fkbf-stk .end { position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); padding: 5px 12px; border-radius: 999px; background: #fcd34d; color: #111827; font: 700 11.5px/1 'Outfit', 'Open Sans', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 4px 10px rgba(17, 24, 39, .25); }
+.fika-banner .fika-ticker b.fkbf-tk { color: #fcd34d; font-weight: 700; }
+@media (max-width: 760px) { .fkbf-stk .end { font-size: 9px; padding: 4px 9px; bottom: -9px; } }
 .fkbf-prev { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 100001; padding: 6px 12px; border-radius: 999px; background: #111827; color: #fcd34d; font: 600 12px/1.2 Arial, sans-serif; pointer-events: none; }
 </style>
 <script>
 (function () {
 	window.FIKA_FREEKG = window.FIKA_FREEKG || 'blackfriday';   // before-you-go popup: no 10% offer during Black Friday
 	var KEY = 'fika_bag_v1';
+	// when the deal ends (FIKA_BF_ENDS, Beirut): "Ends Sunday 29 November", "Ends tomorrow", "Ends tonight"; '' if none
+	var END = <?php echo wp_json_encode( FIKA_BF_ENDS ); ?>;
+	function ends(short) {
+		if (!END) return '';
+		var today = '';
+		try { today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Beirut' }).format(new Date()); } catch (e) { today = new Date().toISOString().slice(0, 10); }
+		var d = Math.round((Date.parse(END) - Date.parse(today)) / 864e5);
+		if (!(d >= 0)) return '';
+		if (d === 0) return short ? 'Ends tonight' : 'Ends tonight at midnight';
+		if (d === 1) return short ? 'Ends tomorrow' : 'Ends tomorrow at midnight';
+		return 'Ends ' + new Date(END + 'T12:00:00Z').toLocaleDateString('en-GB', short ? { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' } : { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).replace(',', '');
+	}
+	// the top strip of every page
+	function strip() {
+		var t = document.querySelector('.fika-banner .fika-ticker');
+		if (!t || t.querySelector('.fkbf-tk')) return;
+		var e = ends(false);
+		t.insertAdjacentHTML('afterbegin', '<b class="fkbf-tk">Black Friday: up to 20% off</b>' + (e ? ' &middot; ' + e : '') + ' &middot; ');
+	}
+	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', strip); else strip();
 	function grams() {
 		try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); var b = (s ? s.bag : null) || {}, g = 0; Object.keys(b).forEach(function (k) { g += +b[k] || 0; }); return g; } catch (e) { return 0; }
 	}
@@ -198,7 +231,7 @@ add_action( 'wp_footer', function () {
 			box.className = 'fkbf' + (g >= 1000 ? ' won' : '');
 			box.innerHTML = '<span class="r"><span>Black Friday ' + rate + '% off</span><span>&minus;' + money(off) + '</span></span>' +
 				'<span class="bar"><i style="width:' + Math.min(100, g / 10) + '%"></i></span>' +
-				'<span class="ends"><span>' + kg(g) + ' in your bag</span><span>1 kg = 20% off</span></span><span class="h">' + hint + '</span>';
+				'<span class="ends"><span>' + kg(g) + ' in your bag</span><span>1 kg = 20% off</span></span><span class="h"><span>' + hint + '</span>' + (ends(true) ? '<span class="dl">' + ends(true) + '</span>' : '') + '</span>';
 			tot.textContent = money(s - off);
 		} else if (box) { box.remove(); }
 		// the bag is closed: a short note after each change, so the 20% is seen without opening the bag
@@ -234,7 +267,7 @@ add_action( 'wp_footer', function () {
 		var a = document.createElement('a');
 		a.className = 'fkbf-stk'; a.href = '/mix-your-own/';
 		a.setAttribute('aria-label', 'Black Friday: up to 20% off. 10% off everything, 20% off from 1 kg');
-		a.innerHTML = '<span class="t1">UP TO</span><span class="t2">20%</span><span class="t3">OFF</span><span class="t4"><b>10%</b> on everything<br><b>20%</b> from 1 kg</span>';
+		a.innerHTML = '<span class="t1">UP TO</span><span class="t2">20%</span><span class="t3">OFF</span><span class="t4"><b>10%</b> on everything<br><b>20%</b> from 1 kg</span>' + (ends(true) ? '<span class="end">' + ends(true) + '</span>' : '');
 		h.appendChild(a);
 	}
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sticker); else sticker();
@@ -245,9 +278,9 @@ add_action( 'wp_footer', function () {
 		var g = <?php echo (int) $fika_bfb['g']; ?>;
 		if (!g) return;
 		function html() {
-			if (g >= 1000) return '<span class="h">20% off unlocked with ' + kg(g) + '</span><span class="bar"><i style="width:100%"></i></span><span class="s"><span>Black Friday: 20% off from 1 kg</span></span>';
+			if (g >= 1000) return '<span class="h">20% off unlocked with ' + kg(g) + '</span><span class="bar"><i style="width:100%"></i></span><span class="s"><span>Black Friday: 20% off from 1 kg</span></span>' + (ends(false) ? '<span class="dl">Black Friday ' + ends(false).charAt(0).toLowerCase() + ends(false).slice(1) + '</span>' : '');
 			return '<span class="h">You\'re ' + (1000 - g) + ' g away from 20% off</span><span class="bar"><i style="width:' + (g / 10) + '%"></i></span>' +
-				'<span class="s"><span>' + kg(g) + ' in your bag &middot; 1 kg = 20% off</span><a class="fkbf-more" href="/mix-your-own/">Add more</a></span>';
+				'<span class="s"><span>' + kg(g) + ' in your bag &middot; 1 kg = 20% off</span><a class="fkbf-more" href="/mix-your-own/">Add more</a></span>' + (ends(false) ? '<span class="dl">Black Friday ' + ends(false).charAt(0).toLowerCase() + ends(false).slice(1) + '</span>' : '');
 		}
 		// signed in: what is waiting in their account, by name (null for visitors)
 		var saved = <?php echo is_user_logged_in() ? wp_json_encode( fika_bf_saved( get_current_user_id() ) ) : 'null'; ?>;

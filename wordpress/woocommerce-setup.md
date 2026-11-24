@@ -3034,3 +3034,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   put live at the owner's go (24 Nov, live = git, active). Checked with a test member (test account + 3.2 kg test order,
   emails blocked, all deleted after): phone and computer show the card with "100 g on us (worth $2.80)"; guests get no
   card; no order placed, no page errors. Site check OK 46/46.
+- End date of the deal (owner asked for a preview of point 5): FIKA_BF_ENDS ('2026-11-29' as a placeholder, the owner
+  has not set the end yet) shown on the top strip, under the home sticker ("ENDS SUN 29 NOV"), in the bag box and in
+  the checkout note; "Ends tomorrow" / "Ends tonight" on the last two days, worked out in the browser (Beirut time).
+  Committed, previewed in a test browser only; NOT live (snippet 320 live = commit 763db3c's version until approved).
