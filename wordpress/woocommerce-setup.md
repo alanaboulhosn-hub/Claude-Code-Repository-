@@ -2904,3 +2904,9 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   All 661 checked, both versions: 0 layout problems; 646 on one page, 15 on two (VAT 629 / 32).
 - Owner (19 Nov): Tracking no. and Delivered on rows removed from the invoice details. All 661 checked, both
   versions: 0 layout problems; 648 on one page, 13 on two (VAT 637 / 24).
+
+## 2026-11-24: order caps lowered to 100 g (owner)
+- BUBS Banana Toffee Ovals (110): 200 g -> 100 g per order. Swedish Fish (100, not Sour Swedish Fish 115): no cap ->
+  100 g. Set in product meta fika_max_g (REST, POST); the page cache cleared itself (fika-cache) and the shop pages
+  carry the new caps. Checked through the Store API with a throwaway bag (no order): 100 g accepted, 200 g refused
+  with "You can order up to 100 g of ... per order." Site check OK 46/46.
