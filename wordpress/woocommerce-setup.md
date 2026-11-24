@@ -2966,3 +2966,8 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   Mix $42.00 -> $33.60; normal visitor unchanged. Checkout on a phone: Subtotal $28.00, Black Friday 20% off -$5.60,
   Delivery $5.00, Total $27.40. No page errors.
 - Invoices (make_invoice.py): negative fee lines now show as discounts, not delivery. 320 added to _active_snippets.
+- 24 Nov (owner): home hero sticker "UP TO 20% OFF" (gold "20%" in the hero's NF Le Petit Cochon, "20% from 1 kg"
+  under it), black disc with a dashed gold ring, tilted, links to /mix-your-own/; part of snippet 320, so it shows
+  only while the deal is on (or in the preview). Computer: right of the photo beside the headline; phone: above the
+  headline on the right; never over the headline (checked at 390x664, 1280x760, 1440x900; no page errors). Switch
+  still OFF; public home page has no sticker.
