@@ -14,6 +14,7 @@
  * - The free 50 g does not count towards the rewards track. Cost: 50 g at landing cost (about $0.80) per stop.
  * - A card above the tracker (home, Mix your own, Ready Mix, My account) and a line in the bag drawer say which
  *   taste is waiting. Needs snippet 11 (Fika rewards).
+ * - While the Black Friday deal is on (fika-black-friday.php) the free taste is kept out of the bag and stays won.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-taste.php
  */
 
@@ -75,6 +76,16 @@ if ( ! function_exists( 'fika_taste_list' ) ) {
 			}
 		}
 		if ( ! $won && ! $have ) {
+			return;
+		}
+		// Black Friday (fika-black-friday.php, owner 24 Nov 2026): no free taste in the bag while the deal is on; it stays
+		// won in the account and goes into the first order after Black Friday
+		if ( function_exists( 'fika_bf_on' ) && fika_bf_on() ) {
+			$busy = true;
+			foreach ( $have as $cart_key ) {
+				WC()->cart->remove_cart_item( $cart_key );
+			}
+			$busy = false;
 			return;
 		}
 		$reach = function_exists( 'fika_swim_unlock' ) ? fika_swim_unlock( $uid, fika_swim_cart_grams() ) : fika_swim_reach( $uid ) + fika_swim_cart_grams(); // delivered, + this bag while no order is on its way

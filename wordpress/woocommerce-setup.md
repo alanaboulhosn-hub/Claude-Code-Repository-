@@ -2984,3 +2984,12 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   "20% off unlocked with 1.1 kg". Grams from the cart on the server (fika_bf_bag). Preview checked on a phone at 800 g
   (Subtotal $22.40, 10% -$2.24, delivery $5, total $25.16) and 1.1 kg (20% -$6.16, total $29.64); no page errors.
   Switch still OFF; site check OK 46/46.
+- 24 Nov (owner): NOTHING combines with the Black Friday deal. Rewards, $5 store credit (IOU), FIKA10 and any code are
+  refused while it is on, each with a message that it is saved for the next order after Black Friday (refused codes
+  are not used up). Free mystery tastes are kept out of the bag (fika-taste.php, snippet 46: fika_taste_ensure removes
+  them while fika_bf_on(); status stays "won", added to the first order after). Every gram counts in Fika Club (no
+  reward on the order, the BF line is a fee). Checkout note adds, for signed-in customers: "Your Fika Club rewards
+  are saved for your next order after Black Friday. Every gram here still counts." FIKA_BF_IOU_STACKS removed.
+  Tested in preview with temporary codes swim3-testbf and testbf280 (deleted): refused with the messages; normal
+  visitor unchanged (reward-style code accepted as before). Snippets 46 and 320: live = git before, active after.
+  Switch still OFF; site check OK.

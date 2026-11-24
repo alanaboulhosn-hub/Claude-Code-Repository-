@@ -6,11 +6,11 @@
  * - The deal: 10% off the sweets, 20% off from 1 kg in the bag (everything in the bag counts, Ready Mix bags as 500 g;
  *   the free mystery taste does not). A discount line "Black Friday 10% off" / "Black Friday 20% off" on the bag at
  *   checkout and on the order. Delivery is never discounted.
- * - Combines with the Fika Club rewards (SWIM codes) and the free mystery tastes (owner) and, while FIKA_BF_IOU_STACKS
- *   is true, with the $5 store credit from the win-back emails (IOU codes: money promised to those customers).
- *   Percentage codes (FIKA10, the before-you-go 10%) are refused while it is on, with a friendly message, and the
+ * - Nothing else combines with it (owner, 24 Nov 2026): Fika Club rewards (SWIM codes), the $5 store credit (IOU codes),
+ *   FIKA10 and any other code are refused with a message saying they are saved for the next order after Black Friday
+ *   (refused codes are not used up); the free mystery taste stays out of the bag and stays won (fika-taste.php); the
  *   before-you-go popup skips its 10% offer (its question about why people leave keeps running).
- * - The per-order caps (fika-order-caps.php) stay. The kg count in Fika Club in full.
+ * - Every gram counts in Fika Club, so nobody loses progress. The per-order caps (fika-order-caps.php) stay.
  * - The bag drawer on the shop pages shows the Black Friday line, a progress bar to 1 kg, the lower total and what is
  *   still needed for 20%; with the bag closed, each change shows a short note ("0.9 kg in your bag · 100 g more for 20%").
  * - The checkout shows the same above its totals: "You're 100 g away from 20% off" with the bar and "Add more" (back to
@@ -24,7 +24,6 @@
 
 if ( ! defined( 'FIKA_BF_PREVIEW_KEY' ) ) {
 	define( 'FIKA_BF_PREVIEW_KEY', 'bf7c41e9a2' );
-	define( 'FIKA_BF_IOU_STACKS', true );   // the $5 store credit combines with the deal; false = refused while it is on
 }
 
 if ( ! function_exists( 'fika_bf_on' ) ) {
@@ -85,18 +84,19 @@ add_action( 'woocommerce_cart_calculate_fees', function ( $cart ) {
 	$cart->add_fee( 'Black Friday ' . $rate . '% off', -round( $b['sub'] * $rate / 100, 2 ), false );
 }, 20 );
 
-// percentage codes (FIKA10) are not needed while it is on; the $5 store credit follows FIKA_BF_IOU_STACKS
+// no other discount while it is on (owner, 24 Nov 2026): Fika Club rewards, the $5 store credit, FIKA10 and any other
+// code are refused with a message, so they are not used up and still work after Black Friday
 add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon ) {
 	if ( ! $valid || ! fika_bf_on() || ! $coupon instanceof WC_Coupon ) {
 		return $valid;
 	}
-	if ( 'percent' === $coupon->get_discount_type() ) {
-		throw new Exception( 'Black Friday is on: you already get 10% off your sweets, and 20% off from 1 kg, so this code is not needed.' );
+	if ( function_exists( 'fika_swim_is_code' ) && fika_swim_is_code( $coupon->get_code() ) ) {
+		throw new Exception( 'Black Friday is on, so your Fika Club reward is saved in your account for your next order after Black Friday. Every gram of this order still counts towards your rewards.' );
 	}
-	if ( ! FIKA_BF_IOU_STACKS && function_exists( 'fika_wb_is_owe' ) && fika_wb_is_owe( $coupon ) ) {
-		throw new Exception( 'Black Friday is on: your $5 is kept for after Black Friday.' );
+	if ( function_exists( 'fika_wb_is_owe' ) && fika_wb_is_owe( $coupon ) ) {
+		throw new Exception( 'Black Friday is on, so your $5 is saved for your next order after Black Friday.' );
 	}
-	return $valid;
+	throw new Exception( 'Black Friday is on: you already get 10% off your sweets, and 20% off from 1 kg, so codes cannot be added now. Your code still works after Black Friday.' );
 }, 5, 2 );
 
 // the shop pages: the before-you-go popup skips its 10% offer; the bag drawer shows the deal
@@ -123,6 +123,7 @@ add_action( 'wp_footer', function () {
 .fkbf-co .h { display: block; color: #fcd34d; }
 .fkbf-co .bar { display: block; position: relative; height: 8px; margin: 9px 0 5px; border-radius: 99px; background: rgba(255, 255, 255, .16); overflow: hidden; }
 .fkbf-co .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: #fcd34d; }
+.fkbf-co .m { display: block; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, .14); font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, .8); }
 .fkbf-co .s { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, .75); }
 .fkbf-co a.fkbf-more, .fkbf-co a.fkbf-more:visited, .fkbf-co a.fkbf-more:hover { color: #fcd34d !important; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; white-space: nowrap; }
 .fkbf-toast.on { opacity: 1; transform: translate(-50%, 0); }
@@ -217,12 +218,13 @@ add_action( 'wp_footer', function () {
 			return '<span class="h">You\'re ' + (1000 - g) + ' g away from 20% off</span><span class="bar"><i style="width:' + (g / 10) + '%"></i></span>' +
 				'<span class="s"><span>' + kg(g) + ' in your bag &middot; 1 kg = 20% off</span><a class="fkbf-more" href="/mix-your-own/">Add more</a></span>';
 		}
+		var member = <?php echo is_user_logged_in() ? 'true' : 'false'; ?>;
 		function place() {
 			var sum = document.querySelector('.wp-block-woocommerce-checkout-order-summary-block');
 			var tot = sum ? sum.querySelector('.wc-block-components-totals-wrapper') : null;
 			if (!tot || sum.querySelector('.fkbf-co')) return;
 			var n = document.createElement('div');
-			n.className = 'fkbf-co' + (g >= 1000 ? ' won' : ''); n.innerHTML = html();
+			n.className = 'fkbf-co' + (g >= 1000 ? ' won' : ''); n.innerHTML = html() + (member ? '<span class="m">Your Fika Club rewards are saved for your next order after Black Friday. Every gram here still counts.</span>' : '');
 			tot.parentNode.insertBefore(n, tot);
 		}
 		var t = null;
@@ -269,7 +271,7 @@ add_action( 'rest_api_init', function () {
 		'methods'             => 'GET',
 		'permission_callback' => function () { return current_user_can( 'manage_woocommerce' ); },
 		'callback'            => function () {
-			return array( 'on' => (bool) get_option( 'fika_bf_on' ), 'iou_stacks' => FIKA_BF_IOU_STACKS );
+			return array( 'on' => (bool) get_option( 'fika_bf_on' ) );
 		},
 	) );
 } );
