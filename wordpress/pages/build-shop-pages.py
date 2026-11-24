@@ -50,7 +50,7 @@ HERO_BIG = '/wp-content/uploads/2026/10/fika-hero-candies-1920.webp'   # media 4
 # Phones show only the middle of the photo, zoomed in, so the 1920 px file looked soft there. Media 450
 # (wordpress/pages/media/fika-hero-candies-phone.jpg) is that middle part (x 480-1440 of the cropped photo), enlarged
 # 2x with the EDSR super-resolution model and lightly sharpened: 1920 x 1490. Computers keep HERO_BIG.
-HERO_SMALL = '/wp-content/uploads/2026/10/fika-hero-candies-phone.webp'   # media 455
+HERO_SMALL = '/wp-content/uploads/2026/11/fika-hero-candies-phone-1170.webp'   # media 1913 (1170 px wide, 95 KB, 24 Nov 2026; was media 455, 1920 px, 226 KB)
 HERO_PHONE_X, HERO_PHONE_W = 480, 960   # the part of the photo the phone file covers, in photo pixels
 home_hero = ('<style>\n.fika-hero:not(.fika-shop-hero) { background: var(--fika-pink); }\n'
              '.fika-hero:not(.fika-shop-hero) > .fika-photo { background: url(' + HERO_BIG + ') center bottom / cover no-repeat; }\n'

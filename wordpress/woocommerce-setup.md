@@ -3045,3 +3045,8 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   checkout, codes refused, My account); test data deleted after. Checkout and My account have no top strip (as before).
 - Owner reported customers saying the site does not open (24 Nov ~22:50 Beirut): all pages 200 in < 1 s from here and
   from outside (www and bare domain), phone included. The retired temporary address does not open: old links to it fail.
+- Speed (owner: make sure the site loads quickly, 24 Nov): pages cached (LiteSpeed hit) and Brotli-compressed, server
+  answers in 0.2-0.7 s; repeat visits use the browser cache (45 of 49 files). The slow spot was the home page photo on
+  phones (1920 px, 226 KB): replaced by a 1170 px copy (media 1913, 95 KB, wordpress/pages/media); page 41 live = git.
+  Home page on a phone, slow 4G: main picture 4.9 s -> 2.7 s first visit, 2.2 s repeat; normal 4G 1.8 s -> 0.8 s.
+  Mix your own (ad landing page): 0.8 s on 4G, 1.5 s on slow 4G. Site check OK. Old media 455 left in place (unused).
