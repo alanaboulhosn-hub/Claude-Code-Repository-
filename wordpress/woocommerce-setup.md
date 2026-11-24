@@ -3038,3 +3038,10 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   has not set the end yet) shown on the top strip, under the home sticker ("ENDS SUN 29 NOV"), in the bag box and in
   the checkout note; "Ends tomorrow" / "Ends tonight" on the last two days, worked out in the browser (Beirut time).
   Committed, previewed in a test browser only; NOT live (snippet 320 live = commit 763db3c's version until approved).
+- End date put live at the owner's word (FIKA_BF_ENDS 2026-11-29; live = git, active, cache cleared by the save).
+  Full check after (24 Nov, 20:45 UTC): site check OK 46/46; prices, caps and codes by Store API; guest phone +
+  computer (strip on every shop page and the 404, sticker ribbon inside the screen, bag box, checkout note under and
+  over 1 kg, delivery not discounted, leaving popup without 10%); member phone + computer (spin, reward saved, card at
+  checkout, codes refused, My account); test data deleted after. Checkout and My account have no top strip (as before).
+- Owner reported customers saying the site does not open (24 Nov ~22:50 Beirut): all pages 200 in < 1 s from here and
+  from outside (www and bare domain), phone included. The retired temporary address does not open: old links to it fail.
