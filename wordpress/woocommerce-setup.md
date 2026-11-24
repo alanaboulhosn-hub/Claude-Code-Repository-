@@ -3030,6 +3030,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   - member: spin works (taste saved), reward claim works (saved), bag / checkout / My account texts as above.
 - No $5 store-credit codes created since the switch (last one 13:12 UTC). Site check OK 46/46 after the changes.
 - Member card at checkout (owner: the saved-rewards line must be more apparent): fika-black-friday.php has a gold
-  "Your Fika Club rewards are saved" card listing each reward / mystery taste by name (fika_bf_saved()). Committed and
-  previewed (injected in a test browser only); NOT deployed yet, waiting for the owner's go. Live snippet 320 = commit
-  377c7b6 until then.
+  "Your Fika Club rewards are saved" card listing each reward / mystery taste by name (fika_bf_saved()). Previewed, then
+  put live at the owner's go (24 Nov, live = git, active). Checked with a test member (test account + 3.2 kg test order,
+  emails blocked, all deleted after): phone and computer show the card with "100 g on us (worth $2.80)"; guests get no
+  card; no order placed, no page errors. Site check OK 46/46.
