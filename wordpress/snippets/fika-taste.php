@@ -14,7 +14,8 @@
  * - The free 50 g does not count towards the rewards track. Cost: 50 g at landing cost (about $0.80) per stop.
  * - A card above the tracker (home, Mix your own, Ready Mix, My account) and a line in the bag drawer say which
  *   taste is waiting. Needs snippet 11 (Fika rewards).
- * - While the Black Friday deal is on (fika-black-friday.php) the free taste is kept out of the bag and stays won.
+ * - While the Black Friday deal is on (fika-black-friday.php) the free taste is kept out of the bag and stays won; the
+ *   card, the bag note and the wheel say it joins the first order after Black Friday.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-taste.php
  */
 
@@ -302,6 +303,7 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 			'spin'    => rest_url( 'fika/v1/taste-spin' ),
 			'nonce'   => wp_create_nonce( 'wp_rest' ),
 			'bag'     => home_url( '/mix-your-own/?bag=open' ),
+			'bf'      => function_exists( 'fika_bf_on' ) && fika_bf_on() ? 1 : 0, // Black Friday: the taste waits for the next order
 		);
 		?>
 <style>
@@ -365,7 +367,7 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 		return D.waiting.map(function (w) {
 			var c = document.createElement('section');
 			c.className = 'fk-taste fk-taste-' + D.where;
-			c.innerHTML = '<div class="ft-won"></div><div class="ft-txt"><b></b><span>50 g, free. It joins the order that reaches its stop on the lane (or your next one) by itself at checkout.</span></div>';
+			c.innerHTML = '<div class="ft-won"></div><div class="ft-txt"><b></b><span>' + (D.bf ? '50 g, free. Black Friday is on, so it waits in your account and joins your first order after Black Friday.' : '50 g, free. It joins the order that reaches its stop on the lane (or your next one) by itself at checkout.') + '</span></div>';
 			c.querySelector('b').textContent = 'Your mystery taste: ' + w.name;
 			if (w.img) c.querySelector('.ft-won').style.backgroundImage = 'url("' + w.img.replace(/"/g, '') + '")';
 			return c;
@@ -379,7 +381,7 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 		var go = document.getElementById('mxGo');
 		if (go ? D.waiting.length > 0 : false) {
 			var n = document.createElement('p'); n.className = 'fk-taste-note';
-			n.innerHTML = 'Your mystery taste <b></b> (50 g, free) joins your order at checkout.';
+			n.innerHTML = D.bf ? 'Your mystery taste <b></b> (50 g, free) is saved for your first order after Black Friday.' : 'Your mystery taste <b></b> (50 g, free) joins your order at checkout.';
 			n.querySelector('b').textContent = D.waiting.map(function (w) { return w.name; }).join(' + ');
 			go.parentNode.insertBefore(n, go);
 		}
@@ -401,7 +403,7 @@ if ( ! function_exists( 'fika_taste_assets' ) ) {
 			'<svg class="w" viewBox="0 0 320 320" aria-hidden="true"><g class="rot"></g></svg>' +
 			'<button class="fk-wheel-spin" type="button" aria-label="Spin"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 20l-5-6v12zM34 20l5-6v12z" fill="#fff"/><ellipse cx="20" cy="20" rx="14" ry="10" fill="#fff"/><path d="M12 15l5 10M19 13l5 14M26 14l3 8" stroke="#ff4f91" stroke-width="2.4" stroke-linecap="round"/></svg>SPIN</button></div>' +
 			'<p class="fk-wheel-now" aria-live="polite"></p>' +
-			'<div class="fk-wheel-res"><img alt=""><h2></h2><p>50 g of it is yours, free. It joins your order by itself at checkout.</p><button type="button" class="ft-go">Back to my sweets</button></div></div>';
+			'<div class="fk-wheel-res"><img alt=""><h2></h2><p>' + (D.bf ? '50 g of it is yours, free. It joins your first order after Black Friday.' : '50 g of it is yours, free. It joins your order by itself at checkout.') + '</p><button type="button" class="ft-go">Back to my sweets</button></div></div>';
 		document.body.appendChild(veil);
 		var cardEl = veil.querySelector('.fk-wheel-card'), rot = veil.querySelector('.rot'), chips = veil.querySelector('.fk-wheel-chips'), now = veil.querySelector('.fk-wheel-now'), spin = veil.querySelector('.fk-wheel-spin');
 		function close() { if (spinning) return; veil.remove(); if (o.closed) o.closed(cardEl.classList.contains('is-done')); }

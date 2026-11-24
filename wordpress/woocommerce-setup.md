@@ -3002,3 +3002,30 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   email 1 still '1'; temporary $5 test code iou5-testbf (deleted): preview -> the message, normal visitor -> as before.
   Note: email-2 codes are valid 2 days, so codes sent just before the switch can expire during the deal.
   Snippets 35 and 320: live = git before, active after. Switch still OFF; site check OK.
+
+## Black Friday switched on, full customer check (24 Nov 2026)
+
+- Switched on at the owner's word (option fika_bf_on = 1, cache purged). Ad images for Meta: square 1080x1080 and
+  horizontal 1200x628 made from the owner's vertical design (not in git: scratchpad).
+- Member gaps found and fixed (rewards and the mystery taste are saved for the first order after Black Friday):
+  - fika-bag-rewards.php (98): the bag shows rewards as "Saved for your next order after Black Friday" (no "Use now",
+    nothing off the total, Black Friday owns the total), no taste line, the checkpoint popup says the reward is saved
+    ("Got it"), and nothing is applied by itself at checkout (before: a chosen reward was re-tried every 0.7 s and refused).
+  - fika-loyalty.php (11): no rewards box at checkout while it is on; the lane, the bag note and My account > Rewards say
+    the rewards / taste wait for after Black Friday (no "Use" on saved codes or tastes). Helper fika_swim_bf().
+  - fika-taste.php (46): the taste card, the bag note and the wheel result say it joins the first order after Black Friday.
+  - fika-club.php (91): the welcome popup after joining at checkout lists rewards as saved (no "Use now"); spins say the
+    taste joins the first order after Black Friday.
+- fika-black-friday.php (320): the checkout note was missing for everyone: WooCommerce now keeps a hidden copy of the
+  order summary first in the page (no totals). The note now goes into every summary that has totals.
+- Code Snippets refused saving snippet 11 once ("Cannot redeclare fika_swim_is_code") and switched it off; switched back
+  on with POST .../11/activate within a minute, the new code in place. Check `active` after every save of 11.
+- Checked (no order placed; test account, a 3.2 kg test order and test codes made with @example.com, emails to them
+  blocked by a temporary snippet, all deleted after): guest and member, phone and computer:
+  - prices: 100 g / 900 g 10% off, 1 kg / 1.5 kg 20% off, Ready Mix = 500 g (alone 10%, + 500 g or two bags 20%);
+    delivery never discounted ($2.52 sweets + $5.00 Beirut = $7.52); caps hold (Swedish Fish, Banana Toffee 100 g);
+  - codes: FIKA10, a $5 store-credit code, a Fika Club reward code all refused with their Black Friday message; made-up
+    code "does not exist"; leaving popup offers no 10%;
+  - home sticker (no overlap, goes to Mix your own), bag note while closed, bag box and bar, checkout note and "Add more";
+  - member: spin works (taste saved), reward claim works (saved), bag / checkout / My account texts as above.
+- No $5 store-credit codes created since the switch (last one 13:12 UTC). Site check OK 46/46 after the changes.

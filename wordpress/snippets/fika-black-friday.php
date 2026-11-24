@@ -220,13 +220,15 @@ add_action( 'wp_footer', function () {
 				'<span class="s"><span>' + kg(g) + ' in your bag &middot; 1 kg = 20% off</span><a class="fkbf-more" href="/mix-your-own/">Add more</a></span>';
 		}
 		var member = <?php echo is_user_logged_in() ? 'true' : 'false'; ?>;
+		// every order summary that has totals (WooCommerce also keeps a hidden copy of the summary, first in the page)
 		function place() {
-			var sum = document.querySelector('.wp-block-woocommerce-checkout-order-summary-block');
-			var tot = sum ? sum.querySelector('.wc-block-components-totals-wrapper') : null;
-			if (!tot || sum.querySelector('.fkbf-co')) return;
-			var n = document.createElement('div');
-			n.className = 'fkbf-co' + (g >= 1000 ? ' won' : ''); n.innerHTML = html() + (member ? '<span class="m">Your Fika Club rewards are saved for your next order after Black Friday. Every gram here still counts.</span>' : '');
-			tot.parentNode.insertBefore(n, tot);
+			[].forEach.call(document.querySelectorAll('.wp-block-woocommerce-checkout-order-summary-block'), function (sum) {
+				var tot = sum.querySelector('.wc-block-components-totals-wrapper');
+				if (!tot || sum.querySelector('.fkbf-co')) return;
+				var n = document.createElement('div');
+				n.className = 'fkbf-co' + (g >= 1000 ? ' won' : ''); n.innerHTML = html() + (member ? '<span class="m">Your Fika Club rewards are saved for your next order after Black Friday. Every gram here still counts.</span>' : '');
+				tot.parentNode.insertBefore(n, tot);
+			});
 		}
 		var t = null;
 		new MutationObserver(function () { clearTimeout(t); t = setTimeout(place, 120); }).observe(document.body, { childList: true, subtree: true });

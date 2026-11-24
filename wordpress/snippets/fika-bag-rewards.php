@@ -15,6 +15,9 @@
  *   of the bag too. Delivery is never discounted.
  * - The choice is kept in this browser (localStorage fika_rw_use_<user>, fika_rw_seen_<user>). Data for the bag:
  *   inline on the page, refreshed from GET /wp-json/fika/v1/bag-rewards when the bag opens.
+ * - Black Friday (fika-black-friday.php, owner 24 Nov 2026): while the deal is on, rewards in the bag show as saved for
+ *   the next order after Black Friday (no "Use now", nothing off the total), the popup says the same, the won taste
+ *   is not a bag line (fika-taste.php's note says it waits), and nothing is applied by itself at checkout.
  * Needs snippets 11 (Fika rewards) and 46 (mystery taste). Installed with the Code Snippets plugin.
  * Source: wordpress/snippets/fika-bag-rewards.php
  */
@@ -54,7 +57,8 @@ if ( ! function_exists( 'fika_brw_data' ) ) {
 				}
 			}
 		}
-		return array( 'uid' => $uid, 'reach' => $reach, 'p' => fika_swim_pending( $uid ) ? 1 : 0, 'rewards' => $rw, 'tastes' => $tastes );
+		$bf = function_exists( 'fika_bf_on' ) && fika_bf_on();
+		return array( 'uid' => $uid, 'reach' => $reach, 'p' => fika_swim_pending( $uid ) ? 1 : 0, 'rewards' => $rw, 'tastes' => $bf ? array() : $tastes, 'bf' => $bf ? 1 : 0 );
 	}
 }
 
@@ -85,8 +89,9 @@ add_action( 'wp_footer', function () {
 	echo '<script>window.FIKA_BRW = ' . wp_json_encode( $cfg ) . ';</script>';
 	echo <<<'FIKA_BRW'
 <style>
-/* the taste line says it is in the bag now, so the older "joins your order at checkout" note is not needed */
-.mx-df .fk-taste-note { display: none !important; }
+/* the taste line says it is in the bag now, so the older "joins your order at checkout" note is not needed
+   (Black Friday: no taste line, the note says it waits) */
+body:not(.fk-bf) .mx-df .fk-taste-note { display: none !important; }
 /* the rewards note under the bag ("this bag unlocks ... tap Use at checkout") is replaced by the reward lines */
 .mx-df .fk-rw-note.is-on { display: none !important; }
 .mx-line.fk-brw { color: #1b2a4a; background: #fff8fb; margin: 0 -12px; padding-left: 12px; padding-right: 12px; }
@@ -128,7 +133,8 @@ add_action( 'wp_footer', function () {
   function money(n) { return '$' + (Math.round(n * 100) / 100).toFixed(2); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function reach() { return D.reach + (D.p ? 0 : bagG()); } // delivered, + this bag while no order is on its way
-  function using() { return arr(UK); }
+  function using() { return D.bf ? [] : arr(UK); } // Black Friday: no reward in the bag
+  if (D.bf) document.body.classList.add('fk-bf');
 
   // ---- the bag drawer ----
   var busy = false, obs = null, lastHtml = '', lastNodes = [];
@@ -149,6 +155,7 @@ add_action( 'wp_footer', function () {
         if (w.need > r) return;
         var on = use.indexOf(w.key) !== -1;
         if (on) disc += w.amount;
+        if (D.bf) { html += '<div class="mx-line fk-brw is-later" data-rw="' + esc(w.key) + '"><span class="fk-brw-ic">🎁</span><div>' + esc(w.title) + '<small>Saved for your next order after Black Friday</small></div><div class="mx-lp">Saved</div></div>'; return; }
         html += '<div class="mx-line fk-brw ' + (on ? 'is-on' : 'is-later') + '" data-rw="' + esc(w.key) + '"><span class="fk-brw-ic">🎁</span>' +
           '<div>' + esc(w.title) + '<small>' + (on ? 'Fika Club reward, ' + esc(w.co) : 'Fika Club reward waiting for you') + '</small></div>' +
           (on ? '<div class="mx-lp">&minus;' + money(w.amount) + '</div><button class="fk-brw-off" type="button" aria-label="Take this reward out of the bag">&times;</button>'
@@ -169,8 +176,8 @@ add_action( 'wp_footer', function () {
       row.innerHTML = '<span>Fika Club rewards</span><span>&minus;' + money(d) + '</span>';
       var tot = df.querySelector('.mx-sum.tot'); if (tot) df.insertBefore(row, tot);
       totEl.textContent = money(sub - d);
-    } else if (subEl && totEl) {
-      totEl.textContent = subEl.textContent; // no reward on: the total is the bag again
+    } else if (subEl && totEl && !D.bf) {
+      totEl.textContent = subEl.textContent; // no reward on: the total is the bag again (Black Friday: its own total)
     }
     busy = false;
     watch();
@@ -222,7 +229,9 @@ add_action( 'wp_footer', function () {
       var head = { offer: 'You reached ' + esc(String(w.kg)) + ' kg!', inbag: '&#10003; In your bag', way: 'On its way!', used: 'Enjoyed!' }[m];
       var icon = { offer: '🎁', inbag: '🎁', way: '🚚', used: '💛' }[m];
       var body = {
-        offer: '<p>Your Fika Club reward is ready: ' + esc(w.co || '') + '. Use it on this bag, or keep it for later.</p>' +
+        offer: D.bf ? '<p>Your Fika Club reward is ready' + (w.amount ? ', worth ' + money(w.amount) : '') + '. Black Friday is on, so it is saved in your account for your next order after Black Friday. Every gram of this order still counts.</p>' +
+          '<button type="button" class="fk-rwp-now fk-rwp-keep">Got it</button>' :
+          '<p>Your Fika Club reward is ready: ' + esc(w.co || '') + '. Use it on this bag, or keep it for later.</p>' +
           '<button type="button" class="fk-rwp-now">Use now</button><button type="button" class="fk-rwp-later">Use later</button>' +
           '<small>It stays in your account until you use it. Delivery not included.</small>',
         inbag: '<p>Your Fika Club reward (' + esc(w.co || '') + ') comes off this bag at checkout.</p>' +
@@ -291,8 +300,8 @@ add_action( 'wp_footer', function () {
 		return;
 	}
 	$data = fika_brw_data( get_current_user_id() );
-	if ( ! $data ) {
-		return;
+	if ( ! $data || ! empty( $data['bf'] ) ) {
+		return; // Black Friday: nothing is applied by itself (rewards are refused while it is on)
 	}
 	$map = array();
 	foreach ( $data['rewards'] as $w ) {

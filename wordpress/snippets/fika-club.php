@@ -290,6 +290,7 @@ add_action( 'wp_footer', function () {
 		'api'     => esc_url_raw( rest_url( 'fika/v1/' ) ),
 		'login'   => add_query_arg( 'redirect_to', rawurlencode( wc_get_checkout_url() ), wc_get_page_permalink( 'myaccount' ) ),
 		'back'    => wc_get_checkout_url(),
+		'bf'      => function_exists( 'fika_bf_on' ) && fika_bf_on() ? 1 : 0, // Black Friday: rewards and tastes wait for the next order
 	);
 	echo '<script>window.FIKA_CLUB = ' . wp_json_encode( $cfg ) . ';</script>';
 	echo <<<'FIKA_CLUB'
@@ -499,12 +500,15 @@ add_action( 'wp_footer', function () {
       '<div class="fkc-sum">' + (s.delivered ? '<span class="dl"><b>' + kg(s.delivered) + '</b> delivered</span>' : '') + (s.placed ? '<span class="dl"><b>' + kg(s.placed) + '</b> on the way</span>' : '') +
       (s.bag ? '<span class="bg">+ <b>' + kg(s.bag) + '</b> this bag</span>' : '') + ((s.delivered + s.placed) && s.bag ? '<span>= <b>' + kg(s.delivered + s.placed + s.bag) + '</b></span>' : '') + '</div>';
     s.spins.forEach(function (sp, i) {
-      h += '<div class="fkc-rew"><span class="ic sp"></span><p><b>Mystery spin unlocked</b>You passed ' + kg(sp.need) + '. Spin for 50 g of a surprise candy, free in this order.</p><button type="button" data-k="spin" data-i="' + i + '">Spin now</button></div>';
+      h += '<div class="fkc-rew"><span class="ic sp"></span><p><b>Mystery spin unlocked</b>You passed ' + kg(sp.need) + '. Spin for 50 g of a surprise candy, free ' + (C.bf ? 'in your first order after Black Friday' : 'in this order') + '.</p><button type="button" data-k="spin" data-i="' + i + '">Spin now</button></div>';
     });
-    s.rewards.forEach(function (r, i) {
+    if (C.bf && (s.rewards.length || s.open.length)) {
+      // Black Friday: rewards are saved for the next order after it (claimed later on the lane)
+      s.rewards.concat(s.open).forEach(function (r) { h += '<div class="fkc-rew"><span class="ic">' + esc(r.title.replace(/ on us$/i, '').replace(/^a whole kilogram$/i, '1 KG').toUpperCase()) + '</span><p><b>' + esc(r.title) + '</b>Saved for your next order after Black Friday.</p></div>'; });
+    } else s.rewards.forEach(function (r, i) {
       h += '<div class="fkc-rew"><span class="ic">' + esc(r.title.replace(/ on us$/i, '').replace(/^a whole kilogram$/i, '1 KG').toUpperCase()) + '</span><p><b>' + esc(r.title) + '</b>' + esc(r.co) + '.</p><button type="button" data-k="claim" data-i="' + i + '">Use now</button></div>';
     });
-    s.open.forEach(function (o, i) {
+    if (!C.bf) s.open.forEach(function (o, i) {
       h += '<div class="fkc-rew"><span class="ic">✓</span><p><b>' + esc(o.title) + '</b>' + esc(o.co) + '.</p><button type="button" data-k="apply" data-i="' + i + '">Use now</button></div>';
     });
     var f10 = fika10(), best = 0;
@@ -519,7 +523,7 @@ add_action( 'wp_footer', function () {
   function won(res) {
     card.innerHTML = '<button type="button" class="fkc-x" data-k="done" aria-label="Close">×</button><span class="fkc-tag">FIKA CLUB</span>' +
       '<h2 class="fkc-h" id="fkcTitle">' + esc(res.name) + ' it is!</h2><div class="fkc-won">' + (res.img ? '<img src="' + esc(res.img) + '" alt="' + esc(res.name) + '">' : '') + '</div>' +
-      '<p class="fkc-p">50 g of ' + esc(res.name) + ', free, joins this order</p>' +
+      '<p class="fkc-p">50 g of ' + esc(res.name) + ', free, ' + (C.bf ? 'joins your first order after Black Friday' : 'joins this order') + '</p>' +
       '<button type="button" class="fkc-btn" data-k="done">Back to my order</button>';
   }
   function act(e) {

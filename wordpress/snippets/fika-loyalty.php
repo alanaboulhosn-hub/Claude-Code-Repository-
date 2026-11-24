@@ -27,6 +27,9 @@
  *   stops counting, the fish swims back and an unused reward above the new total is withdrawn.
  * - Shown on the home page, Mix your own, Ready Mix (above the shop) and the My account dashboard; never to
  *   visitors who are not signed in.
+ * - Black Friday (fika-black-friday.php, owner 24 Nov 2026): while the deal is on, rewards can still be reached and
+ *   claimed, but they are saved for the next order after Black Friday: the lane, the bag and My account say so, and the
+ *   checkout has no rewards box (the Black Friday note says it instead). fika_swim_bf() tells whether it is on.
  * - Shop managers can preview: ?fika_fish=5.2 (delivered kg) &fika_pending=1 (kg on the way).
  * Needs snippet 10 (Fika accounts). Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-loyalty.php
  */
@@ -46,6 +49,10 @@ if ( ! function_exists( 'fika_swim_checkpoints' ) ) {
 			10000 => array( 'kg' => 10, 'prefix' => 'SWIM10', 'badge' => '400 g', 'title' => '400 g on us', 'unlock' => '400 g on us (worth $11.20)', 'text' => 'Worth $11.20 on any sweets you choose', 'co' => '$11.20 off this order', 'amount' => 11.2, 'rg' => 400 ),
 			15000 => array( 'kg' => 15, 'prefix' => 'SWIM15', 'badge' => '1 kg', 'title' => 'A whole kilogram on us', 'unlock' => 'a whole kilogram on us (worth $28)', 'text' => 'Worth $28 on any sweets you choose', 'co' => '$28 off this order', 'amount' => 28, 'rg' => 1000 ),
 		);
+	}
+	// the Black Friday deal is on (fika-black-friday.php): rewards wait for the next order after it
+	function fika_swim_bf() {
+		return function_exists( 'fika_bf_on' ) && fika_bf_on();
 	}
 	function fika_swim_is_code( $code ) {
 		return (bool) preg_match( '/^swim(3|6|10|15)-/i', (string) $code );
@@ -605,6 +612,7 @@ if ( ! function_exists( 'fika_swim_html' ) ) {
 			'spins' => $s['spins'],
 			'claim' => $s['preview'] ? '' : rest_url( 'fika/v1/swim-claim' ),
 			'nonce' => wp_create_nonce( 'wp_rest' ),
+			'bf'    => fika_swim_bf() ? 1 : 0,
 		);
 		$fmt   = function ( $g ) {
 			return rtrim( rtrim( number_format( $g / 1000, 1, '.', '' ), '0' ), '.' );
@@ -915,7 +923,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			if (lit.length ? !ready.length : false) {
 				var L = lit[lit.length - 1], lt = L.title.replace(/^A whole/, 'a whole');
 				title.textContent = 'This bag unlocks ' + lt + '!';
-				sub.appendChild(document.createTextNode('Tap the gift to use it on this very order' + name + '.'));
+				sub.appendChild(document.createTextNode(s.bf ? 'Tap the gift to save it for your next order after Black Friday' + name + '.' : 'Tap the gift to use it on this very order' + name + '.'));
 			} else if (spinNow.length ? !ready.length : false) {
 				title.textContent = 'Mystery spin unlocked!';
 				sub.appendChild(document.createTextNode('Tap the little wheel on the lane and spin for a free 50 g mystery taste' + name + '.'));
@@ -1043,7 +1051,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 		Array.prototype.forEach.call(btns, function (b) {
 			b.addEventListener('click', function () {
 				var c = cp(+b.getAttribute('data-g'));
-				if (c ? c.state === 'bag' : false) { title.textContent = c.title + ' is waiting at checkout'; sub.textContent = 'Place this bag and tap “Use” at checkout: it comes off this very order.'; return; }
+				if (c ? c.state === 'bag' : false) { if (s.bf) { title.textContent = c.title + ' is yours'; sub.textContent = 'Black Friday is on, so it is saved in your account for your next order after Black Friday.'; return; } title.textContent = c.title + ' is waiting at checkout'; sub.textContent = 'Place this bag and tap “Use” at checkout: it comes off this very order.'; return; }
 				if (c ? c.state === 'wait' : false) { title.textContent = c.title + ': almost yours!'; sub.textContent = 'It unlocks once ' + ((c.wait || s.wn) ? 'order #' + (c.wait || s.wn) : 'your order on its way') + ' is delivered. Rewards build on delivered orders.'; return; }
 				if (!c || c.state !== 'ready' || b.getAttribute('aria-busy')) return;
 				if (!s.claim) { confetti(b); setState(b, c, 'open'); try { window.dispatchEvent(new CustomEvent('fikareward', { detail: { lap: s.lap, g: c.g, code: '' } })); } catch (e) {} words(); return; }
@@ -1058,7 +1066,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 						try { window.dispatchEvent(new CustomEvent('fikareward', { detail: { lap: s.lap, g: c.g, code: res.j.code, title: res.j.title, text: res.j.text } })); } catch (e) {}
 						words();
 						var sm = document.querySelector('.fika-acct .fa-hi small');
-						if (sm ? !cps.some(function (x) { return x.state === 'ready'; }) : false) sm.textContent = 'Your reward is saved for checkout';
+						if (sm ? !cps.some(function (x) { return x.state === 'ready'; }) : false) sm.textContent = s.bf ? 'Your reward is saved for after Black Friday' : 'Your reward is saved for checkout';
 					})
 					.catch(function () { b.removeAttribute('aria-busy'); alert('Sorry, something went wrong. Please try again.'); });
 			});
@@ -1067,7 +1075,7 @@ if ( ! function_exists( 'fika_swim_assets' ) ) {
 			w.addEventListener('click', function () {
 				var g = +w.getAttribute('data-g'), sp = spins.filter(function (x) { return x.g === g; })[0];
 				if (!sp) return;
-				if (sp.state === 'won' || sp.state === 'used') { title.textContent = 'Your mystery taste: ' + sp.name; sub.textContent = sp.state === 'won' ? '50 g, free: it joins your order at checkout.' : 'Already in one of your orders. Enjoy!'; return; }
+				if (sp.state === 'won' || sp.state === 'used') { title.textContent = 'Your mystery taste: ' + sp.name; sub.textContent = sp.state === 'won' ? (s.bf ? '50 g, free: it joins your first order after Black Friday.' : '50 g, free: it joins your order at checkout.') : 'Already in one of your orders. Enjoy!'; return; }
 				if (sp.state === 'wait') { title.textContent = 'Mystery spin: almost yours!'; sub.textContent = 'It unlocks once ' + ((sp.wait || s.wn) ? 'order #' + (sp.wait || s.wn) : 'your order on its way') + ' is delivered. Rewards build on delivered orders.'; return; }
 				if (sp.state === 'locked') { title.textContent = 'Mystery spin at ' + sp.kg + ' kg'; sub.textContent = 'Reach ' + sp.kg + ' kg and spin the candy wheel for a free 50 g taste.'; return; }
 				if (!window.fikaTasteWheel) return;
@@ -1160,6 +1168,7 @@ add_action( 'wp_footer', function () {
 		usort( $next, function ( $a, $b ) { return $a[0] - $b[0]; } );
 	}
 	$saved = count( fika_swim_open_codes( $uid ) );
+	$bf    = fika_swim_bf();
 	?>
 <style>.mx-df .fk-rw-note { margin: 0 0 10px; padding: 9px 12px; border-radius: 12px; background: #fff6d6; color: #1b2a4a; font: 500 13.5px/1.35 'Outfit', 'Open Sans', Arial, sans-serif; }
 .mx-df .fk-rw-note:empty { display: none; }
@@ -1167,7 +1176,7 @@ add_action( 'wp_footer', function () {
 .mx-df .fk-rw-note.is-on { background: #e3f6ea; }</style>
 <script>
 (function () {
-	var REACH = <?php echo (int) $reach; ?>, M = <?php echo (int) $more; ?>, P = <?php echo wp_json_encode( (string) $wait ); ?>, NEXT = <?php echo wp_json_encode( $next ); ?>, SAVED = <?php echo (int) $saved; ?>;
+	var REACH = <?php echo (int) $reach; ?>, M = <?php echo (int) $more; ?>, P = <?php echo wp_json_encode( (string) $wait ); ?>, NEXT = <?php echo wp_json_encode( $next ); ?>, SAVED = <?php echo (int) $saved; ?>, BF = <?php echo $bf ? 'true' : 'false'; ?>;
 	function bagG() { var g = 0; try { var st = JSON.parse(localStorage.getItem('fika_bag_v1') || 'null'), bag = (st && st.bag) || {}; Object.keys(bag).forEach(function (k) { g += +bag[k] || 0; }); } catch (e) {} return g; }
 	function amt(g) { return g >= 1000 ? (Math.round(g / 100) / 10) + ' kg' : g + ' g'; }
 	function low(t) { return t.replace(/^A whole/, 'a whole'); }
@@ -1189,15 +1198,15 @@ add_action( 'wp_footer', function () {
 		} else if (P ? !waiting : false) {
 			// nothing to nudge: adding to this bag does not unlock anything while an order is on its way
 		} else if (P) {
-			add(waiting === 1 ? 'You have a Fika Club reward waiting. Use it at checkout whenever you like.' : 'You have ' + waiting + ' Fika Club rewards waiting. Choose which to use at checkout.');
+			add(BF ? (waiting === 1 ? 'Your Fika Club reward is saved for your next order after Black Friday.' : 'Your ' + waiting + ' Fika Club rewards are saved for your next order after Black Friday.') : waiting === 1 ? 'You have a Fika Club reward waiting. Use it at checkout whenever you like.' : 'You have ' + waiting + ' Fika Club rewards waiting. Choose which to use at checkout.');
 		} else if (nx ? (g > 0 ? (toCp <= 0 ? nx[2] === 0 : false) : false) : false) {
-			add('This bag reaches ' + cpKg + ' kg: '); add('a mystery spin', true); add(' is waiting on your Fika Club lane. Spin it and 50 g of a surprise candy join this order, free.');
+			add('This bag reaches ' + cpKg + ' kg: '); add('a mystery spin', true); add(BF ? ' is waiting on your Fika Club lane. Spin it and 50 g of a surprise candy join your first order after Black Friday, free.' : ' is waiting on your Fika Club lane. Spin it and 50 g of a surprise candy join this order, free.');
 		} else if (nx ? (g > 0 ? toCp <= 0 : false) : false) {
-			add('This bag reaches ' + cpKg + ' kg and unlocks '); add(low(nx[1]), true); add('! Tap “Use” at checkout and they come off this order.');
+			add('This bag reaches ' + cpKg + ' kg and unlocks '); add(low(nx[1]), true); add(BF ? ', saved for your next order after Black Friday.' : '! Tap “Use” at checkout and they come off this order.');
 		} else if (nx ? (g > 0 ? toCp <= 1000 : false) : false) {
-			add('Add '); add(amt(toCp) + ' more', true); add(' to reach ' + cpKg + ' kg and get '); add(low(nx[1]), true); add(' in this order.');
+			add('Add '); add(amt(toCp) + ' more', true); add(' to reach ' + cpKg + ' kg and get '); add(low(nx[1]), true); add(BF ? ' for your next order after Black Friday.' : ' in this order.');
 		} else if (waiting) {
-			add(waiting === 1 ? 'You have a Fika Club reward waiting. Use it at checkout whenever you like.' : 'You have ' + waiting + ' Fika Club rewards waiting. Choose which to use at checkout.');
+			add(BF ? (waiting === 1 ? 'Your Fika Club reward is saved for your next order after Black Friday.' : 'Your ' + waiting + ' Fika Club rewards are saved for your next order after Black Friday.') : waiting === 1 ? 'You have a Fika Club reward waiting. Use it at checkout whenever you like.' : 'You have ' + waiting + ' Fika Club rewards waiting. Choose which to use at checkout.');
 		}
 	}
 	show();
@@ -1251,7 +1260,7 @@ if ( ! function_exists( 'fika_rewards_lists' ) ) {
 			if ( fika_swim_code_used( $cl['code'] ) ) {
 				$used[] = array( 'title' => $cp['title'], 'meta' => 'Lap ' . (int) $cl['lap'] . ', ' . $cp['kg'] . ' kg', 'how' => $o ? 'Used on order #' . $o->get_order_number() . ', ' . wc_format_datetime( $o->get_date_created(), 'j M Y' ) : 'Used', 'at' => $o ? $o->get_date_created()->getTimestamp() : (int) $cl['at'] );
 			} else {
-				$ready[] = array( 'type' => 'code', 'k' => (int) $cl['lap'] . ':' . (int) $cl['g'], 'title' => $cp['title'], 'meta' => $cp['text'], 'code' => strtoupper( $cl['code'] ), 'how' => 'Comes off your next order at checkout. It never runs out.' );
+				$ready[] = array( 'type' => 'code', 'k' => (int) $cl['lap'] . ':' . (int) $cl['g'], 'title' => $cp['title'], 'meta' => $cp['text'], 'code' => strtoupper( $cl['code'] ), 'how' => fika_swim_bf() ? 'Saved for your next order after Black Friday. It never runs out.' : 'Comes off your next order at checkout. It never runs out.' );
 			}
 		}
 		// gifts reached by delivered orders but not unlocked yet (tap the glowing gift on the lane)
@@ -1284,7 +1293,7 @@ if ( ! function_exists( 'fika_rewards_lists' ) ) {
 					$o      = ! empty( $t['order'] ) ? wc_get_order( (int) $t['order'] ) : null;
 					$used[] = array( 'title' => 'Mystery taste: ' . $name, 'meta' => 'Lap ' . $lap . ', ' . ( $g / 1000 ) . ' kg spin, 50 g free', 'how' => $o ? 'In order #' . $o->get_order_number() . ', ' . wc_format_datetime( $o->get_date_created(), 'j M Y' ) : 'In one of your orders', 'at' => $o ? $o->get_date_created()->getTimestamp() : (int) ( $t['at'] ?? 0 ) );
 				} else {
-					$ready[] = array( 'type' => 'taste', 'k' => 't' . $k, 'title' => 'Mystery taste: ' . $name, 'meta' => '50 g, free', 'code' => '', 'how' => 'Joins your next order by itself at checkout.' );
+					$ready[] = array( 'type' => 'taste', 'k' => 't' . $k, 'title' => 'Mystery taste: ' . $name, 'meta' => '50 g, free', 'code' => '', 'how' => fika_swim_bf() ? 'Joins your first order after Black Friday by itself.' : 'Joins your next order by itself at checkout.' );
 				}
 			}
 		}
@@ -1316,7 +1325,7 @@ add_action( 'woocommerce_account_dashboard', function () {
 		);
 	}
 	echo '</ul><p class="fr-none"' . ( $ready ? ' hidden' : '' ) . '>Nothing waiting yet. Swim to 1.5 kg for your first mystery spin, and 3 kg for 100 g on us.</p></div></section>';
-	$GLOBALS['fika_rw_lists'] = array( 'claim' => rest_url( 'fika/v1/swim-claim' ), 'nonce' => wp_create_nonce( 'wp_rest' ), 'bag' => home_url( '/mix-your-own/?bag=open' ) );
+	$GLOBALS['fika_rw_lists'] = array( 'claim' => rest_url( 'fika/v1/swim-claim' ), 'nonce' => wp_create_nonce( 'wp_rest' ), 'bag' => home_url( '/mix-your-own/?bag=open' ), 'bf' => fika_swim_bf() ? 1 : 0 );
 }, 6 );
 add_action( 'wp_footer', function () {
 	if ( empty( $GLOBALS['fika_rw_lists'] ) ) {
@@ -1343,7 +1352,8 @@ add_action( 'wp_footer', function () {
 .fika-rw-lists .is-spin .fr-go, .fika-rw-lists .is-unlock .fr-go { background: #ff4f91; }
 .fika-rw-lists .fr-none { margin: 0 !important; font-size: 14px; color: #6b7894; }
 @media (max-width: 560px) { .fika-rw-lists .fr-col { padding: 16px; } .fika-rw-lists .fr-item { flex-wrap: wrap; } .fika-rw-lists .fr-go { width: 100%; } }
-</style>
+<?php if ( ! empty( $cfg['bf'] ) ) : ?>.fika-rw-lists .is-code .fr-go, .fika-rw-lists .is-taste .fr-go { display: none; } /* Black Friday: saved for after it */
+<?php endif; ?></style>
 <script>
 (function () {
   var C = <?php echo wp_json_encode( $cfg ); ?>;
@@ -1351,7 +1361,7 @@ add_action( 'wp_footer', function () {
   function none() { var n = list.parentNode.querySelector('.fr-none'); if (n) n.hidden = list.children.length > 0; }
   function codeRow(r) {
     var li = document.createElement('li'); li.className = 'fr-item is-code'; li.setAttribute('data-type', 'code'); li.setAttribute('data-k', r.lap + ':' + r.g); li.setAttribute('data-code', String(r.code || '').toUpperCase());
-    li.innerHTML = '<div class="fr-t"><b></b><span></span><code></code><p class="fr-how">Comes off your next order at checkout. It never runs out.</p></div><button type="button" class="fr-go">Use</button>';
+    li.innerHTML = '<div class="fr-t"><b></b><span></span><code></code><p class="fr-how">' + (C.bf ? 'Saved for your next order after Black Friday. It never runs out.' : 'Comes off your next order at checkout. It never runs out.') + '</p></div><button type="button" class="fr-go">Use</button>';
     li.querySelector('b').textContent = r.title || ''; li.querySelector('span').textContent = r.text || ''; li.querySelector('code').textContent = String(r.code || '').toUpperCase();
     return li;
   }
@@ -1396,6 +1406,9 @@ add_action( 'wp_footer', function () {
 add_action( 'wp_footer', function () {
 	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || ! is_user_logged_in() || is_wc_endpoint_url( 'order-received' ) || ! function_exists( 'fika_order_grams' ) ) {
 		return;
+	}
+	if ( fika_swim_bf() ) {
+		return; // Black Friday: rewards are saved for the next order after it (the Black Friday note at checkout says so)
 	}
 	$uid   = get_current_user_id();
 	$reach = fika_swim_totals( $uid )['delivered']; // delivered: + this bag in the page, only while no order is on its way ($wait)
