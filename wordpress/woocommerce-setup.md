@@ -2971,3 +2971,11 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   only while the deal is on (or in the preview). Computer: right of the photo beside the headline; phone: above the
   headline on the right; never over the headline (checked at 390x664, 1280x760, 1440x900; no page errors). Switch
   still OFF; public home page has no sticker.
+- 24 Nov, before going live (owner: check everything, make the approach to 20% obvious): bag drawer now has a gold
+  progress bar to 1 kg ("400 g in your bag ... 1 kg = 20% off", "Add 600 g more for 20% off"; full and "20% off
+  unlocked" at 1 kg); with the bag closed, each change shows a short note for 3 s ("800 g in your bag · 200 g more for
+  20% off"). FIKA10 refusal now shows the Black Friday message (filter priority 5, before the exit-offer one).
+  Full preview test (switch still OFF): 1 kg incl. a Ready Mix bag $28.00 -> $22.40; + a $2.80 fixed test code
+  (testbf280, deleted after) -> $19.60 (rewards combine); FIKA10 refused with the message; BUBS cap still refuses
+  300 g; checkout 900 g outside Beirut: Subtotal $25.20, Black Friday 10% off -$2.52, Delivery $6.00, Total $28.68;
+  before-you-go 10% skipped (FIKA_FREEKG = blackfriday); no page errors; normal visitor unchanged; site check OK.

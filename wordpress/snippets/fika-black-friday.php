@@ -11,7 +11,8 @@
  *   Percentage codes (FIKA10, the before-you-go 10%) are refused while it is on, with a friendly message, and the
  *   before-you-go popup skips its 10% offer (its question about why people leave keeps running).
  * - The per-order caps (fika-order-caps.php) stay. The kg count in Fika Club in full.
- * - The bag drawer on the shop pages shows the Black Friday line, the lower total and what is still needed for 20%.
+ * - The bag drawer on the shop pages shows the Black Friday line, a progress bar to 1 kg, the lower total and what is
+ *   still needed for 20%; with the bag closed, each change shows a short note ("0.9 kg in your bag · 100 g more for 20%").
  * - The home page hero carries an "Up to 20% off" sticker ("10% on everything / 20% from 1 kg" under it) linking to Mix your own.
  * - Private preview while it is off: any shop page with ?fika_bf_preview=<FIKA_BF_PREVIEW_KEY> switches it on for that
  *   browser only (a cookie for 3 hours, pages not cached for it), nobody else; a small note says it is a preview.
@@ -94,7 +95,7 @@ add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon ) {
 		throw new Exception( 'Black Friday is on: your $5 is kept for after Black Friday.' );
 	}
 	return $valid;
-}, 50, 2 );
+}, 5, 2 );
 
 // the shop pages: the before-you-go popup skips its 10% offer; the bag drawer shows the deal
 add_action( 'wp_footer', function () {
@@ -107,6 +108,15 @@ add_action( 'wp_footer', function () {
 .fkbf { margin: 0 0 8px; padding: 9px 12px; border-radius: 10px; background: #111827; color: #fff; font: 600 13px/1.35 'Outfit', 'Open Sans', Arial, sans-serif; }
 .fkbf .r { display: flex; justify-content: space-between; gap: 10px; }
 .fkbf .h { display: block; margin-top: 3px; font-weight: 500; font-size: 12px; color: #fcd34d; }
+.fkbf .bar { display: block; position: relative; height: 8px; margin-top: 8px; border-radius: 99px; background: rgba(255, 255, 255, .16); overflow: hidden; }
+.fkbf .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: #fcd34d; transition: width .35s ease; }
+.fkbf .ends { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10.5px; font-weight: 500; color: rgba(255, 255, 255, .7); }
+.fkbf.won { background: linear-gradient(135deg, #111827, #3b2f05); }
+.fkbf-toast { position: fixed; left: 50%; bottom: 88px; z-index: 100000; transform: translate(-50%, 12px); opacity: 0; max-width: calc(100vw - 32px);
+  padding: 10px 16px; border-radius: 999px; background: #111827; color: #fff; font: 600 13px/1.3 'Outfit', 'Open Sans', Arial, sans-serif;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, .3); white-space: nowrap; pointer-events: none; transition: opacity .25s ease, transform .25s ease; }
+.fkbf-toast b { color: #fcd34d; }
+.fkbf-toast.on { opacity: 1; transform: translate(-50%, 0); }
 .fkbf-stk { position: absolute; z-index: 3; right: 12%; bottom: 200px; width: 196px; height: 196px; border-radius: 50%; background: #111827;
   color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; text-decoration: none;
   transform: rotate(-9deg); box-shadow: 0 10px 28px rgba(17, 24, 39, .35); font-family: 'Outfit', 'Open Sans', Arial, sans-serif; transition: transform .2s ease; }
@@ -144,10 +154,27 @@ add_action( 'wp_footer', function () {
 			var rate = g >= 1000 ? 20 : 10, off = Math.round(s * rate) / 100;
 			var hint = g >= 1000 ? '20% off unlocked' : 'Add ' + (1000 - g) + ' g more for 20% off';
 			if (!box) { box = document.createElement('div'); box.className = 'fkbf'; sub.parentNode.parentNode.insertBefore(box, sub.parentNode); }
-			box.innerHTML = '<span class="r"><span>Black Friday ' + rate + '% off</span><span>&minus;' + money(off) + '</span></span><span class="h">' + hint + '</span>';
+			box.className = 'fkbf' + (g >= 1000 ? ' won' : '');
+			box.innerHTML = '<span class="r"><span>Black Friday ' + rate + '% off</span><span>&minus;' + money(off) + '</span></span>' +
+				'<span class="bar"><i style="width:' + Math.min(100, g / 10) + '%"></i></span>' +
+				'<span class="ends"><span>' + kg(g) + ' in your bag</span><span>1 kg = 20% off</span></span><span class="h">' + hint + '</span>';
 			tot.textContent = money(s - off);
 		} else if (box) { box.remove(); }
+		// the bag is closed: a short note after each change, so the 20% is seen without opening the bag
+		if (last !== null && g !== last && g > 0) {
+			var open = document.querySelector('.mx-drawer.on');
+			if (!open) toast(g >= 1000 ? '<b>20% off unlocked</b> · ' + kg(g) + ' in your bag' : kg(g) + ' in your bag · <b>' + (1000 - g) + ' g more for 20% off</b>');
+		}
+		last = g;
 		busy = false;
+	}
+	var last = null, tt = null;
+	function kg(g) { return g >= 1000 ? (g / 1000).toFixed(1).replace(/\.0$/, '') + ' kg' : g + ' g'; }
+	function toast(html) {
+		var t = document.querySelector('.fkbf-toast');
+		if (!t) { t = document.createElement('div'); t.className = 'fkbf-toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+		t.innerHTML = html; t.classList.add('on');
+		clearTimeout(tt); tt = setTimeout(function () { t.classList.remove('on'); }, 3200);
 	}
 	function start() {
 		var sub = document.getElementById('mxSub');
