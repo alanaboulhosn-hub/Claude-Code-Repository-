@@ -2931,3 +2931,21 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   flow (fika_link_past_orders): checked with a temporary route (snippet 318, trashed) that fika_past_orders(her email)
   returns #1757 (9,900 g), so confirming an account with that email moves it in at once. Private order note added.
   A different email would not match: link it by hand then.
+
+## RT export of 24 Nov applied (owner)
+- 720 parcels, 665 matched to website orders. Dry run (rtplan.py) then fika_rtd_apply through a temporary staff-only
+  route (snippet 319, trashed); live snippet 94 = git first; each order re-checked against the dry run before it
+  changed (42/42 unchanged), all 42 re-read after: match. RT time = the export time (24 Nov 18:42 Beirut), note "from
+  the RT export of 24 Nov". No emails from the status changes (newly completed orders get Email 0 3 days later, as
+  designed).
+- 28 Completed (Delivered): #1717-#1724, #1726-#1741, #1744-#1747. 1 Failed: #1711 (RT: Cancel). RT step only on 13:
+  #1742 Return to warehouse; #1743, #1749, #1757 collected by pickup; #1748, #1750-#1756, #1758 at RT warehouse.
+  Left alone: #1589 (cancelled here; RT now says return received by merchant). After: 689 completed, 14 processing,
+  31 failed, 15 cancelled. All open website orders are in the export.
+- RT cash to fix (owner, in RT): #1755 RT $53.60 vs order $56.40; #1757 RT $156.20 vs $282.20 (and bags). New cash
+  difference on a delivered parcel: #1728 RT collected $16.20 vs order $10.60. #1734 already corrected to $21.80.
+- Loyalty audit after (loyalty-audit.py, fresh data): 217 accounts (178 confirmed, 130 with delivered kg; 39 past
+  1.5 kg, 7 past 3 kg). Stored totals match the orders for every account; no guest order left unjoined on a confirmed
+  account; reward codes all locked, single use. Only the expected items: 28 tastes "won" above current kg (by
+  design), SWIM3-82UQ5D (account 133, known past exception) and SWIM3-28BXGY (account 112: 2.9 kg = 3 kg less the
+  100 g the reward paid, by design).
