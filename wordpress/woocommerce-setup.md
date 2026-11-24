@@ -2927,3 +2927,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
 - #1755 Maria Khairallah (account 316): the added 100 g already counts: lane 1.8 kg on its way (fika_swim_totals,
   live), delivered once the order is Completed. fika_swim_sync run for 316 (prunes claims only, sends nothing).
 - Temporary staff-only route snippet 317 (trashed).
+- Owner: no account for Nadine; keep the 9.9 kg for her in case she signs up. Already covered by the confirmed-email
+  flow (fika_link_past_orders): checked with a temporary route (snippet 318, trashed) that fika_past_orders(her email)
+  returns #1757 (9,900 g), so confirming an account with that email moves it in at once. Private order note added.
+  A different email would not match: link it by hand then.
