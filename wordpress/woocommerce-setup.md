@@ -2993,3 +2993,12 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   Tested in preview with temporary codes swim3-testbf and testbf280 (deleted): refused with the messages; normal
   visitor unchanged (reward-style code accepted as before). Snippets 46 and 320: live = git before, active after.
   Switch still OFF; site check OK.
+- 24 Nov (owner): the $5 emails pause while the Black Friday switch is on, and the $5 points to the deal. Snippet 35
+  (fika-winback.php): fika_wb_due returns nothing for email 2 while option fika_bf_on is set (those due get it after
+  the switch goes off; once-ever and mark-before-send rules unchanged; emails 0 and 1 keep going); fika_wb_sync_code
+  does not put a held $5 on (takes it off if on) and the $5 bag note is hidden while fika_bf_on(). Snippet 320: a $5
+  code typed in -> "Black Friday is on, so instead of your $5 you get 10% off your sweets, and 20% off from 1 kg."
+  Tested: fika_wb_due with the switch pretended on for one request (temporary route 321, trashed): '2' off, '' on,
+  email 1 still '1'; temporary $5 test code iou5-testbf (deleted): preview -> the message, normal visitor -> as before.
+  Note: email-2 codes are valid 2 days, so codes sent just before the switch can expire during the deal.
+  Snippets 35 and 320: live = git before, active after. Switch still OFF; site check OK.

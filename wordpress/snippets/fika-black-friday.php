@@ -6,9 +6,10 @@
  * - The deal: 10% off the sweets, 20% off from 1 kg in the bag (everything in the bag counts, Ready Mix bags as 500 g;
  *   the free mystery taste does not). A discount line "Black Friday 10% off" / "Black Friday 20% off" on the bag at
  *   checkout and on the order. Delivery is never discounted.
- * - Nothing else combines with it (owner, 24 Nov 2026): Fika Club rewards (SWIM codes), the $5 store credit (IOU codes),
- *   FIKA10 and any other code are refused with a message saying they are saved for the next order after Black Friday
- *   (refused codes are not used up); the free mystery taste stays out of the bag and stays won (fika-taste.php); the
+ * - Nothing else combines with it (owner, 24 Nov 2026): Fika Club rewards (SWIM codes), FIKA10 and any other code are
+ *   refused with a message saying they are saved for the next order after Black Friday (refused codes are not used
+ *   up); the $5 store credit (IOU codes) points to the deal instead, and the $5 email (win-back email 2) is paused
+ *   while the switch is on (fika-winback.php); the free mystery taste stays out of the bag and stays won (fika-taste.php); the
  *   before-you-go popup skips its 10% offer (its question about why people leave keeps running).
  * - Every gram counts in Fika Club, so nobody loses progress. The per-order caps (fika-order-caps.php) stay.
  * - The bag drawer on the shop pages shows the Black Friday line, a progress bar to 1 kg, the lower total and what is
@@ -94,7 +95,7 @@ add_filter( 'woocommerce_coupon_is_valid', function ( $valid, $coupon ) {
 		throw new Exception( 'Black Friday is on, so your Fika Club reward is saved in your account for your next order after Black Friday. Every gram of this order still counts towards your rewards.' );
 	}
 	if ( function_exists( 'fika_wb_is_owe' ) && fika_wb_is_owe( $coupon ) ) {
-		throw new Exception( 'Black Friday is on, so your $5 is saved for your next order after Black Friday.' );
+		throw new Exception( 'Black Friday is on, so instead of your $5 you get 10% off your sweets, and 20% off from 1 kg.' );
 	}
 	throw new Exception( 'Black Friday is on: you already get 10% off your sweets, and 20% off from 1 kg, so codes cannot be added now. Your code still works after Black Friday.' );
 }, 5, 2 );

@@ -39,6 +39,8 @@
  *   24 hours, within the hello@ mailbox's limit of about 100), so a big list goes out over a few days.
  * - Mode: "Test" sends only to the addresses listed in WP Admin; "Live" sends to everyone due; "Off" sends nothing.
  * - Email 0, the thank-you 3 days after delivery, is in this snippet too (its own section below; was fika-followup.php).
+ * - While the Black Friday deal is switched on (fika-black-friday.php): no email 2 goes out (those due get it after), a
+ *   held $5 code does not go on by itself and its bag note is hidden; typed in, it points to the Black Friday deal.
  * - WP Admin > WooCommerce > Win-back emails: emails 0, 1 and 2, each with On / Off, how many were sent, who is due
  *   next; settings, previews and the activity of all three under "More settings".
  * Sent with WooCommerce's email layout (the same template as the order emails).
@@ -232,6 +234,9 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 		if ( empty( $s['s2'] ) ) {
 			if ( fika_wb_owe_had( $email ) ) {
 				return ''; // had the store credit once already: this cycle ends with email 1
+			}
+			if ( get_option( 'fika_bf_on' ) ) {
+				return ''; // Black Friday deal on (fika-black-friday.php, owner 24 Nov 2026): the $5 email waits until it ends
 			}
 			return ( time() - (int) $s['s1'] >= (int) $set['second_days'] * DAY_IN_SECONDS ) ? '2' : '';
 		}
@@ -927,6 +932,13 @@ if ( ! function_exists( 'fika_wb_settings' ) ) {
 			return;
 		}
 		$c   = new WC_Coupon( $code );
+		// Black Friday deal on: the $5 does not go on by itself (the deal replaces it); taken off if it is on
+		if ( function_exists( 'fika_bf_on' ) && fika_bf_on() && fika_wb_is_owe( $c ) ) {
+			if ( WC()->cart->has_discount( $code ) ) {
+				WC()->cart->remove_coupon( $code );
+			}
+			return;
+		}
 		$exp = $c->get_id() ? $c->get_date_expires() : null;
 		if ( ! $c->get_id() || ( $exp && $exp->getTimestamp() < time() ) || ( $c->get_usage_limit() && $c->get_usage_count() >= $c->get_usage_limit() ) ) {
 			fika_wb_forget_code();
@@ -1203,6 +1215,9 @@ foreach ( array( 'woocommerce_store_api_checkout_order_processed', 'woocommerce_
 add_action( 'wp_footer', function () {
 	if ( is_admin() || ! function_exists( 'WC' ) ) {
 		return;
+	}
+	if ( function_exists( 'fika_bf_on' ) && fika_bf_on() ) {
+		return; // Black Friday deal on: the bag shows the deal instead of the $5
 	}
 	$owe = fika_wb_owe_code( fika_wb_pending_code() );
 	if ( ! $owe || ( function_exists( 'is_account_page' ) && is_account_page() ) ) {
