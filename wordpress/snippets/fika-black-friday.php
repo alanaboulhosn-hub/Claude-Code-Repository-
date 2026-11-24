@@ -12,7 +12,7 @@
  *   before-you-go popup skips its 10% offer (its question about why people leave keeps running).
  * - The per-order caps (fika-order-caps.php) stay. The kg count in Fika Club in full.
  * - The bag drawer on the shop pages shows the Black Friday line, the lower total and what is still needed for 20%.
- * - The home page hero carries an "Up to 20% off" sticker ("20% from 1 kg" under it) linking to Mix your own.
+ * - The home page hero carries an "Up to 20% off" sticker ("10% on everything / 20% from 1 kg" under it) linking to Mix your own.
  * - Private preview while it is off: any shop page with ?fika_bf_preview=<FIKA_BF_PREVIEW_KEY> switches it on for that
  *   browser only (a cookie for 3 hours, pages not cached for it), nobody else; a small note says it is a preview.
  * - GET /wp-json/fika/v1/black-friday (shop admins): whether it is on.
@@ -107,20 +107,21 @@ add_action( 'wp_footer', function () {
 .fkbf { margin: 0 0 8px; padding: 9px 12px; border-radius: 10px; background: #111827; color: #fff; font: 600 13px/1.35 'Outfit', 'Open Sans', Arial, sans-serif; }
 .fkbf .r { display: flex; justify-content: space-between; gap: 10px; }
 .fkbf .h { display: block; margin-top: 3px; font-weight: 500; font-size: 12px; color: #fcd34d; }
-.fkbf-stk { position: absolute; z-index: 3; right: 12%; bottom: 210px; width: 176px; height: 176px; border-radius: 50%; background: #111827;
+.fkbf-stk { position: absolute; z-index: 3; right: 12%; bottom: 200px; width: 196px; height: 196px; border-radius: 50%; background: #111827;
   color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; text-decoration: none;
   transform: rotate(-9deg); box-shadow: 0 10px 28px rgba(17, 24, 39, .35); font-family: 'Outfit', 'Open Sans', Arial, sans-serif; transition: transform .2s ease; }
 .fkbf-stk::before { content: ''; position: absolute; inset: 7px; border: 2px dashed rgba(252, 211, 77, .7); border-radius: 50%; }
 .fkbf-stk:hover { transform: rotate(-4deg) scale(1.04); }
 .fkbf-stk .t1, .fkbf-stk .t3 { font-weight: 700; font-size: 14px; letter-spacing: .14em; line-height: 1; }
 .fkbf-stk .t2 { font-family: 'NF Le Petit Cochon', 'Outfit', cursive; font-size: 54px; line-height: .95; color: #fcd34d; margin: 2px 0 1px; }
-.fkbf-stk .t4 { margin-top: 6px; font-size: 11px; font-weight: 500; color: #fcd34d; letter-spacing: .02em; }
+.fkbf-stk .t4 { margin-top: 7px; font-size: 11.5px; font-weight: 600; color: #fff; letter-spacing: .02em; line-height: 1.3; }
+.fkbf-stk .t4 b { color: #fcd34d; font-weight: 700; }
 @media (max-width: 760px) {
-  .fkbf-stk { right: 16px; bottom: auto; top: 205px; width: 122px; height: 122px; }
+  .fkbf-stk { right: 14px; bottom: auto; top: 192px; width: 140px; height: 140px; }
   .fkbf-stk::before { inset: 5px; }
   .fkbf-stk .t1, .fkbf-stk .t3 { font-size: 10px; }
-  .fkbf-stk .t2 { font-size: 38px; }
-  .fkbf-stk .t4 { font-size: 9px; margin-top: 4px; }
+  .fkbf-stk .t2 { font-size: 40px; }
+  .fkbf-stk .t4 { font-size: 8.5px; margin-top: 5px; }
 }
 .fkbf-prev { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 100001; padding: 6px 12px; border-radius: 999px; background: #111827; color: #fcd34d; font: 600 12px/1.2 Arial, sans-serif; pointer-events: none; }
 </style>
@@ -165,7 +166,7 @@ add_action( 'wp_footer', function () {
 		var a = document.createElement('a');
 		a.className = 'fkbf-stk'; a.href = '/mix-your-own/';
 		a.setAttribute('aria-label', 'Black Friday: up to 20% off. 10% off everything, 20% off from 1 kg');
-		a.innerHTML = '<span class="t1">UP TO</span><span class="t2">20%</span><span class="t3">OFF</span><span class="t4">20% from 1 kg</span>';
+		a.innerHTML = '<span class="t1">UP TO</span><span class="t2">20%</span><span class="t3">OFF</span><span class="t4"><b>10%</b> on everything<br><b>20%</b> from 1 kg</span>';
 		h.appendChild(a);
 	}
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sticker); else sticker();
