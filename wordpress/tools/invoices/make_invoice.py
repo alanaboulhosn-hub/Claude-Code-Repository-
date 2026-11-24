@@ -183,8 +183,10 @@ def invoice_data(o, vat=False):
                 problems.append(f'pick-and-mix line priced {price:.2f}: {row["name"]}')
         rows.append(row)
     disc = [(discount_label(c['code']), txt(c['code']).upper(), float(c['discount'])) for c in o['coupon_lines']]
+    # negative fee lines are discounts (the Black Friday deal, fika-black-friday.php)
+    disc += [(txt(f['name']), '', -float(f['total'])) for f in o.get('fee_lines', []) if float(f['total']) < 0]
     # delivery is charged for and kept by the courier (RT), not Fika's revenue: the invoice covers the sweets only
-    delivery = sum(float(l['total']) for l in o['shipping_lines']) + sum(float(f['total']) for f in o.get('fee_lines', []))
+    delivery = sum(float(l['total']) for l in o['shipping_lines']) + sum(float(f['total']) for f in o.get('fee_lines', []) if float(f['total']) > 0)
     sub = r2(sum(r['amount'] for r in rows))
     total = r2(sub - sum(d for *_, d in disc))
     if abs(total + delivery - float(o['total'])) > 0.005:

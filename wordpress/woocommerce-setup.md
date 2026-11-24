@@ -2949,3 +2949,20 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   account; reward codes all locked, single use. Only the expected items: 28 tastes "won" above current kg (by
   design), SWIM3-82UQ5D (account 133, known past exception) and SWIM3-28BXGY (account 112: 2.9 kg = 3 kg less the
   100 g the reward paid, by design).
+
+## 2026-11-24: Black Friday deal, installed OFF (snippet 320, owner: not live until they say)
+- Snippet 320 "Fika: Black Friday deal" (wordpress/snippets/fika-black-friday.php, scope everywhere), switched like
+  the Halloween look: "Black Friday deal" in the WP admin top bar (option fika_bf_on, page cache cleared at each
+  click). Installed with the switch OFF: customers see and pay as before (checked: normal visitor's bag has no
+  discount; site check OK 46/46).
+- Deal (owner): 10% off the sweets, 20% from 1 kg in the bag (Ready Mix bag = 500 g; free mystery taste not counted);
+  a discount line "Black Friday 10% / 20% off" (negative fee) on bag, checkout and order; delivery never discounted.
+  Combines with Fika Club rewards and tastes (owner) and the $5 win-back store credit (FIKA_BF_IOU_STACKS true:
+  money promised to those customers; one line to change). Percentage codes (FIKA10) refused while on; the
+  before-you-go popup skips its 10% (window.FIKA_FREEKG), its question keeps running. Caps stay; kg count in full.
+- Bag drawer: a "Black Friday 10% off -$x / Add N g more for 20% off" line and the lower total.
+- Preview: any page with ?fika_bf_preview=bf7c41e9a2 turns it on for that browser only (signed cookie, 3 h, not
+  cached). Tested (Store API, throwaway bags, no order): 900 g $25.20 -> $22.68; 1 kg $28.00 -> $22.40; 1 kg + Ready
+  Mix $42.00 -> $33.60; normal visitor unchanged. Checkout on a phone: Subtotal $28.00, Black Friday 20% off -$5.60,
+  Delivery $5.00, Total $27.40. No page errors.
+- Invoices (make_invoice.py): negative fee lines now show as discounts, not delivery. 320 added to _active_snippets.
