@@ -3099,3 +3099,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   with the new code added (deploying it, even switched off, was stopped by the permission check). Found and fixed in
   the preview: the closed panel's veil blocked taps on the checkout; the note did not follow the cart; suggestion cards
   too tall on phones. Live snippet 320 = commit 70bf671's code (the strip changes), not this commit, until approved.
+- 25 Nov, order #1771 (id 1921, guest, no account with that email): corrected to what was delivered (owner): 200 g
+  BUBS Banana Toffee Ovals + 200 g BUBS Wild Berry Pomegranate Oval, Black Friday 10%: $11.20 - $1.12 + $5.00 =
+  $15.08 (was $7.52). Temporary route trashed after, no emails. Her guest orders join Fika Club (with these 400 g)
+  if she signs up and confirms this email. Owner to change the RT cash amount (RTL75792210).
