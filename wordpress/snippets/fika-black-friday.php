@@ -19,6 +19,9 @@
  *   Mix your own), or "20% off unlocked with 1 kg". Signed-in customers also get a card on top of it (owner, 24 Nov 2026:
  *   make it clear what happened to their rewards): "Your Fika Club rewards are saved", listing each reward and mystery
  *   taste waiting in their account by name, and that every gram of this order still counts.
+ * - The Mix your own, Ready Mix and About us heroes carry the same sticker (owner, 25 Nov 2026): on the right of the
+ *   text on a computer (under the text on Mix your own and Ready Mix, so the photo stays clear; on the right on About us),
+ *   smaller in the bottom-right corner on a phone; on Mix your own it scrolls down to the sweets.
  * - The home page hero carries an "Up to 20% off" sticker ("10% on everything / 20% from 1 kg" under it) linking to Mix your own.
  * - End date (owner, 24 Nov 2026: show when the deal ends): FIKA_BF_ENDS, the deal's last day (Beirut). Shown on the
  *   top strip of every page ("Black Friday: up to 20% off · Ends Sunday 29 November"), under the home page sticker, in
@@ -175,8 +178,21 @@ add_action( 'wp_footer', function () {
 .fkbf-stk .t2 { font-family: 'NF Le Petit Cochon', 'Outfit', cursive; font-size: 54px; line-height: .95; color: #fcd34d; margin: 2px 0 1px; }
 .fkbf-stk .t4 { margin-top: 7px; font-size: 11.5px; font-weight: 600; color: #fff; letter-spacing: .02em; line-height: 1.3; }
 .fkbf-stk .t4 b { color: #fcd34d; font-weight: 700; }
+.fkbf-stk.fkbf-stk-shop { right: 11%; bottom: auto; top: 50%; transform: translateY(-50%) rotate(-9deg); }
+.fkbf-stk.fkbf-stk-shop:hover { transform: translateY(-50%) rotate(-4deg) scale(1.04); }
+.fika-about-hero .fkbf-stk.fkbf-stk-shop { right: 5%; }
+.fkbf-stk.fkbf-stk-shop.fkbf-stk-inline { left: var(--stk-l, 10%); top: var(--stk-t, 66%); right: auto; bottom: auto; width: 168px; height: 168px; transform: rotate(-9deg); }
+.fkbf-stk.fkbf-stk-shop.fkbf-stk-inline:hover { transform: rotate(-4deg) scale(1.04); }
+.fkbf-stk-inline .t1, .fkbf-stk-inline .t3 { font-size: 12px; }
+.fkbf-stk-inline .t2 { font-size: 46px; }
+.fkbf-stk-inline .t4 { font-size: 10px; margin-top: 5px; }
 @media (max-width: 760px) {
   .fkbf-stk { right: 14px; bottom: auto; top: 192px; width: 140px; height: 140px; }
+  .fkbf-stk.fkbf-stk-shop, .fika-about-hero .fkbf-stk.fkbf-stk-shop, .fkbf-stk.fkbf-stk-shop.fkbf-stk-inline { left: auto; top: auto; bottom: 12px; right: 12px; width: 112px; height: 112px; transform: rotate(-9deg); }
+  .fkbf-stk.fkbf-stk-shop .t1, .fkbf-stk.fkbf-stk-shop .t3 { font-size: 8px; }
+  .fkbf-stk.fkbf-stk-shop .t2 { font-size: 31px; }
+  .fkbf-stk.fkbf-stk-shop .t4 { font-size: 7px; margin-top: 3px; }
+  .fkbf-stk.fkbf-stk-shop .end { font-size: 8px; padding: 3px 7px; bottom: -8px; }
   .fkbf-stk::before { inset: 5px; }
   .fkbf-stk .t1, .fkbf-stk .t3 { font-size: 10px; }
   .fkbf-stk .t2 { font-size: 40px; }
@@ -268,16 +284,26 @@ add_action( 'wp_footer', function () {
 		if (tot) new MutationObserver(function () { if (!busy) setTimeout(paint, 0); }).observe(tot, { childList: true, characterData: true, subtree: true });
 	}
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
-	<?php if ( is_front_page() ) : ?>
-	// the home page hero: an "Up to 20% off" sticker, linking to Mix your own
+	<?php if ( is_front_page() || is_page( array( 'mix-your-own', 'ready-mix', 'about-us' ) ) ) : ?>
+	// the page's hero: an "Up to 20% off" sticker, linking to Mix your own (on Mix your own: down to the sweets)
 	function sticker() {
-		var h = document.querySelector('.fika-hero:not(.fika-shop-hero)');
+		var h = document.querySelector('.fika-hero');
 		if (!h || h.querySelector('.fkbf-stk')) return;
+		var shop = h.classList.contains('fika-shop-hero'), bar = document.getElementById('fsBar');
 		var a = document.createElement('a');
-		a.className = 'fkbf-stk'; a.href = '/mix-your-own/';
+		a.className = 'fkbf-stk' + (shop ? ' fkbf-stk-shop' : ''); a.href = bar && /mix-your-own/.test(location.pathname) ? '#fsBar' : '/mix-your-own/';
+		if (a.getAttribute('href') === '#fsBar') a.addEventListener('click', function (e) { e.preventDefault(); bar.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 		a.setAttribute('aria-label', 'Black Friday: up to 20% off. 10% off everything, 20% off from 1 kg');
 		a.innerHTML = '<span class="t1">UP TO</span><span class="t2">20%</span><span class="t3">OFF</span><span class="t4"><b>10%</b> on everything<br><b>20%</b> from 1 kg</span>' + (ends(true) ? '<span class="end">' + ends(true) + '</span>' : '');
+		// Mix your own, Ready Mix (photo on the right): under the text on a computer; About us and the home page: in the hero
+		var txt = shop && !h.classList.contains('fika-about-hero') ? (h.querySelector('h1') || {}).parentNode : null;
 		h.appendChild(a);
+		if (txt && txt !== h) {
+			a.className += ' fkbf-stk-inline';
+			// left edge of the heading, just under the last line of text
+			var at = function () { var hr = h.getBoundingClientRect(), l = h.querySelector('h1').getBoundingClientRect().left, b = 0; [].forEach.call(txt.querySelectorAll('h1, p'), function (e) { b = Math.max(b, e.getBoundingClientRect().bottom); }); a.style.setProperty('--stk-l', Math.round(l - hr.left + 6) + 'px'); a.style.setProperty('--stk-t', Math.round(b - hr.top + 30) + 'px'); };
+			at(); window.addEventListener('resize', at); window.addEventListener('load', at);
+		}
 	}
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sticker); else sticker();
 	<?php endif; ?>
