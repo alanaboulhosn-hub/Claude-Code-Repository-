@@ -91,6 +91,11 @@ async function browse(b, dev, opt) {
     if (info.wide > 2) fail(dev, 'page ' + u + ' scrolls sideways', info.wide + ' px');
     if (info.broken) warn(dev, 'page ' + u + ' has broken images', info.broken);
   }
+  // the blue strip on top stays pinned while scrolling (25 Nov 2026: a style change once made it scroll away)
+  await go('/');
+  await p.mouse.wheel(0, 1500); await p.waitForTimeout(900);
+  const pin = await p.evaluate(() => { const b = document.querySelector('.fika-banner'); if (!b) return null; const r = b.getBoundingClientRect(), c = getComputedStyle(b); return { pos: c.position, top: Math.round(r.top), h: Math.round(r.height), y: Math.round(scrollY) }; });
+  check(!!pin && pin.pos === 'fixed' && Math.abs(pin.top) <= 50 && pin.h > 20 && pin.y > 300, dev, 'top strip stays on screen while scrolling', JSON.stringify(pin));
   for (const [u, to] of [['/shop/', '/mix-your-own/'], ['/cart/', '/mix-your-own/']]) { await go(u); check(p.url().includes(to), dev, u + ' leads to ' + to, p.url().replace(S, '')); }
   for (const u of ['/my-account/', '/my-account/lost-password/']) { const st = await go(u); const f = await p.locator('form:visible').count(); check(st === 200 && f > 0, dev, 'page ' + u + ' has its form', 'status ' + st + ', ' + f + ' forms'); }
 

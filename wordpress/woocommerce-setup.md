@@ -3064,3 +3064,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   line and the delivery line take turns (deal line fades in for 5 s, fades out, delivery line scrolls across once,
   repeat), live at the owner's word. Checked live on home, Mix your own, Ready Mix, About us and the 404, phone and
   computer ("Ends Tue 1 Dec" on phones, "Ends Tuesday 1 December" on computers); no page errors; site check OK.
+- 25 Nov, bug and fix: the alternating top strip set `.fika-banner { position: relative !important }`, but the strip is
+  position: fixed (pinned to the top), so it scrolled away with the page (owner noticed, about 40 minutes live). Rule
+  removed (live = git, active); checked pinned on every shop page, phone and computer. The site check now scrolls
+  and fails if the strip does not stay on screen ("top strip stays on screen while scrolling").

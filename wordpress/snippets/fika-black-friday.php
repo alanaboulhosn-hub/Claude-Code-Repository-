@@ -205,7 +205,7 @@ add_action( 'wp_footer', function () {
 .fkbf .h .dl, .fkbf-co .dl { font-weight: 600; color: #fff; }
 .fkbf-co .dl { display: block; margin-top: 6px; font-size: 12px; }
 .fkbf-stk .end { position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); padding: 5px 12px; border-radius: 999px; background: #fcd34d; color: #111827; font: 700 11.5px/1 'Outfit', 'Open Sans', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 4px 10px rgba(17, 24, 39, .25); }
-.fika-banner.fkbf-bn-on { position: relative !important; }
+/* the banner is position: fixed (pinned to the top), which already holds the Black Friday line: never override it */
 .fika-banner .fkbf-bn { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); padding: 0 12px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .6s ease; pointer-events: none; }
 .fika-banner .fkbf-bn.on { opacity: 1; }
 .fika-banner .fkbf-bn b { color: #fcd34d; font-weight: 700; }
