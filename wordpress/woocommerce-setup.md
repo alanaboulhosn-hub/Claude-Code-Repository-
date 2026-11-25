@@ -3073,3 +3073,11 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   home, Mix your own, Ready Mix, About us, phone and computer: lines alternate, strip pinned while scrolling, no page
   errors; site check OK 48/48. (Testing note: the strip pauses under a resting mouse, so test browsers move the
   pointer away first.)
+- 25 Nov, order numbers: gaps 1716, 1760, 1762-1764, 1767, 1774-1776 are all Claude's deleted test orders (no real
+  order missing; failed/cancelled orders keep their numbers). Owner: the Ministry of Finance needs an unbroken series:
+  proposed a separate invoice series (INV-0001...) for delivered orders, a register, and a list of order numbers
+  without an invoice and why; waiting on the accountant (series start, invoice date = delivery or order, company
+  details). Done now: fika-imported-orders.php (snippet 71) gives test orders (@example.com/.org/.net) no number from
+  the counter, they show as TEST-<id>. Tested live: TEST-1930, counter 1778 before and after, deleted. Site check OK.
+- #1777 not linked to RT: RT's API timed out (25 s, no answer) at 13:54 and on the retry at 14:04; nothing came back
+  from RT (no unmatched parcel). Owner to check the RT dashboard for a parcel before pressing "Send to RT now".

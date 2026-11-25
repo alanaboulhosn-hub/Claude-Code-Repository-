@@ -8,6 +8,8 @@
  * - New orders get the next number (meta _fika_order_number) when they are placed, from the counter in option
  *   fika_next_order_number (starts at 1456, raised atomically, so two orders at once never share a number).
  *   Unfinished checkouts (drafts) get no number, so there are no gaps from abandoned bags.
+ * - Test orders (billing email @example.com / .org / .net, CLAUDE.md) take no number from the counter (owner, 25 Nov
+ *   2026: no gaps when test orders are deleted): they show as "TEST-<order id>" instead.
  * - The number shows everywhere WooCommerce shows one: My account, the order popup, emails, WP Admin, Meta.
  *   WP Admin > Orders search finds orders by these numbers too.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-imported-orders.php
@@ -15,6 +17,13 @@
 
 if ( ! defined( 'FIKA_FIRST_ORDER_NUMBER' ) ) {
 	define( 'FIKA_FIRST_ORDER_NUMBER', 1456 );
+}
+
+if ( ! function_exists( 'fika_is_test_order' ) ) {
+	// a test order: billing email at example.com / .org / .net (the test addresses, CLAUDE.md)
+	function fika_is_test_order( $order ) {
+		return $order instanceof WC_Order && (bool) preg_match( '/@example\.(com|org|net)$/i', (string) $order->get_billing_email() );
+	}
 }
 
 if ( ! function_exists( 'fika_next_order_number' ) ) {
@@ -40,6 +49,9 @@ add_action( 'woocommerce_before_order_object_save', function ( $order ) {
 	if ( '' !== (string) $order->get_meta( '_fika_old_order' ) || '' !== (string) $order->get_meta( '_fika_order_number' ) ) {
 		return;
 	}
+	if ( fika_is_test_order( $order ) ) {
+		return; // a test order: no number from the counter (shown as TEST-<id>)
+	}
 	$order->update_meta_data( '_fika_order_number', (string) fika_next_order_number() );
 } );
 
@@ -52,6 +64,9 @@ add_filter( 'woocommerce_order_number', function ( $number, $order ) {
 		if ( '' !== $v ) {
 			return $v;
 		}
+	}
+	if ( fika_is_test_order( $order ) ) {
+		return 'TEST-' . $order->get_id();
 	}
 	return $number;
 }, 10, 2 );
