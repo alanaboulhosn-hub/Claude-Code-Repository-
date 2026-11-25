@@ -3056,3 +3056,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   the text (Mix your own, Ready Mix, so the photo stays clear) or on the right (About us); phone bottom-right corner.
   Checked live phone + computer: one sticker per page, Mix your own scrolls to the sweets, the others go to Mix your
   own, no page errors; site check OK.
+- Test orders at the owner's request (25 Nov): two real guest orders through the live checkout on a phone, Meta blocked
+  in the browser, @example.com, emails blocked by a temporary snippet (trashed after). #1774 600 g: $16.80 - BF 10%
+  $1.68 + Beirut $5.00 = $20.12; #1775 1 kg: $28.00 - BF 20% $5.60 + $5.00 = $27.40. Both: cash on delivery,
+  "Meta: test order, purchase not sent", nothing to RT. Both deleted, saved bags of test addresses removed.
