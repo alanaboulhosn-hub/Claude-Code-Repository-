@@ -3052,3 +3052,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   Mix your own (ad landing page): 0.8 s on 4G, 1.5 s on slow 4G. Site check OK. Old media 455 left in place (unused).
 - Bag: green "You save with Black Friday -$x" row above the Total (owner, 25 Nov), live at the owner's word; checked on
   phone and computer (600 g -$1.68 / $15.12, 1 kg -$5.60 / $22.40, row gone when the bag is emptied), site check OK.
+- Hero sticker also on Mix your own, Ready Mix and About us (owner, 25 Nov), live at the owner's word: computer under
+  the text (Mix your own, Ready Mix, so the photo stays clear) or on the right (About us); phone bottom-right corner.
+  Checked live phone + computer: one sticker per page, Mix your own scrolls to the sweets, the others go to Mix your
+  own, no page errors; site check OK.
