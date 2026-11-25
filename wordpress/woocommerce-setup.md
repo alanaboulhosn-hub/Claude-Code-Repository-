@@ -3068,3 +3068,8 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   position: fixed (pinned to the top), so it scrolled away with the page (owner noticed, about 40 minutes live). Rule
   removed (live = git, active); checked pinned on every shop page, phone and computer. The site check now scrolls
   and fails if the strip does not stay on screen ("top strip stays on screen while scrolling").
+- 25 Nov, owner: the top strip lines now both travel across (Black Friday line, then the delivery line as soon as it
+  has left, and so on), same speed for both (each pass timed by its length). Live at the owner's word; checked live on
+  home, Mix your own, Ready Mix, About us, phone and computer: lines alternate, strip pinned while scrolling, no page
+  errors; site check OK 48/48. (Testing note: the strip pauses under a resting mouse, so test browsers move the
+  pointer away first.)
