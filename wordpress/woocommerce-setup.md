@@ -3092,3 +3092,10 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   10% (-$1.68), fee "Rounded to $20" (-$0.12): $16.80 - $1.68 - $0.12 + $5.00 = $20.00. Temporary route trashed after,
   no emails. Fika Club reads the order itself: 600 g on its way (rounding is not a reward code, so all 600 g count).
   Owner changes the RT cash amount.
+- 25 Nov, "Edit my bag" at checkout (owner asked for a preview): new wordpress/snippets/fika-checkout-edit.php (button
+  at the top of the order summary, panel with - / + / remove, suggestions, Black Friday bar; edits WooCommerce's own
+  cart, keeps the typed form, syncs the shop bag) and fika-black-friday.php: the checkout note now follows the live
+  cart (waits for WooCommerce's cart data to load). NOT LIVE: previewed by serving the live checkout to a test browser
+  with the new code added (deploying it, even switched off, was stopped by the permission check). Found and fixed in
+  the preview: the closed panel's veil blocked taps on the checkout; the note did not follow the cart; suggestion cards
+  too tall on phones. Live snippet 320 = commit 70bf671's code (the strip changes), not this commit, until approved.

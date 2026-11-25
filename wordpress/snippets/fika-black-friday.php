@@ -326,7 +326,16 @@ add_action( 'wp_footer', function () {
 	// the checkout: how close the bag is to 20%, just above the totals
 	(function () {
 		var g = <?php echo (int) $fika_bfb['g']; ?>;
-		if (!g) return;
+		// the bag can change on the checkout itself ("Edit my bag", fika-checkout-edit.php): follow the live cart
+		var READY = <?php echo wp_json_encode( array_map( 'intval', get_posts( array( 'post_type' => 'product', 'posts_per_page' => -1, 'fields' => 'ids', 'tax_query' => array( array( 'taxonomy' => 'product_cat', 'field' => 'slug', 'terms' => 'ready-mix' ) ) ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery ?>;
+		function liveG() {
+			try {
+				var c = wp.data.select('wc/store/cart').getCartData(), items = c ? c.items || [] : [], n = 0;
+				if (!c || !c.items) return null;
+				items.forEach(function (it) { if (!(it.item_data || []).some(function (d) { return /mystery taste/i.test(d.name || d.key || ''); })) n += it.quantity * (READY.indexOf(it.id) !== -1 ? 500 : 100); });
+				return n;
+			} catch (e) { return null; }
+		}
 		function html() {
 			if (g >= 1000) return '<span class="h">20% off unlocked with ' + kg(g) + '</span><span class="bar"><i style="width:100%"></i></span><span class="s"><span>Black Friday: 20% off from 1 kg</span></span>' + (ends(false) ? '<span class="dl">Black Friday ' + ends(false).charAt(0).toLowerCase() + ends(false).slice(1) + '</span>' : '');
 			return '<span class="h">You\'re ' + (1000 - g) + ' g away from 20% off</span><span class="bar"><i style="width:' + (g / 10) + '%"></i></span>' +
@@ -345,7 +354,7 @@ add_action( 'wp_footer', function () {
 		function place() {
 			[].forEach.call(document.querySelectorAll('.wp-block-woocommerce-checkout-order-summary-block'), function (sum) {
 				var tot = sum.querySelector('.wc-block-components-totals-wrapper');
-				if (!tot || sum.querySelector('.fkbf-co')) return;
+				if (!g || !tot || sum.querySelector('.fkbf-co')) return;
 				var n = document.createElement('div');
 				n.className = 'fkbf-co' + (g >= 1000 ? ' won' : ''); n.innerHTML = html();
 				tot.parentNode.insertBefore(n, tot);
@@ -355,6 +364,17 @@ add_action( 'wp_footer', function () {
 		var t = null;
 		new MutationObserver(function () { clearTimeout(t); t = setTimeout(place, 120); }).observe(document.body, { childList: true, subtree: true });
 		if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', place); else place();
+		// WooCommerce's cart data loads after this script: start following it once it is there
+		(function follow(tries) {
+			if (!(window.wp && wp.data && wp.data.select && wp.data.select('wc/store/cart'))) { if (tries < 100) setTimeout(function () { follow(tries + 1); }, 300); return; }
+			wp.data.subscribe(function () {
+				var n = liveG();
+				if (n === null || n === g) return;
+				g = n;
+				[].forEach.call(document.querySelectorAll('.fkbf-co'), function (el) { if (!g) { el.remove(); return; } el.className = 'fkbf-co' + (g >= 1000 ? ' won' : ''); el.innerHTML = html(); });
+				if (g) place();
+			});
+		})(0);
 	})();
 	<?php endif; ?>
 	<?php if ( $preview ) : ?>
