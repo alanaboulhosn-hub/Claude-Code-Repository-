@@ -3088,3 +3088,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
 - 25 Nov, order #1778 (id 1931): customer added 300 g BUBS Raspberry Salty Licorice Skulls + 200 g BUBS Lemon
   Raspberry Skull (owner), through a temporary route (trashed after), no emails. Now 1 kg: Black Friday 20% off;
   $28.00 - $5.60 + $5.00 delivery = $27.40 (was $17.60). Owner to update the cash amount in RT (RTL96266277).
+- 25 Nov, order #1778 changed again (owner): licorice removed, Lemon Raspberry Skull 100 g, 600 g in all, Black Friday
+  10% (-$1.68), fee "Rounded to $20" (-$0.12): $16.80 - $1.68 - $0.12 + $5.00 = $20.00. Temporary route trashed after,
+  no emails. Fika Club reads the order itself: 600 g on its way (rounding is not a reward code, so all 600 g count).
+  Owner changes the RT cash amount.
