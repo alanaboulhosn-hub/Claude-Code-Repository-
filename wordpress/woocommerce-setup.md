@@ -3085,3 +3085,6 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   way for removed candies; past orders and reports keep it). Checked: not on the home page, Mix your own or in search
   (Sour Swedish Fish stays); a bag that still held it drops it quietly and checks out with the rest; Mix your own
   says 25 sweets (All 25, Sweet 12, Sour 13); site check OK 48/48. To bring it back: visible + in stock.
+- 25 Nov, order #1778 (id 1931): customer added 300 g BUBS Raspberry Salty Licorice Skulls + 200 g BUBS Lemon
+  Raspberry Skull (owner), through a temporary route (trashed after), no emails. Now 1 kg: Black Friday 20% off;
+  $28.00 - $5.60 + $5.00 delivery = $27.40 (was $17.60). Owner to update the cash amount in RT (RTL96266277).
