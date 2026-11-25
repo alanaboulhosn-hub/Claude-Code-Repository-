@@ -12,7 +12,8 @@
  *   while the switch is on (fika-winback.php); the free mystery taste stays out of the bag and stays won (fika-taste.php); the
  *   before-you-go popup skips its 10% offer (its question about why people leave keeps running).
  * - Every gram counts in Fika Club, so nobody loses progress. The per-order caps (fika-order-caps.php) stay.
- * - The bag drawer on the shop pages shows the Black Friday line, a progress bar to 1 kg, the lower total and what is
+ * - The bag drawer on the shop pages shows a green "You save with Black Friday -$1.68" row between the bag and the
+ *   Total (owner, 25 Nov 2026: the saving must be clear), and the Black Friday line, a progress bar to 1 kg, the lower total and what is
  *   still needed for 20%; with the bag closed, each change shows a short note ("0.9 kg in your bag · 100 g more for 20%").
  * - The checkout shows the same above its totals: "You're 100 g away from 20% off" with the bar and "Add more" (back to
  *   Mix your own), or "20% off unlocked with 1 kg". Signed-in customers also get a card on top of it (owner, 24 Nov 2026:
@@ -187,6 +188,7 @@ add_action( 'wp_footer', function () {
 .fkbf-stk .end { position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); padding: 5px 12px; border-radius: 999px; background: #fcd34d; color: #111827; font: 700 11.5px/1 'Outfit', 'Open Sans', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 4px 10px rgba(17, 24, 39, .25); }
 .fika-banner .fika-ticker b.fkbf-tk { color: #fcd34d; font-weight: 700; }
 @media (max-width: 760px) { .fkbf-stk .end { font-size: 9px; padding: 4px 9px; bottom: -9px; } }
+.mx-sum.fkbf-save { color: #1f9d55; font-weight: 700; }
 .fkbf-prev { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 100001; padding: 6px 12px; border-radius: 999px; background: #111827; color: #fcd34d; font: 600 12px/1.2 Arial, sans-serif; pointer-events: none; }
 </style>
 <script>
@@ -233,7 +235,14 @@ add_action( 'wp_footer', function () {
 				'<span class="bar"><i style="width:' + Math.min(100, g / 10) + '%"></i></span>' +
 				'<span class="ends"><span>' + kg(g) + ' in your bag</span><span>1 kg = 20% off</span></span><span class="h"><span>' + hint + '</span>' + (ends(true) ? '<span class="dl">' + ends(true) + '</span>' : '') + '</span>';
 			tot.textContent = money(s - off);
-		} else if (box) { box.remove(); }
+			// the saving, in its own row just above the Total
+			var totRow = tot.closest('.mx-sum'), sv = document.querySelector('.fkbf-save');
+			if (!sv && totRow) { sv = document.createElement('div'); sv.className = 'mx-sum fkbf-save'; totRow.parentNode.insertBefore(sv, totRow); }
+			if (sv) sv.innerHTML = '<span>You save with Black Friday</span><span>&minus;' + money(off) + '</span>';
+		} else {
+			if (box) box.remove();
+			var sv0 = document.querySelector('.fkbf-save'); if (sv0) sv0.remove();
+		}
 		// the bag is closed: a short note after each change, so the 20% is seen without opening the bag
 		if (last !== null && g !== last && g > 0) {
 			var open = document.querySelector('.mx-drawer.on');
