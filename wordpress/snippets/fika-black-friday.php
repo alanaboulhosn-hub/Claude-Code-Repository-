@@ -28,6 +28,8 @@
  *   top strip of every page ("Black Friday: up to 20% off · Ends Sunday 29 November"), under the home page sticker, in
  *   the bag's Black Friday box and in the checkout note; "Ends tomorrow" / "Ends tonight" on the last two days (worked
  *   out in the browser, so cached pages stay right). Empty = no end date shown. It does not switch the deal off.
+ *   On the top strip the Black Friday line and the delivery line take turns (owner, 25 Nov 2026): the Black Friday
+ *   line fades in for 5 s, fades out, the delivery line scrolls across once, then the Black Friday line again.
  * - Private preview while it is off: any shop page with ?fika_bf_preview=<FIKA_BF_PREVIEW_KEY> switches it on for that
  *   browser only (a cookie for 3 hours, pages not cached for it), nobody else; a small note says it is a preview.
  * - GET /wp-json/fika/v1/black-friday (shop admins): whether it is on.
@@ -203,7 +205,11 @@ add_action( 'wp_footer', function () {
 .fkbf .h .dl, .fkbf-co .dl { font-weight: 600; color: #fff; }
 .fkbf-co .dl { display: block; margin-top: 6px; font-size: 12px; }
 .fkbf-stk .end { position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); padding: 5px 12px; border-radius: 999px; background: #fcd34d; color: #111827; font: 700 11.5px/1 'Outfit', 'Open Sans', Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 4px 10px rgba(17, 24, 39, .25); }
-.fika-banner .fika-ticker b.fkbf-tk { color: #fcd34d; font-weight: 700; }
+.fika-banner.fkbf-bn-on { position: relative !important; }
+.fika-banner .fkbf-bn { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); padding: 0 12px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .6s ease; pointer-events: none; }
+.fika-banner .fkbf-bn.on { opacity: 1; }
+.fika-banner .fkbf-bn b { color: #fcd34d; font-weight: 700; }
+.fika-banner .fika-ticker.fkbf-hide { visibility: hidden; }
 @media (max-width: 760px) { .fkbf-stk .end { font-size: 9px; padding: 4px 9px; bottom: -9px; } }
 .mx-sum.fkbf-save { color: #1f9d55; font-weight: 700; }
 .fkbf-prev { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 100001; padding: 6px 12px; border-radius: 999px; background: #111827; color: #fcd34d; font: 600 12px/1.2 Arial, sans-serif; pointer-events: none; }
@@ -224,12 +230,22 @@ add_action( 'wp_footer', function () {
 		if (d === 1) return short ? 'Ends tomorrow' : 'Ends tomorrow at midnight';
 		return 'Ends ' + new Date(END + 'T12:00:00Z').toLocaleDateString('en-GB', short ? { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' } : { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).replace(',', '');
 	}
-	// the top strip of every page
+	// the top strip of every page (owner, 25 Nov 2026): the Black Friday line and the delivery line take turns. The
+	// Black Friday line fades in, in the middle, for 5 s; it fades out and the delivery line scrolls across once; when
+	// that has gone, the Black Friday line comes back.
 	function strip() {
-		var t = document.querySelector('.fika-banner .fika-ticker');
-		if (!t || t.querySelector('.fkbf-tk')) return;
-		var e = ends(false);
-		t.insertAdjacentHTML('afterbegin', '<b class="fkbf-tk">Black Friday: up to 20% off</b>' + (e ? ' &middot; ' + e : '') + ' &middot; ');
+		var bn = document.querySelector('.fika-banner'), t = bn ? bn.querySelector('.fika-ticker') : null;
+		if (!t || bn.querySelector('.fkbf-bn')) return;
+		var e = ends(window.innerWidth < 700);
+		var m = document.createElement('span');
+		m.className = 'fkbf-bn'; m.setAttribute('aria-live', 'off');
+		m.innerHTML = '<b>Black Friday: up to 20% off</b>' + (e ? ' &middot; ' + e : '');
+		bn.classList.add('fkbf-bn-on'); bn.appendChild(m);
+		var timer = null;
+		function deal() { t.style.animation = 'none'; t.classList.add('fkbf-hide'); m.classList.add('on'); clearTimeout(timer); timer = setTimeout(delivery, 5000); }
+		function delivery() { m.classList.remove('on'); timer = setTimeout(function () { t.style.animation = ''; void t.offsetWidth; t.classList.remove('fkbf-hide'); }, 650); }
+		t.addEventListener('animationiteration', deal); // one pass of the delivery line is over (it is off screen then)
+		deal();
 	}
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', strip); else strip();
 	function grams() {
