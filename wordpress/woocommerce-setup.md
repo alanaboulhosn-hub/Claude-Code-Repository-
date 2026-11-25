@@ -3060,3 +3060,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   in the browser, @example.com, emails blocked by a temporary snippet (trashed after). #1774 600 g: $16.80 - BF 10%
   $1.68 + Beirut $5.00 = $20.12; #1775 1 kg: $28.00 - BF 20% $5.60 + $5.00 = $27.40. Both: cash on delivery,
   "Meta: test order, purchase not sent", nothing to RT. Both deleted, saved bags of test addresses removed.
+- 25 Nov, owner: end date moved to Tuesday 1 December (FIKA_BF_ENDS 2026-12-01, live). Top strip: the Black Friday
+  line and the delivery line take turns (deal line fades in for 5 s, fades out, delivery line scrolls across once,
+  repeat), live at the owner's word. Checked live on home, Mix your own, Ready Mix, About us and the 404, phone and
+  computer ("Ends Tue 1 Dec" on phones, "Ends Tuesday 1 December" on computers); no page errors; site check OK.
