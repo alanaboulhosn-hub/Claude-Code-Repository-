@@ -23,7 +23,8 @@
  *   text on a computer (under the text on Mix your own and Ready Mix, so the photo stays clear; on the right on About us),
  *   smaller in the bottom-right corner on a phone; on Mix your own it scrolls down to the sweets.
  * - The home page hero carries an "Up to 20% off" sticker ("10% on everything / 20% from 1 kg" under it) linking to Mix your own.
- * - End date (owner, 24 Nov 2026: show when the deal ends): FIKA_BF_ENDS, the deal's last day (Beirut). Shown on the
+ * - End date (owner, 24 Nov 2026: show when the deal ends; moved to Tuesday 1 December on 25 Nov, to catch the
+ *   month-end paydays): FIKA_BF_ENDS, the deal's last day (Beirut). Shown on the
  *   top strip of every page ("Black Friday: up to 20% off · Ends Sunday 29 November"), under the home page sticker, in
  *   the bag's Black Friday box and in the checkout note; "Ends tomorrow" / "Ends tonight" on the last two days (worked
  *   out in the browser, so cached pages stay right). Empty = no end date shown. It does not switch the deal off.
@@ -34,7 +35,7 @@
  */
 
 if ( ! defined( 'FIKA_BF_ENDS' ) ) {
-	define( 'FIKA_BF_ENDS', '2026-11-29' ); // the deal's last day, Beirut time ('' = no end date shown)
+	define( 'FIKA_BF_ENDS', '2026-12-01' ); // the deal's last day, Beirut time ('' = no end date shown)
 }
 if ( ! defined( 'FIKA_BF_PREVIEW_KEY' ) ) {
 	define( 'FIKA_BF_PREVIEW_KEY', 'bf7c41e9a2' );
