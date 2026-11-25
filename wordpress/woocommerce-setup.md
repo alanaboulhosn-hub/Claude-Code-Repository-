@@ -3050,3 +3050,5 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   phones (1920 px, 226 KB): replaced by a 1170 px copy (media 1913, 95 KB, wordpress/pages/media); page 41 live = git.
   Home page on a phone, slow 4G: main picture 4.9 s -> 2.7 s first visit, 2.2 s repeat; normal 4G 1.8 s -> 0.8 s.
   Mix your own (ad landing page): 0.8 s on 4G, 1.5 s on slow 4G. Site check OK. Old media 455 left in place (unused).
+- Bag: green "You save with Black Friday -$x" row above the Total (owner, 25 Nov), live at the owner's word; checked on
+  phone and computer (600 g -$1.68 / $15.12, 1 kg -$5.60 / $22.40, row gone when the bag is emptied), site check OK.
