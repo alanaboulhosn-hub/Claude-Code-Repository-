@@ -3081,3 +3081,7 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   the counter, they show as TEST-<id>. Tested live: TEST-1930, counter 1778 before and after, deleted. Site check OK.
 - #1777 not linked to RT: RT's API timed out (25 s, no answer) at 13:54 and on the retry at 14:04; nothing came back
   from RT (no unmatched parcel). Owner to check the RT dashboard for a parcel before pressing "Send to RT now".
+- 25 Nov, owner: Swedish Fish (product 100) taken off the shop: catalog visibility hidden + out of stock (the shop's
+  way for removed candies; past orders and reports keep it). Checked: not on the home page, Mix your own or in search
+  (Sour Swedish Fish stays); a bag that still held it drops it quietly and checks out with the rest; Mix your own
+  says 25 sweets (All 25, Sweet 12, Sour 13); site check OK 48/48. To bring it back: visible + in stock.
