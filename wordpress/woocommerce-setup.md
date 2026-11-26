@@ -3103,3 +3103,11 @@ Found on the way: the admin customer list (fika_totals, fika_order_grams) counts
   BUBS Banana Toffee Ovals + 200 g BUBS Wild Berry Pomegranate Oval, Black Friday 10%: $11.20 - $1.12 + $5.00 =
   $15.08 (was $7.52). Temporary route trashed after, no emails. Her guest orders join Fika Club (with these 400 g)
   if she signs up and confirms this email. Owner to change the RT cash amount (RTL75792210).
+
+### KPIs: aMER, CAC and LTGP : CAC (26 Nov 2026)
+Snippet 303 (fika-kpis.php) adds three cards and an "Ads" table to WP Admin > Fika dashboard > KPIs. The owner types
+the ad spend for each week (Monday to Sunday, last 12 weeks) and it is saved in option fika_kpi_ad_spend
+(week "2026-W48" => $). Only the weeks that have spend count: aMER = new customers' first-order sweets (no delivery) /
+spend; CAC = spend / new customers; LTGP = lifetime sweets minus grams x landing cost per customer, for customers whose
+first order is 60+ days old (LTGP was $10.09 over 300 customers on 26 Nov). These ignore the page filters.
+The snippet only runs in WP Admin, so a REST preview route has to eval it first.

@@ -13,7 +13,13 @@
  * - Filters (apply to every figure): delivery area, account or guest, how they found us (first order's source),
  *   phone or computer, first order size, first-order months from / to. The site does not ask for age or gender, so
  *   those cannot be shown.
- * - Figures are worked out from the orders and kept for 10 minutes ("Refresh" recounts). Read-only: changes nothing.
+ * - Ads (owner, 26 Nov 2026): weekly ad spend typed in on this page (option fika_kpi_ad_spend, week => $; weeks are
+ *   Monday to Sunday, Beirut time). From it: aMER = first orders' sweets (no delivery) of new customers that week /
+ *   ad spend; CAC = ad spend / new customers; LTGP:CAC = lifetime gross profit per customer (sweets - landing cost of
+ *   the grams, customers whose first order is 60+ days old, so the figure has had time to grow) / CAC. These three use
+ *   every customer (the filters above do not apply: spend cannot be split by group).
+ * - Figures are worked out from the orders and kept for 10 minutes ("Refresh" recounts). Only the ad spend table saves
+ *   anything (staff only); nothing else is changed.
  * Installed with the Code Snippets plugin. Source: wordpress/snippets/fika-kpis.php
  */
 
@@ -235,6 +241,47 @@ if ( ! function_exists( 'fika_kpi_rows' ) ) {
 	}
 
 	// what the filter menus offer (from all customers, before filtering)
+	// ads: aMER, CAC and LTGP:CAC from the weekly ad spend (every customer, no filters)
+	function fika_kpi_acq( $rows, $spend, $land, $now ) {
+		$wk  = function ( $ts ) { return wp_date( 'o-\\WW', $ts ); };
+		$cus = array();
+		foreach ( $rows as $r ) {
+			$cus[ fika_kpi_customer_key( $r ) ][] = $r;
+		}
+		$weeks = array();
+		for ( $i = 11; $i >= 0; $i-- ) {
+			$weeks[ $wk( $now - $i * WEEK_IN_SECONDS ) ] = array( 'spend' => 0.0, 'new' => 0, 'rev' => 0.0, 'set' => false );
+		}
+		foreach ( $spend as $w => $v ) {
+			if ( isset( $weeks[ $w ] ) ) {
+				$weeks[ $w ]['spend'] = (float) $v;
+				$weeks[ $w ]['set']   = true;
+			}
+		}
+		$gp = 0.0; $n60 = 0;
+		foreach ( $cus as $orders ) {
+			usort( $orders, function ( $a, $b ) { return $a['ts'] <=> $b['ts']; } );
+			$f0 = $orders[0]; $w = $wk( $f0['ts'] );
+			if ( isset( $weeks[ $w ] ) ) {
+				$weeks[ $w ]['new']++;
+				$weeks[ $w ]['rev'] += $f0['sw'];
+			}
+			if ( $now - $f0['ts'] >= 60 * DAY_IN_SECONDS ) {
+				$n60++;
+				$gp += array_sum( array_column( $orders, 'sw' ) ) - array_sum( array_column( $orders, 'g' ) ) / 1000 * $land;
+			}
+		}
+		$sp = 0.0; $nw = 0; $rv = 0.0;
+		foreach ( $weeks as $w ) {
+			if ( $w['set'] && $w['spend'] > 0 ) {
+				$sp += $w['spend']; $nw += $w['new']; $rv += $w['rev'];
+			}
+		}
+		$cac  = $nw ? $sp / $nw : 0;
+		$ltgp = $n60 ? $gp / $n60 : 0;
+		return array( 'weeks' => $weeks, 'spend' => $sp, 'new' => $nw, 'rev' => $rv, 'amer' => $sp > 0 ? $rv / $sp : 0, 'cac' => $cac, 'ltgp' => $ltgp, 'n60' => $n60, 'ratio' => $cac > 0 ? $ltgp / $cac : 0 );
+	}
+
 	function fika_kpi_options( $rows, $tz ) {
 		$o = array( 'src' => array(), 'months' => array() );
 		foreach ( $rows as $r ) {
@@ -246,7 +293,7 @@ if ( ! function_exists( 'fika_kpi_rows' ) ) {
 		return $o;
 	}
 
-	function fika_kpi_render( $k, $f, $opts, $base, $at ) {
+	function fika_kpi_render( $k, $f, $opts, $base, $at, $acq = null ) {
 		$pct   = function ( $a, $b ) { return $b ? round( 100 * $a / $b ) . '%' : '–'; };
 		$money = function ( $x ) { return '$' . number_format( (float) $x, 2 ); };
 		$mname = function ( $ym ) { $t = strtotime( $ym . '-01' ); return gmdate( 'M Y', $t ); };
@@ -333,7 +380,33 @@ if ( ! function_exists( 'fika_kpi_rows' ) ) {
 			<div class="kpi"><span>New customers, 30 days</span><b><?php echo (int) $k['last30']['new']; ?></b><em><?php echo wp_kses_post( $delta( $k['last30']['new'], $k['prev30']['new'] ) ?: ( (int) $k['prev30']['new'] . ' the 30 days before' ) ); ?></em></div>
 			<div class="kpi"><span>Repeat rate</span><b><?php echo esc_html( $pct( $k['repeat'], $k['customers'] ) ); ?></b><em><?php echo (int) $k['repeat']; ?> customers with 2+ orders</em></div>
 			<div class="kpi"><span>Back within 60 days</span><b><?php echo esc_html( $pct( $k['within'][60]['b'] ?? 0, $k['within'][60]['n'] ?? 0 ) ); ?></b><em>of <?php echo (int) ( $k['within'][60]['n'] ?? 0 ); ?> customers whose first order is 60+ days old</em></div>
+			<?php if ( $acq ) : ?>
+			<div class="kpi"><span>aMER (ads)</span><b><?php echo esc_html( $acq['spend'] > 0 ? number_format( $acq['amer'], 1 ) : '–' ); ?></b><em><?php echo $acq['spend'] > 0 ? esc_html( $money( $acq['rev'] ) . ' first orders / ' . $money( $acq['spend'] ) . ' ad spend' ) : 'type the weekly ad spend below'; ?></em></div>
+			<div class="kpi"><span>CAC</span><b><?php echo esc_html( $acq['new'] && $acq['spend'] > 0 ? $money( $acq['cac'] ) : '–' ); ?></b><em><?php echo esc_html( $acq['spend'] > 0 ? $money( $acq['spend'] ) . ' / ' . (int) $acq['new'] . ' new customers' : 'ad spend per new customer' ); ?></em></div>
+			<div class="kpi"><span>LTGP : CAC</span><b><?php echo esc_html( $acq['ratio'] > 0 ? number_format( $acq['ratio'], 1 ) . ' : 1' : '–' ); ?></b><em><?php echo esc_html( $money( $acq['ltgp'] ) . ' gross profit per customer (' . (int) $acq['n60'] . ' customers, 60+ days)' ); ?></em></div>
+			<?php endif; ?>
 		</div>
+
+		<?php if ( $acq ) : ?>
+		<div class="box w12">
+			<h2>Ads: aMER, CAC and LTGP : CAC</h2>
+			<p class="sub">Type what was spent on ads each week (Monday to Sunday, all platforms), then Save. aMER = new customers' first orders (sweets, no delivery) / ad spend. CAC = ad spend / new customers. LTGP = gross profit per customer over their life so far (sweets minus the landing cost of the grams, customers whose first order is 60+ days old); LTGP : CAC above 3 : 1 is healthy. Every customer counts here: the filters above do not apply.</p>
+			<form method="post">
+				<?php wp_nonce_field( 'fika_kpi_spend' ); ?>
+				<table><tr><th>Week (Mon to Sun)</th><th class="n">Ad spend</th><th class="n">New customers</th><th class="n">Their first orders</th><th class="n">aMER</th><th class="n">CAC</th></tr>
+				<?php foreach ( array_reverse( $acq['weeks'], true ) as $w => $v ) :
+					$mon = strtotime( str_replace( '-W', 'W', $w ) . '1' ); ?>
+					<tr><td><?php echo esc_html( wp_date( 'j M', $mon ) . ' to ' . wp_date( 'j M', $mon + 6 * DAY_IN_SECONDS ) ); ?></td>
+					<td class="n">$ <input type="number" step="0.01" min="0" name="fika_ad_spend[<?php echo esc_attr( $w ); ?>]" value="<?php echo esc_attr( $v['set'] ? $v['spend'] : '' ); ?>" style="width:90px"></td>
+					<td class="n"><?php echo (int) $v['new']; ?></td><td class="n"><?php echo esc_html( $money( $v['rev'] ) ); ?></td>
+					<td class="n"><?php echo esc_html( $v['spend'] > 0 ? number_format( $v['rev'] / $v['spend'], 1 ) : '–' ); ?></td>
+					<td class="n"><?php echo esc_html( $v['spend'] > 0 && $v['new'] ? $money( $v['spend'] / $v['new'] ) : '–' ); ?></td></tr>
+				<?php endforeach; ?>
+				</table>
+				<p><button class="button button-primary">Save ad spend</button> <span class="muted">Not every new customer comes from the ads (posts, friends, the bio link): aMER and CAC are blended. Gross profit leaves out packaging, delivery costs and rewards.</span></p>
+			</form>
+		</div>
+		<?php endif; ?>
 
 		<div class="box w8">
 			<h2>Month by month</h2>
@@ -430,7 +503,25 @@ add_action( 'admin_menu', function () {
 		$at   = get_option( '_transient_timeout_fika_kpi_rows' ) ? (int) get_option( '_transient_timeout_fika_kpi_rows' ) - 10 * MINUTE_IN_SECONDS : time();
 		$tz   = function ( $fmt, $ts ) { return wp_date( $fmt, $ts ); };
 		$land = (float) get_option( 'fika_landing_cost', 16 );
+		// the weekly ad spend table (staff only, nonce checked)
+		$spend = get_option( 'fika_kpi_ad_spend', array() );
+		$spend = is_array( $spend ) ? $spend : array();
+		if ( isset( $_POST['fika_ad_spend'], $_POST['_wpnonce'] ) && is_array( $_POST['fika_ad_spend'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'fika_kpi_spend' ) ) {
+			foreach ( wp_unslash( $_POST['fika_ad_spend'] ) as $w => $v ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+				if ( ! preg_match( '/^\d{4}-W\d{2}$/', (string) $w ) ) {
+					continue;
+				}
+				if ( '' === trim( (string) $v ) ) {
+					unset( $spend[ $w ] );
+				} else {
+					$spend[ $w ] = max( 0, round( (float) $v, 2 ) );
+				}
+			}
+			update_option( 'fika_kpi_ad_spend', $spend, false );
+			echo '<div class="notice notice-success"><p>Ad spend saved.</p></div>';
+		}
 		$k    = fika_kpi_compute( $rows, $f, time(), $land, $tz );
-		echo fika_kpi_render( $k, $f, fika_kpi_options( $rows, $tz ), admin_url( 'admin.php?page=fika-kpis' ), $at ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside
+		$acq  = fika_kpi_acq( $rows, $spend, $land, time() );
+		echo fika_kpi_render( $k, $f, fika_kpi_options( $rows, $tz ), admin_url( 'admin.php?page=fika-kpis' ), $at, $acq ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside
 	} );
 }, 20 );
