@@ -3111,3 +3111,7 @@ the ad spend for each week (Monday to Sunday, last 12 weeks) and it is saved in 
 spend; CAC = spend / new customers; LTGP = lifetime sweets minus grams x landing cost per customer, for customers whose
 first order is 60+ days old (LTGP was $10.09 over 300 customers on 26 Nov). These ignore the page filters.
 The snippet only runs in WP Admin, so a REST preview route has to eval it first.
+- 27 Nov, owner: BUBS Fruity Pear Ovals (product 123) taken off the shop the same way: catalog visibility hidden + out
+  of stock. Checked: not on the home page, Mix your own (All 24), Ready Mix or search; site check OK 48/48. Order #1757
+  (Nadine Rayess) still holds 1.1 kg of it: the owner is deciding the change to 2 kg of each (not saved yet).
+  To bring it back: visible + in stock.
