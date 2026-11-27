@@ -3115,3 +3115,6 @@ The snippet only runs in WP Admin, so a REST preview route has to eval it first.
   of stock. Checked: not on the home page, Mix your own (All 24), Ready Mix or search; site check OK 48/48. Order #1757
   (Nadine Rayess) still holds 1.1 kg of it: the owner is deciding the change to 2 kg of each (not saved yet).
   To bring it back: visible + in stock.
+- 27 Nov, owner: Fizzy Cola (product 90) taken off the shop the same way (hidden + out of stock; BUBS Cola Skull 124
+  stays). Checked: gone from home, Mix your own (All 23), Ready Mix and search; site check OK 48/48. Order #1757 also
+  holds 1.1 kg of it.
